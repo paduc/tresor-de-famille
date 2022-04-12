@@ -1,0 +1,13 @@
+version: '3'
+
+services:
+  db:
+    image: postgres:13
+    environment:
+      - POSTGRES_HOST_AUTH_METHOD=trust
+      - POSTGRES_USER=admin
+      - POSTGRES_DB=tdf
+    restart: always
+    container_name: tdf_db_dev
+    ports:
+      - 5434:5432
