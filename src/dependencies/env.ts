@@ -7,6 +7,6 @@ const throwIfUndefined = (variableName: string) => {
   return value
 }
 
-const AUTHN = process.env.AUTHN
+export const AUTHN = process.env.AUTHN
 
 export const SEED = process.env.SEED === '1'

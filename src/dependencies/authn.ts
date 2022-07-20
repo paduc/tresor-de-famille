@@ -1,24 +1,24 @@
 import { Express, RequestHandler } from 'express'
-import { publish } from './eventStore'
+import { AUTHN } from './env'
 import { addFakeAuthRoutes } from './fakeAuth/addFakeAuthRoutes'
-import { fakeProtect } from './fakeAuth/fakeProtect'
-import { isFauxUtilisateurIdAvailable } from './fakeAuth/isFauxUtilisateurIdAvailable.query'
-import { FauxUtilisateurInscrit } from '../events/FauxUtilisateurInscrit'
+import { addPasswordAuthRoutes } from './passwordAuth/addPasswordAuthRoutes'
 
 export const registerAuth = (app: Express) => {
-  // For demo only
-  addFakeAuthRoutes(app)
+  if (AUTHN === 'password') {
+    addPasswordAuthRoutes(app)
+  }
+
+  if (AUTHN === 'fake') {
+    // For demo only
+    addFakeAuthRoutes(app)
+  }
 }
 
 export const requireAuth = (): RequestHandler => {
-  return fakeProtect
-}
-
-export const createUserCredentials = (args: { userId: string; nom: string }) => {
-  const { userId, nom } = args
-  return publish(FauxUtilisateurInscrit({ userId, nom }))
-}
-
-export const isUserIdAvailable = async (userId: string) => {
-  return isFauxUtilisateurIdAvailable(userId)
+  return (request, response, next) => {
+    if (!request.session.user) {
+      return response.redirect(`/login.html?redirectTo=${request.url}`)
+    }
+    next()
+  }
 }
