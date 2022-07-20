@@ -1,2 +1,1 @@
-export * from './demandes';
-export * from './tables';
+export * from './tables'
