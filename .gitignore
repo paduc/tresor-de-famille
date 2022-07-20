@@ -105,3 +105,5 @@ dist
 
 # Intellij project config files
 .idea/
+
+src/assets/style.css
