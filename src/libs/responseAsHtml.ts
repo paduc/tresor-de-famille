@@ -1,6 +1,7 @@
 import type { Response, Request } from 'express'
 import React from 'react'
 import ReactDOMServer from 'react-dom/server'
+import { LocationContext } from '../pages/_components/LocationContext'
 import { Session, SessionContext } from '../pages/_components/SessionContext'
 
 /**
@@ -18,5 +19,13 @@ export function responseAsHtml(request: Request, response: Response, element: JS
     ? { isLoggedIn: false }
     : { isLoggedIn: true, userName: request.session.user.name }
 
-  response.send(ReactDOMServer.renderToString(React.createElement(SessionContext.Provider, { value: session }, element)))
+  response.send(
+    ReactDOMServer.renderToString(
+      React.createElement(
+        LocationContext.Provider,
+        { value: request.url },
+        React.createElement(SessionContext.Provider, { value: session }, element)
+      )
+    )
+  )
 }

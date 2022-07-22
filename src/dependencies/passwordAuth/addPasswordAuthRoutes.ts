@@ -8,11 +8,12 @@ import bcrypt from 'bcryptjs'
 import { makeRegister } from './register'
 import { publish } from '../eventStore'
 import { parseZodErrors } from '../../libs/parseZodErrors'
+import { PASSWORD_SALT } from '../env'
 
 const login = makeLogin(bcrypt.compare)
 const register = makeRegister({
   publish: publish,
-  hashPassword: (password: string) => bcrypt.hash(password, 10),
+  hashPassword: (password: string) => bcrypt.hash(password, PASSWORD_SALT),
 })
 
 export const addPasswordAuthRoutes = (app: Express) => {
@@ -38,19 +39,20 @@ export const addPasswordAuthRoutes = (app: Express) => {
       request.session.user = { id: userId, name: email }
       response.redirect(redirectTo || '/')
     } catch (error) {
-      if (error instanceof ZodError) {
-        const { loginType, email, redirectTo } = request.body
-        return responseAsHtml(
-          request,
-          response,
-          ConnexionPage({
-            errors: parseZodErrors(error),
-            loginType,
-            email,
-            redirectTo,
-          })
-        )
-      }
+      const { loginType, email, redirectTo } = request.body
+      return responseAsHtml(
+        request,
+        response,
+        ConnexionPage({
+          errors:
+            error instanceof ZodError
+              ? parseZodErrors(error)
+              : { other: error instanceof Error ? error.message : 'Erreur inconnue' },
+          loginType,
+          email,
+          redirectTo,
+        })
+      )
     }
   })
 }

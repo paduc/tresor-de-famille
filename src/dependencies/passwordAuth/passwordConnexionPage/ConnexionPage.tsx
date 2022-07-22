@@ -8,7 +8,7 @@ type ConnexionPageProps = {
   loginType?: 'login' | 'register'
   email?: string
   redirectTo?: string
-  errors?: { password?: string; email?: string }
+  errors?: { password?: string; email?: string; other?: string }
 }
 export const ConnexionPage = ({ loginType = 'login', email, redirectTo, errors }: ConnexionPageProps) => {
   return (

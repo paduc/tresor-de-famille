@@ -24,8 +24,9 @@ export const addFakeAuthRoutes = (app: Express) => {
     if (!user) {
       return response.status(403)
     }
+    console.log('here')
 
-    request.session.user = { id: userId }
+    request.session.user = { id: userId, name: user.nom }
     response.redirect(redirectTo || '/')
   })
 }

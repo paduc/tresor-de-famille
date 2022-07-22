@@ -1,7 +1,7 @@
 import { postgres } from '../postgres'
 
 export const makeLogin =
-  (comparePassword: (passwordHash: string, password: string) => Promise<boolean>) =>
+  (comparePassword: (password: string, passwordHash: string) => Promise<boolean>) =>
   async (email: string, password: string): Promise<string> => {
     const { rows } = await postgres.query(
       "SELECT * FROM events WHERE type = 'UserRegisteredWithEmailAndPassword' AND payload->>'email'=$1 LIMIT 1",
@@ -12,7 +12,7 @@ export const makeLogin =
       throw new Error('Email unknown')
     }
 
-    const isCorrectPassword = await comparePassword(rows[0].payload.passwordHash, password)
+    const isCorrectPassword = await comparePassword(password, rows[0].payload.passwordHash)
 
     if (!isCorrectPassword) {
       throw new Error('Wrong password')

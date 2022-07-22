@@ -8,12 +8,13 @@ import { Logo } from '../../_components'
 import { AnnotationIcon, MenuAlt2Icon, PhotographIcon, PlusSmIcon, UserGroupIcon, XIcon } from '@heroicons/react/outline'
 
 import { Layout } from './Layout'
+import { LocationContext } from '../LocationContext'
 
 const sidebarNavigation = [
-  { name: 'Ma famille', href: '/a/personnes', icon: UserGroupIcon },
+  { name: 'Ma famille', href: '/personnes', icon: UserGroupIcon },
   // { name: 'All Files', href: '#', icon: ViewGridIcon },
-  { name: 'Photos', href: '/a/upload-image', icon: PhotographIcon },
-  { name: 'Anecdote', href: '/a/anecdote', icon: AnnotationIcon },
+  { name: 'Photos', href: '/pload-image', icon: PhotographIcon },
+  { name: 'Anecdote', href: '/anecdote', icon: AnnotationIcon },
   // { name: 'Albums', href: '#', icon: CollectionIcon },
   // { name: 'Settings', href: '#', icon: CogIcon },
 ]
@@ -28,6 +29,7 @@ export type AppLayoutProps = {
 
 export function AppLayout({ children }: AppLayoutProps) {
   const session = useContext(SessionContext)
+  const url = useContext(LocationContext)
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
@@ -47,7 +49,7 @@ export function AppLayout({ children }: AppLayoutProps) {
             <div className='flex-shrink-0 flex items-center'></div>
             <div className='flex-1 mt-6 w-full px-2 space-y-1'>
               {sidebarNavigation.map((item) => {
-                const isCurrent = location.pathname.startsWith(item.href)
+                const isCurrent = url.startsWith(item.href)
                 return (
                   <a
                     key={item.name}
@@ -120,7 +122,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                     <nav className='h-full flex flex-col'>
                       <div className='space-y-1'>
                         {sidebarNavigation.map((item) => {
-                          const isCurrent = location.pathname.startsWith(item.href)
+                          const isCurrent = url.startsWith(item.href)
                           return (
                             <a
                               key={item.name}
