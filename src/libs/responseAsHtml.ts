@@ -1,7 +1,7 @@
-import type { Response, Request } from 'express';
-import React from 'react';
-import ReactDOMServer from 'react-dom/server';
-import { SessionContext } from '../pages/_components/SessionContext';
+import type { Response, Request } from 'express'
+import React from 'react'
+import ReactDOMServer from 'react-dom/server'
+import { Session, SessionContext } from '../pages/_components/SessionContext'
 
 /**
  * Call ReactDOMServer.renderToString on the element and send the response
@@ -11,12 +11,12 @@ import { SessionContext } from '../pages/_components/SessionContext';
  */
 export function responseAsHtml(request: Request, response: Response, element: JSX.Element) {
   if (element === null) {
-    return;
+    return
   }
 
-  response.send(
-    ReactDOMServer.renderToString(
-      React.createElement(SessionContext.Provider, { value: { isLoggedIn: !!request.session.user } }, element)
-    )
-  );
+  const session: Session = !request.session.user
+    ? { isLoggedIn: false }
+    : { isLoggedIn: true, userName: request.session.user.name }
+
+  response.send(ReactDOMServer.renderToString(React.createElement(SessionContext.Provider, { value: session }, element)))
 }

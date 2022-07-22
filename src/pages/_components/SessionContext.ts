@@ -1,3 +1,12 @@
-import React from 'react';
+import React from 'react'
 
-export const SessionContext = React.createContext<{ isLoggedIn: boolean }>({ isLoggedIn: false });
+export type Session =
+  | {
+      isLoggedIn: false
+    }
+  | {
+      isLoggedIn: true
+      userName: string
+    }
+
+export const SessionContext = React.createContext<Session>({ isLoggedIn: false })

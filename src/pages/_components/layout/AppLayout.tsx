@@ -5,18 +5,7 @@ import { Dialog, Menu, Transition } from '@headlessui/react'
 import { SearchIcon } from '@heroicons/react/solid'
 import { Logo } from '../../_components'
 
-import {
-  AnnotationIcon,
-  CogIcon,
-  CollectionIcon,
-  HomeIcon,
-  MenuAlt2Icon,
-  PhotographIcon,
-  PlusSmIcon,
-  UserGroupIcon,
-  ViewGridIcon,
-  XIcon,
-} from '@heroicons/react/outline'
+import { AnnotationIcon, MenuAlt2Icon, PhotographIcon, PlusSmIcon, UserGroupIcon, XIcon } from '@heroicons/react/outline'
 
 import { Layout } from './Layout'
 
@@ -38,11 +27,13 @@ export type AppLayoutProps = {
 }
 
 export function AppLayout({ children }: AppLayoutProps) {
-  const { isLoggedIn } = useContext(SessionContext)
-
-  const username = 'Jacques'
+  const session = useContext(SessionContext)
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+
+  if (!session.isLoggedIn) {
+    return <p>Session not available</p>
+  }
 
   return (
     <Layout>
@@ -199,7 +190,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                     <div>
                       <Menu.Button className='bg-white rounded-full flex text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
                         <span className='sr-only'>Ouvrir le menu utilisateur</span>
-                        {username}
+                        {session.userName}
                       </Menu.Button>
                     </div>
                     <Transition

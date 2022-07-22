@@ -35,7 +35,7 @@ export const addPasswordAuthRoutes = (app: Express) => {
 
       const userId = loginType === 'login' ? await login(email, password) : await register(email, password)
 
-      request.session.user = { id: userId }
+      request.session.user = { id: userId, name: email }
       response.redirect(redirectTo || '/')
     } catch (error) {
       if (error instanceof ZodError) {
