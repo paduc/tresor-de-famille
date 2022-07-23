@@ -6,7 +6,7 @@ const pageEntries = glob
   .sync('./src/**/*Page.tsx')
   .map((filePath) => {
     // TODO: filter only files with a call to hydrate
-    return { name: path.basename(filePath, 'Page.tsx'), path: filePath }
+    return { name: path.basename(filePath, '.tsx'), path: filePath }
   })
   .reduce(
     (entries, { name, path }) => ({
@@ -51,6 +51,6 @@ module.exports = {
   },
   output: {
     filename: '[name].js',
-    path: path.resolve(__dirname, 'src', 'assets', 'js'),
+    path: path.resolve(__dirname, 'dist', 'assets', 'js'),
   },
 }

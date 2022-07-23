@@ -1,6 +1,5 @@
 import c from 'classnames'
 import { XCircleIcon } from '@heroicons/react/solid'
-
 import * as React from 'react'
 import { Layout, Logo } from '../../../pages/_components'
 
@@ -70,6 +69,7 @@ export const ConnexionPage = ({ loginType = 'login', email, redirectTo, errors }
                     id='email-input'
                     name='email'
                     autoComplete='email'
+                    autoFocus
                     defaultValue={email}
                     aria-invalid={Boolean(errors?.email)}
                     aria-describedby={errors?.email ? 'email-error' : undefined}

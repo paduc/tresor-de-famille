@@ -1,4 +1,4 @@
-import { responseAsHtml } from '../../libs/responseAsHtml'
+import { responseAsHtml } from '../../libs/ssr/responseAsHtml'
 import { pageRouter } from '../pageRouter'
 import { HomePage } from './HomePage'
 import { requireAuth } from '../../dependencies/authn'
