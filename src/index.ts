@@ -65,7 +65,7 @@ const upload = multer({
 })
 
 app.post(
-  '/upload-gedcom',
+  '/importGedcom.html',
   bodyParser.urlencoded({
     extended: false,
     limit: '10mb',
