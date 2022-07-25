@@ -1,1 +1,2 @@
-export * from './actionsRouter';
+export * from './actionsRouter'
+export * from './déconnecterUtilisateur'
