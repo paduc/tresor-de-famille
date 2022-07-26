@@ -1,5 +1,4 @@
-import { BaseDomainEvent, makeDomainEvent } from '../libs/eventSourcing/types/DomainEvent';
-
+import { BaseDomainEvent, makeDomainEvent } from '../libs/eventSourcing/types/DomainEvent'
 
 type Relationship = {
   parentId: string
@@ -9,10 +8,15 @@ type Relationship = {
 type Person = {
   id: string
   name: string
+  bornOn: string
+  bornIn: string
+  passedOn: string
+  passedIn: string
+  sex: string
 }
 
-export type gedcomImport = BaseDomainEvent & {
-  type: 'gedcomImport'
+export type GedcomImported = BaseDomainEvent & {
+  type: 'GedcomImported'
   payload: {
     rawGedcom: string
     relationships: Relationship[]
@@ -20,10 +24,8 @@ export type gedcomImport = BaseDomainEvent & {
   }
 }
 
-export const gedcomImport = (
-  payload: gedcomImport['payload']
-): gedcomImport =>
+export const GedcomImported = (payload: GedcomImported['payload']): GedcomImported =>
   makeDomainEvent({
-    type: 'gedcomImport',
+    type: 'GedcomImported',
     payload,
   })

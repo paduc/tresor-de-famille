@@ -1,14 +1,12 @@
-
 import { unlink, readFile } from 'fs/promises'
 import { parse as parseGedcom } from 'parse-gedcom'
 import { v4 as uuid } from 'uuid'
-import { gedcomImport } from '../events/GedcomImported';
+import { GedcomImported } from '../events/GedcomImported'
 
 import { publish } from '../dependencies/eventStore'
-import { actionsRouter } from './actionsRouter';
-import multer from 'multer';
-import bodyParser from 'body-parser';
-
+import { actionsRouter } from './actionsRouter'
+import multer from 'multer'
+import bodyParser from 'body-parser'
 
 
 
@@ -22,138 +20,130 @@ const upload = multer({
   limits: { fileSize: FILE_SIZE_LIMIT_MB * 1024 * 1024 /* MB */ },
 })
 
+actionsRouter.post(
+  '/importGedcom.html',
+  bodyParser.urlencoded({
+    extended: false,
+    limit: '10mb',
+  }),
 
-actionsRouter.post('/importGedcom.html', bodyParser.urlencoded({
-  extended: false,
-  limit: '10mb',
-}),
+  upload.single('file-upload'),
+  async (request, response) => {
+    const { file } = request
 
-upload.single('file-upload'), async(request, response)=>{
-
-  const { file } = request;
-  
-
-  if (!file) {
-    response.redirect('/')
-    return
-  }
+    if (!file) {
+      response.redirect('/')
+      return
+    }
 
   const { originalname, mimetype, path, size } = file
 
-  try {
-    const fileContents = await readFile(path, 'utf8')
-    const rawContents = parseGedcom(fileContents).children
+    try {
+      const fileContents = await readFile(path, 'utf8')
+      const rawContents = parseGedcom(fileContents).children
 
-    
-    
+      const persons = rawContents.filter((item: any) => item.type === 'INDI').map(parsePerson)
 
-    const persons = rawContents.filter((item: any) => item.tag === 'INDI').map(parsePerson)
+      const relationships: RelationShip[] = rawContents
+        .filter((item: any) => item.type === 'FAM')
+        .map(parseFamily)
+        .reduce((allRelationships: any[], familyRelationships: any[]) => [...allRelationships, ...familyRelationships], [])
 
-    const relationships: RelationShip[] = rawContents
-      .filter((item: any) => item.tag === 'FAM')
-      .map(parseFamily)
-      .reduce(
-        (allRelationships: any[], familyRelationships: any[]) => [
-          ...allRelationships,
-          ...familyRelationships,
-        ],
-        []
-      )
-
-    // We need to give an id to each person
-    const personId: Record<string, string> = {}
-    persons.forEach((person: any) => {
-      person.id = uuid()
-      personId[person.gedcomId] = person.id
-    })
-
-    relationships.forEach((relationship) => {
-      relationship.parent = personId[relationship.parent]
-      relationship.child = personId[relationship.child]
-    })
-
-    const erroneousRels = relationships.filter(
-      (rel: { parent: any; child: any }) => !rel.parent || !rel.child
-    )
-
-    if (erroneousRels.length) {
-      console.log('Found erroneousRels', erroneousRels.length)
-      return response.status(400).send()
-    }
-
-    console.log('Found persons', persons.length, JSON.stringify(persons[0], null, 2))
-
-    console.log(
-      'Found family relationships',
-      relationships.length,
-      JSON.stringify(relationships[0], null, 2)
-    )
-
-    const uniqueness = new Set()
-    const uniqueRelationships = []
-    for (const relationship of relationships) {
-      const value = relationship.parent + relationship.child
-      if (!uniqueness.has(value)) {
-        uniqueRelationships.push(relationship)
-        uniqueness.add(value)
-      }
-    }
-
-    await publish(
-      gedcomImport({
-        rawGedcom: fileContents,
-        relationships: uniqueRelationships.map(({ parent, child }) => ({
-          parentId: parent,
-          childId: child,
-        })),
-        persons: persons.map(({ id, name }: any) => ({ id, name })),
+      // We need to give an id to each person
+      const personId: Record<string, string> = {}
+      persons.forEach((person: any) => {
+        person.id = uuid()
+        personId[person.gedcomId] = person.id
       })
-    )
-  } catch (error) {
-    console.log('Erreur lors du traitement du fichier gedcom', error)
-  } finally {
-    await unlink(path)
-    response.redirect('/importGedcom.html')
+
+      // replace gedcomId by uniqueId in relationships
+      relationships.forEach((relationship) => {
+        relationship.parent = personId[relationship.parent]
+        relationship.child = personId[relationship.child]
+      })
+
+      const erroneousRels = relationships.filter((rel: { parent: any; child: any }) => !rel.parent || !rel.child)
+
+      if (erroneousRels.length) {
+        console.log('Found erroneousRels', erroneousRels.length)
+        return response.status(400).send()
+      }
+
+      const uniqueness = new Set()
+
+      const uniqueRelationships = []
+      for (const relationship of relationships) {
+        const value = relationship.parent + relationship.child
+        if (!uniqueness.has(value)) {
+          uniqueRelationships.push(relationship)
+          uniqueness.add(value)
+        }
+      }
+
+      await publish(
+        GedcomImported({
+          rawGedcom: fileContents,
+          relationships: uniqueRelationships.map(({ parent, child }) => ({
+            parentId: parent,
+            childId: child,
+          })),
+          persons: persons.map(({ id, name, bornOn, bornIn, passedOn, passedIn, sex }: any) => ({
+            id,
+            name,
+            bornOn,
+            bornIn,
+            passedOn,
+            passedIn,
+            sex,
+          })),
+        })
+      )
+    } catch (error) {
+      console.log('Erreur lors du traitement du fichier gedcom', error)
+    } finally {
+      await unlink(path)
+      response.redirect('/importGedcom.html')
+    }
   }
-})
+)
 
 function parsePerson(personData: any) {
-  const person: any = { gedcomId: personData.pointer }
+  const person: any = { gedcomId: personData.data.xref_id }
 
-  const birthData = personData.tree.find((item: any) => item.tag === 'BIRT')
+  const birthData = personData.children.find((item: any) => item.type === 'BIRT')
   if (birthData) {
-    const birthDate = birthData.tree.find((item: any) => item.tag === 'DATE')
+    const birthDate = birthData.children.find((item: any) => item.type === 'DATE')
     if (birthDate) {
-      person.bornOn = birthDate.data
+      person.bornOn = birthDate.value
     }
 
-    const birthPlace = birthData.tree.find((item: any) => item.tag === 'PLAC')
+    const birthPlace = birthData.children.find((item: any) => item.type === 'PLAC')
     if (birthPlace) {
-      person.bornIn = birthPlace.data
+      person.bornIn = birthPlace.value
     }
   }
 
-  const deathData = personData.tree.find((item: any) => item.tag === 'DEAT')
+  const deathData = personData.children.find((item: any) => item.type === 'DEAT')
   if (deathData) {
-    const deathDate = deathData.tree.find((item: any) => item.tag === 'DATE')
+    const deathDate = deathData.children.find((item: any) => item.type === 'DATE')
     if (deathDate) {
-      person.passedOn = deathDate.data
+      person.passedOn = deathDate.value
     }
 
-    const deathPlace = deathData.tree.find((item: any) => item.tag === 'PLAC')
+    const deathPlace = deathData.children.find((item: any) => item.type === 'PLAC')
     if (deathPlace) {
-      person.passedIn = deathPlace.data
+      person.passedIn = deathPlace.value
     }
   }
 
-  const sexData = personData.tree.find((item: any) => item.tag === 'SEX')
+  const sexData = personData.children.find((item: any) => item.type === 'SEX')
   if (sexData) {
-    person.sex = sexData.data
+    person.sex = sexData.value
   }
 
-  const nameData = personData.tree.find((item: any) => item.tag === 'NAME')
+  const nameData = personData.children.find((item: any) => item.type === 'NAME')
   if (nameData) {
-    person.name = nameData.data.replace(/\//g, '')
+    person.name = nameData.value.replace(/\//g, '')
   } else {
     console.log(`ERROR: person ${person.gedcomId} does not have a name`)
   }
@@ -162,18 +152,14 @@ function parsePerson(personData: any) {
 }
 
 function parseFamily(familyData: any) {
-  const parents = familyData.tree
-    .filter((item: any) => item.tag === 'HUSB' || item.tag === 'WIFE')
-    .map((item: any) => item.data)
+  const parents = familyData.children
+    .filter((item: any) => item.type === 'HUSB' || item.type === 'WIFE')
+    .map((item: any) => item.data.pointer)
 
-  const children: any[] = familyData.tree
-    .filter((item: any) => item.tag === 'CHIL')
-    .map((item: any) => item.data)
+  const children: any[] = familyData.children.filter((item: any) => item.type === 'CHIL').map((item: any) => item.data.pointer)
 
   return children.reduce<{ parent: any; child: any }[]>(
     (relations, child) => [...relations, ...parents.map((parent: any) => ({ parent, child }))],
     []
   )
 }
-
-
