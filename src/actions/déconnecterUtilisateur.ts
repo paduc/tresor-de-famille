@@ -1,6 +1,6 @@
-import { pageRouter } from '../pages'
+import { actionsRouter } from './actionsRouter';
 
-pageRouter.post('/logout', async (request, response) => {
+actionsRouter.post('/logout', async (request, response) => {
   if (request.session) {
     request.session.destroy((error) => {
       if (error) {

@@ -1,17 +1,34 @@
-import { pageRouter } from '../pages';
+
 import { unlink, readFile } from 'fs/promises'
 import { parse as parseGedcom } from 'parse-gedcom'
 import { v4 as uuid } from 'uuid'
 import { gedcomImport } from '../events/GedcomImported';
 
 import { publish } from '../dependencies/eventStore'
+import { actionsRouter } from './actionsRouter';
+import multer from 'multer';
+import bodyParser from 'body-parser';
+
 
 
 
 
 type RelationShip = { parent: any; child: any }
 
-export const uploadedGedcom = pageRouter.post('/importGedcom.html', async(request, response)=>{
+const FILE_SIZE_LIMIT_MB = 50
+
+const upload = multer({
+  dest: 'temp',
+  limits: { fileSize: FILE_SIZE_LIMIT_MB * 1024 * 1024 /* MB */ },
+})
+
+
+actionsRouter.post('/importGedcom.html', bodyParser.urlencoded({
+  extended: false,
+  limit: '10mb',
+}),
+
+upload.single('file-upload'), async(request, response)=>{
 
   const { file } = request;
   
@@ -25,7 +42,10 @@ export const uploadedGedcom = pageRouter.post('/importGedcom.html', async(reques
 
   try {
     const fileContents = await readFile(path, 'utf8')
-    const rawContents = parseGedcom(fileContents)
+    const rawContents = parseGedcom(fileContents).children
+
+    
+    
 
     const persons = rawContents.filter((item: any) => item.tag === 'INDI').map(parsePerson)
 
@@ -93,7 +113,7 @@ export const uploadedGedcom = pageRouter.post('/importGedcom.html', async(reques
     console.log('Erreur lors du traitement du fichier gedcom', error)
   } finally {
     await unlink(path)
-    response.redirect('/a/import-gedcom-success')
+    response.redirect('/importGedcom.html')
   }
 })
 

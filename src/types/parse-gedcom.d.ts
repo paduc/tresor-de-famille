@@ -1,1 +1,1 @@
-declare module 'parse-gedcom';
+declare module 'parse-gedcom'
