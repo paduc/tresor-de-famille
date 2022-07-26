@@ -9,13 +9,13 @@ const isServerContext = typeof window === 'undefined'
 
 export function withBrowserBundle<ComponentProps>(Component: (props: ComponentProps) => JSX.Element) {
   // This will be executed twice
-  // 1) On the server, for server-side rendering
-  // 2) On the browser, for client-side hydrating
 
   if (isServerContext) {
+    // 1) On the server, for server-side rendering
     return serverCode<ComponentProps>(Component)
   }
 
+  // 2) On the browser, for client-side hydrating
   return browserCode(Component)
 }
 
@@ -28,7 +28,8 @@ function serverCode<ComponentProps>(Component: (props: ComponentProps) => JSX.El
   const componentName = getComponentNameFromCallsite()
   return (props?: ComponentProps) => {
     // Call React.createElement to transform pure function to React Function Component
-    // this enables hooks
+    // this enables hooks (see https://stackoverflow.com/questions/65982665/react-17-0-1-invalid-hook-call-hooks-can-only-be-called-inside-of-the-body-of)
+
     return { ...React.createElement(Component, props), outerProps: props, componentName }
   }
 }

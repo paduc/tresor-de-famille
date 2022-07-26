@@ -1,11 +1,12 @@
 const glob = require('glob')
-const path = require('path')
+const path = require('node:path')
+const fs = require('node:fs')
 const webpack = require('webpack')
 
 const pageEntries = glob
   .sync('./src/**/*Page.tsx')
+  .filter(fileUsesHydration)
   .map((filePath) => {
-    // TODO: filter only files with a call to hydrate
     return { name: path.basename(filePath, '.tsx'), path: filePath }
   })
   .reduce(
@@ -19,7 +20,11 @@ const pageEntries = glob
     {}
   )
 
-console.log(pageEntries)
+function fileUsesHydration(filePath) {
+  const fileContents = fs.readFileSync(filePath, 'utf-8')
+
+  return fileContents.includes('withBrowserBundle(')
+}
 
 module.exports = {
   mode: process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'staging' ? 'production' : 'development',
