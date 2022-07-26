@@ -107,3 +107,4 @@ dist
 .idea/
 
 src/assets/style.css
+src/assets/js

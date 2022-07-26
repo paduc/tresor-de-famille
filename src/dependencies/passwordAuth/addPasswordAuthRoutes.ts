@@ -1,7 +1,7 @@
 import { Express } from 'express'
 import z, { ZodError } from 'zod'
 
-import { responseAsHtml } from '../../libs/responseAsHtml'
+import { responseAsHtml } from '../../libs/ssr/responseAsHtml'
 import { makeLogin } from './login'
 import { ConnexionPage } from './passwordConnexionPage'
 import bcrypt from 'bcryptjs'
