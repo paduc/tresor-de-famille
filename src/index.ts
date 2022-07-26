@@ -2,12 +2,16 @@ import express, { Express } from 'express';
 require('express-async-errors');
 import session from 'express-session';
 import path from 'node:path';
+import connectPgSimple from 'connect-pg-simple';
+
 import { tables } from './tables';
 import { sessionStore } from './dependencies/session';
 import { pageRouter } from './pages';
 import { actionsRouter } from './actions';
 import { registerAuth } from './dependencies/authn';
 import { subscribeAll } from './dependencies/eventStore';
+
+import { postgres } from './dependencies/postgres';
 
 const PORT: number = parseInt(process.env.PORT ?? '3000');
 
@@ -28,10 +32,14 @@ app.get('/ping', (_: express.Request, response: express.Response): void => {
 app.use(
   session({
     secret: 'super-secret',
-    store: sessionStore,
+    store: new connectPgSimple({ 
+      pool:  postgres, 
+      tableName : 'user_sessions' 
+    }),
     resave: false,
     proxy: true,
     saveUninitialized: false,
+    cookie: { maxAge: 30 * 24 * 60 * 60 * 1000 }
   })
 );
 
