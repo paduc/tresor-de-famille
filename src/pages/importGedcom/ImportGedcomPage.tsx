@@ -1,10 +1,17 @@
 import * as React from 'react'
 import { AppLayout } from '../_components/layout/AppLayout'
 
-export const ImportGedcomPage = () => {
+export type ImportGedcomPageProps = {
+  isGedcomUploaded?: boolean;
+}
+
+export const ImportGedcomPage = ({isGedcomUploaded}: ImportGedcomPageProps) => {
+
   return (
     <AppLayout>
-
+      {isGedcomUploaded && (
+        <div>  Ma future Alert pour m'avertir que j'ai bien upload mon fichier gedcom </div>
+      )}
       <div className="bg-white h-screen	">
         <div className="max-w-7xl mx-auto py-16 px-4 sm:py-24 sm:px-6 lg:px-8">
           <div className="text-center">
@@ -61,9 +68,9 @@ export const ImportGedcomPage = () => {
           </div>
           <div className='flex flex-1 items-center  justify-center'>
             <button
-              className='px-3 py-2 items-center	 border border-transparent shadow-xl text-sm leading-4 font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
+              className='px-3 py-2 items-center	 border border-transparent shadow-xl text-sm leading-4 font-medium rounded-md  text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
               <span className='flex flex-col items-center'> Je créer mon arbre manuellement  
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
                 </svg> 
               </span>

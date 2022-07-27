@@ -7,6 +7,8 @@ import { publish } from '../dependencies/eventStore'
 import { actionsRouter } from './actionsRouter'
 import multer from 'multer'
 import bodyParser from 'body-parser'
+import { responseAsHtml } from '../libs/ssr/responseAsHtml';
+import { ImportGedcomPage } from '../pages/importGedcom/ImportGedcomPage';
 
 
 
@@ -102,7 +104,10 @@ actionsRouter.post(
       console.log('Erreur lors du traitement du fichier gedcom', error)
     } finally {
       await unlink(path)
-      response.redirect('/importGedcom.html')
+      return responseAsHtml(request, response, ImportGedcomPage({
+        isGedcomUploaded: true,
+      }))
+      // response.redirect('/importGedcom.html')
     }
   }
 )
