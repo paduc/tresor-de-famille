@@ -2,7 +2,6 @@ import session from 'express-session';
 import connectPgSimple from 'connect-pg-simple';
 
  
-export const asessionStore = new session.MemoryStore();
+export const sessionStore = new session.MemoryStore();
 
-const sessionStore = connectPgSimple(asessionStore)
-
+export const pgSession = connectPgSimple(session)
