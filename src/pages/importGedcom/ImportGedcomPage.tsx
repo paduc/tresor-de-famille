@@ -1,25 +1,25 @@
 import * as React from 'react'
 import { AppLayout } from '../_components/layout/AppLayout'
+import { SuccessNotification } from '../_components/SuccessNotification'
+import { withBrowserBundle } from '../../libs/ssr'
 
 export type ImportGedcomPageProps = {
-  isGedcomUploaded?: boolean;
+  isGedcomUploaded?: boolean
 }
 
-export const ImportGedcomPage = ({isGedcomUploaded}: ImportGedcomPageProps) => {
-
+export const ImportGedcomPage = withBrowserBundle(({ isGedcomUploaded }: ImportGedcomPageProps) => {
   return (
     <AppLayout>
-      {isGedcomUploaded && (
-        <div>  Ma future Alert pour m'avertir que j'ai bien upload mon fichier gedcom </div>
-      )}
-      <div className="bg-white h-screen	">
-        <div className="max-w-7xl mx-auto py-16 px-4 sm:py-24 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <p className="mt-1 text-4xl font-extrabold text-gray-900 sm:text-5xl sm:tracking-tight lg:text-6xl">
-             C'est ici que tout commence.
+      {isGedcomUploaded && <SuccessNotification />}
+      <div className='bg-white h-screen	'>
+        <div className='max-w-7xl mx-auto py-16 px-4 sm:py-24 sm:px-6 lg:px-8'>
+          <div className='text-center'>
+            <p className='mt-1 text-4xl font-extrabold text-gray-900 sm:text-5xl sm:tracking-tight lg:text-6xl'>
+              C'est ici que tout commence.
             </p>
-            <p className="max-w-xl mt-5 mx-auto text-xl text-gray-500">
-             Partagez-nous un fichier <span className='italic'>.gedcom</span> ou commencer à construire votre arbre généalogique vous même, c'est à vous de choisir !
+            <p className='max-w-xl mt-5 mx-auto text-xl text-gray-500'>
+              Partagez-nous un fichier <span className='italic'>.gedcom</span> ou commencer à construire votre arbre
+              généalogique vous même, c'est à vous de choisir !
             </p>
           </div>
         </div>
@@ -58,21 +58,29 @@ export const ImportGedcomPage = ({isGedcomUploaded}: ImportGedcomPageProps) => {
                   <button
                     type='submit'
                     className=' flex align-middle  mt-3 px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
-                    <svg className="fill-current w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M13 8V2H7v6H2l8 8 8-8h-5zM0 18h20v2H0v-2z"/></svg>
+                    <svg className='fill-current w-4 h-4 mr-2' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'>
+                      <path d='M13 8V2H7v6H2l8 8 8-8h-5zM0 18h20v2H0v-2z' />
+                    </svg>
                     <span> Upload </span>
                   </button>
                 </div>
               </div>
-              
             </form>
           </div>
           <div className='flex flex-1 items-center  justify-center'>
-            <button
-              className='px-3 py-2 items-center	 border border-transparent shadow-xl text-sm leading-4 font-medium rounded-md  text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
-              <span className='flex flex-col items-center'> Je créer mon arbre manuellement  
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                </svg> 
+            <button className='px-3 py-2 items-center	 border border-transparent shadow-xl text-sm leading-4 font-medium rounded-md  text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
+              <span className='flex flex-col items-center'>
+                {' '}
+                Je créer mon arbre manuellement
+                <svg
+                  xmlns='http://www.w3.org/2000/svg'
+                  className='h-6 w-6'
+                  fill='none'
+                  viewBox='0 0 24 24'
+                  stroke='currentColor'
+                  strokeWidth='2'>
+                  <path strokeLinecap='round' strokeLinejoin='round' d='M13 7l5 5m0 0l-5 5m5-5H6' />
+                </svg>
               </span>
             </button>
           </div>
@@ -80,4 +88,4 @@ export const ImportGedcomPage = ({isGedcomUploaded}: ImportGedcomPageProps) => {
       </div>
     </AppLayout>
   )
-}
+})
