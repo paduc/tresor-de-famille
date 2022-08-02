@@ -7,11 +7,8 @@ import { publish } from '../dependencies/eventStore'
 import { actionsRouter } from './actionsRouter'
 import multer from 'multer'
 import bodyParser from 'body-parser'
-import { responseAsHtml } from '../libs/ssr/responseAsHtml';
-import { ImportGedcomPage } from '../pages/importGedcom/ImportGedcomPage';
-
-
-
+import { responseAsHtml } from '../libs/ssr/responseAsHtml'
+import { ImportGedcomSuccessPage } from '../pages/importGedcomSuccess/ImportGedcomSuccessPage'
 
 type RelationShip = { parent: any; child: any }
 
@@ -38,7 +35,7 @@ actionsRouter.post(
       return
     }
 
-  const { originalname, mimetype, path, size } = file
+    const { originalname, mimetype, path, size } = file
 
     try {
       const fileContents = await readFile(path, 'utf8')
@@ -104,10 +101,8 @@ actionsRouter.post(
       console.log('Erreur lors du traitement du fichier gedcom', error)
     } finally {
       await unlink(path)
-      return responseAsHtml(request, response, ImportGedcomPage({
-        isGedcomUploaded: true,
-      }))
-      // response.redirect('/importGedcom.html')
+      return response.redirect('/importGedcomSuccess.html')
+      /*  return responseAsHtml(request, response, ImportGedcomSuccessPage({ isGedcomUploaded: true })) */
     }
   }
 )

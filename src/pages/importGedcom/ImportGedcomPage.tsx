@@ -1,16 +1,9 @@
 import * as React from 'react'
 import { AppLayout } from '../_components/layout/AppLayout'
-import { SuccessNotification } from '../_components/SuccessNotification'
-import { withBrowserBundle } from '../../libs/ssr'
 
-export type ImportGedcomPageProps = {
-  isGedcomUploaded?: boolean
-}
-
-export const ImportGedcomPage = withBrowserBundle(({ isGedcomUploaded }: ImportGedcomPageProps) => {
+export const ImportGedcomPage = () => {
   return (
     <AppLayout>
-      {isGedcomUploaded && <SuccessNotification />}
       <div className='bg-white h-screen	'>
         <div className='max-w-7xl mx-auto py-16 px-4 sm:py-24 sm:px-6 lg:px-8'>
           <div className='text-center'>
@@ -88,4 +81,4 @@ export const ImportGedcomPage = withBrowserBundle(({ isGedcomUploaded }: ImportG
       </div>
     </AppLayout>
   )
-})
+}
