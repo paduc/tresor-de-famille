@@ -21,8 +21,8 @@ export const ImportGedcomSuccessPage = withBrowserBundle(({ gedcom }: ImportGedc
 
   const [personPerPage, setPersonPerPage] = React.useState(5)
   const [personFromGedcom, setPersonFromGedcom] = React.useState(persons.slice(0, personPerPage))
-  const [searchPersonInputValue, setSearchPersonInputValue] = React.useState('')
-  const [personSearched, setPersonSearched] = React.useState([])
+  const [searchQuery, setSearchQuery] = React.useState('')
+  const [searchResults, setSearchResults] = React.useState([])
 
   React.useEffect(() => {
     setPersonFromGedcom(persons.slice(0, personPerPage))
@@ -31,18 +31,19 @@ export const ImportGedcomSuccessPage = withBrowserBundle(({ gedcom }: ImportGedc
   const onClickSeeMoreButton = () => {
     setPersonPerPage(personPerPage + 5)
   }
+
   const searchPerson = () => {
-    const result = persons.filter((person) => person.name.includes(searchPersonInputValue))
+    const result = persons.filter((person) => person.name.includes(searchQuery))
 
     // @ts-ignore
-    result.length > 0 && setPersonSearched(result)
+    result.length > 0 && setSearchResults(result)
     // Create toast for error if result.length > 0 and let the current view of the list
   }
 
   const resetListOfPerson = () => {
     setPersonPerPage(5)
-    setPersonSearched([])
-    setSearchPersonInputValue('')
+    setSearchResults([])
+    setSearchQuery('')
   }
 
   return (
@@ -81,7 +82,7 @@ export const ImportGedcomSuccessPage = withBrowserBundle(({ gedcom }: ImportGedc
                     Mon nom
                   </label>
                   <input
-                    value={searchPersonInputValue}
+                    value={searchQuery}
                     type='text'
                     name='rechercher'
                     id='name'
@@ -90,20 +91,20 @@ export const ImportGedcomSuccessPage = withBrowserBundle(({ gedcom }: ImportGedc
                     autoCapitalize='off'
                     className='shadow-sm pl-10 focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md'
                     placeholder={firstPerson.name.substring(0, firstPerson.name.indexOf(' ')).trim() + '...'}
-                    onChange={(e) => setSearchPersonInputValue(e.target.value)}
+                    onChange={(e) => setSearchQuery(e.target.value)}
                   />
                 </div>
                 <button
-                  disabled={!searchPersonInputValue.length}
+                  disabled={!searchQuery.length}
                   onClick={searchPerson}
                   className={`mt-3 w-full inline-flex items-center justify-center px-4 py-2 border border-transparent shadow-sm font-medium rounded-md  sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm  text-white   ${
-                    !searchPersonInputValue.length
+                    !searchQuery.length
                       ? 'focus:outline-none cursor-not-allowed bg-slate-400'
                       : 'hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 bg-indigo-600 '
                   }`}>
                   Rechercher
                 </button>
-                {!!personSearched.length && (
+                {!!searchResults.length && (
                   <button
                     onClick={resetListOfPerson}
                     className='mt-3 w-full inline-flex items-center justify-center px-4 py-2 border border-transparent shadow-sm font-medium rounded-md  sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm  text-white  hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 bg-indigo-600 
@@ -117,7 +118,7 @@ export const ImportGedcomSuccessPage = withBrowserBundle(({ gedcom }: ImportGedc
                 <div className=' md:max-w-md'>
                   <div className='flow-root mt-6'>
                     <ul role='list' className='-my-5 divide-y divide-gray-200'>
-                      {(personSearched.length > 0 ? personSearched : personFromGedcom).map((person) => (
+                      {(searchResults.length > 0 ? searchResults : personFromGedcom).map((person) => (
                         <li key={person.id} className='py-4'>
                           <div className='flex items-center space-x-4'>
                             <div className='flex-shrink-0'>
