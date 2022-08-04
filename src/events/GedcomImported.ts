@@ -1,18 +1,9 @@
 import { BaseDomainEvent, makeDomainEvent } from '../libs/eventSourcing/types/DomainEvent'
+import { Person } from '../types/Person'
 
 type Relationship = {
   parentId: string
   childId: string
-}
-
-type Person = {
-  id: string
-  name: string
-  bornOn: string
-  bornIn: string
-  passedOn: string
-  passedIn: string
-  sex: string
 }
 
 export type GedcomImported = BaseDomainEvent & {

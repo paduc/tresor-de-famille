@@ -15,7 +15,6 @@ pageRouter.route('/importGedcomSuccess.html').get(requireAuth(), async (request,
 
 export const returnImportGedcomSuccesPage = async (request: Request, response: Response) => {
   const gedcom = await getGedcom()
-
   // @ts-ignore
   responseAsHtml(request, response, ImportGedcomSuccessPage({ gedcom }))
 }
@@ -26,5 +25,5 @@ pageRouter.route('/importGedcomSuccess.html').post(async (request, response) => 
   console.log('POST on /importGedcomSuccess.html')
   await publish(UserHasDesignatedHimselfAsPerson({ userId, personId }))
 
-  response.redirect(`/person/:${personId}'`)
+  response.redirect('/person/:personId.html')
 })
