@@ -14,9 +14,11 @@ export type PersonIdPage = {
   person: Person
   parents: Person[]
   childrens: Person[]
+  companion: Person[]
+  brotherAndSister: Person[]
 }
 
-export const PersonIdPage = ({ userId, personId, person, parents, childrens }: PersonIdPage) => {
+export const PersonIdPage = ({ userId, personId, person, parents, childrens, companion, brotherAndSister }: PersonIdPage) => {
   const tab = undefined
 
   return (
@@ -101,9 +103,11 @@ export const PersonIdPage = ({ userId, personId, person, parents, childrens }: P
           </div>
         </article>
         {(!tab || tab === 'famille') && (
-          <div className='sm:py-8 sm:px-6 lg:px-12 sm:flex gap-5'>
+          <div className='sm:py-8 sm:px-6 lg:px-12 flex-col sm:flex gap-5'>
             {!!parents.length && <RelativeList title='Ses parents' relatives={parents} />}
             {!!childrens.length && <RelativeList title='Ses enfants' relatives={childrens} />}
+            {!!companion.length && <RelativeList title='Son/Sa compagne' relatives={companion} />}
+            {!!brotherAndSister.length && <RelativeList title='Ses frères & soeurs' relatives={brotherAndSister} />}
           </div>
         )}
 

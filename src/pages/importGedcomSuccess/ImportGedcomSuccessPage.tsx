@@ -16,6 +16,8 @@ export const ImportGedcomSuccessPage = withBrowserBundle(({ gedcom }: ImportGedc
     payload: { persons },
   } = gedcom
 
+  console.log(gedcom)
+
   const personCount = persons?.length
   const firstPerson = persons[0]
 

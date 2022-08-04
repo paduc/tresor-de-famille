@@ -25,5 +25,5 @@ pageRouter.route('/importGedcomSuccess.html').post(async (request, response) => 
   console.log('POST on /importGedcomSuccess.html')
   await publish(UserHasDesignatedHimselfAsPerson({ userId, personId }))
 
-  response.redirect('/person/:personId.html')
+  response.redirect(`/person/:${personId}`)
 })
