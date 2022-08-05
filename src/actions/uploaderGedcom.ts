@@ -9,6 +9,7 @@ import multer from 'multer'
 import bodyParser from 'body-parser'
 import { responseAsHtml } from '../libs/ssr/responseAsHtml'
 import { ImportGedcomSuccessPage } from '../pages/importGedcomSuccess/ImportGedcomSuccessPage'
+import { getUuid } from '../libs/getUuid'
 
 type RelationShip = { parent: any; child: any }
 
@@ -69,6 +70,7 @@ actionsRouter.post(
       }
 
       const uniqueness = new Set()
+      const userId = request.session.user!.id
 
       const uniqueRelationships = []
       for (const relationship of relationships) {
@@ -95,6 +97,7 @@ actionsRouter.post(
             passedIn,
             sex,
           })),
+          importedBy: userId,
         })
       )
     } catch (error) {
@@ -102,7 +105,6 @@ actionsRouter.post(
     } finally {
       await unlink(path)
       return response.redirect('/importGedcomSuccess.html')
-      /*  return responseAsHtml(request, response, ImportGedcomSuccessPage({ isGedcomUploaded: true })) */
     }
   }
 )

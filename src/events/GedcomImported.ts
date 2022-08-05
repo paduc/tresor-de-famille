@@ -21,6 +21,7 @@ export type GedcomImported = BaseDomainEvent & {
     rawGedcom: string
     relationships: Relationship[]
     persons: Person[]
+    importedBy: string
   }
 }
 

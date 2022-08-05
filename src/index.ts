@@ -2,6 +2,8 @@ import express, { Express } from 'express'
 require('express-async-errors')
 import session from 'express-session'
 import path from 'node:path'
+
+
 import { tables } from './tables'
 import { sessionStore } from './dependencies/session'
 import { pageRouter } from './pages'
@@ -32,6 +34,7 @@ app.use(
     resave: false,
     proxy: true,
     saveUninitialized: false,
+    cookie: { maxAge: 30 * 24 * 60 * 60 * 1000 },
   })
 )
 
@@ -52,3 +55,4 @@ app.listen(PORT, (): void => {
     }
   })
 })
+
