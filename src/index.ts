@@ -52,5 +52,7 @@ app.listen(PORT, (): void => {
     for (const projectionTable of tables) {
       await projectionTable.handleEvent(event)
     }
+
   })
 })
+

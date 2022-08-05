@@ -44,7 +44,9 @@ export function AppLayout({ children }: AppLayoutProps) {
         <div className='hidden w-28 bg-indigo-700 overflow-y-auto md:block'>
           <div className='w-full py-6 flex flex-col items-center'>
             <div className='flex-shrink-0 flex items-center self-center rounded-full p-2'>
-              <Logo className='h-10 w-auto invert mix-blend-luminosity' />
+              <a href='/'>
+                <Logo className='h-10 w-auto invert mix-blend-luminosity' />
+              </a>
             </div>
             <div className='flex-shrink-0 flex items-center'></div>
             <div className='flex-1 mt-6 w-full px-2 space-y-1'>

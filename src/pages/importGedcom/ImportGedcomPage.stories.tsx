@@ -1,12 +1,12 @@
 import * as React from 'react'
 import { SessionContext } from '../_components'
 
-import { HomePage } from './HomePage'
+import { ImportGedcomPage } from './ImportGedcomPage'
 
-export default { title: "Page d'accueil", component: HomePage }
+export default { title: "Page d'import Gedcom", component: ImportGedcomPage }
 
 export const Basique = () => (
   <SessionContext.Provider value={{ isLoggedIn: true, userName: 'toto' }}>
-    <HomePage />
+    <ImportGedcomPage />
   </SessionContext.Provider>
 )
