@@ -9,6 +9,7 @@ import { withBrowserBundle } from '../../libs/ssr/withBrowserBundle'
 
 export type ImportGedcomSuccessPageProps = {
   gedcom: GedcomImported
+  error?: string
 }
 
 export const ImportGedcomSuccessPage = withBrowserBundle(({ gedcom }: ImportGedcomSuccessPageProps) => {
