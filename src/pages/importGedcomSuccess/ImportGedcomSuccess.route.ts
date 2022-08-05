@@ -1,3 +1,4 @@
+import { Request, Response } from 'express'
 import { responseAsHtml } from '../../libs/ssr/responseAsHtml'
 import { pageRouter } from '../pageRouter'
 import { ImportGedcomSuccessPage } from './ImportGedcomSuccessPage'
@@ -9,13 +10,11 @@ import { publish } from '../../dependencies/eventStore'
 pageRouter.route('/importGedcomSuccess.html').get(requireAuth(), async (request, response) => {
   console.log(`GET on /importGedcomSucess.html`)
 
-  // @ts-ignore
   return returnImportGedcomSuccesPage(request, response)
 })
 
 export const returnImportGedcomSuccesPage = async (request: Request, response: Response) => {
   const gedcom = await getGedcom()
-  // @ts-ignore
   responseAsHtml(request, response, ImportGedcomSuccessPage({ gedcom }))
 }
 
