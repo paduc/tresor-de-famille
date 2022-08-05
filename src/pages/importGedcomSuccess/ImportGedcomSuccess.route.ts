@@ -5,9 +5,7 @@ import { requireAuth } from '../../dependencies/authn'
 import { getGedcom } from './getGedcom.query'
 import { UserHasDesignatedHimselfAsPerson } from '../../events/UserHasDesignatedHimselfAsPerson'
 import { publish } from '../../dependencies/eventStore'
-import { v4 as uuid } from 'uuid'
-import z, { ZodError } from 'zod'
-import { parseZodErrors } from '../../libs/parseZodErrors'
+import z from 'zod'
 
 pageRouter.route('/importGedcomSuccess.html').get(requireAuth(), async (request, response) => {
   console.log(`GET on /importGedcomSucess.html`)
