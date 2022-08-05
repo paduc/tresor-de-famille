@@ -1,2 +1,2 @@
-export * from './PersonId.route'
-export * from './PersonIdPage'
+export * from './PersonPage.route'
+export * from './PersonPage'

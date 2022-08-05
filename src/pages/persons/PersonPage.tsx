@@ -8,17 +8,17 @@ import { UploadImage } from '../_components/UploadImage'
 
 import { Person } from '../../types/Person'
 
-export type PersonIdPage = {
+export type PersonPageProps = {
   userId: string
   personId: string
   person: Person
   parents: Person[]
-  childrens: Person[]
-  companion: Person[]
-  brotherAndSister: Person[]
+  children: Person[]
+  spouse: Person[]
+  siblings: Person[]
 }
 
-export const PersonIdPage = ({ userId, personId, person, parents, childrens, companion, brotherAndSister }: PersonIdPage) => {
+export const PersonPage = ({ userId, personId, person, parents, children, spouse, siblings }: PersonPageProps) => {
   const tab = undefined
 
   return (
@@ -105,9 +105,9 @@ export const PersonIdPage = ({ userId, personId, person, parents, childrens, com
         {(!tab || tab === 'famille') && (
           <div className='sm:py-8 sm:px-6 lg:px-12 flex-col sm:flex gap-5'>
             {!!parents.length && <RelativeList title='Ses parents' relatives={parents} />}
-            {!!childrens.length && <RelativeList title='Ses enfants' relatives={childrens} />}
-            {!!companion.length && <RelativeList title='Son/Sa compagne' relatives={companion} />}
-            {!!brotherAndSister.length && <RelativeList title='Ses frères & soeurs' relatives={brotherAndSister} />}
+            {!!children.length && <RelativeList title='Ses enfants' relatives={children} />}
+            {!!spouse.length && <RelativeList title='Son/Sa compagne' relatives={spouse} />}
+            {!!siblings.length && <RelativeList title='Ses frères & soeurs' relatives={siblings} />}
           </div>
         )}
 
