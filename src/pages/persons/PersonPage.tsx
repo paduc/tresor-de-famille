@@ -9,16 +9,20 @@ import { UploadImage } from '../_components/UploadImage'
 import { Person } from '../../types/Person'
 
 export type PersonPageProps = {
-  userId: string
-  personId: string
-  person: Person
-  parents: Person[]
-  children: Person[]
-  spouse: Person[]
-  siblings: Person[]
+  relationships: {
+    userId: string
+    personId: string
+    person: Person
+    parents: Person[]
+    children: Person[]
+    spouse: Person[]
+    siblings: Person[]
+  }
 }
 
-export const PersonPage = ({ userId, personId, person, parents, children, spouse, siblings }: PersonPageProps) => {
+export const PersonPage = ({ relationships }: PersonPageProps) => {
+  const { userId, personId, person, parents, children, spouse, siblings } = relationships
+
   const tab = undefined
 
   return (

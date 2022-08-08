@@ -6,6 +6,7 @@ import { SearchIcon } from '@heroicons/react/outline'
 import { AppLayout } from '../_components/layout/AppLayout'
 import { GedcomImported } from '../../events/GedcomImported'
 import { withBrowserBundle } from '../../libs/ssr/withBrowserBundle'
+import { Person } from '../../types/Person'
 
 export type ImportGedcomSuccessPageProps = {
   gedcom: GedcomImported
@@ -16,15 +17,13 @@ export const ImportGedcomSuccessPage = withBrowserBundle(({ gedcom }: ImportGedc
     payload: { persons },
   } = gedcom
 
-  console.log(gedcom)
-
   const personCount = persons?.length
   const firstPerson = persons[0]
 
   const [personPerPage, setPersonPerPage] = React.useState(5)
   const [personFromGedcom, setPersonFromGedcom] = React.useState(persons.slice(0, personPerPage))
   const [searchPersonInputValue, setSearchPersonInputValue] = React.useState('')
-  const [personSearched, setPersonSearched] = React.useState([])
+  const [personSearched, setPersonSearched] = React.useState<Person[]>([])
 
   React.useEffect(() => {
     setPersonFromGedcom(persons.slice(0, personPerPage))
@@ -36,7 +35,6 @@ export const ImportGedcomSuccessPage = withBrowserBundle(({ gedcom }: ImportGedc
   const searchPerson = () => {
     const result = persons.filter((person) => person.name.includes(searchPersonInputValue))
 
-    // @ts-ignore
     result.length > 0 && setPersonSearched(result)
     // Create toast for error if result.length > 0 and let the current view of the list
   }
