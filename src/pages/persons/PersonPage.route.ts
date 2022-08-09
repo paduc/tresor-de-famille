@@ -3,12 +3,12 @@ import { pageRouter } from '../pageRouter'
 import { PersonPage } from './PersonPage'
 import { requireAuth } from '../../dependencies/authn'
 
-import { getRelationships } from './getRelationships.query'
+import { getPersonInfo } from './getPersoInfo.query'
 
 pageRouter.route('/person/:personId').get(requireAuth(), async (request, response) => {
   console.log(`GET on /person`)
 
-  const relationships = await getRelationships()
+  const personInfo = await getPersonInfo()
 
-  responseAsHtml(request, response, PersonPage({ relationships }))
+  responseAsHtml(request, response, PersonPage({ personInfo }))
 })

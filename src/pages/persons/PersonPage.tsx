@@ -9,7 +9,7 @@ import { UploadImage } from '../_components/UploadImage'
 import { Person } from '../../types/Person'
 
 export type PersonPageProps = {
-  relationships: {
+  personInfo: {
     userId: string
     personId: string
     person: Person
@@ -20,8 +20,8 @@ export type PersonPageProps = {
   }
 }
 
-export const PersonPage = ({ relationships }: PersonPageProps) => {
-  const { userId, personId, person, parents, children, spouse, siblings } = relationships
+export const PersonPage = ({ personInfo }: PersonPageProps) => {
+  const { userId, personId, person, parents, children, spouse, siblings } = personInfo
 
   const tab = undefined
 

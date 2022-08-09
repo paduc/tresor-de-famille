@@ -2,22 +2,23 @@ import { postgres } from '../../dependencies/postgres'
 import { Person } from '../../types/Person'
 import { Relationship } from '../../types/Relationship'
 
-import { getPerson } from './getPerson.query'
+export const getPersonInfo = async () => {
+  const personQuery = await postgres.query("SELECT * FROM events where type = 'UserHasDesignatedHimselfAsPerson'")
 
-export const getRelationships = async () => {
-  const { rows } = await postgres.query("SELECT * FROM events where type = 'GedcomImported'")
+  const personDesignate = personQuery.rows[0]
 
-  const getPersonRequest = await getPerson()
+  const {
+    payload: { userId, personId },
+  } = personDesignate
 
+  const { rows } = await postgres.query("SELECT * FROM events where type = 'GedcomImported' AND payload->>’importedBy’ = $1", [
+    userId,
+  ])
   const gedcom = rows[0]
 
   const {
     payload: { relationships, persons },
   } = gedcom
-
-  const {
-    payload: { userId, personId },
-  } = getPersonRequest
 
   const person = persons.find((person: { id: string }) => person.id === personId)
 
@@ -56,7 +57,7 @@ export const getRelationships = async () => {
 
   const siblings = siblingsId.map((sibling: string) => persons.find((p: Person) => p.id === sibling))
 
-  const relationship = {
+  return {
     userId,
     personId,
     person,
@@ -65,5 +66,4 @@ export const getRelationships = async () => {
     spouse,
     siblings,
   }
-  return relationship
 }

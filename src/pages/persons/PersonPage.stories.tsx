@@ -5,4 +5,4 @@ import { PersonPageProps } from './PersonPage'
 
 export default { title: 'Page de profil', component: PersonPage }
 
-export const Basique = ({ relationships }: PersonPageProps) => <PersonPage relationships={relationships} />
+export const Basique = ({ personInfo }: PersonPageProps) => <PersonPage personInfo={personInfo} />
