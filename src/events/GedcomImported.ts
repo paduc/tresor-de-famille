@@ -6,12 +6,22 @@ type Relationship = {
   childId: string
 }
 
+type PersonDetailed = Person & {
+  bornOn?: string
+  bornIn?: string
+  passedOn?: string
+  passedIn?: string
+  sex?: string
+  profilePictureId?: string | null
+  picturedIn?: string
+}
+
 export type GedcomImported = BaseDomainEvent & {
   type: 'GedcomImported'
   payload: {
     rawGedcom: string
     relationships: Relationship[]
-    persons: Person[]
+    persons: PersonDetailed[]
     importedBy: string
   }
 }

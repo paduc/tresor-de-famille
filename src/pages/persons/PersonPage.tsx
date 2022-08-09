@@ -8,15 +8,25 @@ import { UploadImage } from '../_components/UploadImage'
 
 import { Person } from '../../types/Person'
 
+type PersonDetailed = Person & {
+  bornOn?: string
+  bornIn?: string
+  passedOn?: string
+  passedIn?: string
+  sex?: string
+  profilePictureId?: string | null
+  picturedIn?: string
+}
+
 export type PersonPageProps = {
   personInfo: {
     userId: string
     personId: string
-    person: Person
-    parents: Person[]
-    children: Person[]
-    spouse: Person[]
-    siblings: Person[]
+    person: PersonDetailed
+    parents: PersonDetailed[]
+    children: PersonDetailed[]
+    spouse: PersonDetailed[]
+    siblings: PersonDetailed[]
   }
 }
 

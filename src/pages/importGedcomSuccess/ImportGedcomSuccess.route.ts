@@ -23,13 +23,14 @@ pageRouter.route('/importGedcomSuccess.html').post(async (request, response) => 
       })
       .parse(request.body)
 
-    const userId = request.session.id
+    const userId = request.session.user!.id
+    console.log(userId, 'importGedCom')
 
     console.log('POST on /importGedcomSuccess.html')
 
     await publish(UserHasDesignatedHimselfAsPerson({ userId, personId }))
 
-    response.redirect(`/person/:${personId}'`)
+    response.redirect(`/person/:${personId}`)
   } catch (error) {
     const gedcom = await getGedcom()
 

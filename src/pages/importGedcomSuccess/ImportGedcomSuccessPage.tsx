@@ -13,6 +13,16 @@ export type ImportGedcomSuccessPageProps = {
   error?: string
 }
 
+type PersonDetailed = Person & {
+  bornOn?: string
+  bornIn?: string
+  passedOn?: string
+  passedIn?: string
+  sex?: string
+  profilePictureId?: string | null
+  picturedIn?: string
+}
+
 export const ImportGedcomSuccessPage = withBrowserBundle(({ gedcom }: ImportGedcomSuccessPageProps) => {
   const {
     payload: { persons },
@@ -25,7 +35,7 @@ export const ImportGedcomSuccessPage = withBrowserBundle(({ gedcom }: ImportGedc
   const [personFromGedcom, setPersonFromGedcom] = React.useState(persons.slice(0, personPerPage))
 
   const [searchQuery, setSearchQuery] = React.useState('')
-  const [searchResults, setSearchResults] = React.useState<Person[]>([])
+  const [searchResults, setSearchResults] = React.useState<PersonDetailed[]>([])
 
   React.useEffect(() => {
     setPersonFromGedcom(persons.slice(0, personPerPage))

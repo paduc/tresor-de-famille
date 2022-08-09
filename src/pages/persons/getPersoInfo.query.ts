@@ -1,6 +1,21 @@
 import { postgres } from '../../dependencies/postgres'
 import { Person } from '../../types/Person'
-import { Relationship } from '../../types/Relationship'
+import { GedcomImported } from '../../events/GedcomImported'
+
+export type Relationship = {
+  parentId: string
+  childId: string
+}
+
+type PersonDetailed = Person & {
+  bornOn?: string
+  bornIn?: string
+  passedOn?: string
+  passedIn?: string
+  sex?: string
+  profilePictureId?: string | null
+  picturedIn?: string
+}
 
 export const getPersonInfo = async () => {
   const personQuery = await postgres.query("SELECT * FROM events where type = 'UserHasDesignatedHimselfAsPerson'")
@@ -11,51 +26,28 @@ export const getPersonInfo = async () => {
     payload: { userId, personId },
   } = personDesignate
 
-  const { rows } = await postgres.query("SELECT * FROM events where type = 'GedcomImported' AND payload->>’importedBy’ = $1", [
+  const { rows } = await postgres.query("SELECT * FROM events where type = 'GedcomImported' AND payload->>'importedBy'=$1", [
     userId,
   ])
-  const gedcom = rows[0]
+  const gedcom = rows[0] as GedcomImported
 
   const {
     payload: { relationships, persons },
   } = gedcom
 
-  const person = persons.find((person: { id: string }) => person.id === personId)
+  const person = persons.find((person: { id: string }) => person.id === personId)!
 
   const parentsIds = relationships
     .filter((parent: { childId: string }) => parent.childId === personId)
     .map((p: { parentId: string }) => p.parentId)
 
-  const parents = parentsIds.map((p: string) => persons.find((e: { id: string }) => e.id === p))
+  const parents = getParents(parentsIds, persons)
 
-  const childrenIds = relationships
-    .filter((children: { parentId: string }) => children.parentId === personId)
-    .map((c: { childId: string }) => c.childId)
+  const children = getChildren(relationships, persons, personId)
 
-  const children = childrenIds ? childrenIds.map((c: string) => persons.find((e: { id: string }) => e.id === c)) : null
+  const spouse = getSpouse(children, relationships, persons, person)
 
-  const spousesIds = children
-    ? children
-        .map((child: Person) =>
-          relationships.find(
-            (spouse: { childId: string; parentId: string }) => spouse.childId === child!.id && spouse.parentId !== person!.id
-          )
-        )
-        .map((spouse: { parentId: string }) => spouse?.parentId)
-    : null
-
-  const spouseId = spousesIds?.filter((spouse: string, i: number) => spousesIds.indexOf(spouse) == i)
-
-  const spouse = spouseId?.map((co: string) => persons.find((p: { id: string }) => p.id === co))
-
-  const siblingsIds = parentsIds
-    .map((parent: string) => relationships.filter((per: Relationship) => per.parentId === parent && per.childId !== person!.id))
-    .flat(2)
-    .map((e: any) => e.childId)
-
-  const siblingsId = siblingsIds.filter((siblings: string[], i: number) => siblingsIds.indexOf(siblings) == i)
-
-  const siblings = siblingsId.map((sibling: string) => persons.find((p: Person) => p.id === sibling))
+  const siblings = getSiblings(parentsIds, relationships, person, persons)
 
   return {
     userId,
@@ -66,4 +58,47 @@ export const getPersonInfo = async () => {
     spouse,
     siblings,
   }
+}
+
+const getParents = (parentsIds: string[], persons: PersonDetailed[]) => {
+  return parentsIds.map((parentId) => persons.find((person) => person.id === parentId))
+}
+
+const getChildren = (relationships: Relationship[], persons: PersonDetailed[], personId: string) => {
+  const childrenIds = relationships.filter((children) => children.parentId === personId).map((child) => child.childId)
+
+  return childrenIds ? childrenIds.map((child) => persons.find((person) => person.id === child)) : null
+}
+
+const getSpouse = (
+  children: PersonDetailed[],
+  relationships: Relationship[],
+  persons: PersonDetailed[],
+  person: PersonDetailed
+) => {
+  const spousesIds = children
+    ? children
+        .map((child) => relationships.find((spouse) => spouse.childId === child!.id && spouse.parentId !== person!.id))
+        .map((spouse) => spouse?.parentId)
+    : null
+
+  const spouseId = spousesIds?.filter((spouse, i) => spousesIds.indexOf(spouse) == i)
+
+  return spouseId?.map((co) => persons.find((person) => person.id === co))
+}
+
+const getSiblings = (
+  parentsIds: string[],
+  relationships: Relationship[],
+  person: PersonDetailed,
+  persons: PersonDetailed[]
+) => {
+  const siblingsIds = parentsIds
+    .map((parent) => relationships.filter((per) => per.parentId === parent && per.childId !== person!.id))
+    .flat(2)
+    .map((child: any) => child.childId)
+
+  const siblingsId = siblingsIds.filter((siblings, i) => siblingsIds.indexOf(siblings) == i)
+
+  return siblingsId.map((sibling: string) => persons.find((p) => p.id === sibling))
 }
