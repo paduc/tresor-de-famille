@@ -7,25 +7,23 @@ export type Relationship = {
   childId: string
 }
 
-type PersonDetailed = Person & {
-  bornOn?: string
-  bornIn?: string
-  passedOn?: string
-  passedIn?: string
-  sex?: string
-  profilePictureId?: string | null
-  picturedIn?: string
+type PersonDetailed =
+  | (Person & {
+      bornOn?: string
+      bornIn?: string
+      passedOn?: string
+      passedIn?: string
+      sex?: string
+      profilePictureId?: string | null
+      picturedIn?: string
+    })
+  | undefined
+
+type PersonInfoProps = {
+  personId: string
+  userId: string
 }
-
-export const getPersonInfo = async () => {
-  const personQuery = await postgres.query("SELECT * FROM events where type = 'UserHasDesignatedHimselfAsPerson'")
-
-  const personDesignate = personQuery.rows[0]
-
-  const {
-    payload: { userId, personId },
-  } = personDesignate
-
+export const getPersonInfo = async ({ personId, userId }: PersonInfoProps) => {
   const { rows } = await postgres.query("SELECT * FROM events where type = 'GedcomImported' AND payload->>'importedBy'=$1", [
     userId,
   ])
@@ -60,17 +58,17 @@ export const getPersonInfo = async () => {
   }
 }
 
-const getParents = (parentsIds: string[], persons: PersonDetailed[]) => {
-  return parentsIds.map((parentId) => persons.find((person) => person.id === parentId))
+export const getParents = (parentsIds: string[], persons: PersonDetailed[]) => {
+  return parentsIds.map((parentId) => persons.find((person) => person!.id === parentId))
 }
 
-const getChildren = (relationships: Relationship[], persons: PersonDetailed[], personId: string) => {
+export const getChildren = (relationships: Relationship[], persons: PersonDetailed[], personId: string) => {
   const childrenIds = relationships.filter((children) => children.parentId === personId).map((child) => child.childId)
 
-  return childrenIds ? childrenIds.map((child) => persons.find((person) => person.id === child)) : null
+  return childrenIds ? childrenIds.map((child) => persons.find((person) => person!.id === child)) : []
 }
 
-const getSpouse = (
+export const getSpouse = (
   children: PersonDetailed[],
   relationships: Relationship[],
   persons: PersonDetailed[],
@@ -84,10 +82,10 @@ const getSpouse = (
 
   const spouseId = spousesIds?.filter((spouse, i) => spousesIds.indexOf(spouse) == i)
 
-  return spouseId?.map((co) => persons.find((person) => person.id === co))
+  return spouseId?.map((co) => persons.find((person) => person!.id === co))
 }
 
-const getSiblings = (
+export const getSiblings = (
   parentsIds: string[],
   relationships: Relationship[],
   person: PersonDetailed,
@@ -100,5 +98,5 @@ const getSiblings = (
 
   const siblingsId = siblingsIds.filter((siblings, i) => siblingsIds.indexOf(siblings) == i)
 
-  return siblingsId.map((sibling: string) => persons.find((p) => p.id === sibling))
+  return siblingsId.map((sibling: string) => persons.find((person) => person!.id === sibling))
 }

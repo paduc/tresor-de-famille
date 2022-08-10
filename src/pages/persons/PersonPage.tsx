@@ -19,9 +19,9 @@ type PersonDetailed = Person & {
 }
 
 export type PersonPageProps = {
+  userId: string
+  personId: string
   personInfo: {
-    userId: string
-    personId: string
     person: PersonDetailed
     parents: PersonDetailed[]
     children: PersonDetailed[]
@@ -30,8 +30,8 @@ export type PersonPageProps = {
   }
 }
 
-export const PersonPage = ({ personInfo }: PersonPageProps) => {
-  const { userId, personId, person, parents, children, spouse, siblings } = personInfo
+export const PersonPage = ({ userId, personId, personInfo }: PersonPageProps) => {
+  const { person, parents, children, spouse, siblings } = personInfo
 
   const tab = undefined
 

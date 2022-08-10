@@ -8,7 +8,11 @@ import { getPersonInfo } from './getPersoInfo.query'
 pageRouter.route('/person/:personId').get(requireAuth(), async (request, response) => {
   console.log(`GET on /person`)
 
-  const personInfo = await getPersonInfo()
+  const personId = request.params.personId.slice(1)
+  const userId = request.session.user!.id
 
-  responseAsHtml(request, response, PersonPage({ personInfo }))
+  const personInfo = await getPersonInfo({ personId, userId })
+
+  //@ts-ignore
+  responseAsHtml(request, response, PersonPage({ userId, personId, personInfo }))
 })

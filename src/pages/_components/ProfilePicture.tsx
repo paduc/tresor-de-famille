@@ -2,8 +2,17 @@ import * as React from 'react'
 import { Person } from '../../types/Person'
 import { ProfilePicturePlaceholder } from './ProfilePicturePlaceholder'
 
+type PersonDetailed = Person & {
+  bornOn?: string
+  bornIn?: string
+  passedOn?: string
+  passedIn?: string
+  sex?: string
+  profilePictureId?: string | null
+  picturedIn?: string
+}
 interface ProfilePictureProps {
-  person: Person
+  person: PersonDetailed
   className?: string
 }
 
