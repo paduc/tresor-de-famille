@@ -33,11 +33,9 @@ export const getPersonInfo = async ({ personId, userId }: PersonInfoProps) => {
     payload: { relationships, persons },
   } = gedcom
 
-  const person = persons.find((person: { id: string }) => person.id === personId)!
+  const person = persons.find((person) => person.id === personId)!
 
-  const parentsIds = relationships
-    .filter((parent: { childId: string }) => parent.childId === personId)
-    .map((p: { parentId: string }) => p.parentId)
+  const parentsIds = getParentsIds(relationships, personId)
 
   const parents = getParents(parentsIds, persons)
 
@@ -58,6 +56,9 @@ export const getPersonInfo = async ({ personId, userId }: PersonInfoProps) => {
   }
 }
 
+export const getParentsIds = (relationships: Relationship[], personId: string) => {
+  return relationships.filter((parent) => parent.childId === personId).map((parent) => parent.parentId)
+}
 export const getParents = (parentsIds: string[], persons: PersonDetailed[]) => {
   return parentsIds.map((parentId) => persons.find((person) => person!.id === parentId))
 }
@@ -82,7 +83,7 @@ export const getSpouse = (
 
   const spouseId = spousesIds?.filter((spouse, i) => spousesIds.indexOf(spouse) == i)
 
-  return spouseId?.map((co) => persons.find((person) => person!.id === co))
+  return spouseId?.map((spouse) => persons.find((person) => person!.id === spouse))
 }
 
 export const getSiblings = (
@@ -94,9 +95,9 @@ export const getSiblings = (
   const siblingsIds = parentsIds
     .map((parent) => relationships.filter((per) => per.parentId === parent && per.childId !== person!.id))
     .flat(2)
-    .map((child: any) => child.childId)
+    .map((child) => child.childId)
 
   const siblingsId = siblingsIds.filter((siblings, i) => siblingsIds.indexOf(siblings) == i)
 
-  return siblingsId.map((sibling: string) => persons.find((person) => person!.id === sibling))
+  return siblingsId.map((sibling) => persons.find((person) => person!.id === sibling))
 }
