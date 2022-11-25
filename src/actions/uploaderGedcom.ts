@@ -7,9 +7,6 @@ import { publish } from '../dependencies/eventStore'
 import { actionsRouter } from './actionsRouter'
 import multer from 'multer'
 import bodyParser from 'body-parser'
-import { responseAsHtml } from '../libs/ssr/responseAsHtml'
-import { ImportGedcomSuccessPage } from '../pages/importGedcomSuccess/ImportGedcomSuccessPage'
-import { getUuid } from '../libs/getUuid'
 
 type RelationShip = { parent: any; child: any }
 
@@ -52,7 +49,7 @@ actionsRouter.post(
       // We need to give an id to each person
       const personId: Record<string, string> = {}
       persons.forEach((person: any) => {
-        person.id = uuid()
+        person.id = uuid() // TODO: make this a deterministic hash (of his name, DOB, ...)
         personId[person.gedcomId] = person.id
       })
 

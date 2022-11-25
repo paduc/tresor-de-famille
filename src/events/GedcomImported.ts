@@ -1,11 +1,11 @@
 import { BaseDomainEvent, makeDomainEvent } from '../libs/eventSourcing/types/DomainEvent'
 
-type Relationship = {
+export type Relationship = {
   parentId: string
   childId: string
 }
 
-type Person = {
+export type Person = {
   id: string
   name: string
   bornOn: string
