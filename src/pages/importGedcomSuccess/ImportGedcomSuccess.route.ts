@@ -3,7 +3,7 @@ import { pageRouter } from '../pageRouter'
 import { ImportGedcomSuccessPage } from './ImportGedcomSuccessPage'
 import { requireAuth } from '../../dependencies/authn'
 import { getGedcom } from './getGedcom.query'
-import { UserHasDesignatedHimselfAsPerson } from '../../events/UserHasDesignatedHimselfAsPerson'
+import { UserHasDesignatedThemselfAsPerson } from '../../events/UserHasDesignatedThemselfAsPerson'
 import { publish } from '../../dependencies/eventStore'
 import z from 'zod'
 
@@ -27,7 +27,7 @@ pageRouter.route('/importGedcomSuccess.html').post(async (request, response) => 
 
     console.log('POST on /importGedcomSuccess.html')
 
-    await publish(UserHasDesignatedHimselfAsPerson({ userId, personId }))
+    await publish(UserHasDesignatedThemselfAsPerson({ userId, personId }))
 
     response.redirect(`/person/:${personId}'`)
   } catch (error) {
@@ -42,5 +42,4 @@ pageRouter.route('/importGedcomSuccess.html').post(async (request, response) => 
       })
     )
   }
-
 })
