@@ -1,8 +1,10 @@
 import type { Response, Request } from 'express'
 import ReactDOMServer from 'react-dom/server'
 import { LocationContext } from '../../pages/_components/LocationContext'
+import { AlgoliaContext } from '../../pages/_components/AlgoliaContext'
 import { Session, SessionContext } from '../../pages/_components/SessionContext'
 import { withContext } from './withContext'
+import { SearchClient } from 'algoliasearch/lite'
 
 const html = String.raw
 
@@ -27,6 +29,8 @@ export function responseAsHtml(
 
   const session = getSession(request)
 
+  const { ALGOLIA_APPID, ALGOLIA_SEARCHKEY } = process.env
+
   response.send(
     html`
       <html class="h-full bg-gray-100">
@@ -44,7 +48,11 @@ export function responseAsHtml(
         <body class="h-full overflow-hidden">
           <!-- prettier-ignore -->
           <div id="root">${ReactDOMServer.renderToString(
-            withContext(LocationContext, request.url, withContext(SessionContext, session, element))
+            withContext(
+              LocationContext,
+              request.url,
+              withContext(SessionContext, session, withContext(AlgoliaContext, null as SearchClient | null, element))
+            )
           )}</div>
           ${shouldIncludeBrowserBundle
             ? html`
@@ -52,6 +60,7 @@ export function responseAsHtml(
                 <script>
                   window.__INITIAL_PROPS__ = ${JSON.stringify(bundle.props || {})};
                   window.__SESSION__ = ${JSON.stringify(session || {})};
+                  window.__ALGOLIA__ = ${JSON.stringify({ appId: ALGOLIA_APPID!, searchKey: ALGOLIA_SEARCHKEY! } || {})};
                   window.__URL__ = '${request.url}';
                 </script>
               `

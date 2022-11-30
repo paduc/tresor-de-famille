@@ -3,7 +3,6 @@ require('express-async-errors')
 import session from 'express-session'
 import path from 'node:path'
 
-
 import { tables } from './tables'
 import { sessionStore } from './dependencies/session'
 import { pageRouter } from './pages'
@@ -55,4 +54,3 @@ app.listen(PORT, (): void => {
     }
   })
 })
-

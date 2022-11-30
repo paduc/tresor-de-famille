@@ -3,6 +3,7 @@ import React from 'react'
 import { hydrate } from 'react-dom'
 import { LocationContext } from '../../pages/_components/LocationContext'
 import { SessionContext } from '../../pages/_components/SessionContext'
+import { AlgoliaContext } from '../../pages/_components/AlgoliaContext'
 import { withContext } from './withContext'
 
 const isServerContext = typeof window === 'undefined'
@@ -44,9 +45,14 @@ const browserCode = (Component: (props?: any) => JSX.Element) => {
     const props = (window as any).__INITIAL_PROPS__
     const session = (window as any).__SESSION__
     const url = (window as any).__URL__
+    const algolia = (window as any).__ALGOLIA__
 
     hydrate(
-      withContext(LocationContext, url, withContext(SessionContext, session, React.createElement(Component, props))),
+      withContext(
+        LocationContext,
+        url,
+        withContext(SessionContext, session, withContext(AlgoliaContext, algolia, React.createElement(Component, props)))
+      ),
       document.querySelector('#root')
     )
   })

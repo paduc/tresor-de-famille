@@ -1,2 +1,2 @@
-export * from './WhoAreYou';
-export * from './whoAreYou.route';
+export * from './WhoAreYouPage'
+export * from './whoAreYou.route'
