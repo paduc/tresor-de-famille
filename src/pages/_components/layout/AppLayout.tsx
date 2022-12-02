@@ -11,10 +11,10 @@ import { Layout } from './Layout'
 import { LocationContext } from '../LocationContext'
 
 const sidebarNavigation = [
-  { name: 'Ma famille', href: '/personnes', icon: UserGroupIcon },
+  // { name: 'Ma famille', href: '/personnes', icon: UserGroupIcon },
   // { name: 'All Files', href: '#', icon: ViewGridIcon },
-  { name: 'Photos', href: '/pload-image', icon: PhotographIcon },
-  { name: 'Anecdote', href: '/anecdote', icon: AnnotationIcon },
+  { name: 'Videos', href: '/videos.html', icon: PhotographIcon },
+  // { name: 'Anecdote', href: '/anecdote', icon: AnnotationIcon },
   // { name: 'Albums', href: '#', icon: CollectionIcon },
   // { name: 'Settings', href: '#', icon: CogIcon },
 ]
