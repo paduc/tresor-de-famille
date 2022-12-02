@@ -7,6 +7,6 @@ export default { title: "Page d'accueil", component: HomePage }
 
 export const Basique = () => (
   <SessionContext.Provider value={{ isLoggedIn: true, userName: 'toto' }}>
-    <HomePage />
+    <HomePage person={null} />
   </SessionContext.Provider>
 )

@@ -1,3 +1,5 @@
 export * from './FauxUtilisateurInscrit';
-export * from './UserRegisteredWithEmailAndPassword';
 export * from './GedcomImported';
+export * from './UserAddedBunnyCDNVideo';
+export * from './UserHasDesignatedThemselfAsPerson';
+export * from './UserRegisteredWithEmailAndPassword';

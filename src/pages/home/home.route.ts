@@ -16,5 +16,5 @@ pageRouter.route('/').get(requireAuth(), async (request, response) => {
 
   const person = await getPersonForUserId(request.session.user!.id)
 
-  responseAsHtml(request, response, HomePage(person))
+  responseAsHtml(request, response, HomePage({ person }))
 })
