@@ -102,14 +102,15 @@ export const WhoAreYouPage = withBrowserBundle(({ error }: WhoAreYouPageProps) =
             ) : (
               <div>Pas dispo</div>
             )}
-
-            <button
-              type='button'
-              className='inline-flex items-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 mt-3 text-base font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2'
-              disabled={!selectedPerson}
-              onClick={() => selectedPerson && alert(`Vous avez déclaré être ${selectedPerson.name}`)}>
-              Valider
-            </button>
+            <form action='/iAmThisPerson' method='POST'>
+              <input type='hidden' name='selectedPersonId' defaultValue={selectedPerson?.objectID} />
+              <button
+                type='submit'
+                className='inline-flex items-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 mt-3 text-base font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2'
+                disabled={!selectedPerson}>
+                Valider
+              </button>
+            </form>
           </div>
         </div>
       </div>

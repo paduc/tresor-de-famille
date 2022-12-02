@@ -3,6 +3,7 @@ import { pageRouter } from '../pageRouter'
 import { HomePage } from './HomePage'
 import { requireAuth } from '../../dependencies/authn'
 import { hasUserDesignatedThemselfAsPerson } from './hasUserDesignatedThemselfAsPerson.query'
+import { getPersonForUserId } from './getPersonForUserId.query'
 
 pageRouter.route('/').get(requireAuth(), async (request, response) => {
   console.log(`GET on /`)
@@ -13,5 +14,7 @@ pageRouter.route('/').get(requireAuth(), async (request, response) => {
     return response.redirect('/qui-es-tu')
   }
 
-  responseAsHtml(request, response, HomePage())
+  const person = await getPersonForUserId(request.session.user!.id)
+
+  responseAsHtml(request, response, HomePage(person))
 })

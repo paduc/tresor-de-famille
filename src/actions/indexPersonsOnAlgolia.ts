@@ -2,8 +2,9 @@ import { actionsRouter } from './actionsRouter'
 import { postgres } from '../dependencies/postgres'
 import { GedcomImported, Person } from '../events'
 import { searchClient } from '../dependencies/algolia'
+import { requireAuth } from '../dependencies/authn'
 
-actionsRouter.get('/indexPersonsOnAlgolia', async (request, response) => {
+actionsRouter.get('/indexPersonsOnAlgolia', requireAuth(), async (request, response) => {
   const { rows } = await postgres.query("SELECT * FROM events where type = 'GedcomImported'")
 
   const gedcom = rows[0] as GedcomImported

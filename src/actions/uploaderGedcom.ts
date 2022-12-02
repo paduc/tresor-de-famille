@@ -7,6 +7,7 @@ import { publish } from '../dependencies/eventStore'
 import { actionsRouter } from './actionsRouter'
 import multer from 'multer'
 import bodyParser from 'body-parser'
+import { requireAuth } from '../dependencies/authn'
 
 type RelationShip = { parent: any; child: any }
 
@@ -23,7 +24,7 @@ actionsRouter.post(
     extended: false,
     limit: '10mb',
   }),
-
+  requireAuth(),
   upload.single('file-upload'),
   async (request, response) => {
     const { file } = request
