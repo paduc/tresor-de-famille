@@ -6,6 +6,7 @@ import { useSearchClient } from '../_components/AlgoliaContext'
 import { AppLayout } from '../_components/layout/AppLayout'
 import { useState } from 'react'
 import { CheckIcon } from '@heroicons/react/solid'
+import { SuccessError } from '../_components/SuccessError'
 
 // @ts-ignore
 function classNames(...classes) {
@@ -13,14 +14,16 @@ function classNames(...classes) {
 }
 
 export type AddVideoProps = {
+  success?: string
   error?: string
 }
 
-export const AddVideoPage = withBrowserBundle(({ error }: AddVideoProps) => {
+export const AddVideoPage = withBrowserBundle(({ error, success }: AddVideoProps) => {
   return (
     <AppLayout>
       <div className='bg-white p-6'>
-        <form className='space-y-8 divide-y divide-gray-200 max-w-lg'>
+        <SuccessError success={success} error={error} />
+        <form action='/addVideo' method='post' className='space-y-8 divide-y divide-gray-200 max-w-lg'>
           <div className='space-y-8 divide-y divide-gray-200 sm:space-y-5'>
             <div className='space-y-6 sm:space-y-5'>
               <div>
