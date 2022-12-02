@@ -30,7 +30,7 @@ export const ListVideosPage = withBrowserBundle(({ error, success, videos }: Lis
         <ul role='list' className='divide-y divide-gray-200'>
           {videos.map((video) => (
             <li key={video.videoId} className='px-4 py-4 sm:px-0'>
-              <a href=''>{video.title}</a>
+              <a href={`/video/${video.videoId}/annotate.html`}>{video.title}</a>
             </li>
           ))}
         </ul>
