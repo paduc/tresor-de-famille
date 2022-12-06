@@ -102,7 +102,7 @@ export const WhoAreYouPage = withBrowserBundle(({ error }: WhoAreYouPageProps) =
             ) : (
               <div>Pas dispo</div>
             )}
-            <form action='/iAmThisPerson' method='POST'>
+            <form method='POST'>
               <input type='hidden' name='selectedPersonId' defaultValue={selectedPerson?.objectID} />
               <button
                 type='submit'
