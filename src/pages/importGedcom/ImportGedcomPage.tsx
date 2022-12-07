@@ -47,7 +47,7 @@ export const ImportGedcomPage = () => {
                     <p className='text-xs text-gray-500'>.gedcom only, up to 10MB</p>
                   </div>
                 </div>
-                <div className=' flex justify-center item-center'>
+                <div className='flex justify-center item-center'>
                   <button
                     type='submit'
                     className=' flex align-middle  mt-3 px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>

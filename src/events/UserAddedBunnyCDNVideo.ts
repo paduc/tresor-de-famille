@@ -1,8 +1,9 @@
+import { UUID } from '../domain'
 import { BaseDomainEvent, makeDomainEvent } from '../libs/eventSourcing/types/DomainEvent'
 
 export type BunnyCDNVideo = {
   title: string
-  videoId: string
+  videoId: UUID
   directPlayUrl: string
   thumbnailUrl: string
   previewUrl: string

@@ -3,3 +3,4 @@ export * from './GedcomImported';
 export * from './UserAddedBunnyCDNVideo';
 export * from './UserHasDesignatedThemselfAsPerson';
 export * from './UserRegisteredWithEmailAndPassword';
+export * from './VideoSequenceAdded';
