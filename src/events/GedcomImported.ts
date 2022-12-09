@@ -12,7 +12,7 @@ export type Person = {
   bornIn: string
   passedOn: string
   passedIn: string
-  sex: string
+  sex: 'M' | 'F'
 }
 
 export type GedcomImported = BaseDomainEvent & {

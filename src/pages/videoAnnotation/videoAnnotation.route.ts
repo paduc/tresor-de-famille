@@ -1,13 +1,13 @@
-import { responseAsHtml } from '../../libs/ssr/responseAsHtml'
-import { pageRouter } from '../pageRouter'
-import { requireAuth } from '../../dependencies/authn'
-import { VideoAnnotationPage } from './VideoAnnotationPage'
-import { getVideo } from './getVideo.query'
 import zod from 'zod'
-import { zIsMediaTime, zIsUUID } from '../../domain'
-import { VideoSequenceAdded, zIsPlace } from '../../events'
+import { requireAuth } from '../../dependencies/authn'
 import { publish } from '../../dependencies/eventStore'
-import { getEpoch } from '../../libs/typeguards'
+import { zIsMediaTime, zIsUUID } from '../../domain'
+import { isPlace, VideoSequenceAdded } from '../../events'
+import { responseAsHtml } from '../../libs/ssr/responseAsHtml'
+import { getEpoch, zCustom } from '../../libs/typeguards'
+import { pageRouter } from '../pageRouter'
+import { getVideo } from './getVideo.query'
+import { VideoAnnotationPage } from './VideoAnnotationPage'
 
 pageRouter
   .route('/video/:videoId/annotate.html')
@@ -22,6 +22,7 @@ pageRouter
 
       responseAsHtml(request, response, VideoAnnotationPage({ video, sequences }))
     } catch (error: any) {
+      console.log({ error })
       return responseAsHtml(request, response, VideoAnnotationPage({ error: error.message }))
     }
   })
@@ -36,7 +37,7 @@ pageRouter
           sequenceId: zIsUUID,
           title: zod.string(),
           description: zod.string(),
-          places: zod.array(zIsPlace),
+          places: zod.union([zCustom(isPlace), zod.array(zCustom(isPlace))]),
           persons: zod.union([zIsUUID, zod.array(zIsUUID)]),
           startTime: zIsMediaTime,
           endTime: zIsMediaTime,
@@ -51,8 +52,8 @@ pageRouter
           sequenceId,
           title,
           description,
-          places,
-          persons: Array.isArray(persons) ? persons : [persons],
+          places: toArray(places).filter((str) => str.length > 0),
+          persons: toArray(persons),
           addedBy: request.session.user!.id,
           addedOn: getEpoch(new Date()),
         })
@@ -62,7 +63,10 @@ pageRouter
       response.redirect(`/video/${videoId}/annotate.html`)
     } catch (error: any) {
       // If there was an error, render the page again with an error message
-
       responseAsHtml(request, response, VideoAnnotationPage({ error: error.message }))
     }
   })
+
+function toArray<T>(item: T | T[]): T[] {
+  return Array.isArray(item) ? item : [item]
+}

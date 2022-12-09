@@ -3,7 +3,6 @@ import React from 'react'
 
 export const SuccessError = (props: { error?: string; success?: string }) => {
   const { success, error } = props
-  console.log(`SuccesError with success=${success} and error=${error}`)
   return (
     <>
       {Boolean(success) && (

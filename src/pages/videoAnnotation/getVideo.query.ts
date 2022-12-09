@@ -1,31 +1,78 @@
 import { postgres } from '../../dependencies/postgres'
-import { BunnyCDNVideo, VideoSequence } from '../../events'
+import { UUID } from '../../domain'
+import { BunnyCDNVideo, Person, TaggedPerson, UserAddedBunnyCDNVideo, VideoSequence, VideoSequenceAdded } from '../../events'
+import { getGedcom } from '../importGedcomSuccess/getGedcom.query'
+import { TaggedPersonDTO, VideoSequenceDTO } from './VideoAnnotationPage'
 
-export const getVideo = async (videoId: string): Promise<{ video: BunnyCDNVideo; sequences: VideoSequence[] }> => {
-  const videoQuery = await postgres.query(
+export const getVideo = async (videoId: string): Promise<{ video: BunnyCDNVideo; sequences: VideoSequenceDTO[] }> => {
+  const { rows: addedVideoEvents } = await postgres.query<UserAddedBunnyCDNVideo>(
     "SELECT * FROM events WHERE type = 'UserAddedBunnyCDNVideo' AND payload->>'videoId'=$1 LIMIT 1",
     [videoId]
   )
 
-  if (!videoQuery.rows.length) {
+  if (!addedVideoEvents.length) {
     throw new Error('Video introuvable')
   }
 
-  const sequenceQuery = await postgres.query(
+  const video = addedVideoEvents[0].payload
+
+  const { rows: allSequenceAddedEvents } = await postgres.query<VideoSequenceAdded>(
     "SELECT * FROM events WHERE type = 'VideoSequenceAdded' AND payload->>'videoId'=$1 ORDER BY payload->>'addedOn' DESC",
     [videoId]
   )
 
-  const sequences = (sequenceQuery.rows.map((row) => row.payload) as VideoSequence[]).reduce((uniqueSequences, sequence) => {
-    if (!uniqueSequences.find(({ sequenceId }) => sequenceId === sequence.sequenceId)) {
-      uniqueSequences.push(sequence)
-    }
+  const latestSequenceAddedEvents = filterLatestEventForSequenceId(allSequenceAddedEvents)
 
-    return uniqueSequences
-  }, [] as VideoSequence[])
+  const sequences = await Promise.all(latestSequenceAddedEvents.map(toSequenceDTO))
 
   return {
-    video: videoQuery.rows[0].payload,
+    video,
     sequences,
   }
+}
+
+function filterLatestEventForSequenceId(sequences: VideoSequenceAdded[]) {
+  return sequences
+    .map((sequenceAddedEvent) => sequenceAddedEvent.payload)
+    .reduce((uniqueSequences, sequence) => {
+      if (!uniqueSequences.find(({ sequenceId }) => sequenceId === sequence.sequenceId)) {
+        uniqueSequences.push(sequence)
+      }
+
+      return uniqueSequences
+    }, [] as VideoSequence[])
+}
+
+async function toSequenceDTO(videoSequence: VideoSequence): Promise<VideoSequenceDTO> {
+  const { videoId, sequenceId, startTime, endTime, title, description, places, persons: personIds } = videoSequence
+
+  const persons = (personIds ? await Promise.all(personIds.map(getPersonById)) : [])
+    .filter(isDefined)
+    .map((person: Person) => toTaggedPersonDTO(person))
+
+  return {
+    videoId,
+    sequenceId,
+    startTime,
+    endTime,
+    title,
+    description,
+    places,
+    persons,
+  }
+}
+
+function toTaggedPersonDTO(person: Person): TaggedPersonDTO {
+  return { ...person, objectID: person.id }
+}
+
+async function getPersonById(personId: UUID): Promise<Person | undefined> {
+  const gedcom = await getGedcom()
+  const { persons } = gedcom.payload
+
+  return persons.find((person) => person.id === personId)
+}
+
+function isDefined<T>(object: T | undefined): object is T {
+  return !!object
 }
