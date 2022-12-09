@@ -18,6 +18,7 @@ export type VideoSequence = {
   title?: string
   description?: string
   places?: Place[]
+  date?: string
   persons?: TaggedPerson[]
   addedBy: UUID
   addedOn: Epoch

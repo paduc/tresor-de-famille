@@ -44,7 +44,7 @@ function filterLatestEventForSequenceId(sequences: VideoSequenceAdded[]) {
 }
 
 async function toSequenceDTO(videoSequence: VideoSequence): Promise<VideoSequenceDTO> {
-  const { videoId, sequenceId, startTime, endTime, title, description, places, persons: personIds } = videoSequence
+  const { videoId, sequenceId, startTime, endTime, title, date, description, places, persons: personIds } = videoSequence
 
   const persons = (personIds ? await Promise.all(personIds.map(getPersonById)) : [])
     .filter(isDefined)
@@ -56,6 +56,7 @@ async function toSequenceDTO(videoSequence: VideoSequence): Promise<VideoSequenc
     startTime,
     endTime,
     title,
+    date,
     description,
     places,
     persons,

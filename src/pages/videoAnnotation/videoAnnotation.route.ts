@@ -31,12 +31,13 @@ pageRouter
 
     try {
       // Parse and validate the form fields using Zod
-      const { videoId, sequenceId, title, description, places, persons, startTime, endTime } = zod
+      const { videoId, sequenceId, title, description, date, places, persons, startTime, endTime } = zod
         .object({
           videoId: zIsUUID,
           sequenceId: zIsUUID,
           title: zod.string(),
           description: zod.string(),
+          date: zod.string(),
           places: zod.union([zCustom(isPlace), zod.array(zCustom(isPlace))]),
           persons: zod.union([zIsUUID, zod.array(zIsUUID)]),
           startTime: zIsMediaTime,
@@ -52,6 +53,7 @@ pageRouter
           sequenceId,
           title,
           description,
+          date,
           places: toArray(places).filter((str) => str.length > 0),
           persons: toArray(persons),
           addedBy: request.session.user!.id,

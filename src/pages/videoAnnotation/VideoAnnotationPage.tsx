@@ -29,6 +29,7 @@ export type VideoSequenceDTO = {
   startTime?: string
   endTime?: string
   title?: string
+  date?: string
   description?: string
   places?: PlaceDTO[]
   persons?: TaggedPersonDTO[]
@@ -114,6 +115,7 @@ const SequenceBox = ({ sequence }: SequenceBoxProps) => {
     description,
     startTime,
     endTime,
+    date,
     places: initialPlaces = [],
     persons: initialPersons = [],
   } = sequence
@@ -212,6 +214,23 @@ const SequenceBox = ({ sequence }: SequenceBoxProps) => {
                     name='title'
                     id='title'
                     defaultValue={title}
+                    className='block w-full flex-1 rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm'
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className='grid grid-cols-3 gap-6'>
+              <div className='col-span-3 sm:col-span-2'>
+                <label htmlFor='date' className='block text-sm font-medium text-gray-700'>
+                  Date
+                </label>
+                <div className='mt-1 flex rounded-md shadow-sm'>
+                  <input
+                    type='text'
+                    name='date'
+                    id='date'
+                    defaultValue={date}
                     className='block w-full flex-1 rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm'
                   />
                 </div>
