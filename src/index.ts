@@ -9,6 +9,7 @@ import { pageRouter } from './pages'
 import { actionsRouter } from './actions'
 import { registerAuth } from './dependencies/authn'
 import { subscribeAll } from './dependencies/eventStore'
+import { SESSION_SECRET } from './dependencies/env'
 
 const PORT: number = parseInt(process.env.PORT ?? '3000')
 
@@ -28,7 +29,7 @@ app.get('/ping', (_: express.Request, response: express.Response): void => {
 
 app.use(
   session({
-    secret: 'super-secret',
+    secret: SESSION_SECRET,
     store: sessionStore,
     resave: false,
     proxy: true,

@@ -14,4 +14,6 @@ export const POSTGRES_CONNECTION_STRING = throwIfUndefined('DATABASE_URL', proce
 
 export const REGISTRATION_CODE = throwIfUndefined('REGISTRATION_CODE', process.env.NODE_ENV === 'production')!
 
+export const SESSION_SECRET = throwIfUndefined('SESSION_SECRET', true)!
+
 export const SEED = process.env.SEED === '1'
