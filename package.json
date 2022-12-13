@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "description": "trésor de famille application",
   "scripts": {
+    "build": "tsc && cp -r src/assets dist && yarn build:front && yarn migrate",
     "start": "nodemon dist/index.js",
     "build:front": "webpack --config=webpack.config.js",
     "watch:front": "webpack --config=webpack.config.js --watch",
