@@ -7,9 +7,10 @@ type ConnexionPageProps = {
   loginType?: 'login' | 'register'
   email?: string
   redirectTo?: string
+  code?: string
   errors?: { password?: string; email?: string; other?: string }
 }
-export const ConnexionPage = ({ loginType = 'login', email, redirectTo, errors }: ConnexionPageProps) => {
+export const ConnexionPage = ({ loginType = 'login', email, redirectTo, code, errors }: ConnexionPageProps) => {
   return (
     <Layout>
       <div className='min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8'>
@@ -30,6 +31,7 @@ export const ConnexionPage = ({ loginType = 'login', email, redirectTo, errors }
           <div className='bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10'>
             <form method='post' aria-describedby={errors ? 'form-error-message' : undefined} className='space-y-6'>
               <input type='hidden' name='redirectTo' value={redirectTo ?? undefined} />
+              <input type='hidden' name='code' value={code ?? undefined} />
               <fieldset className='mt-4'>
                 <legend className='sr-only'>Login or Register</legend>
                 <div className='space-y-4 sm:flex sm:items-center sm:space-y-0 sm:space-x-10'>

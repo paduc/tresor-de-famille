@@ -1,6 +1,6 @@
-import { actionsRouter } from './actionsRouter';
+import { actionsRouter } from './actionsRouter'
 
-actionsRouter.post('/logout', async (request, response) => {
+actionsRouter.all('/logout', async (request, response) => {
   if (request.session) {
     request.session.destroy((error) => {
       if (error) {

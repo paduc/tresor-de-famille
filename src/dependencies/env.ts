@@ -12,4 +12,6 @@ export const PASSWORD_SALT = throwIfUndefined('PASSWORD_SALT', AUTHN === 'passwo
 
 export const POSTGRES_CONNECTION_STRING = throwIfUndefined('DATABASE_URL', process.env.NODE_ENV === 'production')!
 
+export const REGISTRATION_CODE = throwIfUndefined('REGISTRATION_CODE', process.env.NODE_ENV === 'production')!
+
 export const SEED = process.env.SEED === '1'

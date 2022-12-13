@@ -8,7 +8,7 @@ import bcrypt from 'bcryptjs'
 import { makeRegister } from './register'
 import { publish } from '../eventStore'
 import { parseZodErrors } from '../../libs/parseZodErrors'
-import { PASSWORD_SALT } from '../env'
+import { PASSWORD_SALT, REGISTRATION_CODE } from '../env'
 
 const login = makeLogin(bcrypt.compare)
 const register = makeRegister({
@@ -18,28 +18,49 @@ const register = makeRegister({
 
 export const addPasswordAuthRoutes = (app: Express) => {
   app.get('/login.html', async (request, response) => {
-    const { redirectTo } = request.query
+    const { redirectTo, code } = z
+      .object({
+        code: z.string().optional(),
+        redirectTo: z.string().optional(),
+      })
+      .parse(request.query)
 
-    responseAsHtml(request, response, ConnexionPage({ redirectTo: typeof redirectTo === 'string' ? redirectTo : undefined }))
+    responseAsHtml(request, response, ConnexionPage({ redirectTo, code }))
   })
 
   app.post('/login.html', async (request, response) => {
     try {
-      const { loginType, email, password, redirectTo } = z
+      const { loginType, email, password, redirectTo, code } = z
         .object({
           loginType: z.enum(['login', 'register']),
           email: z.string().email(),
           password: z.string().min(8),
           redirectTo: z.string().optional(),
+          code: z.string().optional(),
         })
         .parse(request.body)
+
+      if (loginType === 'register' && code !== REGISTRATION_CODE) {
+        return responseAsHtml(
+          request,
+          response,
+          ConnexionPage({
+            errors: {
+              other: "Désolé mais les inscriptions sont fermées pour le moment. Merci de revenir avec un lien d'invitation.",
+            },
+            loginType,
+            email,
+            redirectTo,
+          })
+        )
+      }
 
       const userId = loginType === 'login' ? await login(email, password) : await register(email, password)
 
       request.session.user = { id: userId, name: email }
       response.redirect(redirectTo || '/')
     } catch (error) {
-      const { loginType, email, redirectTo } = request.body
+      const { loginType, email, redirectTo, code } = request.body
       return responseAsHtml(
         request,
         response,
@@ -51,6 +72,7 @@ export const addPasswordAuthRoutes = (app: Express) => {
           loginType,
           email,
           redirectTo,
+          code,
         })
       )
     }
