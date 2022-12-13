@@ -1,4 +1,5 @@
 import { Pool } from 'pg'
+import { POSTGRES_CONNECTION_STRING } from './env'
 
 const testConfig = {
   user: 'test',
@@ -17,4 +18,10 @@ const devConfig = {
   port: 5434,
 }
 
-export const postgres = new Pool(process.env.NODE_ENV === 'test' ? testConfig : devConfig)
+const prodConfig = {
+  connectionString: POSTGRES_CONNECTION_STRING,
+}
+
+export const postgres = new Pool(
+  process.env.NODE_ENV === 'production' ? prodConfig : process.env.NODE_ENV === 'test' ? testConfig : devConfig
+)

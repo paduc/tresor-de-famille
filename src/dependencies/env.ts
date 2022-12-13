@@ -10,4 +10,6 @@ const throwIfUndefined = (variableName: string, condition: boolean) => {
 export const AUTHN = process.env.AUTHN
 export const PASSWORD_SALT = throwIfUndefined('PASSWORD_SALT', AUTHN === 'password')!
 
+export const POSTGRES_CONNECTION_STRING = throwIfUndefined('DATABASE_URL', process.env.NODE_ENV === 'production')!
+
 export const SEED = process.env.SEED === '1'
