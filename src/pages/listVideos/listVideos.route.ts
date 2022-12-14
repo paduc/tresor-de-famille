@@ -4,8 +4,9 @@ import { requireAuth } from '../../dependencies/authn'
 import { ListVideosPage } from './ListVideosPage'
 import { getVideos } from './getVideos.query'
 
-pageRouter.route('/videos.html').get(requireAuth(), async (request, response) => {
-  console.log(`GET on /videos.html`)
+export const VideoListPageUrl = '/videos.html'
+pageRouter.route(VideoListPageUrl).get(requireAuth(), async (request, response) => {
+  console.log(`GET on ${VideoListPageUrl}`)
 
   const videos = await getVideos()
 
