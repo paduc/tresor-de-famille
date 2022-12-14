@@ -6,6 +6,7 @@ export type UserRegisteredWithEmailAndPassword = BaseDomainEvent & {
     userId: string
     email: string
     passwordHash: string
+    code?: string
   }
 }
 

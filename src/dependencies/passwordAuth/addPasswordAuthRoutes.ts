@@ -55,7 +55,7 @@ export const addPasswordAuthRoutes = (app: Express) => {
         )
       }
 
-      const userId = loginType === 'login' ? await login(email, password) : await register(email, password)
+      const userId = loginType === 'login' ? await login(email, password) : await register(email, password, code)
 
       request.session.user = { id: userId, name: email }
       response.redirect(redirectTo || '/')

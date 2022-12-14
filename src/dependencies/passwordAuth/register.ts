@@ -9,7 +9,7 @@ type RegisterDeps = {
 }
 export const makeRegister =
   ({ publish, hashPassword }: RegisterDeps) =>
-  async (email: string, password: string) => {
+  async (email: string, password: string, code?: string) => {
     const { rowCount } = await postgres.query(
       "SELECT * FROM events WHERE type = 'UserRegisteredWithEmailAndPassword' AND payload->>'email'=$1 LIMIT 1",
       [email]
@@ -27,6 +27,7 @@ export const makeRegister =
         userId,
         email,
         passwordHash,
+        code,
       })
     )
 
