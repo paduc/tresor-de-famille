@@ -171,7 +171,7 @@ export function AppLayout({ children }: AppLayoutProps) {
               <div className='flex-1 flex justify-between px-4 sm:px-6'>
                 <div className='flex-1 flex'>
                   <form className='w-full flex md:ml-0' action='#' method='GET'>
-                    <label htmlFor='search-field' className='sr-only'>
+                    {/* <label htmlFor='search-field' className='sr-only'>
                       Rechercher
                     </label>
                     <div className='relative w-full text-gray-400 focus-within:text-gray-600'>
@@ -185,7 +185,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                         placeholder='Rechercher'
                         type='search'
                       />
-                    </div>
+                    </div> */}
                   </form>
                 </div>
                 <div className='ml-2 flex items-center space-x-4 sm:ml-6 sm:space-x-6'>
