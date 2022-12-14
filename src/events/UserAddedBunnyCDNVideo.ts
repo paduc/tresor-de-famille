@@ -5,6 +5,7 @@ export type BunnyCDNVideo = {
   title: string
   videoId: UUID
   directPlayUrl: string
+  hlsPlaylistUrl: string
   thumbnailUrl: string
   previewUrl: string
 }

@@ -1,11 +1,7 @@
 import * as React from 'react'
-import { Combobox } from '@headlessui/react'
 
 import { withBrowserBundle } from '../../libs/ssr/withBrowserBundle'
-import { useSearchClient } from '../_components/AlgoliaContext'
 import { AppLayout } from '../_components/layout/AppLayout'
-import { useState } from 'react'
-import { CheckIcon } from '@heroicons/react/solid'
 import { SuccessError } from '../_components/SuccessError'
 
 // @ts-ignore
@@ -73,7 +69,19 @@ export const AddVideoPage = withBrowserBundle(({ error, success }: AddVideoProps
                     />
                   </div>
                 </div>
-
+                <div className='sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:border-t sm:border-gray-200 sm:pt-5'>
+                  <label htmlFor='hlsPlaylistUrl' className='block text-sm font-medium text-gray-700 sm:mt-px sm:pt-2'>
+                    HLS Playlist Url
+                  </label>
+                  <div className='mt-1 sm:col-span-2 sm:mt-0'>
+                    <input
+                      type='text'
+                      name='hlsPlaylistUrl'
+                      id='hlsPlaylistUrl'
+                      className='block w-full max-w-lg rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:max-w-xs sm:text-sm'
+                    />
+                  </div>
+                </div>
                 <div className='sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:border-t sm:border-gray-200 sm:pt-5'>
                   <label htmlFor='thumbnailUrl' className='block text-sm font-medium text-gray-700 sm:mt-px sm:pt-2'>
                     Thumbnail Url

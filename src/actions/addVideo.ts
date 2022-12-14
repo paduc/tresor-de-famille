@@ -6,13 +6,14 @@ import { AddVideoPage } from '../pages'
 import { actionsRouter } from './actionsRouter'
 
 actionsRouter.post('/addVideo', requireAuth(), async (request, response) => {
-  const { title, videoId, directPlayUrl, thumbnailUrl, previewUrl } = request.body
+  const { title, videoId, directPlayUrl, hlsPlaylistUrl, thumbnailUrl, previewUrl } = request.body
 
   await publish(
     UserAddedBunnyCDNVideo({
       title,
       videoId,
       directPlayUrl,
+      hlsPlaylistUrl,
       thumbnailUrl,
       previewUrl,
     })
