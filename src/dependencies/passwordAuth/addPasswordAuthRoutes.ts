@@ -9,6 +9,7 @@ import { makeRegister } from './register'
 import { publish } from '../eventStore'
 import { parseZodErrors } from '../../libs/parseZodErrors'
 import { PASSWORD_SALT, REGISTRATION_CODE } from '../env'
+import { getPersonForUserId } from '../../pages/home/getPersonForUserId.query'
 
 const login = makeLogin(bcrypt.compare)
 const register = makeRegister({
@@ -40,24 +41,38 @@ export const addPasswordAuthRoutes = (app: Express) => {
         })
         .parse(request.body)
 
-      if (loginType === 'register' && code !== REGISTRATION_CODE) {
-        return responseAsHtml(
-          request,
-          response,
-          ConnexionPage({
-            errors: {
-              other: "Désolé mais les inscriptions sont fermées pour le moment. Merci de revenir avec un lien d'invitation.",
-            },
-            loginType,
-            email,
-            redirectTo,
-          })
-        )
+      // Registration case
+      if (loginType === 'register') {
+        if (code !== REGISTRATION_CODE) {
+          return responseAsHtml(
+            request,
+            response,
+            ConnexionPage({
+              errors: {
+                other: "Désolé mais les inscriptions sont fermées pour le moment. Merci de revenir avec un lien d'invitation.",
+              },
+              loginType,
+              email,
+              redirectTo,
+            })
+          )
+        }
+
+        const userId = await register(email, password, code)
+
+        request.session.user = { id: userId, name: email }
+        return response.redirect(redirectTo || '/')
       }
 
-      const userId = loginType === 'login' ? await login(email, password) : await register(email, password, code)
+      // Login case
+      const userId = await login(email, password)
+      try {
+        const person = await getPersonForUserId(userId)
+        request.session.user = { id: userId, name: person.name }
+      } catch (error) {
+        request.session.user = { id: userId, name: email }
+      }
 
-      request.session.user = { id: userId, name: email }
       response.redirect(redirectTo || '/')
     } catch (error) {
       const { loginType, email, redirectTo, code } = request.body

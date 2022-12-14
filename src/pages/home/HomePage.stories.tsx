@@ -6,7 +6,7 @@ import { HomePage } from './HomePage'
 export default { title: "Page d'accueil", component: HomePage }
 
 export const Basique = () => (
-  <SessionContext.Provider value={{ isLoggedIn: true, userName: 'toto' }}>
+  <SessionContext.Provider value={{ isLoggedIn: true, userName: 'toto', isAdmin: false }}>
     <HomePage person={null} />
   </SessionContext.Provider>
 )

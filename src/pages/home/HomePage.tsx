@@ -16,7 +16,7 @@ export const HomePage = (props: { person: Person | null }) => {
           <div className='inline-flex rounded-md shadow'>
             <a
               href={VideoListPageUrl}
-              className='inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-5 py-3 text-base font-medium text-white hover:bg-indigo-700'>
+              className='inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-700'>
               Aller à la liste des vidéos
             </a>
           </div>

@@ -5,6 +5,7 @@ import { AlgoliaContext } from '../../pages/_components/AlgoliaContext'
 import { Session, SessionContext } from '../../pages/_components/SessionContext'
 import { withContext } from './withContext'
 import { SearchClient } from 'algoliasearch/lite'
+import { ADMIN_USERID } from '../../dependencies/env'
 
 const html = String.raw
 
@@ -73,7 +74,7 @@ export function responseAsHtml(
 
 function getSession(request: Request): Session {
   if (request.session.user) {
-    return { isLoggedIn: true, userName: request.session.user.name }
+    return { isLoggedIn: true, userName: request.session.user.name, isAdmin: request.session.user.id === ADMIN_USERID }
   }
 
   return { isLoggedIn: false }
