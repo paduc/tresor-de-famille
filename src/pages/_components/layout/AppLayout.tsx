@@ -237,12 +237,12 @@ export function AppLayout({ children }: AppLayoutProps) {
                     </Transition>
                   </Menu>
 
-                  <a
+                  {/* <a
                     href='/a/upload-image'
                     className='flex bg-indigo-600 p-1 rounded-full items-center justify-center text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
                     <PlusSmIcon className='h-6 w-6' aria-hidden='true' />
                     <span className='sr-only'>Add file</span>
-                  </a>
+                  </a> */}
                 </div>
               </div>
             </div>
