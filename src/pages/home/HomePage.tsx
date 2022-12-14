@@ -1,9 +1,10 @@
 import * as React from 'react'
 import { Person } from '../../events'
+import { withBrowserBundle } from '../../libs/ssr'
 import { VideoListPageUrl } from '../listVideos'
 import { AppLayout } from '../_components/layout/AppLayout'
 
-export const HomePage = (props: { person: Person | null }) => {
+export const HomePage = withBrowserBundle((props: { person: Person | null }) => {
   const { person } = props
   return (
     <AppLayout>
@@ -24,4 +25,4 @@ export const HomePage = (props: { person: Person | null }) => {
       </div>
     </AppLayout>
   )
-}
+})
