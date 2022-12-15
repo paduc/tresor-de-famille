@@ -22,20 +22,19 @@ pageRouter
       return
     }
 
+    await publish(
+      UserHasDesignatedThemselfAsPerson({
+        userId: request.session.user!.id,
+        personId: selectedPersonId,
+      })
+    )
+
     try {
       const person = await getPersonForUserId(selectedPersonId)
 
       request.session.user!.name = person.name
-
-      await publish(
-        UserHasDesignatedThemselfAsPerson({
-          userId: request.session.user!.id,
-          personId: selectedPersonId,
-        })
-      )
-
-      response.redirect('/')
     } catch (error) {
-      return responseAsHtml(request, response, WhoAreYouPage({ error: 'Personne inconnue' }))
+      console.error('Impossible de mettre à jour la session avec le nom de la personne. ')
     }
+    response.redirect('/')
   })
