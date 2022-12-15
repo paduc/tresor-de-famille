@@ -3,8 +3,8 @@ import { pageRouter } from '../pageRouter'
 import { requireAuth } from '../../dependencies/authn'
 import { ListVideosPage } from './ListVideosPage'
 import { getVideos } from './getVideos.query'
+import { VideoListPageUrl } from './VideoListPageUrl'
 
-export const VideoListPageUrl = '/videos.html'
 pageRouter.route(VideoListPageUrl).get(requireAuth(), async (request, response) => {
   console.log(`GET on ${VideoListPageUrl}`)
 

@@ -6,6 +6,7 @@ import { useSearchClient } from '../_components/AlgoliaContext'
 import { AppLayout } from '../_components/layout/AppLayout'
 import { useState } from 'react'
 import { CheckIcon } from '@heroicons/react/solid'
+import { SuccessError } from '../_components/SuccessError'
 
 // @ts-ignore
 function classNames(...classes) {
@@ -46,6 +47,7 @@ export const WhoAreYouPage = withBrowserBundle(({ error }: WhoAreYouPageProps) =
               Eh oui, on n'accède pas au trésor aussi facilement. <br />
               Il faut montrer patte blanche en se désignant dans l'arbre généalogique ! Logique !!!
             </p>
+            <SuccessError error={error} />
             {index ? (
               <Combobox as='div' value={selectedPerson} onChange={setSelectedPerson}>
                 <div className='relative mt-3 max-w-lg mx-auto'>
