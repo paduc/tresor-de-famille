@@ -72,16 +72,16 @@ export const WhoAreYouPage = withBrowserBundle(({ error }: WhoAreYouPageProps) =
                           }>
                           {({ active, selected }) => (
                             <>
-                              <div className='flex'>
-                                <span className={classNames('truncate', selected && 'font-semibold')}>{hit.name}</span>
-                                <span
+                              <div className='sm:flex'>
+                                <div className={classNames('truncate', selected && 'font-semibold')}>{hit.name}</div>
+                                <div
                                   className={classNames(
-                                    'ml-2 truncate text-gray-500',
+                                    'sm:ml-2 truncate text-gray-500',
                                     active ? 'text-indigo-200' : 'text-gray-500'
                                   )}>
                                   {hit.sex === 'M' ? 'né le ' : 'née le '}
                                   {hit.bornOn}
-                                </span>
+                                </div>
                               </div>
 
                               {selected && (
