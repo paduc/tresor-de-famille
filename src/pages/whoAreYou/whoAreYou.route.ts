@@ -4,6 +4,7 @@ import { requireAuth } from '../../dependencies/authn'
 import { WhoAreYouPage } from './WhoAreYouPage'
 import { publish } from '../../dependencies/eventStore'
 import { UserHasDesignatedThemselfAsPerson } from '../../events'
+import { getPersonForUserId } from '../home/getPersonForUserId.query'
 
 pageRouter
   .route('/qui-es-tu')
@@ -21,12 +22,20 @@ pageRouter
       return
     }
 
-    await publish(
-      UserHasDesignatedThemselfAsPerson({
-        userId: request.session.user!.id,
-        personId: selectedPersonId,
-      })
-    )
+    try {
+      const person = await getPersonForUserId(selectedPersonId)
 
-    response.redirect('/')
+      request.session.user!.name = person.name
+
+      await publish(
+        UserHasDesignatedThemselfAsPerson({
+          userId: request.session.user!.id,
+          personId: selectedPersonId,
+        })
+      )
+
+      response.redirect('/')
+    } catch (error) {
+      return responseAsHtml(request, response, WhoAreYouPage({ error: 'Personne inconnue' }))
+    }
   })
