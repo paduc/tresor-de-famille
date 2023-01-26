@@ -71,6 +71,8 @@ export const VideoAnnotationPage = withBrowserBundle(
       setSequences((prevSequences) => [...prevSequences, { videoId: video.videoId, sequenceId: getUuid() }])
     }, [setSequences, video])
 
+    console.log(JSON.stringify(video, null, 2))
+    const hlsPlaylistUrl = video.thumbnailUrl.replace('/thumbnail.jpg', '/playlist.m3u8')
     return (
       <AppLayout>
         <div className='p-6'>
@@ -82,6 +84,10 @@ export const VideoAnnotationPage = withBrowserBundle(
             target='_blank'>
             Voir la vidéo
           </a>
+
+          <div className='relative max-w-xl'>
+            <video src={hlsPlaylistUrl}></video>
+          </div>
 
           <SuccessError success={success} error={error} />
 
