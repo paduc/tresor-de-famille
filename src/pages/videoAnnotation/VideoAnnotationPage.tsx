@@ -41,22 +41,28 @@ export type VideoAnnotationProps =
       error: string
       video?: never
       sequences?: never
+      description?: never
+      parsedDescription?: never
     }
   | {
       success: string
       error?: never
       video?: never
       sequences?: never
+      description?: never
+      parsedDescription?: never
     }
   | {
       success?: never
       error?: never
       video: BunnyCDNVideo
+      description: string
+      parsedDescription: any
       sequences: VideoSequenceDTO[]
     }
 
 export const VideoAnnotationPage = withBrowserBundle(
-  ({ error, success, video, sequences: initialSequences = [] }: VideoAnnotationProps) => {
+  ({ error, success, video, sequences: initialSequences = [], description = '', parsedDescription }: VideoAnnotationProps) => {
     if (!video) {
       return (
         <AppLayout>
@@ -85,7 +91,15 @@ export const VideoAnnotationPage = withBrowserBundle(
 
           <SuccessError success={success} error={error} />
 
-          <div className='mt-5 md:grid md:grid-cols-1 md:gap-6'>
+          <form method='POST'>
+            <label htmlFor='description'>Description</label>
+            <textarea name='description' defaultValue={description}></textarea>
+            <button>Valider</button>
+          </form>
+
+          <pre>{JSON.stringify(parsedDescription, null, 2)}</pre>
+
+          {/* <div className='mt-5 md:grid md:grid-cols-1 md:gap-6'>
             {sequences.map((sequence) => (
               <SequenceBox sequence={sequence} key={`sequence_${sequence.sequenceId}`} />
             ))}
@@ -97,7 +111,7 @@ export const VideoAnnotationPage = withBrowserBundle(
             onClick={() => addNewSequence()}>
             <PlusIcon className='-ml-0.5 mr-2 h-4 w-4' aria-hidden='true' />
             Ajouter une séquence
-          </button>
+          </button> */}
         </div>
       </AppLayout>
     )
