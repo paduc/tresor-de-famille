@@ -9,12 +9,15 @@ const starterHistory: ChatEvent[] = [
   {
     type: 'photo',
     photoId: 'photo123',
-    url: 'url',
+    url: 'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80',
+    profilePicUrl:
+      'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80',
   },
   {
     type: 'message',
+    profilePicUrl:
+      'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80',
     message: {
-      authorName: 'Vous',
       body: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Tincidunt nunc ipsum tempor purus vitae id. Morbi in vestibulum nec varius. Et diam cursus quis sed purus nam. Scelerisque amet elit non sit ut tincidunt condimentum. Nisl ultrices eu venenatis diam.',
     },
   },
@@ -22,6 +25,9 @@ const starterHistory: ChatEvent[] = [
 
 export const Basique = () => (
   <SessionContext.Provider value={{ isLoggedIn: true, userName: 'toto', isAdmin: false }}>
-    <ChatPage history={starterHistory} />
+    <ChatPage
+      userProfilePicUrl='https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80'
+      history={starterHistory}
+    />
   </SessionContext.Provider>
 )
