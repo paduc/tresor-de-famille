@@ -63,11 +63,19 @@ function classNames(...classes) {
   return classes.filter(Boolean).join(' ')
 }
 
-export type ChatEvent = {
-  type: 'photo'
-  photoId: string
-  url: string
-}
+export type ChatEvent =
+  | {
+      type: 'photo'
+      photoId: string
+      url: string
+    }
+  | {
+      type: 'message'
+      message: {
+        authorName: string
+        body: string
+      }
+    }
 
 export type ChatProps = {
   success?: string
@@ -87,9 +95,13 @@ export const ChatPage = withBrowserBundle(({ error, success, history }: ChatProp
                 return <PhotoItem event={event} />
               }
 
+              if (event.type === 'message') {
+                return <MessageItem event={event} />
+              }
+
               return null
             })}
-            <UploadPhotoItem />
+            <AddPhotoOrMessageItem />
             {activity.map((activityItem, activityItemIdx) => (
               <li key={activityItem.id}>
                 <div className='relative pb-8'>
@@ -205,7 +217,7 @@ const ChatItem = ({ children, isLastItem }: ChatItemProps) => {
   )
 }
 
-function AddPhotoIcon(props: any) {
+function AddIcon(props: any) {
   return (
     <svg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' strokeWidth={1.5} stroke='currentColor' {...props}>
       <path strokeLinecap='round' strokeLinejoin='round' d='M12 4.5v15m7.5-7.5h-15' />
@@ -223,16 +235,16 @@ function SendIcon(props: any) {
     </svg>
   )
 }
-type UploadPhotoItemProps = {}
-const UploadPhotoItem = ({}: UploadPhotoItemProps) => {
+type AddPhotoOrMessageItemProps = {}
+const AddPhotoOrMessageItem = ({}: AddPhotoOrMessageItemProps) => {
   return (
     <ChatItem isLastItem={true}>
-      <div>
-        <div className='relative px-1'>
-          <div className='flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 ring-8 ring-white'>
-            <AddPhotoIcon className='h-5 w-5 text-gray-500' aria-hidden='true' />
-          </div>
-        </div>
+      <div className='relative'>
+        <img
+          className='flex h-10 w-10 items-center justify-center rounded-full bg-gray-400 ring-8 ring-white'
+          src='https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80'
+          alt=''
+        />
       </div>
       <div className='min-w-0 flex-1'>
         <form action='#' className='relative'>
@@ -304,15 +316,50 @@ type PhotoItemProps = { event: ChatEvent & { type: 'photo' } }
 const PhotoItem = ({ event }: PhotoItemProps) => {
   return (
     <ChatItem>
-      <div>
-        <div className='relative px-1'>
-          <div className='flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 ring-8 ring-white'>
-            <PhotoIcon className='h-5 w-5 text-gray-500' aria-hidden='true' />
-          </div>
-        </div>
+      <div className='relative'>
+        <img
+          className='flex h-10 w-10 items-center justify-center rounded-full bg-gray-400 ring-8 ring-white'
+          src='https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80'
+          alt=''
+        />
+
+        <span className='absolute -bottom-0.5 -right-1 rounded-tl bg-white px-0.5 py-px'>
+          <PhotoIcon className='h-5 w-5 text-gray-500' aria-hidden='true' />
+        </span>
       </div>
       <div className='min-w-0 flex-1 py-1.5'>
         <img src='https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80' />
+      </div>
+    </ChatItem>
+  )
+}
+
+type MessageItemProps = { event: ChatEvent & { type: 'message' } }
+const MessageItem = ({ event }: MessageItemProps) => {
+  return (
+    <ChatItem>
+      <div className='relative'>
+        <img
+          className='flex h-10 w-10 items-center justify-center rounded-full bg-gray-400 ring-8 ring-white'
+          src='https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80'
+          alt=''
+        />
+
+        <span className='absolute -bottom-0.5 -right-1 rounded-tl bg-white px-0.5 py-px'>
+          <ChatBubbleLeftEllipsisIcon className='h-5 w-5 text-gray-400' aria-hidden='true' />
+        </span>
+      </div>
+      <div className='min-w-0 flex-1 py-1.5'>
+        <div>
+          <div className='text-sm'>
+            <a href='' className='font-medium text-gray-900'>
+              {event.message.authorName}
+            </a>
+          </div>
+        </div>
+        <div className='mt-2 text-sm text-gray-700'>
+          <p>{event.message.body}</p>
+        </div>
       </div>
     </ChatItem>
   )

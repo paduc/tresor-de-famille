@@ -11,6 +11,13 @@ const starterHistory: ChatEvent[] = [
     photoId: 'photo123',
     url: 'url',
   },
+  {
+    type: 'message',
+    message: {
+      authorName: 'Vous',
+      body: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Tincidunt nunc ipsum tempor purus vitae id. Morbi in vestibulum nec varius. Et diam cursus quis sed purus nam. Scelerisque amet elit non sit ut tincidunt condimentum. Nisl ultrices eu venenatis diam.',
+    },
+  },
 ]
 
 export const Basique = () => (
