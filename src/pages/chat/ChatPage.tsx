@@ -1,5 +1,6 @@
 import { UserCircleIcon, TagIcon } from '@heroicons/react/solid'
 import * as React from 'react'
+import { useRef } from 'react'
 import { JsxElement } from 'typescript'
 
 import { withBrowserBundle } from '../../libs/ssr/withBrowserBundle'
@@ -15,8 +16,10 @@ export type ChatEvent =
   | {
       type: 'photo'
       profilePicUrl: string
-      photoId: string
-      url: string
+      photo: {
+        id: string
+        url: string
+      }
     }
   | {
       type: 'message'
@@ -26,27 +29,27 @@ export type ChatEvent =
       }
     }
 
-export type ChatProps = {
+export type ChatPageProps = {
   success?: string
   error?: string
   history: ChatEvent[]
   userProfilePicUrl: string
 }
 
-export const ChatPage = withBrowserBundle(({ error, success, history, userProfilePicUrl }: ChatProps) => {
+export const ChatPage = withBrowserBundle(({ error, success, history, userProfilePicUrl }: ChatPageProps) => {
   return (
     <AppLayout>
       <div className='bg-white p-6'>
         <SuccessError success={success} error={error} />
         <div className='flow-root'>
           <ul role='list' className='-mb-8'>
-            {history.map((event) => {
+            {history.map((event, index) => {
               if (event.type === 'photo') {
-                return <PhotoItem event={event} />
+                return <PhotoItem key={`event_${index}`} event={event} />
               }
 
               if (event.type === 'message') {
-                return <MessageItem event={event} />
+                return <MessageItem key={`event_${index}`} event={event} />
               }
 
               return null
@@ -84,6 +87,12 @@ function SendIcon(props: any) {
 }
 type AddPhotoOrMessageItemProps = { userProfilePicUrl: string }
 const AddPhotoOrMessageItem = ({ userProfilePicUrl }: AddPhotoOrMessageItemProps) => {
+  const photoUploadForm = useRef<HTMLFormElement>(null)
+
+  const photoUploadFileSelected = (e: any) => {
+    if (photoUploadForm.current !== null) photoUploadForm.current.submit()
+  }
+
   return (
     <ChatItem isLastItem={true}>
       <div className='relative'>
@@ -136,12 +145,22 @@ const AddPhotoOrMessageItem = ({ userProfilePicUrl }: AddPhotoOrMessageItemProps
             <span className='bg-white px-2 text-sm text-gray-500'>ou</span>
           </div>
         </div>
-        <button
-          type='button'
-          className='inline-flex items-center mt-3 px-3 py-1.5 border border-transparent sm:text-xs font-medium rounded-full shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
-          <PhotoIcon className='-ml-0.5 mr-2 h-4 w-4' aria-hidden='true' />
-          Ajouter une photo
-        </button>
+        <form ref={photoUploadForm} method='post' encType='multipart/form-data'>
+          <input
+            type='file'
+            id='file-input'
+            name='photo'
+            className='hidden'
+            accept='image/png, image/jpeg, image/jpg'
+            onChange={photoUploadFileSelected}
+          />
+          <label
+            htmlFor='file-input'
+            className='inline-flex items-center mt-3 px-3 py-1.5 border border-transparent sm:text-xs font-medium rounded-full shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
+            <PhotoIcon className='-ml-0.5 mr-2 h-4 w-4' aria-hidden='true' />
+            Ajouter une photo
+          </label>
+        </form>
       </div>
     </ChatItem>
   )
@@ -175,7 +194,7 @@ const PhotoItem = ({ event }: PhotoItemProps) => {
         </span>
       </div>
       <div className='min-w-0 flex-1 py-1.5'>
-        <img src='https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80' />
+        <img src={event.photo.url} />
       </div>
     </ChatItem>
   )

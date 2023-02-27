@@ -13,8 +13,8 @@ import { LocationContext } from '../LocationContext'
 const sidebarNavigation = [
   // { name: 'Ma famille', href: '/personnes', icon: UserGroupIcon },
   // { name: 'All Files', href: '#', icon: ViewGridIcon },
+  { name: 'Chat', href: '/chat.html', icon: AnnotationIcon },
   { name: 'Videos', href: '/videos.html', icon: PhotographIcon },
-  // { name: 'Anecdote', href: '/anecdote', icon: AnnotationIcon },
   // { name: 'Albums', href: '#', icon: CollectionIcon },
   // { name: 'Settings', href: '#', icon: CogIcon },
 ]
