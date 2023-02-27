@@ -25,3 +25,7 @@ export const uploadPhoto = uploadPhotoLocally
 export const getPhotoUrlFromId = (photoId: string) => {
   return '/photos/' + photoId
 }
+
+export const getProfilePicUrlForUser = (userId: string) => {
+  return 'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80'
+}

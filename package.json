@@ -7,7 +7,7 @@
     "start": "node dist/index.js",
     "build:front": "webpack --config=webpack.config.js",
     "watch:front": "webpack --config=webpack.config.js --watch",
-    "watch": "tsc && cp -r src/assets dist && concurrently \"tsc -w\" \"nodemon dist/index.js\" \"yarn watch:front\" \"yarn watch:css\" ",
+    "watch": "tsc && cp -r src/assets dist && concurrently \"tsc -w\" \"nodemon --inspect dist/index.js\" \"yarn watch:front\" \"yarn watch:css\" ",
     "build:css": "npx tailwindcss -i ./src/pages/style.css -o ./dist/assets/style.css",
     "watch:css": "yarn build:css --watch",
     "prettier": "prettier --write . --ignore-unknown",

@@ -8,5 +8,8 @@ actionsRouter.route('/photos/:photoId').get(requireAuth(), async (request, respo
 
   const { photoId } = request.params
 
-  response.send(fs.createReadStream(localFilePath(photoId)))
+  const localPath = localFilePath(photoId)
+
+  response.set('Content-Type', 'image/*')
+  fs.createReadStream(localPath).pipe(response)
 })

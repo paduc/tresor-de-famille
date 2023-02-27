@@ -6,6 +6,10 @@ import multer from 'multer'
 import fs from 'node:fs'
 import { getUuid } from '../../libs/getUuid'
 import { getPhotoUrlFromId, uploadPhoto } from '../../dependencies/uploadPhoto'
+import { getChatHistory } from './getChatHistory.query'
+import { publish } from '../../dependencies/eventStore'
+import { UserUploadedPhotoToChat } from './UserUploadedPhotoToChat'
+import { UUID } from '../../domain'
 
 const FILE_SIZE_LIMIT_MB = 50
 const upload = multer({
@@ -20,20 +24,19 @@ pageRouter
   .get(requireAuth(), async (request, response) => {
     console.log(`GET on /chat.html`)
 
+    const history: ChatPageProps['history'] = await getChatHistory('123' as UUID)
+
     responseAsHtml(
       request,
       response,
       ChatPage({
-        history: [],
-        userProfilePicUrl:
-          'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80',
+        history,
+        userProfilePicUrl: fakeProfilePicUrl,
       })
     )
   })
   .post(requireAuth(), upload.single('photo'), async (request, response) => {
     console.log(`POST on /chat.html`)
-
-    const history: ChatPageProps['history'] = []
 
     const { file } = request
     if (file) {
@@ -42,15 +45,10 @@ pageRouter
 
       await uploadPhoto({ contents: fs.createReadStream(path), id: photoId })
 
-      history.push({
-        type: 'photo',
-        profilePicUrl: fakeProfilePicUrl,
-        photo: {
-          id: photoId,
-          url: getPhotoUrlFromId(photoId),
-        },
-      })
+      await publish(UserUploadedPhotoToChat({ chatId: '123' as UUID, photoId, uploadedBy: request.session.user!.id }))
     }
+
+    const history: ChatPageProps['history'] = await getChatHistory('123' as UUID)
 
     responseAsHtml(
       request,
