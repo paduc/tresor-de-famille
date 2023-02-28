@@ -20,11 +20,13 @@ const upload = multer({
 const fakeProfilePicUrl =
   'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80'
 pageRouter
-  .route('/chat.html')
+  .route('/chat/:chatId/chat.html')
   .get(requireAuth(), async (request, response) => {
     console.log(`GET on /chat.html`)
 
-    const history: ChatPageProps['history'] = await getChatHistory('123' as UUID)
+    const { chatId } = request.params
+
+    const history: ChatPageProps['history'] = await getChatHistory(chatId)
 
     responseAsHtml(
       request,
@@ -38,6 +40,10 @@ pageRouter
   .post(requireAuth(), upload.single('photo'), async (request, response) => {
     console.log(`POST on /chat.html`)
 
+    const { chatId } = request.params
+
+    // TODO: make sure the chatId is correct
+
     const { file } = request
     if (file) {
       const photoId = getUuid()
@@ -45,10 +51,10 @@ pageRouter
 
       await uploadPhoto({ contents: fs.createReadStream(path), id: photoId })
 
-      await publish(UserUploadedPhotoToChat({ chatId: '123' as UUID, photoId, uploadedBy: request.session.user!.id }))
+      await publish(UserUploadedPhotoToChat({ chatId: chatId as UUID, photoId, uploadedBy: request.session.user!.id }))
     }
 
-    const history: ChatPageProps['history'] = await getChatHistory('123' as UUID)
+    const history: ChatPageProps['history'] = await getChatHistory(chatId)
 
     responseAsHtml(
       request,
