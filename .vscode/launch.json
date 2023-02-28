@@ -10,6 +10,31 @@
       "name": "Node: Nodemon",
       "processId": "${command:PickProcess}",
       "restart": true,
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Test Spec File",
+      "runtimeExecutable": "node",
+      "program": "${workspaceRoot}/node_modules/jest/bin/jest.js",
+      "args": [
+        "--collectCoverage=false",
+        "--colors",
+        "--config",
+        "${workspaceRoot}/jest.config.js",
+        "--runInBand",
+        "--runTestsByPath",
+        "${relativeFile}",
+        "--testPathPattern=${fileDirname}",
+        "--testTimeout=10000000"
+      ],
+      "outputCapture": "std",
+      "internalConsoleOptions": "openOnSessionStart",
+      "envFile": "${workspaceRoot}/.env",
+      "skipFiles": [
+        "${workspaceRoot}/../../node_modules/**/*",
+        "<node_internals>/**/*"
+      ],
     }
     ]
 }
