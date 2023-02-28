@@ -2,6 +2,7 @@ import aws from 'aws-sdk'
 import fs from 'node:fs'
 import path from 'node:path'
 import { getUuid } from '../../libs/getUuid'
+import { recognizeFacesInPhoto } from './recognizeFacesInPhoto'
 
 aws.config.update({
   accessKeyId: process.env.AWS_ACCESS_KEY,
@@ -23,11 +24,10 @@ const rekognition = new aws.Rekognition()
 const resetCollection = async () => {
   try {
     await rekognition.deleteCollection({ CollectionId: testCollectionId }).promise()
-  } catch (error) {
-    if("ResourceNotFoundException" === error.code){
-      console.log("Ok to not delete collection, it doesnt exist yet.");
-    }
-    else {
+  } catch (error: any) {
+    if ('ResourceNotFoundException' === error.code) {
+      console.log('Ok to not delete collection, it doesnt exist yet.')
+    } else {
       console.log('deleteCollection failed', error)
       throw error
     }
@@ -47,25 +47,26 @@ const deleteCollection = async () => {
   try {
     await rekognition.deleteCollection({ CollectionId: testCollectionId }).promise()
   } catch (error) {
-      console.log('deleteCollection failed', error)
-      throw error
-    }
+    console.log('deleteCollection failed', error)
+    throw error
   }
+}
 
 describe('recognizedFacesInPhoto', () => {
   describe('when the face is not known', () => {
-    it('should return the AWSFaceId', async () => {
+    it('should return the AWS FaceId and details for the face', async () => {
       await resetCollection()
-      const result = await rekognition.indexFaces({
-        CollectionId: testCollectionId,
-        DetectionAttributes: [],
-        Image: {
-          Bytes: fs.readFileSync(testPhotos.targetAlone),
-        },
-      }).promise()
-      await deleteCollection()
+      const result = await recognizeFacesInPhoto({
+        photoContents: fs.readFileSync(testPhotos.targetAlone),
+        collectionId: testCollectionId,
+      })
+      expect(result).toHaveLength(1)
 
-      expect(result.FaceRecords).t
+      expect(result[0].AWSFaceId).toHaveLength(36)
+      expect(result[0].position).toBeDefined()
+      expect(result[0].confidence).toBeDefined()
+
+      await deleteCollection()
     })
   })
 })
