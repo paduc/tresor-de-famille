@@ -54,18 +54,39 @@ const deleteCollection = async () => {
 
 describe('recognizedFacesInPhoto', () => {
   describe('when the face is not known', () => {
-    it('should return the AWS FaceId and details for the face', async () => {
+    let result: Awaited<ReturnType<typeof recognizeFacesInPhoto>>
+
+    beforeAll(async () => {
       await resetCollection()
-      const result = await recognizeFacesInPhoto({
+
+      const facesBefore = await rekognition.listFaces({ CollectionId: testCollectionId }).promise()
+      expect(facesBefore.Faces).toHaveLength(0)
+
+      result = await recognizeFacesInPhoto({
         photoContents: fs.readFileSync(testPhotos.targetAlone),
         collectionId: testCollectionId,
       })
+    })
+
+    it('return the AWS FaceId and details for the face', async () => {
       expect(result).toHaveLength(1)
 
       expect(result[0].AWSFaceId).toHaveLength(36)
       expect(result[0].position).toBeDefined()
       expect(result[0].confidence).toBeDefined()
 
+      const facesAfter = await rekognition.listFaces({ CollectionId: testCollectionId }).promise()
+      expect(facesAfter.Faces).toHaveLength(1)
+      expect(facesAfter.Faces![0].FaceId).toEqual(result[0].AWSFaceId)
+    })
+
+    it('should index the new face', async () => {
+      const facesAfter = await rekognition.listFaces({ CollectionId: testCollectionId }).promise()
+      expect(facesAfter.Faces).toHaveLength(1)
+      expect(facesAfter.Faces![0].FaceId).toEqual(result[0].AWSFaceId)
+    })
+
+    afterAll(async () => {
       await deleteCollection()
     })
   })
