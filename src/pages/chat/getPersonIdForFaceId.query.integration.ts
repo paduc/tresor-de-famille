@@ -1,15 +1,14 @@
 import { publish } from '../../dependencies/eventStore'
 import { resetDatabase } from '../../dependencies/__test__/resetDatabase'
-import { GedcomImported } from '../../events'
 import { getUuid } from '../../libs/getUuid'
 import { AWSFaceIdLinkedToPerson } from './AWSFaceIdLinkedToPerson'
-import { getPersonForFaceId } from './getPersonForFaceId.query'
+import { getPersonIdForFaceId } from './getPersonIdForFaceId.query'
 
-describe('getPersonForFaceId', () => {
+describe('getPersonIdForFaceId', () => {
   describe('when the AWS FaceId is not linked to a person', () => {
     const faceId = getUuid()
     it('should return null', async () => {
-      const result = await getPersonForFaceId(faceId)
+      const result = await getPersonIdForFaceId(faceId)
       expect(result).toEqual(null)
     })
   })
@@ -22,18 +21,6 @@ describe('getPersonForFaceId', () => {
       await resetDatabase()
 
       await publish(
-        GedcomImported({
-          rawGedcom: '',
-          relationships: [],
-          persons: [
-            { id: getUuid(), name: 'not the correct person' },
-            { id: personId, name: 'correct' },
-          ],
-          importedBy: '',
-        })
-      )
-
-      await publish(
         AWSFaceIdLinkedToPerson({
           faceId,
           personId,
@@ -42,9 +29,9 @@ describe('getPersonForFaceId', () => {
     })
 
     it('should return the person linked to the face', async () => {
-      const res = await getPersonForFaceId(faceId)
+      const res = await getPersonIdForFaceId(faceId)
 
-      expect(res).toEqual({ id: personId, name: 'correct' })
+      expect(res).toEqual(personId)
     })
   })
 })
