@@ -34,6 +34,26 @@ export const recognizeFacesInPhoto = async ({
     })
     .promise()
 
+  const facesToDelete = []
+  for (const faceRecord of indexFacesResult.FaceRecords!) {
+    const matches = await rekognition
+      .searchFaces({
+        CollectionId: collectionId,
+        FaceId: faceRecord.Face!.FaceId!,
+      })
+      .promise()
+
+    if (matches.FaceMatches!.length) {
+      const bestMatchFaceId = matches.FaceMatches![0].Face!.FaceId
+      facesToDelete.push(faceRecord.Face!.FaceId!)
+      faceRecord.Face!.FaceId = bestMatchFaceId
+    }
+  }
+
+  if (facesToDelete.length) {
+    await rekognition.deleteFaces({ CollectionId: collectionId, FaceIds: facesToDelete }).promise()
+  }
+
   const recognizedFaces: RecognizedFace[] =
     indexFacesResult.FaceRecords?.map(({ Face }) => {
       const { BoundingBox, FaceId, Confidence } = Face!
