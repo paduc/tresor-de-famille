@@ -19,6 +19,7 @@ export type RecognizedFace = {
   AWSFaceId: string
   position: BoundingBox
   confidence: number
+  details?: aws.Rekognition.FaceDetail
 }
 
 type RecognizeFacesInPhotoArgs = {
