@@ -8,11 +8,11 @@ export type Relationship = {
 export type Person = {
   id: string
   name: string
-  bornOn: string
-  bornIn: string
-  passedOn: string
-  passedIn: string
-  sex: 'M' | 'F'
+  bornOn?: string
+  bornIn?: string
+  passedOn?: string
+  passedIn?: string
+  sex?: 'M' | 'F'
 }
 
 export type GedcomImported = BaseDomainEvent & {
