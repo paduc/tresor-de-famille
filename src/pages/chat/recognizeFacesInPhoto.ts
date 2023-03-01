@@ -1,6 +1,7 @@
-import { UUID } from '../../domain'
 import aws from 'aws-sdk'
 import { BoundingBox } from 'aws-sdk/clients/rekognition'
+
+// TODO: move this to /dependencies
 aws.config.update({
   accessKeyId: process.env.AWS_ACCESS_KEY,
   secretAccessKey: process.env.AWS_SECRET_KEY,
@@ -27,6 +28,7 @@ type RecognizeFacesInPhotoArgs = {
   collectionId: string
 }
 
+// TODO: inject collectionId and rekognition instance
 export const recognizeFacesInPhoto = async ({
   photoContents,
   collectionId,

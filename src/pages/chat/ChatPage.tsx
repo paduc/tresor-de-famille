@@ -12,6 +12,16 @@ function classNames(...classes) {
   return classes.filter(Boolean).join(' ')
 }
 
+export type ChatPhotoFace = {
+  personName: string | null
+  position: {
+    width: number
+    height: number
+    left: number
+    top: number
+  }
+}
+
 export type ChatEvent =
   | {
       type: 'photo'
@@ -19,6 +29,7 @@ export type ChatEvent =
       photo: {
         id: string
         url: string
+        faces?: ChatPhotoFace[]
       }
     }
   | {

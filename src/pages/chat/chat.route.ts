@@ -3,13 +3,18 @@ import { pageRouter } from '../pageRouter'
 import { requireAuth } from '../../dependencies/authn'
 import { ChatPage, ChatPageProps } from './ChatPage'
 import multer from 'multer'
+import zod from 'zod'
 import fs from 'node:fs'
 import { getUuid } from '../../libs/getUuid'
 import { getPhotoUrlFromId, uploadPhoto } from '../../dependencies/uploadPhoto'
 import { getChatHistory } from './getChatHistory.query'
 import { publish } from '../../dependencies/eventStore'
 import { UserUploadedPhotoToChat } from './UserUploadedPhotoToChat'
-import { UUID } from '../../domain'
+import { UUID, zIsUUID } from '../../domain'
+import { recognizeFacesInPhoto } from './recognizeFacesInPhoto'
+import { awsRekognitionCollectionId } from '../../dependencies/rekognition'
+import { getPersonIdForFaceId } from './getPersonIdForFaceId.query'
+import { FacesRecognizedInChatPhoto } from './FacesRecognizedInChatPhoto'
 
 const FILE_SIZE_LIMIT_MB = 50
 const upload = multer({
@@ -40,9 +45,7 @@ pageRouter
   .post(requireAuth(), upload.single('photo'), async (request, response) => {
     console.log(`POST on /chat.html`)
 
-    const { chatId } = request.params
-
-    // TODO: make sure the chatId is correct
+    const { chatId } = zod.object({ chatId: zIsUUID }).parse(request.params)
 
     const { file } = request
     if (file) {
@@ -52,6 +55,29 @@ pageRouter
       await uploadPhoto({ contents: fs.createReadStream(path), id: photoId })
 
       await publish(UserUploadedPhotoToChat({ chatId: chatId as UUID, photoId, uploadedBy: request.session.user!.id }))
+
+      const detectedFaces = await recognizeFacesInPhoto({
+        photoContents: fs.readFileSync(path),
+        collectionId: awsRekognitionCollectionId,
+      })
+
+      const detectedFacesAndPersons = await Promise.all(
+        detectedFaces.map(async (detectedFace) => {
+          const personId = await getPersonIdForFaceId(detectedFace.AWSFaceId)
+
+          return { ...detectedFace, personId }
+        })
+      )
+
+      if (detectedFacesAndPersons.length) {
+        await publish(
+          FacesRecognizedInChatPhoto({
+            chatId,
+            photoId,
+            faces: detectedFacesAndPersons,
+          })
+        )
+      }
     }
 
     const history: ChatPageProps['history'] = await getChatHistory(chatId)
