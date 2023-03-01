@@ -9,6 +9,8 @@ aws.config.update({
 
 const rekognition = new aws.Rekognition()
 
+const SIMILARITY_THRESHOLD = 95
+
 export type RecognizedFace = {
   AWSFaceId: string
   position: BoundingBox
@@ -43,7 +45,7 @@ export const recognizeFacesInPhoto = async ({
       })
       .promise()
 
-    if (matches.FaceMatches!.length) {
+    if (matches.FaceMatches!.length && matches.FaceMatches![0].Similarity! > SIMILARITY_THRESHOLD) {
       const bestMatchFaceId = matches.FaceMatches![0].Face!.FaceId
       facesToDelete.push(faceRecord.Face!.FaceId!)
       faceRecord.Face!.FaceId = bestMatchFaceId
