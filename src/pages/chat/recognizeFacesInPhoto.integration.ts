@@ -17,6 +17,7 @@ const testPhotos = {
   targetAlone2: path.join(testPhotosPath, 'Only_one_present_2.jpeg'),
   targetWithOthers: path.join(testPhotosPath, 'With_others.jpeg'),
   targetNotPresent: path.join(testPhotosPath, 'Not_present.jpeg'),
+  blurryFace: path.join(testPhotosPath, 'Blurry_face.jpeg'),
 }
 
 const rekognition = new aws.Rekognition()
@@ -168,6 +169,31 @@ describe('recognizedFacesInPhoto', () => {
       const faceIdsAfter = facesAfter.Faces!.map((face) => face.FaceId!)
       expect(faceIdsAfter).toContain(knownFaceId)
       expect(faceIdsAfter).toHaveLength(6)
+    })
+  })
+
+  describe('when there is no clear face in the photo', () => {
+    let result: Awaited<ReturnType<typeof recognizeFacesInPhoto>>
+
+    beforeAll(async () => {
+      await resetCollection()
+
+      const facesBefore = await rekognition.listFaces({ CollectionId: testCollectionId }).promise()
+      expect(facesBefore.Faces).toHaveLength(0)
+
+      result = await recognizeFacesInPhoto({
+        photoContents: fs.readFileSync(testPhotos.blurryFace),
+        collectionId: testCollectionId,
+      })
+    })
+
+    it('return an empty array', async () => {
+      expect(result).toHaveLength(0)
+    })
+
+    it('should not alter the index', async () => {
+      const facesAfter = await rekognition.listFaces({ CollectionId: testCollectionId }).promise()
+      expect(facesAfter.Faces).toHaveLength(0)
     })
   })
 

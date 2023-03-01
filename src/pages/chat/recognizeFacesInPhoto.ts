@@ -11,6 +11,10 @@ const rekognition = new aws.Rekognition()
 
 const SIMILARITY_THRESHOLD = 95
 
+// User to detect a usable face
+const SHARPNESS_THRESHOLD = 8
+const CONFIDENCE_THRESHOLD = 95
+
 export type RecognizedFace = {
   AWSFaceId: string
   position: BoundingBox
@@ -29,7 +33,7 @@ export const recognizeFacesInPhoto = async ({
   const indexFacesResult = await rekognition
     .indexFaces({
       CollectionId: collectionId,
-      DetectionAttributes: [],
+      DetectionAttributes: ['DEFAULT'],
       Image: {
         Bytes: photoContents,
       },
@@ -37,7 +41,17 @@ export const recognizeFacesInPhoto = async ({
     .promise()
 
   const facesToDelete = []
+  const facesToReturn = []
+
   for (const faceRecord of indexFacesResult.FaceRecords!) {
+    if (
+      faceRecord.FaceDetail!.Quality!.Sharpness! < SHARPNESS_THRESHOLD ||
+      faceRecord.FaceDetail!.Confidence! < CONFIDENCE_THRESHOLD
+    ) {
+      facesToDelete.push(faceRecord.Face!.FaceId!)
+      continue
+    }
+
     const matches = await rekognition
       .searchFaces({
         CollectionId: collectionId,
@@ -50,6 +64,8 @@ export const recognizeFacesInPhoto = async ({
       facesToDelete.push(faceRecord.Face!.FaceId!)
       faceRecord.Face!.FaceId = bestMatchFaceId
     }
+
+    facesToReturn.push(faceRecord)
   }
 
   if (facesToDelete.length) {
@@ -57,12 +73,13 @@ export const recognizeFacesInPhoto = async ({
   }
 
   const recognizedFaces: RecognizedFace[] =
-    indexFacesResult.FaceRecords?.map(({ Face }) => {
+    facesToReturn.map(({ Face, FaceDetail }) => {
       const { BoundingBox, FaceId, Confidence } = Face!
       return {
         AWSFaceId: FaceId!,
         position: BoundingBox!,
         confidence: Confidence!,
+        details: FaceDetail!,
       }
     }) || []
 
