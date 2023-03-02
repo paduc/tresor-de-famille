@@ -196,7 +196,7 @@ const PhotoItem = ({ event }: PhotoItemProps) => {
       <div className='relative'>
         <img
           className='flex h-10 w-10 items-center justify-center rounded-full bg-gray-400 ring-8 ring-white'
-          src='https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80'
+          src={event.photo.url}
           alt=''
         />
 
@@ -205,7 +205,24 @@ const PhotoItem = ({ event }: PhotoItemProps) => {
         </span>
       </div>
       <div className='min-w-0 flex-1 py-1.5'>
-        <img src={event.photo.url} />
+        <div className='relative'>
+          <img src={event.photo.url} />
+          {event.photo.faces?.map((face, index) => (
+            <div
+              key={`face${index}`}
+              style={{
+                position: 'absolute',
+                border: '2px solid red',
+                boxSizing: 'border-box',
+                top: `${Math.round(face.position.top * 100)}%`,
+                left: `${Math.round(face.position.left * 100)}%`,
+                width: `${Math.round(face.position.width * 100)}%`,
+                height: `${Math.round(face.position.height * 100)}%`,
+              }}>
+              <div style={{ background: 'white' }}>{face.personName || 'inconnu'}</div>
+            </div>
+          ))}
+        </div>
       </div>
     </ChatItem>
   )

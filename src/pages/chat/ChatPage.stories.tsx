@@ -8,10 +8,23 @@ export default { title: 'Chat avec IA', component: ChatPage }
 const starterHistory: ChatEvent[] = [
   {
     type: 'photo',
-    photoId: 'photo123',
-    url: 'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80',
     profilePicUrl:
       'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80',
+    photo: {
+      id: 'photo123',
+      url: 'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=500&h=500&q=80',
+      faces: [
+        {
+          personName: null,
+          position: {
+            width: 0.3004770278930664,
+            height: 0.39314860105514526,
+            left: 0.3541097640991211,
+            top: 0.24908018112182617,
+          },
+        },
+      ],
+    },
   },
   {
     type: 'message',
