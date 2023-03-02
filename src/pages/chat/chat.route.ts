@@ -24,10 +24,19 @@ const upload = multer({
 
 const fakeProfilePicUrl =
   'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80'
+
+pageRouter.route('/chat.html').get(requireAuth(), async (request, response) => {
+  console.log(`GET on /chat.html`)
+
+  const newChatId = getUuid()
+
+  response.redirect(`/chat/${newChatId}/chat.html`)
+})
+
 pageRouter
   .route('/chat/:chatId/chat.html')
   .get(requireAuth(), async (request, response) => {
-    console.log(`GET on /chat.html`)
+    console.log(`GET on /chat/:chatId/chat.html`)
 
     const { chatId } = request.params
 

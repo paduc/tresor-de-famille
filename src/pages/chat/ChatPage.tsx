@@ -196,7 +196,7 @@ const PhotoItem = ({ event }: PhotoItemProps) => {
       <div className='relative'>
         <img
           className='flex h-10 w-10 items-center justify-center rounded-full bg-gray-400 ring-8 ring-white'
-          src={event.photo.url}
+          src={event.profilePicUrl}
           alt=''
         />
 
@@ -205,7 +205,7 @@ const PhotoItem = ({ event }: PhotoItemProps) => {
         </span>
       </div>
       <div className='min-w-0 flex-1 py-1.5'>
-        <div className='relative'>
+        <div className='relative inline-block'>
           <img src={event.photo.url} />
           {event.photo.faces?.map((face, index) => (
             <div
