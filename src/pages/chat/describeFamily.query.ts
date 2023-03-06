@@ -69,29 +69,33 @@ export const describeFamily = async ({ personId, distance = 0 }: DescribeFamilyA
     family += `${mention}\n`
   }
 
-  const children = getChildren(personId)
-  for (const child of children) {
-    addMention(`${child.name} is the child of ${target.name}.`, child.id)
-  }
+  function addCloseFamily(fnTarget: Person, level: number) {
+    const children = getChildren(fnTarget.id)
+    for (const child of children) {
+      addMention(`${child.name} is the child of ${fnTarget.name}.`, child.id)
+    }
 
-  const parents = getParents(personId)
-  if (parents.length) {
-    addMention(`${target.name} is the child of ${parents.map((parent) => parent.name).join(' and ')}.`, target.name)
-  }
+    const parents = getParents(fnTarget.id)
+    if (parents.length) {
+      addMention(`${fnTarget.name} is the child of ${parents.map((parent) => parent.name).join(' and ')}.`, fnTarget.id)
+    }
 
-  const siblings = getSiblings(personId)
-  for (const sibling of siblings) {
-    const siblingsParents = getParents(sibling.id)
+    const siblings = getSiblings(fnTarget.id)
+    for (const sibling of siblings) {
+      const siblingsParents = getParents(sibling.id)
 
-    addMention(`${sibling.name} is the child of ${siblingsParents.map((parent) => parent.name).join(' and ')}.`, sibling.name)
-  }
+      addMention(`${sibling.name} is the child of ${siblingsParents.map((parent) => parent.name).join(' and ')}.`, sibling.id)
+    }
 
-  for (const parent of parents) {
-    const grandParents = getParents(parent.id)
-    if (grandParents.length) {
-      addMention(`${parent.name} is the child of ${grandParents.map((parent) => parent.name).join(' and ')}.`, parent.name)
+    if (level < 1) {
+      // Go up a level
+      for (const parent of parents) {
+        addCloseFamily(parent, level + 1)
+      }
     }
   }
+
+  addCloseFamily(target, 0)
 
   return family
 }
