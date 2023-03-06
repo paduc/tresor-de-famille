@@ -114,7 +114,7 @@ const AddPhotoOrMessageItem = ({ userProfilePicUrl }: AddPhotoOrMessageItemProps
         />
       </div>
       <div className='min-w-0 flex-1'>
-        <form action='#' className='relative'>
+        <form method='POST' className='relative'>
           <div className='overflow-hidden rounded-lg border border-gray-300 shadow-sm focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500'>
             <label htmlFor='comment' className='sr-only'>
               Ajouter un message

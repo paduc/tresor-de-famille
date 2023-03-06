@@ -56,6 +56,8 @@ pageRouter
 
     const { chatId } = zod.object({ chatId: zIsUUID }).parse(request.params)
 
+    const { comment } = request.body
+
     const { file } = request
     if (file) {
       const photoId = getUuid()
@@ -87,6 +89,8 @@ pageRouter
           })
         )
       }
+    } else if (comment) {
+      console.log('received comment', comment)
     }
 
     const history: ChatPageProps['history'] = await getChatHistory(chatId)
