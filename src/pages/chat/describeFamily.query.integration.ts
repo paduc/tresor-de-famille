@@ -9,6 +9,12 @@ const dadId = getUuid()
 const momId = getUuid()
 const daughterId = getUuid()
 const sonId = getUuid()
+const sisterId = getUuid()
+const brotherId = getUuid()
+const granpaId = getUuid()
+const grammaId = getUuid()
+const popsId = getUuid()
+const mumId = getUuid()
 describe('describeFamily', () => {
   beforeEach(async () => {
     await resetDatabase()
@@ -17,7 +23,39 @@ describe('describeFamily', () => {
         rawGedcom: '',
         relationships: [
           {
+            childId: dadId,
+            parentId: granpaId,
+          },
+          {
+            childId: dadId,
+            parentId: grammaId,
+          },
+          {
+            childId: momId,
+            parentId: popsId,
+          },
+          {
+            childId: momId,
+            parentId: mumId,
+          },
+          {
             childId: personId,
+            parentId: momId,
+          },
+          {
+            childId: sisterId,
+            parentId: dadId,
+          },
+          {
+            childId: brotherId,
+            parentId: dadId,
+          },
+          {
+            childId: sisterId,
+            parentId: momId,
+          },
+          {
+            childId: brotherId,
             parentId: momId,
           },
           {
@@ -53,6 +91,30 @@ describe('describeFamily', () => {
           {
             id: sonId,
             name: 'LeBron',
+          },
+          {
+            id: sisterId,
+            name: 'Sharanda',
+          },
+          {
+            id: brotherId,
+            name: 'Leon',
+          },
+          {
+            id: granpaId,
+            name: 'Louis',
+          },
+          {
+            id: grammaId,
+            name: 'Cecile',
+          },
+          {
+            id: popsId,
+            name: 'Henry',
+          },
+          {
+            id: mumId,
+            name: 'Marie-Louise',
           },
         ],
         importedBy: '',
