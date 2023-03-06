@@ -15,6 +15,8 @@ const granpaId = getUuid()
 const grammaId = getUuid()
 const popsId = getUuid()
 const mumId = getUuid()
+const uncleJerry = getUuid()
+const auntBeth = getUuid()
 describe('describeFamily', () => {
   beforeEach(async () => {
     await resetDatabase()
@@ -31,11 +33,27 @@ describe('describeFamily', () => {
             parentId: grammaId,
           },
           {
+            childId: auntBeth,
+            parentId: granpaId,
+          },
+          {
+            childId: auntBeth,
+            parentId: grammaId,
+          },
+          {
             childId: momId,
             parentId: popsId,
           },
           {
             childId: momId,
+            parentId: mumId,
+          },
+          {
+            childId: uncleJerry,
+            parentId: popsId,
+          },
+          {
+            childId: uncleJerry,
             parentId: mumId,
           },
           {
@@ -115,6 +133,14 @@ describe('describeFamily', () => {
           {
             id: mumId,
             name: 'Marie-Louise',
+          },
+          {
+            id: uncleJerry,
+            name: 'Uncle Jerry',
+          },
+          {
+            id: auntBeth,
+            name: 'Aunt Bethany',
           },
         ],
         importedBy: '',
