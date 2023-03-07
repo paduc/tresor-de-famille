@@ -101,51 +101,51 @@ describe('describeFamily', () => {
         persons: [
           {
             id: personId,
-            name: 'Pierre',
+            name: 'Husband',
           },
           {
             id: wifeId,
-            name: 'Ann',
+            name: 'Wife',
           },
           {
             id: momId,
-            name: 'Sheryl',
+            name: 'Mother',
           },
           {
             id: dadId,
-            name: 'Tom',
+            name: 'Father',
           },
           {
             id: daughterId,
-            name: 'Mary',
+            name: 'Daughter',
           },
           {
             id: sonId,
-            name: 'LeBron',
+            name: 'Son',
           },
           {
             id: sisterId,
-            name: 'Sharanda',
+            name: 'Sister',
           },
           {
             id: brotherId,
-            name: 'Leon',
+            name: 'Brother',
           },
           {
             id: granpaId,
-            name: 'Louis',
+            name: 'Father of Father',
           },
           {
             id: grammaId,
-            name: 'Cecile',
+            name: 'Mother of Father',
           },
           {
             id: popsId,
-            name: 'Henry',
+            name: 'Father of Mother',
           },
           {
             id: mumId,
-            name: 'Marie-Louise',
+            name: 'Mother of Mother',
           },
           {
             id: uncleJerry,
