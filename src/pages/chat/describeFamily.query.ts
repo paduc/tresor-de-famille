@@ -69,17 +69,21 @@ export const describeFamily = async ({ personId, distance = 0 }: DescribeFamilyA
     family += `${mention}\n`
   }
 
+  // Replace with different methods to go up or down ?
   function addCloseFamily(fnTarget: Person, level: number) {
+    // This would be drilling downwards
     const children = getChildren(fnTarget.id)
     for (const child of children) {
       addMention(`${child.name} is the child of ${fnTarget.name}.`, child.id)
     }
 
+    // This would be going upwards
     const parents = getParents(fnTarget.id)
     if (parents.length) {
       addMention(`${fnTarget.name} is the child of ${parents.map((parent) => parent.name).join(' and ')}.`, fnTarget.id)
     }
 
+    // This would be one up one down
     const siblings = getSiblings(fnTarget.id)
     for (const sibling of siblings) {
       const siblingsParents = getParents(sibling.id)
@@ -95,7 +99,39 @@ export const describeFamily = async ({ personId, distance = 0 }: DescribeFamilyA
     }
   }
 
-  addCloseFamily(target, 0)
+  function drillDown(fnTarget: Person, level: number) {
+    const children = getChildren(fnTarget.id)
+    for (const child of children) {
+      const parents = getParents(child.id)
+      addMention(`${child.name} is the child of ${parents.map((parent) => parent.name).join(' and ')}.`, child.id)
+    }
+
+    if (level > 0) {
+      for (const child of children) {
+        moveUp(child, level - 1)
+        drillDown(child, level - 1)
+      }
+    }
+  }
+
+  function moveUp(fnTarget: Person, level: number) {
+    const parents = getParents(fnTarget.id)
+    if (parents.length) {
+      addMention(`${fnTarget.name} is the child of ${parents.map((parent) => parent.name).join(' and ')}.`, fnTarget.id)
+    }
+
+    if (level > 0) {
+      for (const parent of parents) {
+        moveUp(parent, level - 1)
+        drillDown(parent, level - 1)
+      }
+    }
+  }
+
+  // addCloseFamily(target, 0)
+  // Bug: we need to move up and down to get the other parent of a sibling
+  moveUp(target, 2)
+  drillDown(target, 1)
 
   return family
 }

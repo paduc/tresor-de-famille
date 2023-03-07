@@ -5,6 +5,7 @@ import { getUuid } from '../../libs/getUuid'
 import { describeFamily } from './describeFamily.query'
 
 const personId = getUuid()
+const wifeId = getUuid()
 const dadId = getUuid()
 const momId = getUuid()
 const daughterId = getUuid()
@@ -88,11 +89,23 @@ describe('describeFamily', () => {
             parentId: personId,
             childId: sonId,
           },
+          {
+            parentId: wifeId,
+            childId: daughterId,
+          },
+          {
+            parentId: wifeId,
+            childId: sonId,
+          },
         ],
         persons: [
           {
             id: personId,
             name: 'Pierre',
+          },
+          {
+            id: wifeId,
+            name: 'Ann',
           },
           {
             id: momId,
