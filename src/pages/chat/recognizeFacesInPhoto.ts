@@ -36,7 +36,7 @@ export const recognizeFacesInPhoto = async ({
   const indexFacesResult = await rekognition
     .indexFaces({
       CollectionId: collectionId,
-      DetectionAttributes: ['DEFAULT'],
+      DetectionAttributes: ['ALL'],
       Image: {
         Bytes: photoContents,
       },

@@ -18,7 +18,7 @@ type PhotoFace = {
 
 export const getLatestPhotoFaces = async (chatId: string): Promise<PhotoFace[] | null> => {
   const { rows: latestPhotos } = await postgres.query<UserUploadedPhotoToChat>(
-    "SELECT * FROM events WHERE type='UserUploadedPhotoToChat' AND payload->>'chatId'=$1 ORDER BY 'occurred_at` DESC LIMIT 1",
+    "SELECT * FROM events WHERE type='UserUploadedPhotoToChat' AND payload->>'chatId'=$1 ORDER BY occurred_at DESC LIMIT 1",
     [chatId]
   )
 
@@ -28,7 +28,7 @@ export const getLatestPhotoFaces = async (chatId: string): Promise<PhotoFace[] |
 
   const latestPhoto = latestPhotos[0].payload
   const { rows: latestPhotoFacesList } = await postgres.query<FacesRecognizedInChatPhoto>(
-    "SELECT * FROM events WHERE type='FacesRecognizedInChatPhoto' AND payload->>'chatId'=$1 AND payload->>'photoId'=$2 ORDER BY 'occurred_at` DESC LIMIT 1",
+    "SELECT * FROM events WHERE type='FacesRecognizedInChatPhoto' AND payload->>'chatId'=$1 AND payload->>'photoId'=$2 ORDER BY occurred_at DESC LIMIT 1",
     [chatId, latestPhoto.photoId]
   )
 
@@ -37,6 +37,8 @@ export const getLatestPhotoFaces = async (chatId: string): Promise<PhotoFace[] |
   }
 
   const latestPhotoFaces = latestPhotoFacesList[0].payload.faces
+
+  console.log(JSON.stringify({ latestPhotoFaces }, null, 2))
 
   let faceCodeIndex = 0
   function getNextFaceCode() {
@@ -55,7 +57,7 @@ export const getLatestPhotoFaces = async (chatId: string): Promise<PhotoFace[] |
         }
       : {
           personId: null,
-          faceCode: getNextFaceCode(),
+          faceCode: face.AWSFaceId,
           details: {
             gender: getGender(face.details),
             age: getAge(face.details),
