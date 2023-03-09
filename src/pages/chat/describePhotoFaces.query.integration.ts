@@ -27,7 +27,7 @@ describe('describePhotoFaces', () => {
     const res = await describePhotoFaces([
       {
         personId: null,
-        faceCode: 'A',
+        faceCode: getUuid(),
         details: {
           gender: 'M',
           age: {
@@ -43,7 +43,7 @@ describe('describePhotoFaces', () => {
       },
       {
         personId: null,
-        faceCode: 'B',
+        faceCode: getUuid(),
         details: {
           age: {
             low: 30,
@@ -53,7 +53,7 @@ describe('describePhotoFaces', () => {
       },
       {
         personId: null,
-        faceCode: 'C',
+        faceCode: getUuid(),
         details: {
           gender: 'F',
         },

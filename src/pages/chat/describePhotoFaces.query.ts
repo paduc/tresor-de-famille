@@ -14,7 +14,9 @@ type PhotoFace = {
   | { personId: string; faceCode: null }
 )
 
-export const describePhotoFaces = async (photoFaces: PhotoFace[]): Promise<string> => {
+type PhotoFaceDescription = { description: string; faceCodeMap: Map<string, string> /* <faceCode, faceLetter> */ }
+
+export const describePhotoFaces = async (photoFaces: PhotoFace[]): Promise<PhotoFaceDescription> => {
   // TODO: only fetch the tree if there are personIds
   const { rows: gedcomImportedRows } = await postgres.query<GedcomImported>(
     "SELECT * FROM events WHERE type = 'GedcomImported' LIMIT 1"
@@ -30,6 +32,21 @@ export const describePhotoFaces = async (photoFaces: PhotoFace[]): Promise<strin
     return gedcom.persons.find((person: Person) => person.id === personId)
   }
 
+  const faceCodeMap = new Map<string, string>()
+  let faceLetterCode = 65
+  function nextFaceLetter() {
+    return String.fromCharCode(faceLetterCode++).toUpperCase()
+  }
+  function replaceFaceCode(faceCode: string | null) {
+    if (!faceCode) return 'no faceCode'
+
+    if (!faceCodeMap.has(faceCode)) {
+      faceCodeMap.set(faceCode, 'face' + nextFaceLetter())
+    }
+
+    return faceCodeMap.get(faceCode)
+  }
+
   const descriptions = []
 
   for (const photoFace of photoFaces) {
@@ -37,11 +54,11 @@ export const describePhotoFaces = async (photoFaces: PhotoFace[]): Promise<strin
       const person = await getPersonById(photoFace.personId)
       descriptions.push(person?.name)
     } else {
-      descriptions.push(`${genderedPerson(photoFace)}${agedPerson(photoFace)}(${photoFace.faceCode})`)
+      descriptions.push(`${genderedPerson(photoFace)}${agedPerson(photoFace)}(${replaceFaceCode(photoFace.faceCode)})`)
     }
   }
 
-  return descriptions.join(' and ')
+  return { description: descriptions.join(' and '), faceCodeMap }
 }
 
 function genderedPerson(face: PhotoFace): string {

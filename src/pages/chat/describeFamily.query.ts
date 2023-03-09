@@ -6,7 +6,10 @@ export type DescribeFamilyArgs = {
   distance?: number
 }
 
-export const describeFamily = async ({ personId, distance = 0 }: DescribeFamilyArgs): Promise<string> => {
+export const describeFamily = async ({
+  personId,
+  distance = 0,
+}: DescribeFamilyArgs): Promise<{ description: string; personCodeMap: Map<string, string> /* <personId, personCode> */ }> => {
   const { rows: gedcomImportedRows } = await postgres.query<GedcomImported>(
     "SELECT * FROM events WHERE type = 'GedcomImported' LIMIT 1"
   )
@@ -54,9 +57,28 @@ export const describeFamily = async ({ personId, distance = 0 }: DescribeFamilyA
 
   let family = ''
 
+  const personCodeMap = new Map<string, string>()
+  let personLetter = 65
+  function nextLetter() {
+    return String.fromCharCode(personLetter++).toUpperCase()
+  }
+  function replacePersonId(personId: string | null) {
+    if (!personId) return 'no personCode'
+
+    if (!personCodeMap.has(personId)) {
+      personCodeMap.set(personId, 'person' + nextLetter())
+    }
+
+    return personCodeMap.get(personId)
+  }
+
+  function nameAndId(person: Person | undefined) {
+    return `${person!.name} (${replacePersonId(person!.id)})`
+  }
+
   const target = getPersonById(personId)
   if (!target) {
-    return ''
+    return { description: family, personCodeMap }
   }
 
   const visited = new Set<string>(personId)
@@ -71,9 +93,9 @@ export const describeFamily = async ({ personId, distance = 0 }: DescribeFamilyA
     // 1) print personId is the child of parents
     const parents = unique(gedcom.relationships.filter((rel) => rel.childId === personId).map((rel) => rel.parentId))
       .map(getPersonById)
-      .map((person) => person!.name)
+      .map(nameAndId)
 
-    if (parents.length) family += `${getPersonById(personId)!.name} is the child of ${parents.join(' and ')}\n`
+    if (parents.length) family += `${nameAndId(getPersonById(personId))} is the child of ${parents.join(' and ')}\n`
 
     // 2) Get relatives that we haven't traversed yet and traverse them
     const relationships = gedcom.relationships.filter((rel) => rel.parentId === personId || rel.childId === personId)
@@ -89,7 +111,7 @@ export const describeFamily = async ({ personId, distance = 0 }: DescribeFamilyA
 
   traverseFamilyTree(personId, 1)
 
-  return family
+  return { description: family, personCodeMap }
 }
 
 function unique(list: string[]) {
