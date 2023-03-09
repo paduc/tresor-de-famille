@@ -4,7 +4,9 @@ import { requireAuth } from '../../dependencies/authn'
 import { ChatPage, ChatPageProps } from './ChatPage'
 import multer from 'multer'
 import zod from 'zod'
+import sharp from 'sharp'
 import fs from 'node:fs'
+import path from 'node:path'
 import { getUuid } from '../../libs/getUuid'
 import { getPhotoUrlFromId, uploadPhoto } from '../../dependencies/uploadPhoto'
 import { getChatHistory } from './getChatHistory.query'
@@ -15,6 +17,10 @@ import { recognizeFacesInPhoto } from './recognizeFacesInPhoto'
 import { awsRekognitionCollectionId } from '../../dependencies/rekognition'
 import { getPersonIdForFaceId } from './getPersonIdForFaceId.query'
 import { FacesRecognizedInChatPhoto } from './FacesRecognizedInChatPhoto'
+import { describeFamily } from './describeFamily.query'
+import { getPersonForUserId } from '../home/getPersonForUserId.query'
+import { describePhotoFaces } from './describePhotoFaces.query'
+import { getLatestPhotoFaces } from './getLatestPhotoFaces.query'
 
 const FILE_SIZE_LIMIT_MB = 50
 const upload = multer({
@@ -61,14 +67,17 @@ pageRouter
     const { file } = request
     if (file) {
       const photoId = getUuid()
-      const { path } = file
+      const { path: originalPath } = file
 
-      await uploadPhoto({ contents: fs.createReadStream(path), id: photoId })
+      const compressedFilePath = originalPath + '-compressed.jpeg'
+      await sharp(originalPath).jpeg({ quality: 30 }).toFile(compressedFilePath)
+
+      await uploadPhoto({ contents: fs.createReadStream(originalPath), id: photoId })
 
       await publish(UserUploadedPhotoToChat({ chatId: chatId as UUID, photoId, uploadedBy: request.session.user!.id }))
 
       const detectedFaces = await recognizeFacesInPhoto({
-        photoContents: fs.readFileSync(path),
+        photoContents: fs.readFileSync(compressedFilePath),
         collectionId: awsRekognitionCollectionId,
       })
 
@@ -91,6 +100,34 @@ pageRouter
       }
     } else if (comment) {
       console.log('received comment', comment)
+
+      const latestPhotoWithFaces = await getLatestPhotoFaces(chatId)
+
+      console.log(JSON.stringify({ latestPhotoWithFaces }, null, 2))
+
+      if (latestPhotoWithFaces !== null && latestPhotoWithFaces.length) {
+        const photoFaces = await describePhotoFaces(latestPhotoWithFaces)
+
+        // Build prompt :
+        const currentPerson = await getPersonForUserId(request.session.user!.id)
+        const family = await describeFamily({ personId: currentPerson.id, distance: 2 })
+
+        let prompt = `
+You are chatting with ${currentPerson.name} and this is a description of his family:
+${family.description}
+
+${currentPerson.name} shows you a photo where faces have been detected : ${photoFaces.description}
+
+You are trying to describe who the faces are based on ${currentPerson.name}'s description. Use the following JSON schema for your response:
+{ "faceId": "personId", ...}
+
+${currentPerson.name}: ${comment}
+
+You:
+`
+        console.log(prompt)
+        // TODO: Send this to ChatGPT API
+      }
     }
 
     const history: ChatPageProps['history'] = await getChatHistory(chatId)
