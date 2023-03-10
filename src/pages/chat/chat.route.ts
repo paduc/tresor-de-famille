@@ -21,6 +21,8 @@ import { describeFamily } from './describeFamily.query'
 import { getPersonForUserId } from '../home/getPersonForUserId.query'
 import { describePhotoFaces } from './describePhotoFaces.query'
 import { getLatestPhotoFaces } from './getLatestPhotoFaces.query'
+import { openai } from '../../dependencies/openai'
+import { OpenAIPrompted } from './OpenAIPrompted'
 
 const FILE_SIZE_LIMIT_MB = 50
 const upload = multer({
@@ -103,7 +105,7 @@ pageRouter
 
       const latestPhotoWithFaces = await getLatestPhotoFaces(chatId)
 
-      console.log(JSON.stringify({ latestPhotoWithFaces }, null, 2))
+      // console.log(JSON.stringify({ latestPhotoWithFaces }, null, 2))
 
       if (latestPhotoWithFaces !== null && latestPhotoWithFaces.length) {
         const photoFaces = await describePhotoFaces(latestPhotoWithFaces)
@@ -126,9 +128,37 @@ ${currentPerson.name}: ${comment}
 You:
 `
         console.log(prompt)
-        // TODO: Send this to ChatGPT API
+
+        try {
+          const model = 'text-davinci-003'
+          const response = await openai.createCompletion({
+            model,
+            prompt,
+            temperature: 0,
+            max_tokens: 2000,
+            user: request.session.user!.id,
+          })
+
+          const gptResult = response.data.choices[0].text
+
+          await publish(
+            OpenAIPrompted({
+              chatId,
+              promptedBy: request.session.user!.id,
+              prompt,
+              model,
+              response: gptResult,
+            })
+          )
+
+          // TODO: publish event to be used in chat thread OpenAIAnnotatedChatPhoto
+        } catch (error) {
+          console.log('OpenAI failed to parse prompt')
+        }
       }
     }
+
+    return response.redirect(`/chat/${chatId}/chat.html`)
 
     const history: ChatPageProps['history'] = await getChatHistory(chatId)
 

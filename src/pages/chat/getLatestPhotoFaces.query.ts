@@ -38,8 +38,6 @@ export const getLatestPhotoFaces = async (chatId: string): Promise<PhotoFace[] |
 
   const latestPhotoFaces = latestPhotoFacesList[0].payload.faces
 
-  console.log(JSON.stringify({ latestPhotoFaces }, null, 2))
-
   let faceCodeIndex = 0
   function getNextFaceCode() {
     return String.fromCharCode(65 + faceCodeIndex++).toUpperCase()
