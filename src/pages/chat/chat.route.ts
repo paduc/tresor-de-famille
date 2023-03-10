@@ -155,6 +155,7 @@ pageRouter
           await publish(
             OpenAIPrompted({
               chatId,
+              promptId: getUuid(),
               promptedBy: userId,
               prompt,
               model,

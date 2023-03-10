@@ -5,6 +5,7 @@ export type OpenAIPrompted = BaseDomainEvent & {
   type: 'OpenAIPrompted'
   payload: {
     chatId: UUID
+    promptId: UUID
     promptedBy: UUID
     model: string
     prompt: string
