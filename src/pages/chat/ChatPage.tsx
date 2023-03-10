@@ -198,6 +198,7 @@ const PhotoItem = ({ event }: PhotoItemProps) => {
           className='flex h-10 w-10 items-center justify-center rounded-full bg-gray-400 ring-8 ring-white'
           src={event.profilePicUrl}
           alt=''
+          style={{ maxWidth: 400 }}
         />
 
         <span className='absolute -bottom-0.5 -right-1 rounded-tl bg-white px-0.5 py-px'>
@@ -206,25 +207,43 @@ const PhotoItem = ({ event }: PhotoItemProps) => {
       </div>
       <div className='min-w-0 flex-1 py-1.5'>
         <div className='relative inline-block'>
-          <img src={event.photo.url} />
+          <img src={event.photo.url} className='max-w-md max-h-fit' />
           {event.photo.faces?.map((face, index) => (
-            <div
-              key={`face${index}`}
-              style={{
-                position: 'absolute',
-                border: '2px solid red',
-                boxSizing: 'border-box',
-                top: `${Math.round(face.position.top * 100)}%`,
-                left: `${Math.round(face.position.left * 100)}%`,
-                width: `${Math.round(face.position.width * 100)}%`,
-                height: `${Math.round(face.position.height * 100)}%`,
-              }}>
-              <div style={{ background: 'white' }}>{face.personName || 'inconnu'}</div>
-            </div>
+            <HoverableFace key={`face${index}`} face={face} index={index} />
           ))}
         </div>
       </div>
     </ChatItem>
+  )
+}
+
+const HoverableFace = (props: any) => {
+  const [isHovered, setHovered] = React.useState<boolean>(false)
+  const { face, index } = props
+  return (
+    <div
+      key={`face${index}`}
+      onMouseOver={() => {
+        setHovered(true)
+      }}
+      onMouseOut={() => {
+        setHovered(false)
+      }}
+      style={{
+        top: `${Math.round(face.position.top * 100)}%`,
+        left: `${Math.round(face.position.left * 100)}%`,
+        width: `${Math.round(face.position.width * 100)}%`,
+        height: `calc(${Math.round(face.position.height * 100)}% + 20px)`,
+      }}
+      className={`absolute  ${isHovered ? 'border-2' : 'border-0'} border-white`}>
+      {isHovered ? (
+        <div className='block absolute bottom-0 text-sm text-white' style={{ height: 20 }}>
+          {face.personName || ''}
+        </div>
+      ) : (
+        ''
+      )}
+    </div>
   )
 }
 
