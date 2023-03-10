@@ -22,7 +22,7 @@ export type ChatPhotoFace = {
   }
 }
 
-export type ChatEvent =
+export type ChatEvent = { timestamp: number } & (
   | {
       type: 'photo'
       profilePicUrl: string
@@ -39,6 +39,7 @@ export type ChatEvent =
         body: string
       }
     }
+)
 
 export type ChatPageProps = {
   success?: string

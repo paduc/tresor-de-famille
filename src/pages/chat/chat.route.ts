@@ -23,6 +23,7 @@ import { describePhotoFaces } from './describePhotoFaces.query'
 import { getLatestPhotoFaces } from './getLatestPhotoFaces.query'
 import { openai } from '../../dependencies/openai'
 import { OpenAIPrompted } from './OpenAIPrompted'
+import { UserSentMessageToChat } from './UserSentMessageToChat'
 
 const FILE_SIZE_LIMIT_MB = 50
 const upload = multer({
@@ -62,6 +63,7 @@ pageRouter
   .post(requireAuth(), upload.single('photo'), async (request, response) => {
     console.log(`POST on /chat.html`)
 
+    const userId = request.session.user!.id
     const { chatId } = zod.object({ chatId: zIsUUID }).parse(request.params)
 
     const { comment } = request.body
@@ -76,7 +78,7 @@ pageRouter
 
       await uploadPhoto({ contents: fs.createReadStream(originalPath), id: photoId })
 
-      await publish(UserUploadedPhotoToChat({ chatId: chatId as UUID, photoId, uploadedBy: request.session.user!.id }))
+      await publish(UserUploadedPhotoToChat({ chatId: chatId as UUID, photoId, uploadedBy: userId }))
 
       const detectedFaces = await recognizeFacesInPhoto({
         photoContents: fs.readFileSync(compressedFilePath),
@@ -103,6 +105,15 @@ pageRouter
     } else if (comment) {
       console.log('received comment', comment)
 
+      await publish(
+        UserSentMessageToChat({
+          chatId,
+          sentBy: userId,
+          message: comment,
+          messageId: getUuid(),
+        })
+      )
+
       const latestPhotoWithFaces = await getLatestPhotoFaces(chatId)
 
       // console.log(JSON.stringify({ latestPhotoWithFaces }, null, 2))
@@ -111,22 +122,22 @@ pageRouter
         const photoFaces = await describePhotoFaces(latestPhotoWithFaces)
 
         // Build prompt :
-        const currentPerson = await getPersonForUserId(request.session.user!.id)
+        const currentPerson = await getPersonForUserId(userId)
         const family = await describeFamily({ personId: currentPerson.id, distance: 2 })
 
         let prompt = `
-You are chatting with ${currentPerson.name} and this is a description of his family:
-${family.description}
+      You are chatting with ${currentPerson.name} and this is a description of his family:
+      ${family.description}
 
-${currentPerson.name} shows you a photo where faces have been detected : ${photoFaces.description}
+      ${currentPerson.name} shows you a photo where faces have been detected : ${photoFaces.description}
 
-You are trying to describe who the faces are based on ${currentPerson.name}'s description. Use the following JSON schema for your response:
-{ "faceId": "personId", ...}
+      You are trying to describe who the faces are based on ${currentPerson.name}'s description. Use the following JSON schema for your response:
+      { "faceId": "personId", ...}
 
-${currentPerson.name}: ${comment}
+      ${currentPerson.name}: ${comment}
 
-You:
-`
+      You:
+      `
         console.log(prompt)
 
         try {
@@ -136,7 +147,7 @@ You:
             prompt,
             temperature: 0,
             max_tokens: 2000,
-            user: request.session.user!.id,
+            user: userId,
           })
 
           const gptResult = response.data.choices[0].text
@@ -144,7 +155,7 @@ You:
           await publish(
             OpenAIPrompted({
               chatId,
-              promptedBy: request.session.user!.id,
+              promptedBy: userId,
               prompt,
               model,
               response: gptResult,

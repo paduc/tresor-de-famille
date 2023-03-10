@@ -4,23 +4,27 @@ import { getPhotoUrlFromId, getProfilePicUrlForUser } from '../../dependencies/u
 import { ChatEvent, ChatPageProps, ChatPhotoFace } from './ChatPage'
 import { FacesRecognizedInChatPhoto } from './FacesRecognizedInChatPhoto'
 import { getPersonById } from './getPersonById.query'
+import { UserSentMessageToChat } from './UserSentMessageToChat'
 import { UserUploadedPhotoToChat } from './UserUploadedPhotoToChat'
 
 export const getChatHistory = async (chatId: string): Promise<ChatPageProps['history']> => {
-  const { rows } = await postgres.query<UserUploadedPhotoToChat | FacesRecognizedInChatPhoto>(
-    "SELECT * FROM events WHERE type IN ('UserUploadedPhotoToChat', 'FacesRecognizedInChatPhoto') AND payload->>'chatId'=$1",
+  const { rows } = await postgres.query<UserUploadedPhotoToChat | FacesRecognizedInChatPhoto | UserSentMessageToChat>(
+    "SELECT * FROM events WHERE type IN ('UserUploadedPhotoToChat', 'FacesRecognizedInChatPhoto', 'UserSentMessageToChat') AND payload->>'chatId'=$1",
     [chatId]
   )
 
-  const photoRows = rows.filter(isPhotoRow).map(({ payload: { uploadedBy, photoId } }): ChatEvent & { type: 'photo' } => ({
-    type: 'photo',
-    profilePicUrl: getProfilePicUrlForUser(uploadedBy),
-    photo: {
-      id: photoId,
-      url: getPhotoUrlFromId(photoId),
-      faces: [],
-    },
-  }))
+  const photoRows = rows
+    .filter(isPhotoRow)
+    .map(({ occurredAt, payload: { uploadedBy, photoId } }): ChatEvent & { type: 'photo' } => ({
+      type: 'photo',
+      timestamp: occurredAt,
+      profilePicUrl: getProfilePicUrlForUser(uploadedBy),
+      photo: {
+        id: photoId,
+        url: getPhotoUrlFromId(photoId),
+        faces: [],
+      },
+    }))
 
   const facesDetectedRows = rows.filter(isFaceDetectedRow).map((row) => row.payload)
   for (const facesDetectedRow of facesDetectedRows) {
@@ -47,7 +51,18 @@ export const getChatHistory = async (chatId: string): Promise<ChatPageProps['his
     }
   }
 
-  return photoRows
+  const messageRows = rows
+    .filter(isMessageRow)
+    .map(({ occurredAt, payload: { sentBy, message } }): ChatEvent & { type: 'message' } => ({
+      type: 'message',
+      timestamp: occurredAt,
+      profilePicUrl: getProfilePicUrlForUser(sentBy),
+      message: {
+        body: message,
+      },
+    }))
+
+  return [...photoRows, ...messageRows].sort((a, b) => a.timestamp - b.timestamp)
 }
 
 function isPhotoRow(row: any): row is UserUploadedPhotoToChat {
@@ -56,4 +71,8 @@ function isPhotoRow(row: any): row is UserUploadedPhotoToChat {
 
 function isFaceDetectedRow(row: any): row is FacesRecognizedInChatPhoto {
   return row.type === 'FacesRecognizedInChatPhoto'
+}
+
+function isMessageRow(row: any): row is UserSentMessageToChat {
+  return row.type === 'UserSentMessageToChat'
 }
