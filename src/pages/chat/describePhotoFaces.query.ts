@@ -1,5 +1,6 @@
 import { postgres } from '../../dependencies/postgres'
 import { GedcomImported, Person } from '../../events'
+import { makeIdCodeMap } from './makeIdCodeMap'
 
 type PhotoFace = {
   details: {
@@ -14,7 +15,7 @@ type PhotoFace = {
   | { personId: string; faceCode: null }
 )
 
-type PhotoFaceDescription = { description: string; faceCodeMap: Map<string, string> /* <faceCode, faceLetter> */ }
+type PhotoFaceDescription = { description: string; faceCodeMap: ReturnType<typeof makeIdCodeMap> }
 
 export const describePhotoFaces = async (photoFaces: PhotoFace[]): Promise<PhotoFaceDescription> => {
   // TODO: only fetch the tree if there are personIds
@@ -32,20 +33,7 @@ export const describePhotoFaces = async (photoFaces: PhotoFace[]): Promise<Photo
     return gedcom.persons.find((person: Person) => person.id === personId)
   }
 
-  const faceCodeMap = new Map<string, string>()
-  let faceLetterCode = 65
-  function nextFaceLetter() {
-    return String.fromCharCode(faceLetterCode++).toUpperCase()
-  }
-  function replaceFaceCode(faceCode: string | null) {
-    if (!faceCode) return 'no faceCode'
-
-    if (!faceCodeMap.has(faceCode)) {
-      faceCodeMap.set(faceCode, 'face' + nextFaceLetter())
-    }
-
-    return faceCodeMap.get(faceCode)
-  }
+  const faceCodeMap = makeIdCodeMap('face')
 
   const descriptions = []
 
@@ -54,7 +42,11 @@ export const describePhotoFaces = async (photoFaces: PhotoFace[]): Promise<Photo
       const person = await getPersonById(photoFace.personId)
       descriptions.push(person?.name)
     } else {
-      descriptions.push(`${genderedPerson(photoFace)}${agedPerson(photoFace)}(${replaceFaceCode(photoFace.faceCode)})`)
+      descriptions.push(
+        `${genderedPerson(photoFace)}${agedPerson(photoFace)}(${
+          photoFace.faceCode ? faceCodeMap.idToCode(photoFace.faceCode) : 'no face code'
+        })`
+      )
     }
   }
 

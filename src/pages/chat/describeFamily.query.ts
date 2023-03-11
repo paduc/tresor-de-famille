@@ -1,5 +1,6 @@
 import { postgres } from '../../dependencies/postgres'
 import { GedcomImported, Person } from '../../events'
+import { makeIdCodeMap } from './makeIdCodeMap'
 
 export type DescribeFamilyArgs = {
   personId: string
@@ -9,7 +10,7 @@ export type DescribeFamilyArgs = {
 export const describeFamily = async ({
   personId,
   distance = 0,
-}: DescribeFamilyArgs): Promise<{ description: string; personCodeMap: Map<string, string> /* <personId, personCode> */ }> => {
+}: DescribeFamilyArgs): Promise<{ description: string; personCodeMap: ReturnType<typeof makeIdCodeMap> }> => {
   const { rows: gedcomImportedRows } = await postgres.query<GedcomImported>(
     "SELECT * FROM events WHERE type = 'GedcomImported' LIMIT 1"
   )
@@ -57,23 +58,10 @@ export const describeFamily = async ({
 
   let family = ''
 
-  const personCodeMap = new Map<string, string>()
-  let personLetter = 65
-  function nextLetter() {
-    return String.fromCharCode(personLetter++).toUpperCase()
-  }
-  function replacePersonId(personId: string | null) {
-    if (!personId) return 'no personCode'
-
-    if (!personCodeMap.has(personId)) {
-      personCodeMap.set(personId, 'person' + nextLetter())
-    }
-
-    return personCodeMap.get(personId)
-  }
+  const personCodeMap = makeIdCodeMap('person')
 
   function nameAndId(person: Person | undefined) {
-    return `${person!.name} (${replacePersonId(person!.id)})`
+    return `${person!.name} (${personCodeMap.idToCode(person!.id)})`
   }
 
   const target = getPersonById(personId)
