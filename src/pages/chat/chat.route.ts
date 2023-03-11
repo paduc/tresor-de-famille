@@ -24,6 +24,8 @@ import { getLatestPhotoFaces } from './getLatestPhotoFaces.query'
 import { openai } from '../../dependencies/openai'
 import { OpenAIPrompted } from './OpenAIPrompted'
 import { UserSentMessageToChat } from './UserSentMessageToChat'
+import { OpenAIFailedToMakeDeductions } from './OpenAIFailedToMakeDeductions'
+import { OpenAIMadeDeductions } from './OpenAIMadeDeductions'
 
 const FILE_SIZE_LIMIT_MB = 50
 const upload = multer({
@@ -105,12 +107,13 @@ pageRouter
     } else if (comment) {
       console.log('received comment', comment)
 
+      const messageId = getUuid()
       await publish(
         UserSentMessageToChat({
           chatId,
           sentBy: userId,
           message: comment,
-          messageId: getUuid(),
+          messageId: messageId,
         })
       )
 
@@ -132,7 +135,9 @@ pageRouter
       ${currentPerson.name} shows you a photo where faces have been detected : ${photoFaces.description}
 
       You are trying to describe who the faces are based on ${currentPerson.name}'s description. Use the following JSON schema for your response:
-      { "faceId": "personId", ...}
+      { "faces": [{ "faceCode": "faceA", "personCode": "personA" }, ... ]}
+
+      ONLY RESPOND WITH VALID JSON. DO NOT EXPLAIN THE RESULT.
 
       ${currentPerson.name}: ${comment}
 
@@ -140,6 +145,7 @@ pageRouter
       `
         console.log(prompt)
 
+        const promptId = getUuid()
         try {
           const model = 'text-davinci-003'
           const response = await openai.createCompletion({
@@ -155,7 +161,7 @@ pageRouter
           await publish(
             OpenAIPrompted({
               chatId,
-              promptId: getUuid(),
+              promptId: promptId,
               promptedBy: userId,
               prompt,
               model,
@@ -163,9 +169,30 @@ pageRouter
             })
           )
 
+          if (!gptResult) throw new Error('Result is empty')
+          const jsonGptResult = JSON.parse(gptResult)
+
+          const { faces } = zod
+            .object({ faces: zod.array(zod.object({ faceCode: zod.string(), personCode: zod.string() })) })
+            .parse(jsonGptResult)
+
+          await publish(
+            OpenAIMadeDeductions({
+              chatId,
+              promptId,
+              messageId,
+              deductions: faces.map(({ faceCode, personCode }) => ({
+                type: 'face-is-person',
+                faceId: photoFaces.faceCodeMap.codeToId(faceCode)!,
+                personId: family.personCodeMap.codeToId(personCode)!,
+              })),
+            })
+          )
+
           // TODO: publish event to be used in chat thread OpenAIAnnotatedChatPhoto
-        } catch (error) {
+        } catch (error: any) {
           console.log('OpenAI failed to parse prompt')
+          await publish(OpenAIFailedToMakeDeductions({ promptId, chatId, errorMessage: error.message || 'no message' }))
         }
       }
     }
