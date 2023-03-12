@@ -4,28 +4,15 @@ import { requireAuth } from '../../dependencies/authn'
 import { ChatPage, ChatPageProps } from './ChatPage'
 import multer from 'multer'
 import zod from 'zod'
-import sharp from 'sharp'
-import fs from 'node:fs'
 import path from 'node:path'
 import { getUuid } from '../../libs/getUuid'
-import { getPhotoUrlFromId, uploadPhoto } from '../../dependencies/uploadPhoto'
+import { getPhotoUrlFromId } from '../../dependencies/uploadPhoto'
 import { getChatHistory } from './getChatHistory/getChatHistory.query'
-import { publish } from '../../dependencies/eventStore'
-import { UserUploadedPhotoToChat } from './UserUploadedPhotoToChat'
-import { UUID, zIsUUID } from '../../domain'
-import { recognizeFacesInPhoto } from './recognizeFacesInPhoto'
-import { awsRekognitionCollectionId } from '../../dependencies/rekognition'
-import { getPersonIdForFaceId } from './getPersonIdForFaceId.query'
-import { FacesRecognizedInChatPhoto } from './FacesRecognizedInChatPhoto'
-import { describeFamily } from './describeFamily.query'
-import { getPersonForUserId } from '../home/getPersonForUserId.query'
-import { describePhotoFaces } from './describePhotoFaces.query'
-import { getLatestPhotoFaces } from './getLatestPhotoFaces.query'
-import { openai } from '../../dependencies/openai'
-import { OpenAIPrompted } from './OpenAIPrompted'
-import { UserSentMessageToChat } from './UserSentMessageToChat'
-import { OpenAIFailedToMakeDeductions } from './OpenAIFailedToMakeDeductions'
-import { OpenAIMadeDeductions } from './OpenAIMadeDeductions'
+import { zIsUUID } from '../../domain'
+import { sendMessageToChat } from './sendMessageToChat'
+import { sendToOpenAIForDeductions } from './sendToOpenAIForDeductions/sendToOpenAIForDeductions'
+import { sendPhotoToChat } from './sendPhotoToChat'
+import { recognizeFacesInChatPhoto } from './recognizeFacesInChatPhoto/recognizeFacesInChatPhoto'
 
 const FILE_SIZE_LIMIT_MB = 50
 const upload = multer({
@@ -68,135 +55,24 @@ pageRouter
     const userId = request.session.user!.id
     const { chatId } = zod.object({ chatId: zIsUUID }).parse(request.params)
 
-    const { comment } = request.body
+    const { message } = request.body
 
     const { file } = request
     if (file) {
       const photoId = getUuid()
-      const { path: originalPath } = file
 
-      const compressedFilePath = originalPath + '-compressed.jpeg'
-      await sharp(originalPath).jpeg({ quality: 30 }).toFile(compressedFilePath)
+      await sendPhotoToChat({ file, photoId, chatId, userId })
 
-      await uploadPhoto({ contents: fs.createReadStream(originalPath), id: photoId })
-
-      await publish(UserUploadedPhotoToChat({ chatId: chatId as UUID, photoId, uploadedBy: userId }))
-
-      const detectedFaces = await recognizeFacesInPhoto({
-        photoContents: fs.readFileSync(compressedFilePath),
-        collectionId: awsRekognitionCollectionId,
-      })
-
-      const detectedFacesAndPersons = await Promise.all(
-        detectedFaces.map(async (detectedFace) => {
-          const personId = await getPersonIdForFaceId(detectedFace.AWSFaceId)
-
-          return { ...detectedFace, personId }
-        })
-      )
-
-      if (detectedFacesAndPersons.length) {
-        await publish(
-          FacesRecognizedInChatPhoto({
-            chatId,
-            photoId,
-            faces: detectedFacesAndPersons,
-          })
-        )
-      }
-    } else if (comment) {
-      console.log('received comment', comment)
-
+      await recognizeFacesInChatPhoto({ file, chatId, photoId })
+    } else if (message) {
       const messageId = getUuid()
-      await publish(
-        UserSentMessageToChat({
-          chatId,
-          sentBy: userId,
-          message: comment,
-          messageId: messageId,
-        })
-      )
 
-      const latestPhotoWithFaces = await getLatestPhotoFaces(chatId)
+      await sendMessageToChat({ chatId, userId, message, messageId })
 
-      // console.log(JSON.stringify({ latestPhotoWithFaces }, null, 2))
-
-      if (latestPhotoWithFaces !== null && latestPhotoWithFaces.length) {
-        const photoFaces = await describePhotoFaces(latestPhotoWithFaces)
-
-        // Build prompt :
-        const currentPerson = await getPersonForUserId(userId)
-        const family = await describeFamily({ personId: currentPerson.id, distance: 2 })
-
-        let prompt = `
-      You are chatting with ${currentPerson.name} and this is a description of his family:
-      ${family.description}
-
-      ${currentPerson.name} shows you a photo where faces have been detected : ${photoFaces.description}
-
-      You are trying to describe who the faces are based on ${currentPerson.name}'s description. Use the following JSON schema for your response:
-      { "faces": [{ "faceCode": "faceA", "personCode": "personA" }, ... ]}
-
-      ONLY RESPOND WITH VALID JSON. DO NOT EXPLAIN THE RESULT.
-
-      ${currentPerson.name}: ${comment}
-
-      You:
-      `
-        console.log(prompt)
-
-        const promptId = getUuid()
-        try {
-          const model = 'text-davinci-003'
-          const response = await openai.createCompletion({
-            model,
-            prompt,
-            temperature: 0,
-            max_tokens: 2000,
-            user: userId,
-          })
-
-          const gptResult = response.data.choices[0].text
-
-          await publish(
-            OpenAIPrompted({
-              chatId,
-              promptId: promptId,
-              promptedBy: userId,
-              prompt,
-              model,
-              response: gptResult,
-            })
-          )
-
-          if (!gptResult) throw new Error('Result is empty')
-          const jsonGptResult = JSON.parse(gptResult)
-
-          const { faces } = zod
-            .object({ faces: zod.array(zod.object({ faceCode: zod.string(), personCode: zod.string() })) })
-            .parse(jsonGptResult)
-
-          await publish(
-            OpenAIMadeDeductions({
-              chatId,
-              promptId,
-              messageId,
-              deductions: faces.map(({ faceCode, personCode }) => ({
-                type: 'face-is-person',
-                faceId: photoFaces.faceCodeMap.codeToId(faceCode)!,
-                personId: family.personCodeMap.codeToId(personCode)!,
-              })),
-            })
-          )
-
-          // TODO: publish event to be used in chat thread OpenAIAnnotatedChatPhoto
-        } catch (error: any) {
-          console.log('OpenAI failed to parse prompt')
-          await publish(OpenAIFailedToMakeDeductions({ promptId, chatId, errorMessage: error.message || 'no message' }))
-        }
-      }
+      await sendToOpenAIForDeductions({ chatId, userId, message, messageId })
     }
 
+    // TODO: try catch error and send it back as HTML (or redirect if OK)
     return response.redirect(`/chat/${chatId}/chat.html`)
 
     const history: ChatPageProps['history'] = await getChatHistory(chatId)

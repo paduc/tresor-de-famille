@@ -1,7 +1,7 @@
-import { publish } from '../../dependencies/eventStore'
-import { resetDatabase } from '../../dependencies/__test__/resetDatabase'
-import { GedcomImported } from '../../events'
-import { getUuid } from '../../libs/getUuid'
+import { publish } from '../../../dependencies/eventStore'
+import { resetDatabase } from '../../../dependencies/__test__/resetDatabase'
+import { GedcomImported } from '../../../events'
+import { getUuid } from '../../../libs/getUuid'
 import { describeFamily } from './describeFamily.query'
 
 const personId = getUuid()

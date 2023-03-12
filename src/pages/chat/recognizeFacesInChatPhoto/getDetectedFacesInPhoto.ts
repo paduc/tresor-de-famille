@@ -23,16 +23,16 @@ export type RecognizedFace = {
   details?: aws.Rekognition.FaceDetail
 }
 
-type RecognizeFacesInPhotoArgs = {
+type GetDetectedFacesInPhotoArgs = {
   photoContents: Buffer
   collectionId: string
 }
 
 // TODO: inject collectionId and rekognition instance
-export const recognizeFacesInPhoto = async ({
+export const getDetectedFacesInPhoto = async ({
   photoContents,
   collectionId,
-}: RecognizeFacesInPhotoArgs): Promise<RecognizedFace[]> => {
+}: GetDetectedFacesInPhotoArgs): Promise<RecognizedFace[]> => {
   const indexFacesResult = await rekognition
     .indexFaces({
       CollectionId: collectionId,

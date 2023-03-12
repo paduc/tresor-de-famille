@@ -132,13 +132,13 @@ const AddPhotoOrMessageItem = ({ userProfilePicUrl }: AddPhotoOrMessageItemProps
       <div className='min-w-0 flex-1'>
         <form method='POST' className='relative'>
           <div className='overflow-hidden rounded-lg border border-gray-300 shadow-sm focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500'>
-            <label htmlFor='comment' className='sr-only'>
+            <label htmlFor='message' className='sr-only'>
               Ajouter un message
             </label>
             <textarea
               rows={3}
-              name='comment'
-              id='comment'
+              name='message'
+              id='message'
               className='block w-full resize-none border-0 py-3 focus:ring-0 sm:text-sm'
               placeholder='Ajouter un message...'
               defaultValue={''}
