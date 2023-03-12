@@ -13,12 +13,23 @@ function classNames(...classes) {
 }
 
 export type ChatPhotoFace = {
-  personName: string | null
+  person: {
+    name: string
+  } | null
+  faceId: string
   position: {
     width: number
     height: number
     left: number
     top: number
+  }
+}
+
+export type ChatDeduction = {
+  // type: 'face-is-person'
+  faceId: string
+  person: {
+    name: string
   }
 }
 
@@ -38,6 +49,10 @@ export type ChatEvent = { timestamp: number } & (
       message: {
         body: string
       }
+    }
+  | {
+      type: 'deductions'
+      deductions: ChatDeduction[]
     }
 )
 
