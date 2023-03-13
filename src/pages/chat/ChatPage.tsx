@@ -70,17 +70,19 @@ export const ChatPage = withBrowserBundle(({ error, success, history, userProfil
         <SuccessError success={success} error={error} />
         <div className='flow-root'>
           <ul role='list' className='-mb-8'>
-            {history.map((event, index) => {
-              if (event.type === 'photo') {
-                return <PhotoItem key={`event_${index}`} event={event} />
-              }
+            {history
+              ? history.map((event, index) => {
+                  if (event.type === 'photo') {
+                    return <PhotoItem key={`event_${index}`} event={event} />
+                  }
 
-              if (event.type === 'message') {
-                return <MessageItem key={`event_${index}`} event={event} />
-              }
+                  if (event.type === 'message') {
+                    return <MessageItem key={`event_${index}`} event={event} />
+                  }
 
-              return null
-            })}
+                  return null
+                })
+              : null}
             <AddPhotoOrMessageItem userProfilePicUrl={userProfilePicUrl} />
           </ul>
         </div>

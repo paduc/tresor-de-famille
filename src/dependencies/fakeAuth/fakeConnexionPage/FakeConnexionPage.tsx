@@ -19,7 +19,7 @@ export const FakeConnexionPage = ({ fakeUsers, redirectTo }: FakeConnexionPagePr
             <div style={{ marginBottom: 20, marginTop: 20 }}>
               <div className='fr-select-group'>
                 <select className='fr-select' id='select' name='userId'>
-                  <option selected disabled hidden>
+                  <option disabled hidden>
                     Selectionnez un identifiant
                   </option>
 

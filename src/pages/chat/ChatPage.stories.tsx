@@ -5,8 +5,12 @@ import { ChatEvent, ChatPage } from './ChatPage'
 
 export default { title: 'Chat avec IA', component: ChatPage }
 
+const t0 = Date.now()
+const HOUR = 3600 * 1000
+
 const starterHistory: ChatEvent[] = [
   {
+    timestamp: t0,
     type: 'photo',
     profilePicUrl:
       'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80',
@@ -15,7 +19,8 @@ const starterHistory: ChatEvent[] = [
       url: 'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=500&h=500&q=80',
       faces: [
         {
-          personName: null,
+          person: null,
+          faceId: 'face123',
           position: {
             width: 0.3004770278930664,
             height: 0.39314860105514526,
@@ -27,6 +32,7 @@ const starterHistory: ChatEvent[] = [
     },
   },
   {
+    timestamp: t0 + 1 * HOUR,
     type: 'message',
     profilePicUrl:
       'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80',
