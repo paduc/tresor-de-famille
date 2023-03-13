@@ -1,7 +1,7 @@
 import { postgres } from '../../../dependencies/postgres'
 import { getPhotoUrlFromId, getProfilePicUrlForUser } from '../../../dependencies/uploadPhoto'
-import { ChatEvent } from '../ChatPage'
-import { UserUploadedPhotoToChat } from '../UserUploadedPhotoToChat'
+import { ChatEvent } from '../ChatPage/ChatPage'
+import { UserUploadedPhotoToChat } from '../uploadPhotoToChat/UserUploadedPhotoToChat'
 import { augmentChatPhotosWithFacesDetected } from './augmentChatPhotosWithFacesDetected'
 
 export async function retrievePhotosForChat(chatId: string) {

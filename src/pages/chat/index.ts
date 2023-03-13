@@ -1,2 +1,2 @@
-export * from './ChatPage'
+export * from './ChatPage/ChatPage'
 export * from './chat.route'

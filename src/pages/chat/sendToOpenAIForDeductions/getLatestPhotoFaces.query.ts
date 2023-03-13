@@ -1,7 +1,7 @@
 import Rekognition from 'aws-sdk/clients/rekognition'
 import { postgres } from '../../../dependencies/postgres'
-import { FacesRecognizedInChatPhoto } from '../FacesRecognizedInChatPhoto'
-import { UserUploadedPhotoToChat } from '../UserUploadedPhotoToChat'
+import { FacesRecognizedInChatPhoto } from '../recognizeFacesInChatPhoto/FacesRecognizedInChatPhoto'
+import { UserUploadedPhotoToChat } from '../uploadPhotoToChat/UserUploadedPhotoToChat'
 
 type PhotoFace = {
   details: {

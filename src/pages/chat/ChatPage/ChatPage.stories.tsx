@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { SessionContext } from '../_components'
+import { SessionContext } from '../../_components'
 
 import { ChatEvent, ChatPage } from './ChatPage'
 
@@ -39,6 +39,23 @@ const starterHistory: ChatEvent[] = [
     message: {
       body: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Tincidunt nunc ipsum tempor purus vitae id. Morbi in vestibulum nec varius. Et diam cursus quis sed purus nam. Scelerisque amet elit non sit ut tincidunt condimentum. Nisl ultrices eu venenatis diam.',
     },
+  },
+  {
+    timestamp: t0 + 1 * HOUR,
+    type: 'deductions',
+    deductions: [
+      {
+        person: {
+          name: 'Toto',
+        },
+        position: {
+          width: 0.3004770278930664,
+          height: 0.39314860105514526,
+          left: 0.3541097640991211,
+          top: 0.24908018112182617,
+        },
+      },
+    ],
   },
 ]
 

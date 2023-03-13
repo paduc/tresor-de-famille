@@ -1,7 +1,7 @@
 import { responseAsHtml } from '../../libs/ssr/responseAsHtml'
 import { pageRouter } from '../pageRouter'
 import { requireAuth } from '../../dependencies/authn'
-import { ChatPage, ChatPageProps } from './ChatPage'
+import { ChatPage, ChatPageProps } from './ChatPage/ChatPage'
 import multer from 'multer'
 import zod from 'zod'
 import path from 'node:path'
@@ -9,9 +9,9 @@ import { getUuid } from '../../libs/getUuid'
 import { getPhotoUrlFromId } from '../../dependencies/uploadPhoto'
 import { getChatHistory } from './getChatHistory/getChatHistory.query'
 import { zIsUUID } from '../../domain'
-import { sendMessageToChat } from './sendMessageToChat'
+import { sendMessageToChat } from './sendMessageToChat/sendMessageToChat'
 import { sendToOpenAIForDeductions } from './sendToOpenAIForDeductions/sendToOpenAIForDeductions'
-import { sendPhotoToChat } from './sendPhotoToChat'
+import { uploadPhotoToChat } from './uploadPhotoToChat/uploadPhotoToChat'
 import { recognizeFacesInChatPhoto } from './recognizeFacesInChatPhoto/recognizeFacesInChatPhoto'
 
 const FILE_SIZE_LIMIT_MB = 50
@@ -61,7 +61,7 @@ pageRouter
     if (file) {
       const photoId = getUuid()
 
-      await sendPhotoToChat({ file, photoId, chatId, userId })
+      await uploadPhotoToChat({ file, photoId, chatId, userId })
 
       await recognizeFacesInChatPhoto({ file, chatId, photoId })
     } else if (message) {

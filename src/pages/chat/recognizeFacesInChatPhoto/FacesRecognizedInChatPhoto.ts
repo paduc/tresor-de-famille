@@ -1,6 +1,6 @@
 import { Rekognition } from 'aws-sdk'
-import { UUID } from '../../domain'
-import { BaseDomainEvent, makeDomainEvent } from '../../libs/eventSourcing'
+import { UUID } from '../../../domain'
+import { BaseDomainEvent, makeDomainEvent } from '../../../libs/eventSourcing'
 
 type DetectedFace = {
   personId: string | null

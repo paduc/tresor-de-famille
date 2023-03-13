@@ -4,7 +4,7 @@ import { UUID } from '../../../domain'
 import { getDetectedFacesInPhoto as getDetectedFacesInPhoto } from './getDetectedFacesInPhoto'
 import { awsRekognitionCollectionId } from '../../../dependencies/rekognition'
 import { getPersonIdForFaceId } from '../getPersonIdForFaceId.query'
-import { FacesRecognizedInChatPhoto } from '../FacesRecognizedInChatPhoto'
+import { FacesRecognizedInChatPhoto } from './FacesRecognizedInChatPhoto'
 import sharp from 'sharp'
 
 type RecognizeFacesInChatPhotoArgs = {

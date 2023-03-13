@@ -1,4 +1,4 @@
-import { ChatPageProps } from '../ChatPage'
+import { ChatPageProps } from '../ChatPage/ChatPage'
 import { retrieveMessagesForChat } from './retrieveMessagesForChat'
 import { retrievePhotosForChat } from './retrievePhotosForChat'
 

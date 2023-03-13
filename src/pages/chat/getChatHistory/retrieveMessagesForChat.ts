@@ -1,7 +1,7 @@
 import { postgres } from '../../../dependencies/postgres'
 import { getProfilePicUrlForUser } from '../../../dependencies/uploadPhoto'
-import { ChatEvent } from '../ChatPage'
-import { UserSentMessageToChat } from '../UserSentMessageToChat'
+import { ChatEvent } from '../ChatPage/ChatPage'
+import { UserSentMessageToChat } from '../sendMessageToChat/UserSentMessageToChat'
 
 export async function retrieveMessagesForChat(chatId: string) {
   const { rows: messageRowsRes } = await postgres.query<UserSentMessageToChat>(

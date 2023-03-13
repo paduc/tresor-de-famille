@@ -1,6 +1,6 @@
 import { postgres } from '../../../dependencies/postgres'
 import { normalizeBBOX } from '../../../dependencies/rekognition'
-import { FacesRecognizedInChatPhoto } from '../FacesRecognizedInChatPhoto'
+import { FacesRecognizedInChatPhoto } from '../recognizeFacesInChatPhoto/FacesRecognizedInChatPhoto'
 import { getPersonById } from '../getPersonById.query'
 import { retrievePhotosForChat } from './retrievePhotosForChat'
 

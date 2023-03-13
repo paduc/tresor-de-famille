@@ -1,6 +1,6 @@
-import { getUuid } from '../../libs/getUuid'
-import { publish } from '../../dependencies/eventStore'
-import { UUID } from '../../domain'
+import { getUuid } from '../../../libs/getUuid'
+import { publish } from '../../../dependencies/eventStore'
+import { UUID } from '../../../domain'
 import { UserSentMessageToChat } from './UserSentMessageToChat'
 
 type SendMessageToChatArgs = {

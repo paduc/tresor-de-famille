@@ -17,7 +17,7 @@
     "lint": "eslint -c ./eslintrc.js src",
     "db": "docker compose down --remove-orphans && docker compose up -d",
     "db:test": "export NODE_ENV=test && export COMPOSE_PROJECT_NAME=tdf_tests && docker compose down --remove-orphans && docker compose -f ./docker-compose-integration.yml up -d && until docker exec tdf_db_tests pg_isready -U test -d tdf_test; do sleep 1; done && yarn migrate",
-    "storybook": "concurrently \"start-storybook -p 6006\" \"yarn storybook:css\"",
+    "storybook": "start-storybook -p 6006",
     "storybook:css": "npx tailwindcss -i ./src/pages/style.css -o ./src/assets/style.css --watch",
     "build-storybook": "build-storybook"
   },
