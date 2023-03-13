@@ -1,5 +1,6 @@
 import * as React from 'react'
-import { ChatEvent, ChatItem } from './ChatPage'
+import { ChatEvent, ChatItem, ChatPhotoFace } from './ChatPage'
+import { HoverContext } from './HoverProvider'
 import { PhotoIcon } from './PhotoIcon'
 
 type PhotoItemProps = { event: ChatEvent & { type: 'photo' } }
@@ -22,24 +23,29 @@ export const PhotoItem = ({ event }: PhotoItemProps) => {
         <div className='relative inline-block'>
           <img src={event.photo.url} className='max-w-md max-h-fit' />
           {event.photo.faces?.map((face, index) => (
-            <HoverableFace key={`face${index}`} face={face} index={index} />
+            <HoverableFace key={`face${index}`} face={face} />
           ))}
         </div>
       </div>
     </ChatItem>
   )
 }
-const HoverableFace = (props: any) => {
-  const [isHovered, setHovered] = React.useState<boolean>(false)
-  const { face, index } = props
+
+type HoverableFaceProps = {
+  face: ChatPhotoFace
+}
+const HoverableFace = ({ face }: HoverableFaceProps) => {
+  const { hoveredFaceId, setHoveredFaceId } = React.useContext(HoverContext)
+
+  const isFaceHovered = hoveredFaceId === face.faceId
+
   return (
     <div
-      key={`face${index}`}
       onMouseOver={() => {
-        setHovered(true)
+        setHoveredFaceId(face.faceId)
       }}
       onMouseOut={() => {
-        setHovered(false)
+        setHoveredFaceId(null)
       }}
       style={{
         top: `${Math.round(face.position.top * 100)}%`,
@@ -47,10 +53,10 @@ const HoverableFace = (props: any) => {
         width: `${Math.round(face.position.width * 100)}%`,
         height: `calc(${Math.round(face.position.height * 100)}% + 20px)`,
       }}
-      className={`absolute  ${isHovered ? 'border-2' : 'border-0'} border-white`}>
-      {isHovered ? (
+      className={`absolute  ${isFaceHovered ? 'border-2' : 'border-0'} border-white`}>
+      {isFaceHovered ? (
         <div className='block absolute bottom-0 text-sm text-white' style={{ height: 20 }}>
-          {face.personName || ''}
+          {face.person?.name || ''}
         </div>
       ) : (
         ''
