@@ -88,9 +88,9 @@ export const ChatPage = withBrowserBundle(({ error, success, history, userProfil
                       return <PhotoItem key={`event_${index}`} event={event} />
                     }
 
-                    // if (event.type === 'message') {
-                    //   return <MessageItem key={`event_${index}`} event={event} />
-                    // }
+                    if (event.type === 'message') {
+                      return <MessageItem key={`event_${index}`} event={event} />
+                    }
 
                     if (event.type === 'deductions') {
                       return <DeductionsItem key={`event_${index}`} event={event} />
