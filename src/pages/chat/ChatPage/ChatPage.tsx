@@ -136,7 +136,8 @@ export const DeductionsItem = ({ event }: DeductionsItemProps) => {
         </span>
       </div>
       <div className='min-w-0 flex-1'>
-        <div className='mt-1 text-sm text-gray-700'>
+        <div className='text-sm text-gray-700'>J'en ai déduit que</div>
+        <div className='mt-1 mb-2 text-sm text-gray-700'>
           {event.deductions.map((deduction, index) => (
             <DeductionItem deduction={deduction} key={`deduction_${index}`} />
           ))}
@@ -168,7 +169,7 @@ const DeductionItem = ({ deduction: { position, photo, person, faceId } }: { ded
               backgroundSize: `${bgSize}% ${bgSize}%`,
             }}></div>
           <div className='ml-3'>
-            <p className='text-sm font-medium text-gray-700 group-hover:text-gray-900'>{person.name}</p>
+            <p className='text-sm font-medium text-gray-700 group-hover:text-gray-900'>est {person.name}</p>
           </div>
         </div>
       </a>

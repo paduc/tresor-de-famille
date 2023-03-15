@@ -17,7 +17,7 @@ export const MessageItem = ({ event }: MessageItemProps) => {
           <ChatBubbleLeftEllipsisIcon className='h-5 w-5 text-gray-400' aria-hidden='true' />
         </span>
       </div>
-      <div className='min-w-0 flex-1 py-1.5'>
+      <div className='min-w-0 flex-1 pt-0 py-1.5'>
         <div className='mt-2 text-sm text-gray-700'>
           <p>{event.message.body}</p>
         </div>
