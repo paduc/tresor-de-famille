@@ -85,6 +85,7 @@ describe('augmentChatPhotosWithPersonsDeducted', () => {
           deductions: [
             {
               type: 'face-is-person',
+              photoId,
               personId,
               faceId,
             },
@@ -169,6 +170,7 @@ describe('augmentChatPhotosWithPersonsDeducted', () => {
           deductions: [
             {
               type: 'face-is-person',
+              photoId,
               personId,
               faceId,
             },
@@ -183,6 +185,7 @@ describe('augmentChatPhotosWithPersonsDeducted', () => {
           deductions: [
             {
               type: 'face-is-person',
+              photoId,
               personId: otherPersonId,
               faceId,
             },

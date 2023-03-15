@@ -16,7 +16,7 @@ type PhotoFace = {
   | { personId: string; faceCode: null }
 )
 
-export const getLatestPhotoFaces = async (chatId: string): Promise<PhotoFace[] | null> => {
+export const getLatestPhotoFaces = async (chatId: string): Promise<{ photoId: string; faces: PhotoFace[] } | null> => {
   const { rows: latestPhotos } = await postgres.query<UserUploadedPhotoToChat>(
     "SELECT * FROM events WHERE type='UserUploadedPhotoToChat' AND payload->>'chatId'=$1 ORDER BY occurred_at DESC LIMIT 1",
     [chatId]
@@ -38,7 +38,7 @@ export const getLatestPhotoFaces = async (chatId: string): Promise<PhotoFace[] |
 
   const latestPhotoFaces = latestPhotoFacesList[0].payload.faces
 
-  return latestPhotoFaces.map((face) =>
+  const faces = latestPhotoFaces.map((face) =>
     face.personId
       ? {
           personId: face.personId,
@@ -57,6 +57,15 @@ export const getLatestPhotoFaces = async (chatId: string): Promise<PhotoFace[] |
           },
         }
   )
+
+  if (!faces.length) {
+    return null
+  }
+
+  return {
+    photoId: latestPhoto.photoId,
+    faces,
+  }
 }
 
 function getGender(faceDetail: Rekognition.FaceDetail | undefined): PhotoFace['details']['gender'] {

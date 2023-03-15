@@ -21,8 +21,8 @@ export async function sendToOpenAIForDeductions({ chatId, userId, message, messa
   const latestPhotoWithFaces = await getLatestPhotoFaces(chatId)
 
   // console.log(JSON.stringify({ latestPhotoWithFaces }, null, 2))
-  if (latestPhotoWithFaces !== null && latestPhotoWithFaces.length) {
-    const photoFaces = await describePhotoFaces(latestPhotoWithFaces)
+  if (latestPhotoWithFaces !== null) {
+    const photoFaces = await describePhotoFaces(latestPhotoWithFaces.faces)
 
     // Build prompt :
     const currentPerson = await getPersonForUserId(userId)
@@ -85,6 +85,7 @@ export async function sendToOpenAIForDeductions({ chatId, userId, message, messa
             type: 'face-is-person',
             faceId: photoFaces.faceCodeMap.codeToId(faceCode)!,
             personId: family.personCodeMap.codeToId(personCode)!,
+            photoId: latestPhotoWithFaces.photoId,
           })),
         })
       )
