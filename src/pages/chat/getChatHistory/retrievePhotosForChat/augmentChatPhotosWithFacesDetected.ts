@@ -1,7 +1,7 @@
 import { BoundingBox } from 'aws-sdk/clients/rekognition'
-import { postgres } from '../../../dependencies/postgres'
-import { ChatPhotoFace } from '../ChatPage/ChatPage'
-import { FacesRecognizedInChatPhoto } from '../recognizeFacesInChatPhoto/FacesRecognizedInChatPhoto'
+import { postgres } from '../../../../dependencies/postgres'
+import { ChatPhotoFace } from '../../ChatPage/ChatPage'
+import { FacesRecognizedInChatPhoto } from '../../recognizeFacesInChatPhoto/FacesRecognizedInChatPhoto'
 import { ChatPhotoEvent } from './retrievePhotosForChat'
 
 type AugmentChatPhotosWithFacesDetectedDeps = {

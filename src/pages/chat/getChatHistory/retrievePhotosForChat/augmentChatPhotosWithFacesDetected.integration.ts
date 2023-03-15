@@ -1,8 +1,7 @@
-import { publish } from '../../../dependencies/eventStore'
-import { resetDatabase } from '../../../dependencies/__test__/resetDatabase'
-import { GedcomImported } from '../../../events'
-import { getUuid } from '../../../libs/getUuid'
-import { FacesRecognizedInChatPhoto } from '../recognizeFacesInChatPhoto/FacesRecognizedInChatPhoto'
+import { publish } from '../../../../dependencies/eventStore'
+import { resetDatabase } from '../../../../dependencies/__test__/resetDatabase'
+import { getUuid } from '../../../../libs/getUuid'
+import { FacesRecognizedInChatPhoto } from '../../recognizeFacesInChatPhoto/FacesRecognizedInChatPhoto'
 import { makeAugmentChatPhotosWithFacesDetected } from './augmentChatPhotosWithFacesDetected'
 
 const personId = getUuid()
@@ -11,23 +10,6 @@ const photoId = getUuid()
 const faceId = getUuid()
 
 describe('augmentChatPhotosWithFacesDetected', () => {
-  // beforeEach(async () => {
-  //   await resetDatabase()
-  //   await publish(
-  //     GedcomImported({
-  //       rawGedcom: '',
-  //       relationships: [],
-  //       persons: [
-  //         {
-  //           id: personId,
-  //           name: 'Philip Hornbread',
-  //         },
-  //       ],
-  //       importedBy: '',
-  //     })
-  //   )
-  // })
-
   describe('when there are no FacesRecognizedInChatPhoto events', () => {
     const augmentChatPhotosWithFacesDetected = makeAugmentChatPhotosWithFacesDetected({
       getPersonById: jest.fn(),
