@@ -1,5 +1,6 @@
 import { ChatPageProps } from '../ChatPage/ChatPage'
 import { retrieveMessagesForChat } from './retrieveMessagesForChat'
+import { retrieveDeductionsForChat } from './retrieveDeductionsForChat'
 import { retrievePhotosForChat } from './retrievePhotosForChat/retrievePhotosForChat'
 
 export const getChatHistory = async (chatId: string): Promise<ChatPageProps['history']> => {
@@ -7,8 +8,7 @@ export const getChatHistory = async (chatId: string): Promise<ChatPageProps['his
 
   const messageRows = await retrieveMessagesForChat(chatId)
 
-  // TODO : add an event in the chat history to display the deduction
-  // DANGER: trying to reuse the deductions query for both => do the query twice to keep decoupled !
+  const deductionsRows = await retrieveDeductionsForChat(chatId)
 
-  return [...photoRows, ...messageRows].sort((a, b) => a.timestamp - b.timestamp)
+  return [...photoRows, ...messageRows, ...deductionsRows].sort((a, b) => a.timestamp - b.timestamp)
 }

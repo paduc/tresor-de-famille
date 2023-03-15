@@ -5,6 +5,7 @@ type Deduction = {
   type: 'face-is-person'
   personId: string
   faceId: string
+  photoId: string
 }
 
 export type OpenAIMadeDeductions = BaseDomainEvent & {

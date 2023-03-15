@@ -5,7 +5,7 @@ import { ChatEvent } from '../../ChatPage/ChatPage'
 import { UserUploadedPhotoToChat } from '../../uploadPhotoToChat/UserUploadedPhotoToChat'
 import { makeAugmentChatPhotosWithFacesDetected } from './augmentChatPhotosWithFacesDetected'
 import { makeAugmentChatPhotosWithPersonsDeducted } from './augmentChatPhotosWithPersonsDeducted'
-import { getPersonById } from '../getPersonById'
+import { getPersonById } from './getPersonById'
 
 const augmentChatPhotosWithFacesDetected = makeAugmentChatPhotosWithFacesDetected({
   getPersonById,

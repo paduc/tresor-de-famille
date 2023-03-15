@@ -1,6 +1,6 @@
-import { postgres } from '../../../dependencies/postgres'
-import { GedcomImported, Person } from '../../../events'
-import { ChatPhotoFace } from '../ChatPage/ChatPage'
+import { postgres } from '../../../../dependencies/postgres'
+import { GedcomImported, Person } from '../../../../events'
+import { ChatPhotoFace } from '../../ChatPage/ChatPage'
 
 export const getPersonById = async (personId: string): Promise<ChatPhotoFace['person']> => {
   const { rows: gedcomImportedRows } = await postgres.query<GedcomImported>(
