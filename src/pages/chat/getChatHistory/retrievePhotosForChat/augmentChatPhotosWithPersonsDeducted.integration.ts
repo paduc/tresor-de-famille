@@ -139,4 +139,88 @@ describe('augmentChatPhotosWithPersonsDeducted', () => {
       })
     })
   })
+
+  describe('when there is multiple OpenAIMadeDeductions events for the same faceId', () => {
+    const fakePerson = {
+      name: 'toto',
+    }
+    const fakeBBox = {
+      width: 1,
+      height: 2,
+      left: 3,
+      top: 4,
+    }
+
+    const fakeGetPersonById = jest.fn((personId: string) => Promise.resolve(fakePerson))
+
+    const augmentChatPhotosWithPersonsDeducted = makeAugmentChatPhotosWithPersonsDeducted({
+      getPersonById: fakeGetPersonById,
+    })
+
+    const otherPersonId = getUuid()
+
+    beforeAll(async () => {
+      await resetDatabase()
+      await publish(
+        OpenAIMadeDeductions({
+          chatId,
+          promptId: getUuid(),
+          messageId: getUuid(),
+          deductions: [
+            {
+              type: 'face-is-person',
+              personId,
+              faceId,
+            },
+          ],
+        })
+      )
+      await publish(
+        OpenAIMadeDeductions({
+          chatId,
+          promptId: getUuid(),
+          messageId: getUuid(),
+          deductions: [
+            {
+              type: 'face-is-person',
+              personId: otherPersonId,
+              faceId,
+            },
+          ],
+        })
+      )
+      await augmentChatPhotosWithPersonsDeducted(chatId, photoRows)
+    })
+
+    const photoRows: (ChatEvent & { type: 'photo' })[] = [
+      {
+        type: 'photo' as 'photo',
+        timestamp: Date.now(),
+        profilePicUrl: '',
+        photo: {
+          id: photoId,
+          url: '',
+          faces: [
+            {
+              person: null,
+              faceId,
+              position: fakeBBox,
+            },
+          ],
+        },
+      },
+    ]
+
+    it('should use the latest deduction (ie the person in the latest event for the face)', async () => {
+      expect(fakeGetPersonById).toHaveBeenCalledWith(otherPersonId)
+
+      expect(photoRows[0].photo.faces).toHaveLength(1)
+
+      expect(photoRows[0].photo.faces![0]).toEqual({
+        person: fakePerson,
+        faceId,
+        position: fakeBBox,
+      })
+    })
+  })
 })
