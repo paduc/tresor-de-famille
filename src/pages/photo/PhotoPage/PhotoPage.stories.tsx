@@ -123,6 +123,7 @@ export const PhotoAvecVisagesConnus = () => (
           {
             person: {
               name: 'Toto',
+              annotatedBy: 'ai',
             },
             faceId: 'face123',
             position: {
@@ -130,6 +131,19 @@ export const PhotoAvecVisagesConnus = () => (
               height: 0.39314860105514526,
               left: 0.3541097640991211,
               top: 0.24908018112182617,
+            },
+          },
+          {
+            person: {
+              name: 'Fantome',
+              annotatedBy: 'face-recognition',
+            },
+            faceId: 'face124',
+            position: {
+              width: 0.3004770278930664,
+              height: 0.39314860105514526,
+              left: 0,
+              top: 0,
             },
           },
         ],

@@ -3,7 +3,6 @@ import * as React from 'react'
 import { withBrowserBundle } from '../../../libs/ssr/withBrowserBundle'
 import { AppLayout } from '../../_components/layout/AppLayout'
 import { SuccessError } from '../../_components/SuccessError'
-import { ChatBubbleLeftEllipsisIcon } from './ChatBubbleLeftEllipsisIcon'
 import { HoverContext, HoverProvider } from './HoverProvider'
 import { PhotoIcon } from './PhotoIcon'
 import { SendIcon } from './SendIcon'
@@ -13,9 +12,10 @@ function classNames(...classes) {
   return classes.filter(Boolean).join(' ')
 }
 
-export type ChatPhotoFace = {
+export type PhotoFace = {
   person: {
     name: string
+    annotatedBy: 'face-recognition' | 'ai'
   } | null
   faceId: string
   position: {
@@ -50,7 +50,7 @@ export type ChatEvent = { timestamp: number } & (
       photo: {
         id: string
         url: string
-        faces?: ChatPhotoFace[]
+        faces?: PhotoFace[]
       }
     }
   | {
@@ -72,7 +72,7 @@ export type PhotoPageProps = {
   photo: {
     id: string
     url: string
-    faces?: ChatPhotoFace[]
+    faces?: PhotoFace[]
   } | null
 }
 
@@ -183,67 +183,11 @@ export const ChatItem = ({ children, isLastItem }: ChatItemProps) => {
   )
 }
 
-type DeductionsItemProps = { event: ChatEvent & { type: 'deductions' } }
-export const DeductionsItem = ({ event }: DeductionsItemProps) => {
-  return (
-    <ChatItem>
-      <div className='relative'>
-        <span className='inline-block h-10 w-10 overflow-hidden rounded-full bg-gray-100 ring-8 ring-white'>
-          <svg className='h-full w-full text-gray-300' fill='currentColor' viewBox='0 0 24 24'>
-            <path d='M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z' />
-          </svg>
-        </span>
-
-        <span className='absolute -bottom-0.5 -right-1 rounded-tl bg-white px-0.5 py-px'>
-          <ChatBubbleLeftEllipsisIcon className='h-5 w-5 text-gray-400' aria-hidden='true' />
-        </span>
-      </div>
-      <div className='min-w-0 flex-1'>
-        <div className='text-sm text-gray-700'>J'en ai déduit que</div>
-        <div className='mt-1 mb-2 text-sm text-gray-700'>
-          {event.deductions.map((deduction, index) => (
-            <DeductionItem deduction={deduction} key={`deduction_${index}`} />
-          ))}
-        </div>
-      </div>
-    </ChatItem>
-  )
-}
-
-const DeductionItem = ({ deduction: { position, photo, person, faceId } }: { deduction: ChatDeduction }) => {
-  const bgSize = Math.round((8 / 10) * Math.min(Math.round(100 / position.height), Math.round(100 / position.width)))
-  const { setHoveredFaceId } = React.useContext(HoverContext)
-  return (
-    <div
-      className='inline-block mr-3 rounded-full pr-3 ring-2 ring-gray-300'
-      onMouseOver={() => {
-        setHoveredFaceId(faceId)
-      }}
-      onMouseOut={() => {
-        setHoveredFaceId(null)
-      }}>
-      <a href='#' className='group block flex-shrink-0 '>
-        <div className='flex items-center'>
-          <div
-            className='inline-block h-10 w-10 rounded-full'
-            style={{
-              backgroundImage: `url(${photo.url})`,
-              backgroundPosition: `${Math.round(position.left * 100)}% ${Math.round(position.top * 100)}%`,
-              backgroundSize: `${bgSize}% ${bgSize}%`,
-            }}></div>
-          <div className='ml-3'>
-            <p className='text-sm font-medium text-gray-700 group-hover:text-gray-900'>est {person.name}</p>
-          </div>
-        </div>
-      </a>
-    </div>
-  )
-}
-
 type FaceBadgeProps = {
   faceId: string
   person: {
     name: string
+    annotatedBy: 'face-recognition' | 'ai'
   }
 }
 const FaceBadge = ({ person, faceId }: FaceBadgeProps) => {
@@ -261,7 +205,41 @@ const FaceBadge = ({ person, faceId }: FaceBadgeProps) => {
       }}>
       <a href='#' className='group block flex-shrink-0 '>
         <div className='flex items-center'>
-          <div className='ml-3'>
+          <div
+            className={`inline-block h-4 w-4 ml-2 text-gray-500 ${
+              hoveredFaceId === faceId ? 'text-indigo-700' : 'text-gray-500'
+            }`}>
+            {person.annotatedBy === 'face-recognition' ? (
+              <svg
+                fill='none'
+                stroke='currentColor'
+                strokeWidth={1.5}
+                viewBox='0 0 24 24'
+                xmlns='http://www.w3.org/2000/svg'
+                aria-hidden='true'>
+                <path
+                  strokeLinecap='round'
+                  strokeLinejoin='round'
+                  d='M7.5 3.75H6A2.25 2.25 0 003.75 6v1.5M16.5 3.75H18A2.25 2.25 0 0120.25 6v1.5m0 9V18A2.25 2.25 0 0118 20.25h-1.5m-9 0H6A2.25 2.25 0 013.75 18v-1.5M15 12a3 3 0 11-6 0 3 3 0 016 0z'
+                />
+              </svg>
+            ) : (
+              <svg
+                fill='none'
+                stroke='currentColor'
+                strokeWidth={1.5}
+                viewBox='0 0 24 24'
+                xmlns='http://www.w3.org/2000/svg'
+                aria-hidden='true'>
+                <path
+                  strokeLinecap='round'
+                  strokeLinejoin='round'
+                  d='M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z'
+                />
+              </svg>
+            )}
+          </div>
+          <div className='ml-1'>
             <p className={`text-sm font-medium  ${hoveredFaceId === faceId ? 'text-indigo-700' : 'text-gray-700'}`}>
               {person.name}
             </p>
@@ -273,7 +251,7 @@ const FaceBadge = ({ person, faceId }: FaceBadgeProps) => {
 }
 
 type HoverableFaceProps = {
-  face: ChatPhotoFace
+  face: PhotoFace
 }
 const HoverableFace = ({ face }: HoverableFaceProps) => {
   const { hoveredFaceId, setHoveredFaceId } = React.useContext(HoverContext)
