@@ -5,12 +5,13 @@ import { zIsUUID } from '../../domain'
 import { getUuid } from '../../libs/getUuid'
 import { responseAsHtml } from '../../libs/ssr/responseAsHtml'
 import { pageRouter } from '../pageRouter'
-import { ChatPage, ChatPageProps } from './ChatPage/ChatPage'
-import { getChatHistory } from './getChatHistory/getChatHistory.query'
-import { recognizeFacesInChatPhoto } from './recognizeFacesInChatPhoto/recognizeFacesInChatPhoto'
-import { sendMessageToChat } from './sendMessageToChat/sendMessageToChat'
-import { sendToOpenAIForDeductions } from './sendToOpenAIForDeductions/sendToOpenAIForDeductions'
-import { uploadPhotoToChat } from './uploadPhotoToChat/uploadPhotoToChat'
+import { getChatHistory } from '../chat/getChatHistory/getChatHistory.query'
+import { getPhoto } from './getPhoto.query'
+import { recognizeFacesInChatPhoto } from '../chat/recognizeFacesInChatPhoto/recognizeFacesInChatPhoto'
+import { sendMessageToChat } from '../chat/sendMessageToChat/sendMessageToChat'
+import { sendToOpenAIForDeductions } from '../chat/sendToOpenAIForDeductions/sendToOpenAIForDeductions'
+import { uploadPhotoToChat } from '../chat/uploadPhotoToChat/uploadPhotoToChat'
+import { PhotoPage } from './PhotoPage/PhotoPage'
 
 const FILE_SIZE_LIMIT_MB = 50
 const upload = multer({
@@ -30,25 +31,18 @@ pageRouter.route('/chat.html').get(requireAuth(), async (request, response) => {
 })
 
 pageRouter
-  .route('/chat/:chatId/chat.html')
+  .route('/photo/:chatId/photo.html')
   .get(requireAuth(), async (request, response) => {
-    console.log(`GET on /chat/:chatId/chat.html`)
+    console.log(`GET on /photo/:chatId/photo.html`)
 
     const { chatId } = zod.object({ chatId: zIsUUID }).parse(request.params)
 
-    const history: ChatPageProps['history'] = await getChatHistory(chatId)
+    const photoProps = await getPhoto(chatId)
 
-    responseAsHtml(
-      request,
-      response,
-      ChatPage({
-        history,
-        userProfilePicUrl: fakeProfilePicUrl,
-      })
-    )
+    responseAsHtml(request, response, PhotoPage(photoProps))
   })
   .post(requireAuth(), upload.single('photo'), async (request, response) => {
-    console.log(`POST on /chat.html`)
+    console.log(`POST on /photo.html`)
 
     const userId = request.session.user!.id
     const { chatId } = zod.object({ chatId: zIsUUID }).parse(request.params)
@@ -65,22 +59,12 @@ pageRouter
     } else if (message) {
       const messageId = getUuid()
 
+      // TODO: maybe write a specialized version for messages linked to photos
       await sendMessageToChat({ chatId, userId, message, messageId })
 
+      // TODO: same, for a specific photo
       await sendToOpenAIForDeductions({ chatId, userId, message, messageId })
     }
 
-    // TODO: try catch error and send it back as HTML (or redirect if OK)
-    return response.redirect(`/chat/${chatId}/chat.html`)
-
-    const history: ChatPageProps['history'] = await getChatHistory(chatId)
-
-    responseAsHtml(
-      request,
-      response,
-      ChatPage({
-        history,
-        userProfilePicUrl: fakeProfilePicUrl,
-      })
-    )
+    return response.redirect(`/photo/${chatId}/photo.html`)
   })
