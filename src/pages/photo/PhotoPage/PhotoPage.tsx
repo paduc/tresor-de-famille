@@ -66,6 +66,10 @@ export type ChatEvent = { timestamp: number } & (
     }
 )
 
+type PhotoCaption = {
+  body: string
+}
+
 export type PhotoPageProps = {
   success?: string
   error?: string
@@ -73,6 +77,7 @@ export type PhotoPageProps = {
     id: string
     url: string
     faces?: PhotoFace[]
+    captions?: PhotoCaption[]
   } | null
 }
 
@@ -93,16 +98,22 @@ export const PhotoPage = withBrowserBundle(({ error, success, photo }: PhotoPage
               {photo.faces?.map((face, index) => (
                 <HoverableFace key={`face${index}`} face={face} />
               ))}
-              <div className='pl-2'>
+              <div className='pl-2 pt-3'>
                 {photo.faces
                   ?.filter((face) => face.person !== null)
                   .map(({ faceId, person }, index) => (
                     <FaceBadge key={`face${index}`} faceId={faceId} person={person!} />
                   ))}
               </div>
+
               <div className='bg-white'>
                 <form method='POST' className='relative'>
                   <div className='overflow-hidden sm:border border-gray-300 shadow-sm focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500'>
+                    {photo.captions?.map(({ body }, index) => (
+                      <p className='sm:text-sm px-3 pt-3 text-gray-700 ' key={`caption${index}`}>
+                        {body}
+                      </p>
+                    ))}
                     <label htmlFor='message' className='sr-only'>
                       Ajouter une légende...
                     </label>
