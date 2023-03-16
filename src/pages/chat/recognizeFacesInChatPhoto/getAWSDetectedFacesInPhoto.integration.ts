@@ -72,7 +72,7 @@ describe('getDetectedFacesInPhoto', () => {
     it('return the AWS FaceId and details for the face', async () => {
       expect(result).toHaveLength(1)
 
-      expect(result[0].AWSFaceId).toHaveLength(36)
+      expect(result[0].faceId).toHaveLength(36)
       expect(result[0].position).toBeDefined()
       expect(result[0].confidence).toBeDefined()
     })
@@ -80,7 +80,7 @@ describe('getDetectedFacesInPhoto', () => {
     it('should index the new face', async () => {
       const facesAfter = await rekognition.listFaces({ CollectionId: testCollectionId }).promise()
       expect(facesAfter.Faces).toHaveLength(1)
-      expect(facesAfter.Faces![0].FaceId).toEqual(result[0].AWSFaceId)
+      expect(facesAfter.Faces![0].FaceId).toEqual(result[0].faceId)
     })
   })
 
@@ -116,7 +116,7 @@ describe('getDetectedFacesInPhoto', () => {
     it('return the known AWS FaceId and details for the face', async () => {
       expect(result).toHaveLength(1)
 
-      expect(result[0].AWSFaceId).toHaveLength(36)
+      expect(result[0].faceId).toHaveLength(36)
       expect(result[0].position).toBeDefined()
       expect(result[0].confidence).toBeDefined()
     })
@@ -160,7 +160,7 @@ describe('getDetectedFacesInPhoto', () => {
     it('return the known FaceId for the known face and new FaceIds for the others', async () => {
       expect(result).toHaveLength(6)
 
-      const faceIds = result.map((record) => record.AWSFaceId)
+      const faceIds = result.map((record) => record.faceId)
       expect(faceIds).toContain(knownFaceId)
     })
 

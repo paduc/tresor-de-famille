@@ -1,11 +1,10 @@
 import fs from 'node:fs'
-import { publish } from '../../../dependencies/eventStore'
-import { UUID } from '../../../domain'
-import { getAWSDetectedFacesInPhoto as getAWSDetectedFacesInPhoto } from './getAWSDetectedFacesInPhoto'
-import { awsRekognitionCollectionId } from '../../../dependencies/rekognition'
-import { getPersonIdForFaceId } from '../getPersonIdForFaceId.query'
-import { FacesDetectedInChatPhoto } from './FacesDetectedInChatPhoto'
 import sharp from 'sharp'
+import { publish } from '../../../dependencies/eventStore'
+import { awsRekognitionCollectionId } from '../../../dependencies/rekognition'
+import { UUID } from '../../../domain'
+import { FacesDetectedInChatPhoto } from './FacesDetectedInChatPhoto'
+import { getAWSDetectedFacesInPhoto } from './getAWSDetectedFacesInPhoto'
 
 type DetectFacesInChatPhotoArgs = {
   file: Express.Multer.File
@@ -22,20 +21,12 @@ export async function detectFacesInChatPhoto({ file, chatId, photoId }: DetectFa
     collectionId: awsRekognitionCollectionId,
   })
 
-  const detectedFacesAndPersons = await Promise.all(
-    detectedFaces.map(async (detectedFace) => {
-      const personId = await getPersonIdForFaceId(detectedFace.AWSFaceId)
-
-      return { ...detectedFace, personId }
-    })
-  )
-
-  if (detectedFacesAndPersons.length) {
+  if (detectedFaces.length) {
     await publish(
       FacesDetectedInChatPhoto({
         chatId,
         photoId,
-        faces: detectedFacesAndPersons.map((face) => ({ ...face, faceId: face.AWSFaceId })),
+        faces: detectedFaces,
       })
     )
   }

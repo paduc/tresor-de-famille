@@ -27,9 +27,9 @@ export const makeAugmentChatPhotosWithFacesDetected = ({
 
       for (const awsFace of facesDetectedRow.faces) {
         let person = null
-        if (awsFace.personId) {
-          person = await getPersonById(awsFace.personId)
-        }
+        // if (awsFace.personId) {
+        //   person = await getPersonById(awsFace.personId)
+        // }
 
         photoRow.photo.faces = [
           ...(photoRow.photo.faces || []),

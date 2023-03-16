@@ -17,7 +17,7 @@ const SHARPNESS_THRESHOLD = 8
 const CONFIDENCE_THRESHOLD = 95
 
 export type RecognizedFace = {
-  AWSFaceId: string
+  faceId: string
   position: BoundingBox
   confidence: number
   details?: aws.Rekognition.FaceDetail
@@ -79,7 +79,7 @@ export const getAWSDetectedFacesInPhoto = async ({
     facesToReturn.map(({ Face, FaceDetail }) => {
       const { BoundingBox, FaceId, Confidence } = Face!
       return {
-        AWSFaceId: FaceId!,
+        faceId: FaceId!,
         position: BoundingBox!,
         confidence: Confidence!,
         details: FaceDetail!,

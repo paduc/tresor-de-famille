@@ -2,8 +2,9 @@ import { postgres } from '../../dependencies/postgres'
 import { normalizeBBOX } from '../../dependencies/rekognition'
 import { getPhotoUrlFromId } from '../../dependencies/uploadPhoto'
 import { UUID } from '../../domain'
-import { getPersonById } from '../chat/getPersonById.query'
+import { GedcomImported } from '../../events/GedcomImported'
 import { FacesDetectedInChatPhoto } from '../chat/recognizeFacesInChatPhoto/FacesDetectedInChatPhoto'
+import { OpenAIMadeDeductions } from '../chat/sendToOpenAIForDeductions/OpenAIMadeDeductions'
 import { UserUploadedPhotoToChat } from '../chat/uploadPhotoToChat/UserUploadedPhotoToChat'
 import { PhotoFace, PhotoPageProps } from './PhotoPage/PhotoPage'
 
@@ -19,23 +20,97 @@ export const getPhoto = async (chatId: UUID): Promise<PhotoPageProps['photo']> =
 
   const { photoId } = photoRow
 
-  // TODO: augment with faces
   const detectedFaces = await getDetectedFaces(chatId, photoId)
-
   // We have a list of faceId and positions from rekognition
 
-  // To ponder: remove personId from the payload of FacesDetectedInChatPhoto
+  // To do: remove personId from the payload of FacesDetectedInChatPhoto
+  // done : Renamed FacesDetectedInChatPhoto
+  // done : Removed personId from event (will be call during query)
 
   // Next: get the list of faceId + personIds from AI deductions
+  const faceIdToPersonIdDeductions = detectedFaces.length
+    ? await getFaceIdToPersonIdDeductions(chatId, photoId)
+    : new Map<string, string>()
 
-  // Next: fetch the latest faceId-personId correspondances
+  // For each detectedFace, check for a
+  const faces: PhotoFace[] = []
+  for (const { faceId, position } of detectedFaces) {
+    // first, if a deduction has been made, use it
+    const personIdFromDeductions = faceIdToPersonIdDeductions.get(faceId)
+    if (personIdFromDeductions) {
+      faces.push({
+        faceId,
+        position,
+        person: { name: await getPersonNameById(personIdFromDeductions), annotatedBy: 'ai' },
+      })
 
-  // Last : enrich personId => person { name }
+      continue
+    }
+
+    // next, search the faceId-personId index
+    const personIdFromIndex = await getPersonIdForFaceId(faceId)
+    if (personIdFromIndex) {
+      faces.push({
+        faceId,
+        position,
+        person: { name: await getPersonNameById(personIdFromIndex), annotatedBy: 'face-recognition' },
+      })
+
+      continue
+    }
+
+    // else return the faceId without a person
+    faces.push({
+      faceId,
+      position,
+      person: null,
+    })
+  }
 
   return {
     id: photoId,
     url: getPhotoUrlFromId(photoId),
+    faces,
   }
+}
+
+const getPersonNameById = async (personId: string): Promise<string> => {
+  const { rows: gedcomImportedRows } = await postgres.query<GedcomImported>(
+    "SELECT * FROM events WHERE type = 'GedcomImported' LIMIT 1"
+  )
+
+  if (!gedcomImportedRows.length) {
+    throw 'GedcomImported introuvable'
+  }
+
+  type Person = GedcomImported['payload']['persons'][number]
+
+  const person = gedcomImportedRows[0].payload.persons.find((person: Person) => person.id === personId)
+
+  if (!person) throw new Error('person could not be found')
+
+  return person.name
+}
+
+type FaceId = string
+type PersonId = string
+async function getFaceIdToPersonIdDeductions(chatId: UUID, photoId: UUID): Promise<Map<FaceId, PersonId>> {
+  const { rows: openAIMadeDeductionRows } = await postgres.query<OpenAIMadeDeductions>(
+    "SELECT * FROM events WHERE type='OpenAIMadeDeductions' AND payload->>'chatId'=$1 ORDER BY occurred_at ASC",
+    [chatId]
+  )
+
+  const faceIdToPersonId = new Map<FaceId, PersonId>()
+
+  for (const deductionRow of openAIMadeDeductionRows) {
+    for (const deduction of deductionRow.payload.deductions) {
+      if (deduction.type === 'face-is-person' && deduction.photoId === photoId) {
+        faceIdToPersonId.set(deduction.faceId, deduction.personId)
+      }
+    }
+  }
+
+  return faceIdToPersonId
 }
 
 async function getDetectedFaces(chatId: UUID, photoId: UUID) {
@@ -56,4 +131,27 @@ async function getDetectedFaces(chatId: UUID, photoId: UUID) {
   }
 
   return detectedFaces
+}
+
+const getPersonIdForFaceId = async (faceId: string): Promise<string | null> => {
+  // For now, the only link is from OpenAI api calls
+  const { rows } = await postgres.query<OpenAIMadeDeductions>(
+    "SELECT * FROM events WHERE type = 'OpenAIMadeDeductions' ORDER BY occurred_at DESC",
+    [faceId]
+  )
+
+  if (!rows.length) {
+    return null
+  }
+
+  for (const { payload } of rows) {
+    for (const { personId, faceId: deductionFaceId } of payload.deductions) {
+      // latest deduction for this faceId wins
+      if (faceId === deductionFaceId) {
+        return personId
+      }
+    }
+  }
+
+  return null
 }
