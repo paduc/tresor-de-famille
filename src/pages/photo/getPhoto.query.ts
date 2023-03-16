@@ -71,6 +71,7 @@ export const getPhoto = async (chatId: UUID): Promise<PhotoPageProps['photo']> =
     id: photoId,
     url: getPhotoUrlFromId(photoId),
     faces,
+    // TODO: add captions
   }
 }
 

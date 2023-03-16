@@ -108,19 +108,20 @@ export const PhotoPage = withBrowserBundle(({ error, success, photo }: PhotoPage
 
               <div className='bg-white'>
                 <form method='POST' className='relative'>
+                  <input type='hidden' name='photoId' defaultValue={photo.id} />
                   <div className='overflow-hidden sm:border border-gray-300 shadow-sm focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500'>
                     {photo.captions?.map(({ body }, index) => (
                       <p className='sm:text-sm px-3 pt-3 text-gray-700 ' key={`caption${index}`}>
                         {body}
                       </p>
                     ))}
-                    <label htmlFor='message' className='sr-only'>
+                    <label htmlFor='caption' className='sr-only'>
                       Ajouter une légende...
                     </label>
                     <textarea
                       rows={3}
-                      name='message'
-                      id='message'
+                      name='caption'
+                      id='caption'
                       className='block w-full resize-none border-0 py-3 focus:ring-0 sm:text-sm'
                       placeholder='Ajouter une légende...'
                       defaultValue={''}

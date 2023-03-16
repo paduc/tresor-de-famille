@@ -12,6 +12,8 @@ import { sendMessageToChat } from '../chat/sendMessageToChat/sendMessageToChat'
 import { sendToOpenAIForDeductions } from '../chat/sendToOpenAIForDeductions/sendToOpenAIForDeductions'
 import { uploadPhotoToChat } from '../chat/uploadPhotoToChat/uploadPhotoToChat'
 import { PhotoPage } from './PhotoPage/PhotoPage'
+import { publish } from '../../dependencies/eventStore'
+import { UserAddedCaptionToPhoto } from './UserAddedCaptionToPhoto'
 
 const FILE_SIZE_LIMIT_MB = 50
 const upload = multer({
@@ -47,7 +49,7 @@ pageRouter
     const userId = request.session.user!.id
     const { chatId } = zod.object({ chatId: zIsUUID }).parse(request.params)
 
-    const { message } = request.body
+    const { caption, photoId } = zod.object({ caption: zod.string(), photoId: zIsUUID }).parse(request.body)
 
     const { file } = request
     if (file) {
@@ -56,11 +58,20 @@ pageRouter
       await uploadPhotoToChat({ file, photoId, chatId, userId })
 
       await detectFacesInChatPhoto({ file, chatId, photoId })
-    } else if (message) {
-      const messageId = getUuid()
+    } else if (caption) {
+      const captionId = getUuid()
 
-      // TODO: maybe write a specialized version for messages linked to photos
-      await sendMessageToChat({ chatId, userId, message, messageId })
+      await publish(
+        UserAddedCaptionToPhoto({
+          chatId,
+          photoId,
+          caption: {
+            id: captionId,
+            body: caption,
+          },
+          addedBy: userId,
+        })
+      )
 
       // TODO: same, for a specific photo
       await sendToOpenAIForDeductions({ chatId, userId, message, messageId })
