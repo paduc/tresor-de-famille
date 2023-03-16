@@ -20,21 +20,7 @@ export const getPhoto = async (chatId: UUID): Promise<PhotoPageProps['photo']> =
   const { photoId } = photoRow
 
   // TODO: augment with faces
-  const faceIds: { faceId: string; position: PhotoFace['position'] }[] = []
-
-  const { rows: faceDetectedRowsRes } = await postgres.query<FacesRecognizedInChatPhoto>(
-    "SELECT * FROM events WHERE type='FacesRecognizedInChatPhoto' AND payload->>'chatId'=$1",
-    [chatId]
-  )
-  const facesDetectedRows = faceDetectedRowsRes.map((row) => row.payload).filter((faceRow) => faceRow.photoId === photoId)
-  for (const facesDetectedRow of facesDetectedRows) {
-    for (const awsFace of facesDetectedRow.faces) {
-      faceIds.push({
-        faceId: awsFace.AWSFaceId,
-        position: normalizeBBOX(awsFace.position),
-      })
-    }
-  }
+  const detectedFaces = await getDetectedFaces(chatId, photoId)
 
   // We have a list of faceId and positions from rekognition
 
@@ -50,4 +36,24 @@ export const getPhoto = async (chatId: UUID): Promise<PhotoPageProps['photo']> =
     id: photoId,
     url: getPhotoUrlFromId(photoId),
   }
+}
+
+async function getDetectedFaces(chatId: UUID, photoId: UUID) {
+  const detectedFaces: { faceId: string; position: PhotoFace['position'] }[] = []
+
+  const { rows: faceDetectedRowsRes } = await postgres.query<FacesRecognizedInChatPhoto>(
+    "SELECT * FROM events WHERE type='FacesRecognizedInChatPhoto' AND payload->>'chatId'=$1",
+    [chatId]
+  )
+  const facesDetectedRows = faceDetectedRowsRes.map((row) => row.payload).filter((faceRow) => faceRow.photoId === photoId)
+  for (const facesDetectedRow of facesDetectedRows) {
+    for (const awsFace of facesDetectedRow.faces) {
+      detectedFaces.push({
+        faceId: awsFace.AWSFaceId,
+        position: normalizeBBOX(awsFace.position),
+      })
+    }
+  }
+
+  return detectedFaces
 }
