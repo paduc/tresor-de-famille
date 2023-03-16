@@ -3,11 +3,8 @@ import * as React from 'react'
 import { withBrowserBundle } from '../../../libs/ssr/withBrowserBundle'
 import { AppLayout } from '../../_components/layout/AppLayout'
 import { SuccessError } from '../../_components/SuccessError'
-import { AddPhotoOrMessageItem } from './AddPhotoOrMessageItem'
 import { ChatBubbleLeftEllipsisIcon } from './ChatBubbleLeftEllipsisIcon'
 import { HoverContext, HoverProvider } from './HoverProvider'
-import { MessageItem } from './MessageItem'
-import { PhotoItem } from './PhotoItem'
 import { PhotoIcon } from './PhotoIcon'
 import { SendIcon } from './SendIcon'
 
@@ -96,6 +93,13 @@ export const PhotoPage = withBrowserBundle(({ error, success, photo }: PhotoPage
               {photo.faces?.map((face, index) => (
                 <HoverableFace key={`face${index}`} face={face} />
               ))}
+              <div className='pl-2'>
+                {photo.faces
+                  ?.filter((face) => face.person !== null)
+                  .map(({ faceId, person }, index) => (
+                    <FaceBadge key={`face${index}`} faceId={faceId} person={person!} />
+                  ))}
+              </div>
               <div className='bg-white'>
                 <form method='POST' className='relative'>
                   <div className='overflow-hidden sm:border border-gray-300 shadow-sm focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500'>
@@ -236,6 +240,38 @@ const DeductionItem = ({ deduction: { position, photo, person, faceId } }: { ded
   )
 }
 
+type FaceBadgeProps = {
+  faceId: string
+  person: {
+    name: string
+  }
+}
+const FaceBadge = ({ person, faceId }: FaceBadgeProps) => {
+  const { hoveredFaceId, setHoveredFaceId } = React.useContext(HoverContext)
+  return (
+    <div
+      className={`inline-block mr-3 mb-3 rounded-full pr-3  bg-white ${
+        hoveredFaceId === faceId ? 'ring-indigo-500 ring-2' : 'ring-1 ring-gray-300'
+      }`}
+      onMouseOver={() => {
+        setHoveredFaceId(faceId)
+      }}
+      onMouseOut={() => {
+        setHoveredFaceId(null)
+      }}>
+      <a href='#' className='group block flex-shrink-0 '>
+        <div className='flex items-center'>
+          <div className='ml-3'>
+            <p className={`text-sm font-medium  ${hoveredFaceId === faceId ? 'text-indigo-700' : 'text-gray-700'}`}>
+              {person.name}
+            </p>
+          </div>
+        </div>
+      </a>
+    </div>
+  )
+}
+
 type HoverableFaceProps = {
   face: ChatPhotoFace
 }
@@ -258,14 +294,6 @@ const HoverableFace = ({ face }: HoverableFaceProps) => {
         width: `${Math.round(face.position.width * 100)}%`,
         height: `calc(${Math.round(face.position.height * 100)}% + 20px)`,
       }}
-      className={`absolute  ${isFaceHovered ? 'border-2' : 'border-0'} border-white`}>
-      {isFaceHovered ? (
-        <div className='block absolute bottom-0 text-sm text-white' style={{ height: 20 }}>
-          {face.person?.name || ''}
-        </div>
-      ) : (
-        ''
-      )}
-    </div>
+      className={`absolute  ${isFaceHovered ? 'border-2' : 'border-0'} border-white cursor-pointer`}></div>
   )
 }
