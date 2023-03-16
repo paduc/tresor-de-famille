@@ -37,9 +37,9 @@ pageRouter
 
     const { chatId } = zod.object({ chatId: zIsUUID }).parse(request.params)
 
-    const photoProps = await getPhoto(chatId)
+    const photo = await getPhoto(chatId)
 
-    responseAsHtml(request, response, PhotoPage(photoProps))
+    responseAsHtml(request, response, PhotoPage({ photo }))
   })
   .post(requireAuth(), upload.single('photo'), async (request, response) => {
     console.log(`POST on /photo.html`)
