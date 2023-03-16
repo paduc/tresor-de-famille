@@ -3,7 +3,7 @@ import { normalizeBBOX } from '../../dependencies/rekognition'
 import { getPhotoUrlFromId } from '../../dependencies/uploadPhoto'
 import { UUID } from '../../domain'
 import { getPersonById } from '../chat/getPersonById.query'
-import { FacesRecognizedInChatPhoto } from '../chat/recognizeFacesInChatPhoto/FacesRecognizedInChatPhoto'
+import { FacesDetectedInChatPhoto } from '../chat/recognizeFacesInChatPhoto/FacesDetectedInChatPhoto'
 import { UserUploadedPhotoToChat } from '../chat/uploadPhotoToChat/UserUploadedPhotoToChat'
 import { PhotoFace, PhotoPageProps } from './PhotoPage/PhotoPage'
 
@@ -24,7 +24,7 @@ export const getPhoto = async (chatId: UUID): Promise<PhotoPageProps['photo']> =
 
   // We have a list of faceId and positions from rekognition
 
-  // To ponder: remove personId from the payload of FacesRecognizedInChatPhoto
+  // To ponder: remove personId from the payload of FacesDetectedInChatPhoto
 
   // Next: get the list of faceId + personIds from AI deductions
 
@@ -41,15 +41,15 @@ export const getPhoto = async (chatId: UUID): Promise<PhotoPageProps['photo']> =
 async function getDetectedFaces(chatId: UUID, photoId: UUID) {
   const detectedFaces: { faceId: string; position: PhotoFace['position'] }[] = []
 
-  const { rows: faceDetectedRowsRes } = await postgres.query<FacesRecognizedInChatPhoto>(
-    "SELECT * FROM events WHERE type='FacesRecognizedInChatPhoto' AND payload->>'chatId'=$1",
+  const { rows: faceDetectedRowsRes } = await postgres.query<FacesDetectedInChatPhoto>(
+    "SELECT * FROM events WHERE type='FacesDetectedInChatPhoto' AND payload->>'chatId'=$1",
     [chatId]
   )
   const facesDetectedRows = faceDetectedRowsRes.map((row) => row.payload).filter((faceRow) => faceRow.photoId === photoId)
   for (const facesDetectedRow of facesDetectedRows) {
     for (const awsFace of facesDetectedRow.faces) {
       detectedFaces.push({
-        faceId: awsFace.AWSFaceId,
+        faceId: awsFace.faceId,
         position: normalizeBBOX(awsFace.position),
       })
     }

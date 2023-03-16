@@ -1,7 +1,7 @@
 import { publish } from '../../../../dependencies/eventStore'
 import { resetDatabase } from '../../../../dependencies/__test__/resetDatabase'
 import { getUuid } from '../../../../libs/getUuid'
-import { FacesRecognizedInChatPhoto } from '../../recognizeFacesInChatPhoto/FacesRecognizedInChatPhoto'
+import { FacesDetectedInChatPhoto } from '../../recognizeFacesInChatPhoto/FacesDetectedInChatPhoto'
 import { makeAugmentChatPhotosWithFacesDetected } from './augmentChatPhotosWithFacesDetected'
 
 const personId = getUuid()
@@ -10,7 +10,7 @@ const photoId = getUuid()
 const faceId = getUuid()
 
 describe('augmentChatPhotosWithFacesDetected', () => {
-  describe('when there are no FacesRecognizedInChatPhoto events', () => {
+  describe('when there are no FacesDetectedInChatPhoto events', () => {
     const augmentChatPhotosWithFacesDetected = makeAugmentChatPhotosWithFacesDetected({
       getPersonById: jest.fn(),
       normalizeBBOX: jest.fn(),
@@ -39,7 +39,7 @@ describe('augmentChatPhotosWithFacesDetected', () => {
     })
   })
 
-  describe('when there is a FacesRecognizedInChatPhoto event', () => {
+  describe('when there is a FacesDetectedInChatPhoto event', () => {
     const fakePerson = {
       name: 'toto',
     }
@@ -61,13 +61,13 @@ describe('augmentChatPhotosWithFacesDetected', () => {
       beforeAll(async () => {
         await resetDatabase()
         await publish(
-          FacesRecognizedInChatPhoto({
+          FacesDetectedInChatPhoto({
             chatId,
             photoId,
             faces: [
               {
                 personId,
-                AWSFaceId: faceId,
+                faceId: faceId,
                 position: undefined!,
                 confidence: 1,
               },
@@ -115,13 +115,13 @@ describe('augmentChatPhotosWithFacesDetected', () => {
       beforeAll(async () => {
         await resetDatabase()
         await publish(
-          FacesRecognizedInChatPhoto({
+          FacesDetectedInChatPhoto({
             chatId,
             photoId,
             faces: [
               {
                 personId: null,
-                AWSFaceId: faceId,
+                faceId: faceId,
                 position: undefined!,
                 confidence: 1,
               },

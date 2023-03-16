@@ -1,23 +1,23 @@
 import fs from 'node:fs'
 import { publish } from '../../../dependencies/eventStore'
 import { UUID } from '../../../domain'
-import { getDetectedFacesInPhoto as getDetectedFacesInPhoto } from './getDetectedFacesInPhoto'
+import { getAWSDetectedFacesInPhoto as getAWSDetectedFacesInPhoto } from './getAWSDetectedFacesInPhoto'
 import { awsRekognitionCollectionId } from '../../../dependencies/rekognition'
 import { getPersonIdForFaceId } from '../getPersonIdForFaceId.query'
-import { FacesRecognizedInChatPhoto } from './FacesRecognizedInChatPhoto'
+import { FacesDetectedInChatPhoto } from './FacesDetectedInChatPhoto'
 import sharp from 'sharp'
 
-type RecognizeFacesInChatPhotoArgs = {
+type DetectFacesInChatPhotoArgs = {
   file: Express.Multer.File
   chatId: UUID
   photoId: UUID
 }
-export async function recognizeFacesInChatPhoto({ file, chatId, photoId }: RecognizeFacesInChatPhotoArgs) {
+export async function detectFacesInChatPhoto({ file, chatId, photoId }: DetectFacesInChatPhotoArgs) {
   const { path: originalPath } = file
   const compressedFilePath = originalPath + '-compressed.jpeg'
   await sharp(originalPath).jpeg({ quality: 30 }).toFile(compressedFilePath)
 
-  const detectedFaces = await getDetectedFacesInPhoto({
+  const detectedFaces = await getAWSDetectedFacesInPhoto({
     photoContents: fs.readFileSync(compressedFilePath),
     collectionId: awsRekognitionCollectionId,
   })
@@ -32,10 +32,10 @@ export async function recognizeFacesInChatPhoto({ file, chatId, photoId }: Recog
 
   if (detectedFacesAndPersons.length) {
     await publish(
-      FacesRecognizedInChatPhoto({
+      FacesDetectedInChatPhoto({
         chatId,
         photoId,
-        faces: detectedFacesAndPersons,
+        faces: detectedFacesAndPersons.map((face) => ({ ...face, faceId: face.AWSFaceId })),
       })
     )
   }

@@ -2,7 +2,7 @@ import aws from 'aws-sdk'
 import fs from 'node:fs'
 import path from 'node:path'
 import { getUuid } from '../../../libs/getUuid'
-import { getDetectedFacesInPhoto } from './getDetectedFacesInPhoto'
+import { getAWSDetectedFacesInPhoto } from './getAWSDetectedFacesInPhoto'
 
 aws.config.update({
   accessKeyId: process.env.AWS_ACCESS_KEY,
@@ -55,7 +55,7 @@ const deleteCollection = async () => {
 
 describe('getDetectedFacesInPhoto', () => {
   describe('when the face is not known', () => {
-    let result: Awaited<ReturnType<typeof getDetectedFacesInPhoto>>
+    let result: Awaited<ReturnType<typeof getAWSDetectedFacesInPhoto>>
 
     beforeAll(async () => {
       await resetCollection()
@@ -63,7 +63,7 @@ describe('getDetectedFacesInPhoto', () => {
       const facesBefore = await rekognition.listFaces({ CollectionId: testCollectionId }).promise()
       expect(facesBefore.Faces).toHaveLength(0)
 
-      result = await getDetectedFacesInPhoto({
+      result = await getAWSDetectedFacesInPhoto({
         photoContents: fs.readFileSync(testPhotos.targetAlone),
         collectionId: testCollectionId,
       })
@@ -86,7 +86,7 @@ describe('getDetectedFacesInPhoto', () => {
 
   describe('when the only face is known', () => {
     let knownFaceId: string
-    let result: Awaited<ReturnType<typeof getDetectedFacesInPhoto>>
+    let result: Awaited<ReturnType<typeof getAWSDetectedFacesInPhoto>>
 
     beforeAll(async () => {
       await resetCollection()
@@ -107,7 +107,7 @@ describe('getDetectedFacesInPhoto', () => {
       const facesBefore = await rekognition.listFaces({ CollectionId: testCollectionId }).promise()
       expect(facesBefore.Faces).toHaveLength(1)
 
-      result = await getDetectedFacesInPhoto({
+      result = await getAWSDetectedFacesInPhoto({
         photoContents: fs.readFileSync(testPhotos.targetAlone),
         collectionId: testCollectionId,
       })
@@ -130,7 +130,7 @@ describe('getDetectedFacesInPhoto', () => {
 
   describe('when one of the faces is known and not the others', () => {
     let knownFaceId: string
-    let result: Awaited<ReturnType<typeof getDetectedFacesInPhoto>>
+    let result: Awaited<ReturnType<typeof getAWSDetectedFacesInPhoto>>
 
     beforeAll(async () => {
       await resetCollection()
@@ -151,7 +151,7 @@ describe('getDetectedFacesInPhoto', () => {
       const facesBefore = await rekognition.listFaces({ CollectionId: testCollectionId }).promise()
       expect(facesBefore.Faces).toHaveLength(1)
 
-      result = await getDetectedFacesInPhoto({
+      result = await getAWSDetectedFacesInPhoto({
         photoContents: fs.readFileSync(testPhotos.targetWithOthers),
         collectionId: testCollectionId,
       })
@@ -173,7 +173,7 @@ describe('getDetectedFacesInPhoto', () => {
   })
 
   describe('when there is no clear face in the photo', () => {
-    let result: Awaited<ReturnType<typeof getDetectedFacesInPhoto>>
+    let result: Awaited<ReturnType<typeof getAWSDetectedFacesInPhoto>>
 
     beforeAll(async () => {
       await resetCollection()
@@ -181,7 +181,7 @@ describe('getDetectedFacesInPhoto', () => {
       const facesBefore = await rekognition.listFaces({ CollectionId: testCollectionId }).promise()
       expect(facesBefore.Faces).toHaveLength(0)
 
-      result = await getDetectedFacesInPhoto({
+      result = await getAWSDetectedFacesInPhoto({
         photoContents: fs.readFileSync(testPhotos.blurryFace),
         collectionId: testCollectionId,
       })

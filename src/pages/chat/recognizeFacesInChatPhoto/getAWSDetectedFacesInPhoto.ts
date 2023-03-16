@@ -29,7 +29,7 @@ type GetDetectedFacesInPhotoArgs = {
 }
 
 // TODO: inject collectionId and rekognition instance
-export const getDetectedFacesInPhoto = async ({
+export const getAWSDetectedFacesInPhoto = async ({
   photoContents,
   collectionId,
 }: GetDetectedFacesInPhotoArgs): Promise<RecognizedFace[]> => {

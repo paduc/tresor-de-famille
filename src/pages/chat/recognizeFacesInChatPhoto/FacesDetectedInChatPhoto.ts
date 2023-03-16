@@ -4,14 +4,14 @@ import { BaseDomainEvent, makeDomainEvent } from '../../../libs/eventSourcing'
 
 type DetectedFace = {
   personId: string | null
-  AWSFaceId: string
+  faceId: string
   position: Rekognition.BoundingBox
   confidence: number
   details?: Rekognition.FaceDetail | undefined
 }
 
-export type FacesRecognizedInChatPhoto = BaseDomainEvent & {
-  type: 'FacesRecognizedInChatPhoto'
+export type FacesDetectedInChatPhoto = BaseDomainEvent & {
+  type: 'FacesDetectedInChatPhoto'
   payload: {
     chatId: UUID
     photoId: UUID
@@ -19,8 +19,8 @@ export type FacesRecognizedInChatPhoto = BaseDomainEvent & {
   }
 }
 
-export const FacesRecognizedInChatPhoto = (payload: FacesRecognizedInChatPhoto['payload']): FacesRecognizedInChatPhoto =>
+export const FacesDetectedInChatPhoto = (payload: FacesDetectedInChatPhoto['payload']): FacesDetectedInChatPhoto =>
   makeDomainEvent({
-    type: 'FacesRecognizedInChatPhoto',
+    type: 'FacesDetectedInChatPhoto',
     payload,
   })

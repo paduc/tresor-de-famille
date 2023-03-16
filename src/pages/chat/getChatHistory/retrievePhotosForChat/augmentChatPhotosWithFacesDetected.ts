@@ -1,7 +1,7 @@
 import { BoundingBox } from 'aws-sdk/clients/rekognition'
 import { postgres } from '../../../../dependencies/postgres'
 import { ChatPhotoFace } from '../../ChatPage/ChatPage'
-import { FacesRecognizedInChatPhoto } from '../../recognizeFacesInChatPhoto/FacesRecognizedInChatPhoto'
+import { FacesDetectedInChatPhoto } from '../../recognizeFacesInChatPhoto/FacesDetectedInChatPhoto'
 import { ChatPhotoEvent } from './retrievePhotosForChat'
 
 type AugmentChatPhotosWithFacesDetectedDeps = {
@@ -14,8 +14,8 @@ export const makeAugmentChatPhotosWithFacesDetected = ({
   normalizeBBOX,
 }: AugmentChatPhotosWithFacesDetectedDeps) =>
   async function augmentChatPhotosWithFacesDetected(chatId: string, photoRows: ChatPhotoEvent[]) {
-    const { rows: faceDetectedRowsRes } = await postgres.query<FacesRecognizedInChatPhoto>(
-      "SELECT * FROM events WHERE type='FacesRecognizedInChatPhoto' AND payload->>'chatId'=$1",
+    const { rows: faceDetectedRowsRes } = await postgres.query<FacesDetectedInChatPhoto>(
+      "SELECT * FROM events WHERE type='FacesDetectedInChatPhoto' AND payload->>'chatId'=$1",
       [chatId]
     )
 
@@ -35,7 +35,7 @@ export const makeAugmentChatPhotosWithFacesDetected = ({
           ...(photoRow.photo.faces || []),
           {
             person,
-            faceId: awsFace.AWSFaceId,
+            faceId: awsFace.faceId,
             position: normalizeBBOX(awsFace.position),
           },
         ]

@@ -3,7 +3,7 @@ import { normalizeBBOX } from '../../../dependencies/rekognition'
 import { getPhotoUrlFromId } from '../../../dependencies/uploadPhoto'
 import { GedcomImported } from '../../../events/GedcomImported'
 import { ChatEvent } from '../ChatPage/ChatPage'
-import { FacesRecognizedInChatPhoto } from '../recognizeFacesInChatPhoto/FacesRecognizedInChatPhoto'
+import { FacesDetectedInChatPhoto } from '../recognizeFacesInChatPhoto/FacesDetectedInChatPhoto'
 import { OpenAIMadeDeductions } from '../sendToOpenAIForDeductions/OpenAIMadeDeductions'
 
 type ChatDeductionEvent = ChatEvent & { type: 'deductions' }
@@ -44,13 +44,13 @@ export async function retrieveDeductionsForChat(chatId: string): Promise<ChatDed
 type Position = ChatDeduction['position']
 
 const getFaceBBoxInPhoto = async (faceId: string, photoId: string): Promise<Position> => {
-  const { rows } = await postgres.query<FacesRecognizedInChatPhoto>(
-    "SELECT * FROM events WHERE type = 'FacesRecognizedInChatPhoto' AND payload->>'photoId'=$1 ORDER BY occurred_at ASC",
+  const { rows } = await postgres.query<FacesDetectedInChatPhoto>(
+    "SELECT * FROM events WHERE type = 'FacesDetectedInChatPhoto' AND payload->>'photoId'=$1 ORDER BY occurred_at ASC",
     [photoId]
   )
 
   if (!rows.length) {
-    throw new Error('FacesRecognizedInChatPhoto introuvable')
+    throw new Error('FacesDetectedInChatPhoto introuvable')
   }
 
   type FaceId = string
@@ -58,7 +58,7 @@ const getFaceBBoxInPhoto = async (faceId: string, photoId: string): Promise<Posi
   const faceBBoxMap = new Map<FaceId, Position>()
 
   for (const { payload } of rows) {
-    for (const { AWSFaceId, position } of payload.faces) {
+    for (const { faceId: AWSFaceId, position } of payload.faces) {
       faceBBoxMap.set(AWSFaceId, normalizeBBOX(position))
     }
   }

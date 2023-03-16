@@ -7,7 +7,7 @@ import { responseAsHtml } from '../../libs/ssr/responseAsHtml'
 import { pageRouter } from '../pageRouter'
 import { getChatHistory } from '../chat/getChatHistory/getChatHistory.query'
 import { getPhoto } from './getPhoto.query'
-import { recognizeFacesInChatPhoto } from '../chat/recognizeFacesInChatPhoto/recognizeFacesInChatPhoto'
+import { detectFacesInChatPhoto } from '../chat/recognizeFacesInChatPhoto/detectFacesInChatPhoto'
 import { sendMessageToChat } from '../chat/sendMessageToChat/sendMessageToChat'
 import { sendToOpenAIForDeductions } from '../chat/sendToOpenAIForDeductions/sendToOpenAIForDeductions'
 import { uploadPhotoToChat } from '../chat/uploadPhotoToChat/uploadPhotoToChat'
@@ -55,7 +55,7 @@ pageRouter
 
       await uploadPhotoToChat({ file, photoId, chatId, userId })
 
-      await recognizeFacesInChatPhoto({ file, chatId, photoId })
+      await detectFacesInChatPhoto({ file, chatId, photoId })
     } else if (message) {
       const messageId = getUuid()
 
