@@ -130,7 +130,7 @@ async function getFaceIdToPersonIdDeductions(chatId: UUID, photoId: UUID): Promi
 
   for (const deductionRow of openAIMadeDeductionRows) {
     for (const deduction of deductionRow.payload.deductions) {
-      if (deduction.type === 'face-is-person' && deduction.photoId === photoId) {
+      if ((deduction.type === 'face-is-person' || deduction.type === 'face-is-new-person') && deduction.photoId === photoId) {
         faceIdToPersonId.set(deduction.faceId, deduction.personId)
       }
     }
