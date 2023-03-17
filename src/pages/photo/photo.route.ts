@@ -1,18 +1,16 @@
 import multer from 'multer'
 import zod from 'zod'
 import { requireAuth } from '../../dependencies/authn'
+import { publish } from '../../dependencies/eventStore'
 import { zIsUUID } from '../../domain'
 import { getUuid } from '../../libs/getUuid'
 import { responseAsHtml } from '../../libs/ssr/responseAsHtml'
-import { pageRouter } from '../pageRouter'
-import { getChatHistory } from '../chat/getChatHistory/getChatHistory.query'
-import { getPhoto } from './getPhoto.query'
 import { detectFacesInChatPhoto } from '../chat/recognizeFacesInChatPhoto/detectFacesInChatPhoto'
-import { sendMessageToChat } from '../chat/sendMessageToChat/sendMessageToChat'
-import { sendToOpenAIForDeductions } from '../chat/sendToOpenAIForDeductions/sendToOpenAIForDeductions'
 import { uploadPhotoToChat } from '../chat/uploadPhotoToChat/uploadPhotoToChat'
+import { pageRouter } from '../pageRouter'
+import { getPhoto } from './getPhoto.query'
+import { makeDeductionsWithOpenAI } from './makeDeductionsWithOpenAI/makeDeductionsWithOpenAI'
 import { PhotoPage } from './PhotoPage/PhotoPage'
-import { publish } from '../../dependencies/eventStore'
 import { UserAddedCaptionToPhoto } from './UserAddedCaptionToPhoto'
 
 const FILE_SIZE_LIMIT_MB = 50
@@ -73,8 +71,7 @@ pageRouter
         })
       )
 
-      // TODO: same, for a specific photo
-      await sendToOpenAIForDeductions({ chatId, userId, message, messageId })
+      await makeDeductionsWithOpenAI({ chatId, userId })
     }
 
     return response.redirect(`/photo/${chatId}/photo.html`)

@@ -66,7 +66,6 @@ describe('augmentChatPhotosWithFacesDetected', () => {
             photoId,
             faces: [
               {
-                personId,
                 faceId: faceId,
                 position: undefined!,
                 confidence: 1,
@@ -120,7 +119,6 @@ describe('augmentChatPhotosWithFacesDetected', () => {
             photoId,
             faces: [
               {
-                personId: null,
                 faceId: faceId,
                 position: undefined!,
                 confidence: 1,

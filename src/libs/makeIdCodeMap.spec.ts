@@ -1,4 +1,4 @@
-import { getUuid } from '../../libs/getUuid'
+import { getUuid } from './getUuid'
 import { makeIdCodeMap } from './makeIdCodeMap'
 
 describe('makeIdCodeMap', () => {

@@ -8,13 +8,8 @@ type PhotoFace = {
     age?: { low: number; high: number }
     gender?: 'M' | 'F'
   }
-} & (
-  | {
-      personId: null
-      faceCode: string
-    }
-  | { personId: string; faceCode: null }
-)
+  faceCode: string
+}
 
 export const getLatestPhotoFaces = async (chatId: string): Promise<{ photoId: string; faces: PhotoFace[] } | null> => {
   const { rows: latestPhotos } = await postgres.query<UserUploadedPhotoToChat>(
@@ -38,25 +33,13 @@ export const getLatestPhotoFaces = async (chatId: string): Promise<{ photoId: st
 
   const latestPhotoFaces = latestPhotoFacesList[0].payload.faces
 
-  const faces = latestPhotoFaces.map((face) =>
-    face.personId
-      ? {
-          personId: face.personId,
-          faceCode: null,
-          details: {
-            gender: getGender(face.details),
-            age: getAge(face.details),
-          },
-        }
-      : {
-          personId: null,
-          faceCode: face.faceId,
-          details: {
-            gender: getGender(face.details),
-            age: getAge(face.details),
-          },
-        }
-  )
+  const faces = latestPhotoFaces.map((face) => ({
+    faceCode: face.faceId,
+    details: {
+      gender: getGender(face.details),
+      age: getAge(face.details),
+    },
+  }))
 
   if (!faces.length) {
     return null

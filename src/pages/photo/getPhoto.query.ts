@@ -7,6 +7,7 @@ import { FacesDetectedInChatPhoto } from '../chat/recognizeFacesInChatPhoto/Face
 import { OpenAIMadeDeductions } from '../chat/sendToOpenAIForDeductions/OpenAIMadeDeductions'
 import { UserUploadedPhotoToChat } from '../chat/uploadPhotoToChat/UserUploadedPhotoToChat'
 import { PhotoFace, PhotoPageProps } from './PhotoPage/PhotoPage'
+import { UserAddedCaptionToPhoto } from './UserAddedCaptionToPhoto'
 
 export const getPhoto = async (chatId: UUID): Promise<PhotoPageProps['photo']> => {
   const { rows: photoRowsRes } = await postgres.query<UserUploadedPhotoToChat>(
@@ -67,11 +68,13 @@ export const getPhoto = async (chatId: UUID): Promise<PhotoPageProps['photo']> =
     })
   }
 
+  const captions = await getCaptionsForPhoto(chatId, photoId)
+
   return {
     id: photoId,
     url: getPhotoUrlFromId(photoId),
     faces,
-    // TODO: add captions
+    captions,
   }
 }
 
@@ -132,6 +135,15 @@ async function getDetectedFaces(chatId: UUID, photoId: UUID) {
   }
 
   return detectedFaces
+}
+
+async function getCaptionsForPhoto(chatId: UUID, photoId: UUID) {
+  const { rows } = await postgres.query<UserAddedCaptionToPhoto>(
+    "SELECT * FROM events WHERE type='UserAddedCaptionToPhoto' AND payload->>'chatId'=$1 AND payload->>'photoId'=$2",
+    [chatId, photoId]
+  )
+
+  return rows.map((row) => row.payload.caption)
 }
 
 const getPersonIdForFaceId = async (faceId: string): Promise<string | null> => {
