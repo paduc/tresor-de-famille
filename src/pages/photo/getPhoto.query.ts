@@ -149,8 +149,7 @@ async function getCaptionsForPhoto(chatId: UUID, photoId: UUID) {
 const getPersonIdForFaceId = async (faceId: string): Promise<string | null> => {
   // For now, the only link is from OpenAI api calls
   const { rows } = await postgres.query<OpenAIMadeDeductions>(
-    "SELECT * FROM events WHERE type = 'OpenAIMadeDeductions' ORDER BY occurred_at DESC",
-    [faceId]
+    "SELECT * FROM events WHERE type = 'OpenAIMadeDeductions' ORDER BY occurred_at DESC"
   )
 
   if (!rows.length) {

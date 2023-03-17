@@ -1,74 +1,88 @@
 import { postgres } from '../../../dependencies/postgres'
-import { GedcomImported, Person } from '../../../events'
+import { UUID } from '../../../domain'
 import { makeIdCodeMap } from '../../../libs/makeIdCodeMap'
+import { FacesDetectedInChatPhoto } from '../../chat/recognizeFacesInChatPhoto/FacesDetectedInChatPhoto'
 
 type PhotoFace = {
-  details: {
-    age?: { low: number; high: number }
-    gender?: 'M' | 'F'
+  person: {
+    name: string
+  } | null
+  faceId: string
+  position: {
+    width: number
+    height: number
+    left: number
+    top: number
   }
-} & (
-  | {
-      personId: null
-      faceCode: string
-    }
-  | { personId: string; faceCode: null }
-)
+}
 
-type PhotoFaceDescription = { description: string; faceCodeMap: ReturnType<typeof makeIdCodeMap> }
+type DetectedFace = FacesDetectedInChatPhoto['payload']['faces'][number]
 
-export const describePhotoFaces = async (photoFaces: PhotoFace[]): Promise<PhotoFaceDescription> => {
-  // TODO: only fetch the tree if there are personIds
-  const { rows: gedcomImportedRows } = await postgres.query<GedcomImported>(
-    "SELECT * FROM events WHERE type = 'GedcomImported' LIMIT 1"
+type PhotoFaceDescription = {
+  description: string
+  unknownFaces: string[]
+  knownPersons: string[]
+  faceCodeMap: ReturnType<typeof makeIdCodeMap>
+}
+
+export const describePhotoFaces = async (
+  chatId: UUID,
+  photoId: UUID,
+  photoFaces: PhotoFace[]
+): Promise<PhotoFaceDescription> => {
+  const { rows: facesDetectedInChatPhotoRows } = await postgres.query<FacesDetectedInChatPhoto>(
+    "SELECT * FROM events WHERE type='FacesDetectedInChatPhoto' AND payload->>'chatId'=$1 AND payload->>'photoId'=$2 ORDER BY occurred_at DESC LIMIT 1",
+    [chatId, photoId]
   )
 
-  if (!gedcomImportedRows.length) {
-    throw 'GedcomImported introuvable'
+  if (!facesDetectedInChatPhotoRows.length) {
+    throw new Error('Could not find FacesDetectedInChatPhoto')
   }
 
-  const gedcom = gedcomImportedRows[0].payload
-
-  function getPersonById(personId: string) {
-    return gedcom.persons.find((person: Person) => person.id === personId)
+  const detectedFaces = facesDetectedInChatPhotoRows[0].payload.faces
+  const detectedFaceByFaceId = new Map<string, DetectedFace>()
+  for (const detectedFace of detectedFaces) {
+    detectedFaceByFaceId.set(detectedFace.faceId, detectedFace)
   }
 
   const faceCodeMap = makeIdCodeMap('face')
 
   const descriptions = []
+  const unknownFaces: string[] = []
+  const knownPersons: string[] = []
 
-  for (const photoFace of photoFaces) {
-    if (photoFace.personId) {
-      const person = await getPersonById(photoFace.personId)
-      descriptions.push(person?.name)
+  for (const photoFace of photoFaces.sort((a, b) => a.position.left - b.position.left)) {
+    if (photoFace.person) {
+      descriptions.push(photoFace.person?.name)
+      knownPersons.push(photoFace.person?.name)
     } else {
-      descriptions.push(
-        `${genderedPerson(photoFace)}${agedPerson(photoFace)}(${
-          photoFace.faceCode ? faceCodeMap.idToCode(photoFace.faceCode) : 'no face code'
-        })`
-      )
+      const detectedFace = detectedFaceByFaceId.get(photoFace.faceId)
+      if (!detectedFace) continue
+      const faceCode = faceCodeMap.idToCode(photoFace.faceId)
+      unknownFaces.push(faceCode!)
+      descriptions.push(`${genderedPerson(detectedFace)}${agedPerson(detectedFace)}(${faceCode})`)
     }
   }
 
-  return { description: descriptions.join(' and '), faceCodeMap }
+  return { description: descriptions.join(' and '), unknownFaces, knownPersons, faceCodeMap }
 }
 
-function genderedPerson(face: PhotoFace): string {
-  if (!face.details.gender) {
+function genderedPerson(face: DetectedFace): string {
+  if (!face.details || !face.details.Gender || !face.details.Gender.Confidence) {
     return 'a person '
   }
 
-  if (face.details.gender === 'M') {
-    return 'a male '
+  if (face.details.Gender.Value && face.details.Gender.Confidence > 90) {
+    return face.details.Gender.Value === 'Male' ? 'a male ' : face.details.Gender.Value === 'Female' ? 'a female ' : 'a person '
   }
 
-  return 'a female '
+  return 'a person '
 }
 
-function agedPerson(face: PhotoFace): string {
-  if (!face.details.age) {
+function agedPerson(face: DetectedFace): string {
+  if (!face.details || !face.details.AgeRange) {
     return ''
   }
 
-  return `between ${face.details.age.low} and ${face.details.age.high} `
+  return `between ${face.details.AgeRange.Low} and ${face.details.AgeRange.High} `
 }

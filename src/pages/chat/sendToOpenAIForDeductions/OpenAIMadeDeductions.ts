@@ -13,7 +13,6 @@ export type OpenAIMadeDeductions = BaseDomainEvent & {
   payload: {
     chatId: UUID
     promptId: UUID
-    messageId: UUID
     deductions: Deduction[]
   }
 }

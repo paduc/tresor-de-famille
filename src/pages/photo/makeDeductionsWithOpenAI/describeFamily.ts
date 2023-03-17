@@ -10,7 +10,11 @@ export type DescribeFamilyArgs = {
 export const describeFamily = async ({
   personId,
   distance = 0,
-}: DescribeFamilyArgs): Promise<{ description: string; personCodeMap: ReturnType<typeof makeIdCodeMap> }> => {
+}: DescribeFamilyArgs): Promise<{
+  description: string
+  personIdMap: Map<string, string>
+  personCodeMap: ReturnType<typeof makeIdCodeMap>
+}> => {
   const { rows: gedcomImportedRows } = await postgres.query<GedcomImported>(
     "SELECT * FROM events WHERE type = 'GedcomImported' LIMIT 1"
   )
@@ -59,14 +63,19 @@ export const describeFamily = async ({
   let family = ''
 
   const personCodeMap = makeIdCodeMap('person')
+  type PersonId = string
+  type PersonName = string
+  const personIdMap = new Map<PersonName, PersonId>()
 
   function nameAndId(person: Person | undefined) {
-    return `${person!.name} (${personCodeMap.idToCode(person!.id)})`
+    // return `${person!.name} (${personCodeMap.idToCode(person!.id)})`
+    personIdMap.set(person!.name, person!.id)
+    return `${person!.name}`
   }
 
   const target = getPersonById(personId)
   if (!target) {
-    return { description: family, personCodeMap }
+    return { description: family, personCodeMap, personIdMap }
   }
 
   const visited = new Set<string>(personId)
@@ -99,7 +108,7 @@ export const describeFamily = async ({
 
   traverseFamilyTree(personId, 1)
 
-  return { description: family, personCodeMap }
+  return { description: family, personCodeMap, personIdMap }
 }
 
 function unique(list: string[]) {

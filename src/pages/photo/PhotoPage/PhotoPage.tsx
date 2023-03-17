@@ -1,4 +1,6 @@
 import * as React from 'react'
+import { UUID } from '../../../domain'
+import { getUuid } from '../../../libs/getUuid'
 
 import { withBrowserBundle } from '../../../libs/ssr/withBrowserBundle'
 import { AppLayout } from '../../_components/layout/AppLayout'
@@ -74,7 +76,7 @@ export type PhotoPageProps = {
   success?: string
   error?: string
   photo: {
-    id: string
+    id: UUID
     url: string
     faces?: PhotoFace[]
     captions?: PhotoCaption[]
@@ -87,6 +89,13 @@ export const PhotoPage = withBrowserBundle(({ error, success, photo }: PhotoPage
   const photoUploadFileSelected = (e: any) => {
     if (photoUploadForm.current !== null) photoUploadForm.current.submit()
   }
+
+  const knownFaces = photo?.faces
+    ?.filter((face) => face.person !== null)
+    .sort((faceA, faceB) => faceA.position.left - faceB.position.left)
+
+  const unknownFacesCount = (photo?.faces?.length || 0) - (knownFaces?.length || 0)
+
   return (
     <AppLayout>
       <HoverProvider>
@@ -99,11 +108,12 @@ export const PhotoPage = withBrowserBundle(({ error, success, photo }: PhotoPage
                 <HoverableFace key={`face${index}`} face={face} />
               ))}
               <div className='pl-2 pt-3'>
-                {photo.faces
-                  ?.filter((face) => face.person !== null)
-                  .map(({ faceId, person }, index) => (
-                    <FaceBadge key={`face${index}`} faceId={faceId} person={person!} />
-                  ))}
+                {knownFaces?.map(({ faceId, person }, index) => (
+                  <FaceBadge key={`face${index}`} faceId={faceId} person={person!} />
+                ))}
+                <div className='inline-block mr-3 pr-3 align-middle sm:text-sm text-gray-700'>
+                  {unknownFacesCount ? `${knownFaces?.length ? 'et ' : ''} ${unknownFacesCount} visages non identifiés` : ''}
+                </div>
               </div>
 
               <div className='bg-white'>
@@ -159,6 +169,7 @@ export const PhotoPage = withBrowserBundle(({ error, success, photo }: PhotoPage
                   Téléverse une photo et rajoute une description pour la postérité.
                 </p>
                 <form ref={photoUploadForm} method='post' encType='multipart/form-data'>
+                  <input type='hidden' name='photoId' defaultValue={getUuid()} />
                   <input
                     type='file'
                     id='file-input'

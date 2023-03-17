@@ -1,3 +1,4 @@
+import { IoTRoboRunner } from 'aws-sdk'
 import multer from 'multer'
 import zod from 'zod'
 import { requireAuth } from '../../dependencies/authn'
@@ -22,12 +23,12 @@ const upload = multer({
 const fakeProfilePicUrl =
   'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80'
 
-pageRouter.route('/chat.html').get(requireAuth(), async (request, response) => {
-  console.log(`GET on /chat.html`)
+pageRouter.route('/photos.html').get(requireAuth(), async (request, response) => {
+  console.log(`GET on /photos.html`)
 
   const newChatId = getUuid()
 
-  response.redirect(`/chat/${newChatId}/chat.html`)
+  response.redirect(`/photo/${newChatId}/photo.html`)
 })
 
 pageRouter
@@ -35,11 +36,16 @@ pageRouter
   .get(requireAuth(), async (request, response) => {
     console.log(`GET on /photo/:chatId/photo.html`)
 
-    const { chatId } = zod.object({ chatId: zIsUUID }).parse(request.params)
+    try {
+      const { chatId } = zod.object({ chatId: zIsUUID }).parse(request.params)
 
-    const photo = await getPhoto(chatId)
+      const photo = await getPhoto(chatId)
 
-    responseAsHtml(request, response, PhotoPage({ photo }))
+      responseAsHtml(request, response, PhotoPage({ photo }))
+    } catch (error) {
+      console.log('error', error)
+      response.send(error)
+    }
   })
   .post(requireAuth(), upload.single('photo'), async (request, response) => {
     console.log(`POST on /photo.html`)
@@ -47,7 +53,7 @@ pageRouter
     const userId = request.session.user!.id
     const { chatId } = zod.object({ chatId: zIsUUID }).parse(request.params)
 
-    const { caption, photoId } = zod.object({ caption: zod.string(), photoId: zIsUUID }).parse(request.body)
+    const { caption, photoId } = zod.object({ caption: zod.string().optional(), photoId: zIsUUID }).parse(request.body)
 
     const { file } = request
     if (file) {
@@ -59,19 +65,19 @@ pageRouter
     } else if (caption) {
       const captionId = getUuid()
 
-      await publish(
-        UserAddedCaptionToPhoto({
-          chatId,
-          photoId,
-          caption: {
-            id: captionId,
-            body: caption,
-          },
-          addedBy: userId,
-        })
-      )
+      // await publish(
+      //   UserAddedCaptionToPhoto({
+      //     chatId,
+      //     photoId,
+      //     caption: {
+      //       id: captionId,
+      //       body: caption,
+      //     },
+      //     addedBy: userId,
+      //   })
+      // )
 
-      await makeDeductionsWithOpenAI({ chatId, userId })
+      await makeDeductionsWithOpenAI({ chatId, userId, debug: true })
     }
 
     return response.redirect(`/photo/${chatId}/photo.html`)
