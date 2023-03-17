@@ -16,7 +16,7 @@ export const getPhoto = async (chatId: UUID): Promise<PhotoPageProps['photo']> =
 
   const photoRow = photoRowsRes[0]?.payload
 
-  if (!photoRow) throw new Error('Photo introuvable')
+  if (!photoRow) return null
 
   const { photoId } = photoRow
 
