@@ -97,7 +97,13 @@ You:
     for (const { faceCode, person } of faces) {
       const personId = family.personIdMap.get(person)
       if (!personId) {
-        console.log(`Deduction for unknown person named ${person}`)
+        deductions.push({
+          type: 'face-is-new-person',
+          faceId: photoFacesDescription.faceCodeMap.codeToId(faceCode)!,
+          personId: getUuid(),
+          name: person,
+          photoId: photo.id,
+        })
         continue
       }
       deductions.push({

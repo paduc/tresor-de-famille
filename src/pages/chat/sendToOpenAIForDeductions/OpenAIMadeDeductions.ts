@@ -2,11 +2,18 @@ import { UUID } from '../../../domain'
 import { BaseDomainEvent, makeDomainEvent } from '../../../libs/eventSourcing'
 
 type Deduction = {
-  type: 'face-is-person'
   personId: string
   faceId: string
   photoId: string
-}
+} & (
+  | {
+      type: 'face-is-person'
+    }
+  | {
+      type: 'face-is-new-person'
+      name: string
+    }
+)
 
 export type OpenAIMadeDeductions = BaseDomainEvent & {
   type: 'OpenAIMadeDeductions'

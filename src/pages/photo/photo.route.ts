@@ -65,19 +65,19 @@ pageRouter
     } else if (caption) {
       const captionId = getUuid()
 
-      // await publish(
-      //   UserAddedCaptionToPhoto({
-      //     chatId,
-      //     photoId,
-      //     caption: {
-      //       id: captionId,
-      //       body: caption,
-      //     },
-      //     addedBy: userId,
-      //   })
-      // )
+      await publish(
+        UserAddedCaptionToPhoto({
+          chatId,
+          photoId,
+          caption: {
+            id: captionId,
+            body: caption,
+          },
+          addedBy: userId,
+        })
+      )
 
-      await makeDeductionsWithOpenAI({ chatId, userId, debug: true })
+      await makeDeductionsWithOpenAI({ chatId, userId })
     }
 
     return response.redirect(`/photo/${chatId}/photo.html`)

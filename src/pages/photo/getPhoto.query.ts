@@ -79,21 +79,43 @@ export const getPhoto = async (chatId: UUID): Promise<PhotoPageProps['photo']> =
 }
 
 const getPersonNameById = async (personId: string): Promise<string> => {
+  type PersonId = string
+  type PersonName = string
+
+  const personIdMap = new Map<PersonId, PersonName>()
+
   const { rows: gedcomImportedRows } = await postgres.query<GedcomImported>(
     "SELECT * FROM events WHERE type = 'GedcomImported' LIMIT 1"
   )
 
-  if (!gedcomImportedRows.length) {
-    throw 'GedcomImported introuvable'
+  if (gedcomImportedRows.length) {
+    const gedcomPersons = gedcomImportedRows[0].payload.persons
+    for (const { id, name } of gedcomPersons) {
+      personIdMap.set(id, name)
+    }
   }
 
-  type Person = GedcomImported['payload']['persons'][number]
+  const { rows: deductionRows } = await postgres.query<OpenAIMadeDeductions>(
+    "SELECT * FROM events WHERE type = 'OpenAIMadeDeductions' ORDER BY occurred_at ASC"
+  )
+  for (const { payload } of deductionRows) {
+    const personsFromDeductions = payload.deductions.filter(isNewPersonDeduction)
 
-  const person = gedcomImportedRows[0].payload.persons.find((person: Person) => person.id === personId)
+    for (const { personId, name } of personsFromDeductions) {
+      personIdMap.set(personId, name)
+    }
+  }
 
-  if (!person) throw new Error('person could not be found')
+  const personName = personIdMap.get(personId)
 
-  return person.name
+  if (!personName) throw new Error('person could not be found')
+
+  return personName
+}
+
+type Deduction = OpenAIMadeDeductions['payload']['deductions'][number]
+function isNewPersonDeduction(deduction: Deduction): deduction is Deduction & { type: 'face-is-new-person' } {
+  return deduction.type === 'face-is-new-person'
 }
 
 type FaceId = string
