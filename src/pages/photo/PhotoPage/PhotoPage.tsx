@@ -99,15 +99,17 @@ export const PhotoPage = withBrowserBundle(({ error, success, photo }: PhotoPage
   return (
     <AppLayout>
       <HoverProvider>
-        <div className='bg-white'>
+        <div className='bg-white w-full h-full pt-3'>
           <SuccessError success={success} error={error} />
           {photo ? (
-            <div className='w-full sm:max-w-[100vh] sm:mx-auto bg-gray-100 sm:border sm:rounded-lg overflow-hidden'>
-              <img src={photo.url} className='w-full sm:h-[75vh] object-contain' />
-              {photo.faces?.map((face, index) => (
-                <HoverableFace key={`face${index}`} face={face} />
-              ))}
-              <div className='pl-2 pt-3'>
+            <div className='w-full sm:max-w-2xl sm:mx-auto grid grid-cols-1 justify-items-center bg-gray-100 sm:border sm:rounded-lg overflow-hidden'>
+              <div className='relative'>
+                <img src={photo.url} className='' />
+                {photo.faces?.map((face, index) => (
+                  <HoverableFace key={`face${index}`} face={face} />
+                ))}
+              </div>
+              <div className='pl-2 pt-3 w-full'>
                 {knownFaces?.map(({ faceId, person }, index) => (
                   <FaceBadge key={`face${index}`} faceId={faceId} person={person!} />
                 ))}
@@ -116,7 +118,7 @@ export const PhotoPage = withBrowserBundle(({ error, success, photo }: PhotoPage
                 </div>
               </div>
 
-              <div className='bg-white'>
+              <div className='bg-white w-full'>
                 <form method='POST' className='relative'>
                   <input type='hidden' name='photoId' defaultValue={photo.id} />
                   <div className='overflow-hidden sm:border border-gray-300 shadow-sm focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500'>
@@ -293,7 +295,7 @@ const HoverableFace = ({ face }: HoverableFaceProps) => {
         top: `${Math.round(face.position.top * 100)}%`,
         left: `${Math.round(face.position.left * 100)}%`,
         width: `${Math.round(face.position.width * 100)}%`,
-        height: `calc(${Math.round(face.position.height * 100)}% + 20px)`,
+        height: `${Math.round(face.position.height * 100)}%`,
       }}
       className={`absolute  ${isFaceHovered ? 'border-2' : 'border-0'} border-white cursor-pointer`}></div>
   )
