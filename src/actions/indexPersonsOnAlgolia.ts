@@ -1,6 +1,6 @@
 import { actionsRouter } from './actionsRouter'
 import { postgres } from '../dependencies/postgres'
-import { GedcomImported, Person } from '../events'
+import { GedcomImported } from '../events'
 import { searchClient } from '../dependencies/algolia'
 import { requireAuth } from '../dependencies/authn'
 
@@ -34,7 +34,7 @@ actionsRouter.get('/indexPersonsOnAlgolia', requireAuth(), async (request, respo
     return relationshipsByPersonId
   }, {} as Record<string, { children: Set<string>; parents: Set<string> }>)
 
-  const personById = persons.reduce((record, person) => ({ ...record, [person.id]: person }), {} as Record<string, Person>)
+  const personById = persons.reduce((record, person) => ({ ...record, [person.id]: person }), {} as Record<string, any>)
 
   const personsForIndex = persons.map((person) => ({
     ...person,

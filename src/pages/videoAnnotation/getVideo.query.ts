@@ -1,7 +1,8 @@
 import { postgres } from '../../dependencies/postgres'
 import { UUID } from '../../domain'
-import { BunnyCDNVideo, Person, TaggedPerson, UserAddedBunnyCDNVideo, VideoSequence, VideoSequenceAdded } from '../../events'
+import { BunnyCDNVideo, UserAddedBunnyCDNVideo, VideoSequence, VideoSequenceAdded } from '../../events'
 import { getGedcom } from '../importGedcomSuccess/getGedcom.query'
+import { getPersonById } from '../_getPersonById'
 import { TaggedPersonDTO, VideoSequenceDTO } from './VideoAnnotationPage'
 
 export const getVideo = async (videoId: string): Promise<{ video: BunnyCDNVideo; sequences: VideoSequenceDTO[] }> => {
@@ -48,7 +49,7 @@ async function toSequenceDTO(videoSequence: VideoSequence): Promise<VideoSequenc
 
   const persons = (personIds ? await Promise.all(personIds.map(getPersonById)) : [])
     .filter(isDefined)
-    .map((person: Person) => toTaggedPersonDTO(person))
+    .map((person: any) => toTaggedPersonDTO(person))
 
   return {
     videoId,
@@ -63,15 +64,8 @@ async function toSequenceDTO(videoSequence: VideoSequence): Promise<VideoSequenc
   }
 }
 
-function toTaggedPersonDTO(person: Person): TaggedPersonDTO {
+function toTaggedPersonDTO(person: any): TaggedPersonDTO {
   return { ...person, objectID: person.id }
-}
-
-async function getPersonById(personId: UUID): Promise<Person | undefined> {
-  const gedcom = await getGedcom()
-  const { persons } = gedcom.payload
-
-  return persons.find((person) => person.id === personId)
 }
 
 function isDefined<T>(object: T | undefined): object is T {

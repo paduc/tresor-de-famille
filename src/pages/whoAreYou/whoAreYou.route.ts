@@ -5,6 +5,7 @@ import { WhoAreYouPage } from './WhoAreYouPage'
 import { publish } from '../../dependencies/eventStore'
 import { UserHasDesignatedThemselfAsPerson } from '../../events'
 import { getPersonIdForUserId } from '../_getPersonIdForUserId.query'
+import { getPersonById, getPersonByIdOrThrow } from '../_getPersonById'
 
 pageRouter
   .route('/qui-es-tu')
@@ -30,9 +31,9 @@ pageRouter
     )
 
     try {
-      const person = await getPersonIdForUserId(selectedPersonId)
+      const { name } = await getPersonByIdOrThrow(selectedPersonId)
 
-      request.session.user!.name = person.name
+      request.session.user!.name = name
     } catch (error) {
       console.error('Impossible de mettre à jour la session avec le nom de la personne. ')
     }
