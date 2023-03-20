@@ -1,12 +1,13 @@
+import { UUID } from '../domain'
 import { BaseDomainEvent, makeDomainEvent } from '../libs/eventSourcing/types/DomainEvent'
 
 type Relationship = {
-  parentId: string
-  childId: string
+  parentId: UUID
+  childId: UUID
 }
 
 type Person = {
-  id: string
+  id: UUID
   name: string
   bornOn?: string
   bornIn?: string
@@ -21,7 +22,7 @@ export type GedcomImported = BaseDomainEvent & {
     rawGedcom: string
     relationships: Relationship[]
     persons: Person[]
-    importedBy: string
+    importedBy: UUID
   }
 }
 

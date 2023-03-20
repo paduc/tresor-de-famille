@@ -1,6 +1,7 @@
 import aws from 'aws-sdk'
 import fs from 'node:fs'
 import path from 'node:path'
+import { UUID } from '../../../domain'
 import { getUuid } from '../../../libs/getUuid'
 import { getAWSDetectedFacesInPhoto } from './getAWSDetectedFacesInPhoto'
 
@@ -85,7 +86,7 @@ describe('getDetectedFacesInPhoto', () => {
   })
 
   describe('when the only face is known', () => {
-    let knownFaceId: string
+    let knownFaceId: UUID
     let result: Awaited<ReturnType<typeof getAWSDetectedFacesInPhoto>>
 
     beforeAll(async () => {
@@ -102,7 +103,7 @@ describe('getDetectedFacesInPhoto', () => {
         .promise()
 
       expect(firstIndexation.FaceRecords).toHaveLength(1)
-      knownFaceId = firstIndexation.FaceRecords![0].Face!.FaceId!
+      knownFaceId = firstIndexation.FaceRecords![0].Face!.FaceId! as UUID
 
       const facesBefore = await rekognition.listFaces({ CollectionId: testCollectionId }).promise()
       expect(facesBefore.Faces).toHaveLength(1)
@@ -129,7 +130,7 @@ describe('getDetectedFacesInPhoto', () => {
   })
 
   describe('when one of the faces is known and not the others', () => {
-    let knownFaceId: string
+    let knownFaceId: UUID
     let result: Awaited<ReturnType<typeof getAWSDetectedFacesInPhoto>>
 
     beforeAll(async () => {
@@ -146,7 +147,7 @@ describe('getDetectedFacesInPhoto', () => {
         .promise()
 
       expect(firstIndexation.FaceRecords).toHaveLength(1)
-      knownFaceId = firstIndexation.FaceRecords![0].Face!.FaceId!
+      knownFaceId = firstIndexation.FaceRecords![0].Face!.FaceId! as UUID
 
       const facesBefore = await rekognition.listFaces({ CollectionId: testCollectionId }).promise()
       expect(facesBefore.Faces).toHaveLength(1)

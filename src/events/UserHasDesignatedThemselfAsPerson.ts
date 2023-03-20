@@ -1,10 +1,11 @@
+import { UUID } from '../domain'
 import { BaseDomainEvent, makeDomainEvent } from '../libs/eventSourcing/types/DomainEvent'
 
 export type UserHasDesignatedThemselfAsPerson = BaseDomainEvent & {
   type: 'UserHasDesignatedThemselfAsPerson'
   payload: {
-    userId: string
-    personId: string
+    userId: UUID
+    personId: UUID
   }
 }
 

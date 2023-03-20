@@ -4,7 +4,7 @@ import { BaseDomainEvent, makeDomainEvent } from '../../libs/eventSourcing'
 export type AWSFaceIdLinkedToPerson = BaseDomainEvent & {
   type: 'AWSFaceIdLinkedToPerson'
   payload: {
-    faceId: string
+    faceId: UUID
     personId: UUID
   }
 }

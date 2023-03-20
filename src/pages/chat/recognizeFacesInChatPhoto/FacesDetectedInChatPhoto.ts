@@ -3,7 +3,7 @@ import { UUID } from '../../../domain'
 import { BaseDomainEvent, makeDomainEvent } from '../../../libs/eventSourcing'
 
 type DetectedFace = {
-  faceId: string
+  faceId: UUID
   position: Rekognition.BoundingBox
   confidence: number
   details?: Rekognition.FaceDetail | undefined

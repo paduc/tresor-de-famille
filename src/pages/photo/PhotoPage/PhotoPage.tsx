@@ -19,7 +19,7 @@ export type PhotoFace = {
     name: string
     annotatedBy: 'face-recognition' | 'ai'
   } | null
-  faceId: string
+  faceId: UUID
   position: {
     width: number
     height: number
@@ -33,7 +33,7 @@ export type ChatDeduction = {
   person: {
     name: string
   }
-  faceId: string
+  faceId: UUID
   photo: {
     url: string
   }
@@ -50,7 +50,7 @@ export type ChatEvent = { timestamp: number } & (
       type: 'photo'
       profilePicUrl: string
       photo: {
-        id: string
+        id: UUID
         url: string
         faces?: PhotoFace[]
       }
@@ -209,7 +209,7 @@ export const ChatItem = ({ children, isLastItem }: ChatItemProps) => {
 }
 
 type FaceBadgeProps = {
-  faceId: string
+  faceId: UUID
   person: {
     name: string
     annotatedBy: 'face-recognition' | 'ai'

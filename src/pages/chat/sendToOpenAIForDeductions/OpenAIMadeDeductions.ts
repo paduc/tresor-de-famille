@@ -2,9 +2,10 @@ import { UUID } from '../../../domain'
 import { BaseDomainEvent, makeDomainEvent } from '../../../libs/eventSourcing'
 
 type Deduction = {
-  personId: string
-  faceId: string
-  photoId: string
+  deductionId: UUID
+  personId: UUID
+  faceId: UUID
+  photoId: UUID
 } & (
   | {
       type: 'face-is-person'

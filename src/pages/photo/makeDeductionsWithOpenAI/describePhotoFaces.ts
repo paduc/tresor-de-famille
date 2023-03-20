@@ -7,7 +7,7 @@ type PhotoFace = {
   person: {
     name: string
   } | null
-  faceId: string
+  faceId: UUID
   position: {
     width: number
     height: number

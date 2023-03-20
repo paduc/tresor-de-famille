@@ -1,9 +1,11 @@
+import { UUID } from '../domain'
+
 export const makeIdCodeMap = (prefix?: string) => {
   let index = 0
-  const idCodeMap = new Map<string, string>() /* Map<uuid, code> */
+  const idCodeMap = new Map<UUID, string>() /* Map<uuid, code> */
 
   return {
-    idToCode: (uuid: string) => {
+    idToCode: (uuid: UUID) => {
       if (!idCodeMap.has(uuid)) {
         idCodeMap.set(uuid, `${prefix}${idCodeMap.size + 1}`)
       }

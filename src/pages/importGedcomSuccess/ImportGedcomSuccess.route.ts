@@ -6,6 +6,7 @@ import { getGedcom } from './getGedcom.query'
 import { UserHasDesignatedThemselfAsPerson } from '../../events/UserHasDesignatedThemselfAsPerson'
 import { publish } from '../../dependencies/eventStore'
 import z from 'zod'
+import { zIsUUID } from '../../domain'
 
 pageRouter.route('/importGedcomSuccess.html').get(requireAuth(), async (request, response) => {
   console.log(`GET on /importGedcomSucess.html`)
@@ -19,11 +20,11 @@ pageRouter.route('/importGedcomSuccess.html').post(async (request, response) => 
   try {
     const { personId } = z
       .object({
-        personId: z.string().uuid(),
+        personId: zIsUUID,
       })
       .parse(request.body)
 
-    const userId = request.session.id
+    const userId = request.session.user?.id!
 
     console.log('POST on /importGedcomSuccess.html')
 

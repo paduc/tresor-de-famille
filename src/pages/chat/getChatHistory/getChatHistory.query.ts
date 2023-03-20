@@ -2,8 +2,9 @@ import { ChatPageProps } from '../ChatPage/ChatPage'
 import { retrieveMessagesForChat } from './retrieveMessagesForChat'
 import { retrieveDeductionsForChat } from './retrieveDeductionsForChat'
 import { retrievePhotosForChat } from './retrievePhotosForChat/retrievePhotosForChat'
+import { UUID } from '../../../domain'
 
-export const getChatHistory = async (chatId: string): Promise<ChatPageProps['history']> => {
+export const getChatHistory = async (chatId: UUID): Promise<ChatPageProps['history']> => {
   const photoRows = await retrievePhotosForChat(chatId)
 
   const messageRows = await retrieveMessagesForChat(chatId)

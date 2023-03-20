@@ -1,11 +1,12 @@
 import { Pool, PoolClient } from 'pg'
+import { UUID } from '../../../../domain'
 import { EventBus, DomainEvent } from '../../types'
 
 const createEventsTable =
   'CREATE TABLE IF NOT EXISTS events (id UUID PRIMARY KEY, type VARCHAR(255) NOT NULL, aggregate_ids VARCHAR(255)[], payload JSON, occurred_at TIMESTAMPTZ NOT NULL);'
 
 interface PersistedEvent {
-  id: string
+  id: UUID
   type: string
   aggregate_ids: string[] | null
   payload: any

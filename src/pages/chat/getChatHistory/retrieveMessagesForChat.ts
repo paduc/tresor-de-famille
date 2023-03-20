@@ -1,9 +1,10 @@
 import { postgres } from '../../../dependencies/postgres'
 import { getProfilePicUrlForUser } from '../../../dependencies/uploadPhoto'
+import { UUID } from '../../../domain'
 import { ChatEvent } from '../ChatPage/ChatPage'
 import { UserSentMessageToChat } from '../sendMessageToChat/UserSentMessageToChat'
 
-export async function retrieveMessagesForChat(chatId: string) {
+export async function retrieveMessagesForChat(chatId: UUID) {
   const { rows: messageRowsRes } = await postgres.query<UserSentMessageToChat>(
     "SELECT * FROM events WHERE type='UserSentMessageToChat' AND payload->>'chatId'=$1",
     [chatId]

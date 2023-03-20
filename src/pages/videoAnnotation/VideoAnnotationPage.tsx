@@ -1,8 +1,9 @@
 import { Combobox } from '@headlessui/react'
 import { CheckIcon, PlusIcon } from '@heroicons/react/solid'
 import * as React from 'react'
+import { UUID } from '../../domain'
 
-import { BunnyCDNVideo, VideoSequence } from '../../events'
+import { BunnyCDNVideo } from '../../events'
 import { getUuid } from '../../libs/getUuid'
 import { withBrowserBundle } from '../../libs/ssr/withBrowserBundle'
 import { useSearchClient } from '../_components/AlgoliaContext'
@@ -24,8 +25,8 @@ export type TaggedPersonDTO = {
 }
 
 export type VideoSequenceDTO = {
-  videoId: string
-  sequenceId: string
+  videoId: UUID
+  sequenceId: UUID
   startTime?: string
   endTime?: string
   title?: string

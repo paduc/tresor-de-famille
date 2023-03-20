@@ -1,21 +1,22 @@
 import { postgres } from '../../../../dependencies/postgres'
+import { UUID } from '../../../../domain'
 import { ChatPhotoFace } from '../../ChatPage/ChatPage'
 import { OpenAIMadeDeductions } from '../../sendToOpenAIForDeductions/OpenAIMadeDeductions'
 import { ChatPhotoEvent } from './retrievePhotosForChat'
 
 type AugmentChatPhotosWithPersonsDeductedDeps = {
-  getPersonById: (personId: string) => Promise<ChatPhotoFace['person']>
+  getPersonById: (personId: UUID) => Promise<ChatPhotoFace['person']>
 }
 
 export const makeAugmentChatPhotosWithPersonsDeducted = ({ getPersonById }: AugmentChatPhotosWithPersonsDeductedDeps) =>
-  async function augmentChatPhotosWithPersonsDeducted(chatId: string, photoRows: ChatPhotoEvent[]) {
+  async function augmentChatPhotosWithPersonsDeducted(chatId: UUID, photoRows: ChatPhotoEvent[]) {
     const { rows: openAIMadeDeductionRows } = await postgres.query<OpenAIMadeDeductions>(
       "SELECT * FROM events WHERE type='OpenAIMadeDeductions' AND payload->>'chatId'=$1 ORDER BY occurred_at ASC",
       [chatId]
     )
 
-    type FaceId = string
-    type PersonId = string
+    type FaceId = UUID
+    type PersonId = UUID
     const faceIdToPersonId = new Map<FaceId, PersonId>()
     for (const deductionRow of openAIMadeDeductionRows) {
       for (const deduction of deductionRow.payload.deductions) {

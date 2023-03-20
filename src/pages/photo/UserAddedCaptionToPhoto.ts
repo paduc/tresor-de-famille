@@ -7,7 +7,7 @@ export type UserAddedCaptionToPhoto = BaseDomainEvent & {
     chatId: UUID
     photoId: UUID
     caption: {
-      id: string
+      id: UUID
       body: string
     }
     addedBy: UUID

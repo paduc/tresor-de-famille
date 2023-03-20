@@ -1,4 +1,5 @@
 import { postgres } from '../dependencies/postgres'
+import { UUID } from '../domain'
 import { GedcomImported } from '../events'
 import { OpenAIMadeDeductions } from './chat/sendToOpenAIForDeductions/OpenAIMadeDeductions'
 
@@ -8,8 +9,8 @@ type GedcomPerson = GedcomImported['payload']['persons'][number]
 export type PersonById = GedcomPerson | OpenAIDeductionPerson
 
 // This is a helper because it has become frequent
-export const getPersonById = async (personId: string): Promise<PersonById | null> => {
-  type PersonId = string
+export const getPersonById = async (personId: UUID): Promise<PersonById | null> => {
+  type PersonId = UUID
 
   const personIdMap = new Map<PersonId, PersonById>()
 
@@ -42,7 +43,7 @@ export const getPersonById = async (personId: string): Promise<PersonById | null
   return personIdMap.get(personId) || null
 }
 
-export const getPersonByIdOrThrow = async (personId: string): Promise<PersonById> => {
+export const getPersonByIdOrThrow = async (personId: UUID): Promise<PersonById> => {
   const person = await getPersonById(personId)
   if (person === null) {
     throw new Error(`Could not retrieve person for id ${personId}`)

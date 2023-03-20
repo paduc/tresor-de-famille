@@ -1,5 +1,6 @@
 import aws from 'aws-sdk'
 import { BoundingBox } from 'aws-sdk/clients/rekognition'
+import { UUID } from '../../../domain'
 
 // TODO: move this to /dependencies
 aws.config.update({
@@ -17,7 +18,7 @@ const SHARPNESS_THRESHOLD = 8
 const CONFIDENCE_THRESHOLD = 95
 
 export type RecognizedFace = {
-  faceId: string
+  faceId: UUID
   position: BoundingBox
   confidence: number
   details?: aws.Rekognition.FaceDetail
@@ -79,7 +80,7 @@ export const getAWSDetectedFacesInPhoto = async ({
     facesToReturn.map(({ Face, FaceDetail }) => {
       const { BoundingBox, FaceId, Confidence } = Face!
       return {
-        faceId: FaceId!,
+        faceId: FaceId! as UUID,
         position: BoundingBox!,
         confidence: Confidence!,
         details: FaceDetail!,

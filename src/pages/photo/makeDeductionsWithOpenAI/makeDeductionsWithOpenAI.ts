@@ -102,6 +102,7 @@ You:
       if (!personId) {
         deductions.push({
           type: 'face-is-new-person',
+          deductionId: getUuid(),
           faceId: photoFacesDescription.faceCodeMap.codeToId(faceCode)!,
           personId: getUuid(),
           name: person,
@@ -111,6 +112,7 @@ You:
       }
       deductions.push({
         type: 'face-is-person',
+        deductionId: getUuid(),
         faceId: photoFacesDescription.faceCodeMap.codeToId(faceCode)!,
         personId,
         photoId: photo.id,

@@ -1,9 +1,10 @@
 import { postgres } from '../../../dependencies/postgres'
+import { UUID } from '../../../domain'
 import { GedcomImported } from '../../../events'
 import { makeIdCodeMap } from '../../../libs/makeIdCodeMap'
 
 export type DescribeFamilyArgs = {
-  personId: string
+  personId: UUID
   distance?: number
 }
 
@@ -14,7 +15,7 @@ export const describeFamily = async ({
   distance = 0,
 }: DescribeFamilyArgs): Promise<{
   description: string
-  personIdMap: Map<string, string>
+  personIdMap: Map<string, UUID>
   personCodeMap: ReturnType<typeof makeIdCodeMap>
 }> => {
   const { rows: gedcomImportedRows } = await postgres.query<GedcomImported>(
@@ -27,27 +28,27 @@ export const describeFamily = async ({
 
   const gedcom = gedcomImportedRows[0].payload
 
-  function getPersonById(personId: string) {
+  function getPersonById(personId: UUID) {
     return gedcom.persons.find((person: Person) => person.id === personId)
   }
 
-  function getParents(personId: string) {
+  function getParents(personId: UUID) {
     return unique(gedcom.relationships.filter(({ childId }) => personId === childId).map((rel) => rel.parentId))
       .map(getPersonById)
       .filter((personOrNull): personOrNull is Person => personOrNull !== null)
       .sort((a, b) => a.id.localeCompare(b.id))
   }
 
-  function getChildren(personId: string) {
+  function getChildren(personId: UUID) {
     return unique(gedcom.relationships.filter(({ parentId }) => personId === parentId).map((rel) => rel.childId))
       .map(getPersonById)
       .filter((personOrNull): personOrNull is Person => personOrNull !== null)
       .sort((a, b) => a.id.localeCompare(b.id))
   }
 
-  function getSiblings(personId: string) {
+  function getSiblings(personId: UUID) {
     const parents = getParents(personId)
-    const siblingSet = new Set<string>()
+    const siblingSet = new Set<UUID>()
     const siblings = []
     for (const parent of parents) {
       const children = getChildren(parent.id)
@@ -65,7 +66,7 @@ export const describeFamily = async ({
   let family = ''
 
   const personCodeMap = makeIdCodeMap('person')
-  type PersonId = string
+  type PersonId = UUID
   type PersonName = string
   const personIdMap = new Map<PersonName, PersonId>()
 
@@ -80,9 +81,9 @@ export const describeFamily = async ({
     return { description: family, personCodeMap, personIdMap }
   }
 
-  const visited = new Set<string>(personId)
+  const visited = new Set<UUID>()
 
-  function traverseFamilyTree(personId: string, nthDegree: number) {
+  function traverseFamilyTree(personId: UUID, nthDegree: number) {
     if (nthDegree < 0) {
       return
     }
@@ -91,7 +92,7 @@ export const describeFamily = async ({
 
     // 1) print personId is the child of parents
     const parents = unique(gedcom.relationships.filter((rel) => rel.childId === personId).map((rel) => rel.parentId))
-      .map(getPersonById)
+      .map((parentId) => getPersonById(parentId))
       .map(nameAndId)
 
     if (parents.length) family += `${nameAndId(getPersonById(personId))} is the child of ${parents.join(' and ')}\n`
@@ -108,11 +109,11 @@ export const describeFamily = async ({
     })
   }
 
-  traverseFamilyTree(personId, 1)
+  traverseFamilyTree(personId, distance)
 
   return { description: family, personCodeMap, personIdMap }
 }
 
-function unique(list: string[]) {
+function unique<T>(list: T[]) {
   return [...new Set(list)]
 }

@@ -1,5 +1,6 @@
 import { publish } from '../../../../dependencies/eventStore'
 import { resetDatabase } from '../../../../dependencies/__test__/resetDatabase'
+import { UUID } from '../../../../domain'
 import { getUuid } from '../../../../libs/getUuid'
 import { FacesDetectedInChatPhoto } from '../../recognizeFacesInChatPhoto/FacesDetectedInChatPhoto'
 import { makeAugmentChatPhotosWithFacesDetected } from './augmentChatPhotosWithFacesDetected'
@@ -51,7 +52,7 @@ describe('augmentChatPhotosWithFacesDetected', () => {
     }
 
     describe('when there is a face with a personId', () => {
-      const fakeGetPersonById = jest.fn((personId: string) => Promise.resolve(fakePerson))
+      const fakeGetPersonById = jest.fn((personId: UUID) => Promise.resolve(fakePerson))
 
       const augmentChatPhotosWithFacesDetected = makeAugmentChatPhotosWithFacesDetected({
         getPersonById: fakeGetPersonById,

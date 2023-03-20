@@ -1,6 +1,7 @@
 import zod from 'zod'
 import { requireAuth } from '../../dependencies/authn'
 import { openai } from '../../dependencies/openai'
+import { zIsUUID } from '../../domain'
 import { responseAsHtml } from '../../libs/ssr/responseAsHtml'
 import { pageRouter } from '../pageRouter'
 import { getVideo } from './getVideo.query'
@@ -13,7 +14,7 @@ pageRouter
     console.log(`GET on /video/:videoId/annotate.html`, request.params)
 
     try {
-      const { videoId } = zod.object({ videoId: zod.string().uuid() }).parse(request.params)
+      const { videoId } = zod.object({ videoId: zIsUUID }).parse(request.params)
 
       const { video, sequences } = await getVideo(videoId)
 
@@ -26,7 +27,7 @@ pageRouter
   .post(async (request, response) => {
     console.log(`POST on /video/:videoId/annotate.html`)
 
-    const { videoId } = request.params
+    const { videoId } = zod.object({ videoId: zIsUUID }).parse(request.params)
     try {
       const { description } = request.body
 

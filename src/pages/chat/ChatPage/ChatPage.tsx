@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { UUID } from '../../../domain'
 
 import { withBrowserBundle } from '../../../libs/ssr/withBrowserBundle'
 import { AppLayout } from '../../_components/layout/AppLayout'
@@ -18,7 +19,7 @@ export type ChatPhotoFace = {
   person: {
     name: string
   } | null
-  faceId: string
+  faceId: UUID
   position: {
     width: number
     height: number
@@ -32,7 +33,7 @@ export type ChatDeduction = {
   person: {
     name: string
   }
-  faceId: string
+  faceId: UUID
   photo: {
     url: string
   }
@@ -49,7 +50,7 @@ export type ChatEvent = { timestamp: number } & (
       type: 'photo'
       profilePicUrl: string
       photo: {
-        id: string
+        id: UUID
         url: string
         faces?: ChatPhotoFace[]
       }

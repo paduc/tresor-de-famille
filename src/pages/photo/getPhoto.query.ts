@@ -31,7 +31,7 @@ export const getPhoto = async (chatId: UUID): Promise<PhotoPageProps['photo']> =
   // Next: get the list of faceId + personIds from AI deductions
   const faceIdToPersonIdDeductions = detectedFaces.length
     ? await getFaceIdToPersonIdDeductions(chatId, photoId)
-    : new Map<string, string>()
+    : new Map<UUID, UUID>()
 
   // For each detectedFace, check for a
   const faces: PhotoFace[] = []
@@ -85,8 +85,8 @@ function isNewPersonDeduction(deduction: Deduction): deduction is Deduction & { 
   return deduction.type === 'face-is-new-person'
 }
 
-type FaceId = string
-type PersonId = string
+type FaceId = UUID
+type PersonId = UUID
 async function getFaceIdToPersonIdDeductions(chatId: UUID, photoId: UUID): Promise<Map<FaceId, PersonId>> {
   const { rows: openAIMadeDeductionRows } = await postgres.query<OpenAIMadeDeductions>(
     "SELECT * FROM events WHERE type='OpenAIMadeDeductions' AND payload->>'chatId'=$1 ORDER BY occurred_at ASC",
@@ -107,7 +107,7 @@ async function getFaceIdToPersonIdDeductions(chatId: UUID, photoId: UUID): Promi
 }
 
 async function getDetectedFaces(chatId: UUID, photoId: UUID) {
-  const detectedFaces: { faceId: string; position: PhotoFace['position'] }[] = []
+  const detectedFaces: { faceId: UUID; position: PhotoFace['position'] }[] = []
 
   const { rows: faceDetectedRowsRes } = await postgres.query<FacesDetectedInChatPhoto>(
     "SELECT * FROM events WHERE type='FacesDetectedInChatPhoto' AND payload->>'chatId'=$1",
@@ -135,7 +135,7 @@ async function getCaptionsForPhoto(chatId: UUID, photoId: UUID) {
   return rows.map((row) => row.payload.caption)
 }
 
-const getPersonIdForFaceId = async (faceId: string): Promise<string | null> => {
+const getPersonIdForFaceId = async (faceId: UUID): Promise<UUID | null> => {
   // For now, the only link is from OpenAI api calls
   const { rows } = await postgres.query<OpenAIMadeDeductions>(
     "SELECT * FROM events WHERE type = 'OpenAIMadeDeductions' ORDER BY occurred_at DESC"

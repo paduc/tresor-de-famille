@@ -5,7 +5,7 @@ import { getGedcom } from '../importGedcomSuccess/getGedcom.query'
 import { getPersonById } from '../_getPersonById'
 import { TaggedPersonDTO, VideoSequenceDTO } from './VideoAnnotationPage'
 
-export const getVideo = async (videoId: string): Promise<{ video: BunnyCDNVideo; sequences: VideoSequenceDTO[] }> => {
+export const getVideo = async (videoId: UUID): Promise<{ video: BunnyCDNVideo; sequences: VideoSequenceDTO[] }> => {
   const { rows: addedVideoEvents } = await postgres.query<UserAddedBunnyCDNVideo>(
     "SELECT * FROM events WHERE type = 'UserAddedBunnyCDNVideo' AND payload->>'videoId'=$1 LIMIT 1",
     [videoId]
