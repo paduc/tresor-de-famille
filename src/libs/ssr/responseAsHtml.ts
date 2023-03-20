@@ -26,8 +26,6 @@ export function responseAsHtml(
 
   const bundle = extractBundleInfo(element)
 
-  const { shouldIncludeBrowserBundle } = bundle
-
   const session = getSession(request)
 
   const { ALGOLIA_APPID, ALGOLIA_SEARCHKEY } = process.env
@@ -39,7 +37,7 @@ export function responseAsHtml(
           <meta charset="utf-8" />
           <meta name="viewport" content="width=device-width,initial-scale=1" />
           <link href="/style.css" rel="stylesheet" />
-          ${shouldIncludeBrowserBundle
+          ${bundle.shouldIncludeBrowserBundle
             ? html`
                 <script src="/js/shared.js"></script>
                 <script src="/js/${bundle.name}.js?${process.env.npm_package_version}"></script>
@@ -55,7 +53,7 @@ export function responseAsHtml(
               withContext(SessionContext, session, withContext(AlgoliaContext, null as SearchClient | null, element))
             )
           )}</div>
-          ${shouldIncludeBrowserBundle
+          ${bundle.shouldIncludeBrowserBundle
             ? html`
                 <!-- prettier-ignore -->
                 <script>
