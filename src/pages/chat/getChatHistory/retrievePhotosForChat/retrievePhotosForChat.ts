@@ -1,11 +1,11 @@
 import { postgres } from '../../../../dependencies/postgres'
 import { normalizeBBOX } from '../../../../dependencies/rekognition'
 import { getPhotoUrlFromId, getProfilePicUrlForUser } from '../../../../dependencies/uploadPhoto'
+import { getPersonById } from '../../../_getPersonById'
 import { ChatEvent } from '../../ChatPage/ChatPage'
 import { UserUploadedPhotoToChat } from '../../uploadPhotoToChat/UserUploadedPhotoToChat'
 import { makeAugmentChatPhotosWithFacesDetected } from './augmentChatPhotosWithFacesDetected'
 import { makeAugmentChatPhotosWithPersonsDeducted } from './augmentChatPhotosWithPersonsDeducted'
-import { getPersonById } from './getPersonById'
 
 const augmentChatPhotosWithFacesDetected = makeAugmentChatPhotosWithFacesDetected({
   getPersonById,

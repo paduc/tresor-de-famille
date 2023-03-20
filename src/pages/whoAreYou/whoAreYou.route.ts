@@ -4,7 +4,7 @@ import { requireAuth } from '../../dependencies/authn'
 import { WhoAreYouPage } from './WhoAreYouPage'
 import { publish } from '../../dependencies/eventStore'
 import { UserHasDesignatedThemselfAsPerson } from '../../events'
-import { getPersonForUserId } from '../home/getPersonForUserId.query'
+import { getPersonIdForUserId } from '../_getPersonIdForUserId.query'
 
 pageRouter
   .route('/qui-es-tu')
@@ -30,7 +30,7 @@ pageRouter
     )
 
     try {
-      const person = await getPersonForUserId(selectedPersonId)
+      const person = await getPersonIdForUserId(selectedPersonId)
 
       request.session.user!.name = person.name
     } catch (error) {

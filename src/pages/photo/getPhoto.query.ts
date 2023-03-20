@@ -2,10 +2,10 @@ import { postgres } from '../../dependencies/postgres'
 import { normalizeBBOX } from '../../dependencies/rekognition'
 import { getPhotoUrlFromId } from '../../dependencies/uploadPhoto'
 import { UUID } from '../../domain'
-import { GedcomImported } from '../../events/GedcomImported'
 import { FacesDetectedInChatPhoto } from '../chat/recognizeFacesInChatPhoto/FacesDetectedInChatPhoto'
 import { OpenAIMadeDeductions } from '../chat/sendToOpenAIForDeductions/OpenAIMadeDeductions'
 import { UserUploadedPhotoToChat } from '../chat/uploadPhotoToChat/UserUploadedPhotoToChat'
+import { getPersonByIdOrThrow } from '../_getPersonById'
 import { PhotoFace, PhotoPageProps } from './PhotoPage/PhotoPage'
 import { UserAddedCaptionToPhoto } from './UserAddedCaptionToPhoto'
 
@@ -39,10 +39,11 @@ export const getPhoto = async (chatId: UUID): Promise<PhotoPageProps['photo']> =
     // first, if a deduction has been made, use it
     const personIdFromDeductions = faceIdToPersonIdDeductions.get(faceId)
     if (personIdFromDeductions) {
+      const { name } = await getPersonByIdOrThrow(personIdFromDeductions)
       faces.push({
         faceId,
         position,
-        person: { name: await getPersonNameById(personIdFromDeductions), annotatedBy: 'ai' },
+        person: { name, annotatedBy: 'ai' },
       })
 
       continue
@@ -51,10 +52,11 @@ export const getPhoto = async (chatId: UUID): Promise<PhotoPageProps['photo']> =
     // next, search the faceId-personId index
     const personIdFromIndex = await getPersonIdForFaceId(faceId)
     if (personIdFromIndex) {
+      const { name } = await getPersonByIdOrThrow(personIdFromIndex)
       faces.push({
         faceId,
         position,
-        person: { name: await getPersonNameById(personIdFromIndex), annotatedBy: 'face-recognition' },
+        person: { name, annotatedBy: 'face-recognition' },
       })
 
       continue
@@ -76,41 +78,6 @@ export const getPhoto = async (chatId: UUID): Promise<PhotoPageProps['photo']> =
     faces,
     captions,
   }
-}
-
-const getPersonNameById = async (personId: string): Promise<string> => {
-  type PersonId = string
-  type PersonName = string
-
-  const personIdMap = new Map<PersonId, PersonName>()
-
-  const { rows: gedcomImportedRows } = await postgres.query<GedcomImported>(
-    "SELECT * FROM events WHERE type = 'GedcomImported' LIMIT 1"
-  )
-
-  if (gedcomImportedRows.length) {
-    const gedcomPersons = gedcomImportedRows[0].payload.persons
-    for (const { id, name } of gedcomPersons) {
-      personIdMap.set(id, name)
-    }
-  }
-
-  const { rows: deductionRows } = await postgres.query<OpenAIMadeDeductions>(
-    "SELECT * FROM events WHERE type = 'OpenAIMadeDeductions' ORDER BY occurred_at ASC"
-  )
-  for (const { payload } of deductionRows) {
-    const personsFromDeductions = payload.deductions.filter(isNewPersonDeduction)
-
-    for (const { personId, name } of personsFromDeductions) {
-      personIdMap.set(personId, name)
-    }
-  }
-
-  const personName = personIdMap.get(personId)
-
-  if (!personName) throw new Error('person could not be found')
-
-  return personName
 }
 
 type Deduction = OpenAIMadeDeductions['payload']['deductions'][number]

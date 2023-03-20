@@ -1,6 +1,5 @@
-import { postgres } from '../../../dependencies/postgres'
-import { GedcomImported, Person } from '../../../events'
 import { makeIdCodeMap } from '../../../libs/makeIdCodeMap'
+import { getPersonByIdOrThrow } from '../../_getPersonById'
 
 type PhotoFace = {
   details: {
@@ -18,29 +17,14 @@ type PhotoFace = {
 type PhotoFaceDescription = { description: string; faceCodeMap: ReturnType<typeof makeIdCodeMap> }
 
 export const describePhotoFaces = async (photoFaces: PhotoFace[]): Promise<PhotoFaceDescription> => {
-  // TODO: only fetch the tree if there are personIds
-  const { rows: gedcomImportedRows } = await postgres.query<GedcomImported>(
-    "SELECT * FROM events WHERE type = 'GedcomImported' LIMIT 1"
-  )
-
-  if (!gedcomImportedRows.length) {
-    throw 'GedcomImported introuvable'
-  }
-
-  const gedcom = gedcomImportedRows[0].payload
-
-  function getPersonById(personId: string) {
-    return gedcom.persons.find((person: Person) => person.id === personId)
-  }
-
   const faceCodeMap = makeIdCodeMap('face')
 
   const descriptions = []
 
   for (const photoFace of photoFaces) {
     if (photoFace.personId) {
-      const person = await getPersonById(photoFace.personId)
-      descriptions.push(person?.name)
+      const { name } = await getPersonByIdOrThrow(photoFace.personId)
+      descriptions.push(name)
     } else {
       descriptions.push(
         `${genderedPerson(photoFace)}${agedPerson(photoFace)}(${

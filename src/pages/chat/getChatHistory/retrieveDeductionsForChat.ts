@@ -1,7 +1,7 @@
 import { postgres } from '../../../dependencies/postgres'
 import { normalizeBBOX } from '../../../dependencies/rekognition'
 import { getPhotoUrlFromId } from '../../../dependencies/uploadPhoto'
-import { GedcomImported } from '../../../events/GedcomImported'
+import { getPersonByIdOrThrow } from '../../_getPersonById'
 import { ChatEvent } from '../ChatPage/ChatPage'
 import { FacesDetectedInChatPhoto } from '../recognizeFacesInChatPhoto/FacesDetectedInChatPhoto'
 import { OpenAIMadeDeductions } from '../sendToOpenAIForDeductions/OpenAIMadeDeductions'
@@ -18,17 +18,21 @@ export async function retrieveDeductionsForChat(chatId: string): Promise<ChatDed
   for (const deductionsRow of deductionsRowsRes) {
     const deductions: ChatDeduction[] = []
     for (const { personId, faceId, photoId } of deductionsRow.payload.deductions) {
-      const person = await getPersonById(personId)
-      const position = await getFaceBBoxInPhoto(faceId, photoId)
+      try {
+        const position = await getFaceBBoxInPhoto(faceId, photoId)
+        const { name } = await getPersonByIdOrThrow(personId)
 
-      deductions.push({
-        person,
-        faceId,
-        photo: {
-          url: getPhotoUrlFromId(photoId),
-        },
-        position,
-      })
+        deductions.push({
+          person: { name },
+          faceId,
+          photo: {
+            url: getPhotoUrlFromId(photoId),
+          },
+          position,
+        })
+      } catch (error) {
+        throw error
+      }
     }
 
     deductionsRows.push({
@@ -70,24 +74,4 @@ const getFaceBBoxInPhoto = async (faceId: string, photoId: string): Promise<Posi
   }
 
   return position
-}
-
-const getPersonById = async (personId: string): Promise<ChatDeduction['person']> => {
-  const { rows: gedcomImportedRows } = await postgres.query<GedcomImported>(
-    "SELECT * FROM events WHERE type = 'GedcomImported' LIMIT 1"
-  )
-
-  if (!gedcomImportedRows.length) {
-    throw 'GedcomImported introuvable'
-  }
-
-  type Person = GedcomImported['payload']['persons'][number]
-
-  const person = gedcomImportedRows[0].payload.persons.find((person: Person) => person.id === personId)
-
-  if (!person) throw new Error('person could not be found')
-
-  return {
-    name: person.name,
-  }
 }

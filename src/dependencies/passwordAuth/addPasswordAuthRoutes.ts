@@ -9,7 +9,8 @@ import { makeRegister } from './register'
 import { publish } from '../eventStore'
 import { parseZodErrors } from '../../libs/parseZodErrors'
 import { PASSWORD_SALT, REGISTRATION_CODE } from '../env'
-import { getPersonForUserId } from '../../pages/home/getPersonForUserId.query'
+import { getPersonIdForUserId } from '../../pages/_getPersonIdForUserId.query'
+import { getPersonByIdOrThrow } from '../../pages/_getPersonById'
 
 const login = makeLogin(bcrypt.compare)
 const register = makeRegister({
@@ -67,7 +68,8 @@ export const addPasswordAuthRoutes = (app: Express) => {
       // Login case
       const userId = await login(email, password)
       try {
-        const person = await getPersonForUserId(userId)
+        const personId = await getPersonIdForUserId(userId)
+        const person = await getPersonByIdOrThrow(personId)
         request.session.user = { id: userId, name: person.name }
       } catch (error) {
         request.session.user = { id: userId, name: email }

@@ -1,15 +1,5 @@
-import zod from 'zod'
-import { getUuid } from '../../../libs/getUuid'
-import { publish } from '../../../dependencies/eventStore'
 import { UUID } from '../../../domain'
-import { describeFamily } from './describeFamily.query'
-import { getPersonForUserId } from '../../home/getPersonForUserId.query'
-import { describePhotoFaces } from './describePhotoFaces.query'
 import { getLatestPhotoFaces } from './getLatestPhotoFaces.query'
-import { openai } from '../../../dependencies/openai'
-import { OpenAIPrompted } from './OpenAIPrompted'
-import { OpenAIFailedToMakeDeductions } from './OpenAIFailedToMakeDeductions'
-import { OpenAIMadeDeductions } from './OpenAIMadeDeductions'
 
 type SendToOpenAIForDeductionsArgs = {
   chatId: UUID

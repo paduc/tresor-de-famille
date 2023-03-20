@@ -6,10 +6,11 @@ import { getUuid } from '../../../libs/getUuid'
 import { OpenAIFailedToMakeDeductions } from '../../chat/sendToOpenAIForDeductions/OpenAIFailedToMakeDeductions'
 import { OpenAIMadeDeductions } from '../../chat/sendToOpenAIForDeductions/OpenAIMadeDeductions'
 import { OpenAIPrompted } from '../../chat/sendToOpenAIForDeductions/OpenAIPrompted'
+import { getPersonById } from '../../_getPersonById'
+import { getPersonIdForUserId } from '../../_getPersonIdForUserId.query'
 import { getPhoto } from '../getPhoto.query'
 import { describeFamily } from './describeFamily'
 import { describePhotoFaces } from './describePhotoFaces'
-import { getPersonForUserId } from './getPersonForUserId'
 
 type MakeDeductionsWithOpenAIArgs = {
   chatId: UUID
@@ -26,13 +27,15 @@ export async function makeDeductionsWithOpenAI({ chatId, userId, debug }: MakeDe
   const photoFacesDescription = await describePhotoFaces(chatId, photo.id, photo.faces)
 
   // Build prompt :
-  const currentPerson = await getPersonForUserId(userId)
+
+  const currentPersonId = await getPersonIdForUserId(userId)
+  const currentPerson = await getPersonById(currentPersonId)
 
   // TODO: accept tp ùale deduction without knowing who the person is
   if (!currentPerson) return
 
   // DOING: Adapt describe family
-  const family = await describeFamily({ personId: currentPerson.id, distance: 3 })
+  const family = await describeFamily({ personId: currentPersonId, distance: 3 })
 
   let prompt = `
 You are chatting with ${currentPerson.name} and this is a description of his family:

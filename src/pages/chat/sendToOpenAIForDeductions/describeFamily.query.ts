@@ -1,11 +1,13 @@
 import { postgres } from '../../../dependencies/postgres'
-import { GedcomImported, Person } from '../../../events'
+import { GedcomImported } from '../../../events'
 import { makeIdCodeMap } from '../../../libs/makeIdCodeMap'
 
 export type DescribeFamilyArgs = {
   personId: string
   distance?: number
 }
+
+type Person = GedcomImported['payload']['persons'][number]
 
 export const describeFamily = async ({
   personId,
