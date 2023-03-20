@@ -17,8 +17,8 @@ const SIMILARITY_THRESHOLD = 95
 const SHARPNESS_THRESHOLD = 8
 const CONFIDENCE_THRESHOLD = 95
 
-export type RecognizedFace = {
-  faceId: UUID
+export type AWSRecognizedFace = {
+  awsFaceId: string
   position: BoundingBox
   confidence: number
   details?: aws.Rekognition.FaceDetail
@@ -33,7 +33,7 @@ type GetDetectedFacesInPhotoArgs = {
 export const getAWSDetectedFacesInPhoto = async ({
   photoContents,
   collectionId,
-}: GetDetectedFacesInPhotoArgs): Promise<RecognizedFace[]> => {
+}: GetDetectedFacesInPhotoArgs): Promise<AWSRecognizedFace[]> => {
   const indexFacesResult = await rekognition
     .indexFaces({
       CollectionId: collectionId,
@@ -76,11 +76,11 @@ export const getAWSDetectedFacesInPhoto = async ({
     await rekognition.deleteFaces({ CollectionId: collectionId, FaceIds: facesToDelete }).promise()
   }
 
-  const recognizedFaces: RecognizedFace[] =
+  const recognizedFaces: AWSRecognizedFace[] =
     facesToReturn.map(({ Face, FaceDetail }) => {
       const { BoundingBox, FaceId, Confidence } = Face!
       return {
-        faceId: FaceId! as UUID,
+        awsFaceId: FaceId!,
         position: BoundingBox!,
         confidence: Confidence!,
         details: FaceDetail!,

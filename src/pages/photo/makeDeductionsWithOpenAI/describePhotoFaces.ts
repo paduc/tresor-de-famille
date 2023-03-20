@@ -1,7 +1,7 @@
 import { postgres } from '../../../dependencies/postgres'
 import { UUID } from '../../../domain'
 import { makeIdCodeMap } from '../../../libs/makeIdCodeMap'
-import { FacesDetectedInChatPhoto } from '../../chat/recognizeFacesInChatPhoto/FacesDetectedInChatPhoto'
+import { AWSFacesDetectedInChatPhoto } from '../../chat/recognizeFacesInChatPhoto/AWSFacesDetectedInChatPhoto'
 
 type PhotoFace = {
   person: {
@@ -16,7 +16,7 @@ type PhotoFace = {
   }
 }
 
-type DetectedFace = FacesDetectedInChatPhoto['payload']['faces'][number]
+type DetectedFace = AWSFacesDetectedInChatPhoto['payload']['faces'][number]
 
 type PhotoFaceDescription = {
   description: string
@@ -30,8 +30,8 @@ export const describePhotoFaces = async (
   photoId: UUID,
   photoFaces: PhotoFace[]
 ): Promise<PhotoFaceDescription> => {
-  const { rows: facesDetectedInChatPhotoRows } = await postgres.query<FacesDetectedInChatPhoto>(
-    "SELECT * FROM events WHERE type='FacesDetectedInChatPhoto' AND payload->>'chatId'=$1 AND payload->>'photoId'=$2 ORDER BY occurred_at DESC LIMIT 1",
+  const { rows: facesDetectedInChatPhotoRows } = await postgres.query<AWSFacesDetectedInChatPhoto>(
+    "SELECT * FROM events WHERE type='AWSFacesDetectedInChatPhoto' AND payload->>'chatId'=$1 AND payload->>'photoId'=$2 ORDER BY occurred_at DESC LIMIT 1",
     [chatId, photoId]
   )
 

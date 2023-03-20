@@ -2,7 +2,7 @@ import { postgres } from '../../dependencies/postgres'
 import { normalizeBBOX } from '../../dependencies/rekognition'
 import { getPhotoUrlFromId } from '../../dependencies/uploadPhoto'
 import { UUID } from '../../domain'
-import { FacesDetectedInChatPhoto } from '../chat/recognizeFacesInChatPhoto/FacesDetectedInChatPhoto'
+import { AWSFacesDetectedInChatPhoto } from '../chat/recognizeFacesInChatPhoto/AWSFacesDetectedInChatPhoto'
 import { OpenAIMadeDeductions } from '../chat/sendToOpenAIForDeductions/OpenAIMadeDeductions'
 import { UserUploadedPhotoToChat } from '../chat/uploadPhotoToChat/UserUploadedPhotoToChat'
 import { getPersonByIdOrThrow } from '../_getPersonById'
@@ -109,8 +109,8 @@ async function getFaceIdToPersonIdDeductions(chatId: UUID, photoId: UUID): Promi
 async function getDetectedFaces(chatId: UUID, photoId: UUID) {
   const detectedFaces: { faceId: UUID; position: PhotoFace['position'] }[] = []
 
-  const { rows: faceDetectedRowsRes } = await postgres.query<FacesDetectedInChatPhoto>(
-    "SELECT * FROM events WHERE type='FacesDetectedInChatPhoto' AND payload->>'chatId'=$1",
+  const { rows: faceDetectedRowsRes } = await postgres.query<AWSFacesDetectedInChatPhoto>(
+    "SELECT * FROM events WHERE type='AWSFacesDetectedInChatPhoto' AND payload->>'chatId'=$1",
     [chatId]
   )
   const facesDetectedRows = faceDetectedRowsRes.map((row) => row.payload).filter((faceRow) => faceRow.photoId === photoId)

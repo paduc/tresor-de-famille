@@ -6,7 +6,7 @@ import { publish } from '../../dependencies/eventStore'
 import { zIsUUID } from '../../domain'
 import { getUuid } from '../../libs/getUuid'
 import { responseAsHtml } from '../../libs/ssr/responseAsHtml'
-import { detectFacesInChatPhoto } from '../chat/recognizeFacesInChatPhoto/detectFacesInChatPhoto'
+import { detectAWSFacesInChatPhoto } from '../chat/recognizeFacesInChatPhoto/detectAWSFacesInChatPhoto'
 import { uploadPhotoToChat } from '../chat/uploadPhotoToChat/uploadPhotoToChat'
 import { pageRouter } from '../pageRouter'
 import { getPhoto } from './getPhoto.query'
@@ -61,7 +61,7 @@ pageRouter
 
       await uploadPhotoToChat({ file, photoId, chatId, userId })
 
-      await detectFacesInChatPhoto({ file, chatId, photoId })
+      await detectAWSFacesInChatPhoto({ file, chatId, photoId })
     } else if (caption) {
       const captionId = getUuid()
 

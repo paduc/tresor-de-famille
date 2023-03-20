@@ -4,7 +4,7 @@ import { getPhotoUrlFromId } from '../../../dependencies/uploadPhoto'
 import { UUID } from '../../../domain'
 import { getPersonByIdOrThrow } from '../../_getPersonById'
 import { ChatEvent } from '../ChatPage/ChatPage'
-import { FacesDetectedInChatPhoto } from '../recognizeFacesInChatPhoto/FacesDetectedInChatPhoto'
+import { AWSFacesDetectedInChatPhoto } from '../recognizeFacesInChatPhoto/AWSFacesDetectedInChatPhoto'
 import { OpenAIMadeDeductions } from '../sendToOpenAIForDeductions/OpenAIMadeDeductions'
 
 type ChatDeductionEvent = ChatEvent & { type: 'deductions' }
@@ -49,13 +49,13 @@ export async function retrieveDeductionsForChat(chatId: UUID): Promise<ChatDeduc
 type Position = ChatDeduction['position']
 
 const getFaceBBoxInPhoto = async (faceId: UUID, photoId: UUID): Promise<Position> => {
-  const { rows } = await postgres.query<FacesDetectedInChatPhoto>(
-    "SELECT * FROM events WHERE type = 'FacesDetectedInChatPhoto' AND payload->>'photoId'=$1 ORDER BY occurred_at ASC",
+  const { rows } = await postgres.query<AWSFacesDetectedInChatPhoto>(
+    "SELECT * FROM events WHERE type = 'AWSFacesDetectedInChatPhoto' AND payload->>'photoId'=$1 ORDER BY occurred_at ASC",
     [photoId]
   )
 
   if (!rows.length) {
-    throw new Error('FacesDetectedInChatPhoto introuvable')
+    throw new Error('AWSFacesDetectedInChatPhoto introuvable')
   }
 
   type FaceId = UUID
@@ -63,8 +63,8 @@ const getFaceBBoxInPhoto = async (faceId: UUID, photoId: UUID): Promise<Position
   const faceBBoxMap = new Map<FaceId, Position>()
 
   for (const { payload } of rows) {
-    for (const { faceId: AWSFaceId, position } of payload.faces) {
-      faceBBoxMap.set(AWSFaceId, normalizeBBOX(position))
+    for (const { faceId, position } of payload.faces) {
+      faceBBoxMap.set(faceId, normalizeBBOX(position))
     }
   }
 

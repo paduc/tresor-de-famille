@@ -2,24 +2,25 @@ import { Rekognition } from 'aws-sdk'
 import { UUID } from '../../../domain'
 import { BaseDomainEvent, makeDomainEvent } from '../../../libs/eventSourcing'
 
-type DetectedFace = {
+type AWSDetectedFace = {
+  awsFaceId: string
   faceId: UUID
   position: Rekognition.BoundingBox
   confidence: number
   details?: Rekognition.FaceDetail | undefined
 }
 
-export type FacesDetectedInChatPhoto = BaseDomainEvent & {
-  type: 'FacesDetectedInChatPhoto'
+export type AWSFacesDetectedInChatPhoto = BaseDomainEvent & {
+  type: 'AWSFacesDetectedInChatPhoto'
   payload: {
     chatId: UUID
     photoId: UUID
-    faces: DetectedFace[]
+    faces: AWSDetectedFace[]
   }
 }
 
-export const FacesDetectedInChatPhoto = (payload: FacesDetectedInChatPhoto['payload']): FacesDetectedInChatPhoto =>
+export const AWSFacesDetectedInChatPhoto = (payload: AWSFacesDetectedInChatPhoto['payload']): AWSFacesDetectedInChatPhoto =>
   makeDomainEvent({
-    type: 'FacesDetectedInChatPhoto',
+    type: 'AWSFacesDetectedInChatPhoto',
     payload,
   })
