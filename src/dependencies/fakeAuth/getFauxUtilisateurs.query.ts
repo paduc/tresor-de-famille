@@ -1,4 +1,4 @@
-import { postgres } from '../postgres'
+import { postgres } from '../database'
 import { FauxUtilisateur } from './FauxUtilisateur'
 
 export const getFakeUsers = async (): Promise<FauxUtilisateur[]> => {

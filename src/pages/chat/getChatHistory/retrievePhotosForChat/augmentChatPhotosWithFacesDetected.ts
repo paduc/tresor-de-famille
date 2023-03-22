@@ -1,5 +1,5 @@
 import { BoundingBox } from 'aws-sdk/clients/rekognition'
-import { postgres } from '../../../../dependencies/postgres'
+import { postgres } from '../../../../dependencies/database'
 import { UUID } from '../../../../domain'
 import { ChatPhotoFace } from '../../ChatPage/ChatPage'
 import { AWSFacesDetectedInChatPhoto } from '../../recognizeFacesInChatPhoto/AWSFacesDetectedInChatPhoto'

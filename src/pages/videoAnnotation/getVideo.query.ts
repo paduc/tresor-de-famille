@@ -1,4 +1,4 @@
-import { postgres } from '../../dependencies/postgres'
+import { postgres } from '../../dependencies/database'
 import { UUID } from '../../domain'
 import { BunnyCDNVideo, UserAddedBunnyCDNVideo, VideoSequence, VideoSequenceAdded } from '../../events'
 import { getGedcom } from '../importGedcomSuccess/getGedcom.query'

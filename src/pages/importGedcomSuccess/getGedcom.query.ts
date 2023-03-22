@@ -1,4 +1,4 @@
-import { postgres } from '../../dependencies/postgres'
+import { postgres } from '../../dependencies/database'
 import { GedcomImported } from '../../events/GedcomImported'
 
 export const getGedcom = async (): Promise<GedcomImported> => {

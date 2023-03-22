@@ -1,6 +1,6 @@
 import zod from 'zod'
 import { requireAuth } from '../../dependencies/authn'
-import { openai } from '../../dependencies/openai'
+import { openai } from '../../dependencies/LLM'
 import { zIsUUID } from '../../domain'
 import { responseAsHtml } from '../../libs/ssr/responseAsHtml'
 import { pageRouter } from '../pageRouter'

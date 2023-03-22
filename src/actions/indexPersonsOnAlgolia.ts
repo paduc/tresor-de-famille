@@ -1,7 +1,7 @@
 import { actionsRouter } from './actionsRouter'
-import { postgres } from '../dependencies/postgres'
+import { postgres } from '../dependencies/database'
 import { GedcomImported } from '../events'
-import { searchClient } from '../dependencies/algolia'
+import { searchClient } from '../dependencies/search'
 import { requireAuth } from '../dependencies/authn'
 
 actionsRouter.get('/indexPersonsOnAlgolia', requireAuth(), async (request, response) => {

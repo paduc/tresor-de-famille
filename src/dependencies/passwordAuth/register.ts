@@ -1,7 +1,7 @@
 import { UserRegisteredWithEmailAndPassword } from '../../events/UserRegisteredWithEmailAndPassword'
 import { getUuid } from '../../libs/getUuid'
 import { DomainEvent } from '../../libs/eventSourcing'
-import { postgres } from '../postgres'
+import { postgres } from '../database'
 
 type RegisterDeps = {
   publish: (event: DomainEvent) => unknown

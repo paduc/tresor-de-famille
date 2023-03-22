@@ -1,4 +1,4 @@
-import { postgres } from '../../dependencies/postgres'
+import { postgres } from '../../dependencies/database'
 import { BunnyCDNVideo, UserAddedBunnyCDNVideo } from '../../events'
 
 export const getVideos = async (): Promise<BunnyCDNVideo[]> => {

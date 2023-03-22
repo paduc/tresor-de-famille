@@ -1,6 +1,6 @@
 import zod from 'zod'
 import { publish } from '../../../dependencies/eventStore'
-import { openai } from '../../../dependencies/openai'
+import { openai } from '../../../dependencies/LLM'
 import { UUID } from '../../../domain'
 import { getUuid } from '../../../libs/getUuid'
 import { OpenAIFailedToMakeDeductions } from '../../chat/sendToOpenAIForDeductions/OpenAIFailedToMakeDeductions'

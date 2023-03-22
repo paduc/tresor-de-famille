@@ -1,5 +1,5 @@
 import { UUID } from '../../domain'
-import { postgres } from '../postgres'
+import { postgres } from '../database'
 
 export const makeLogin =
   (comparePassword: (password: string, passwordHash: string) => Promise<boolean>) =>

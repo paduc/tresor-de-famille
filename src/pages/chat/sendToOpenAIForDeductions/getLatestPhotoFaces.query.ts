@@ -1,5 +1,5 @@
 import Rekognition from 'aws-sdk/clients/rekognition'
-import { postgres } from '../../../dependencies/postgres'
+import { postgres } from '../../../dependencies/database'
 import { UUID } from '../../../domain'
 import { AWSFacesDetectedInChatPhoto } from '../recognizeFacesInChatPhoto/AWSFacesDetectedInChatPhoto'
 import { UserUploadedPhotoToChat } from '../uploadPhotoToChat/UserUploadedPhotoToChat'

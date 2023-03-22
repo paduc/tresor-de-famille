@@ -1,4 +1,4 @@
-import { postgres } from '../../../dependencies/postgres'
+import { postgres } from '../../../dependencies/database'
 import { UUID } from '../../../domain'
 import { GedcomImported } from '../../../events'
 import { makeIdCodeMap } from '../../../libs/makeIdCodeMap'

@@ -1,4 +1,4 @@
-import { postgres } from '../../dependencies/postgres'
+import { postgres } from '../../dependencies/database'
 import { UUID } from '../../domain'
 
 export const hasUserDesignatedThemselfAsPerson = async (userId: UUID): Promise<boolean> => {

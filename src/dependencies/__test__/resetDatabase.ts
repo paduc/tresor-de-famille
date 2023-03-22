@@ -1,24 +1,24 @@
-import { postgres } from '../postgres';
-import { tables } from '../../tables';
+import { postgres } from '../database'
+import { tables } from '../../tables'
 
 export const resetDatabase = async () => {
-  const tableNames = tables.map((p) => p.name);
+  const tableNames = tables.map((p) => p.name)
 
-  const client = await postgres.connect();
+  const client = await postgres.connect()
 
   try {
-    await client.query('BEGIN');
+    await client.query('BEGIN')
 
     for (const tableName of tableNames) {
-      await client.query(`TRUNCATE ${tableName}`);
+      await client.query(`TRUNCATE ${tableName}`)
     }
-    await client.query(`TRUNCATE events`);
+    await client.query(`TRUNCATE events`)
 
-    await client.query('COMMIT');
+    await client.query('COMMIT')
   } catch (error) {
-    await client.query('ROLLBACK');
-    throw error;
+    await client.query('ROLLBACK')
+    throw error
   } finally {
-    client.release();
+    client.release()
   }
-};
+}

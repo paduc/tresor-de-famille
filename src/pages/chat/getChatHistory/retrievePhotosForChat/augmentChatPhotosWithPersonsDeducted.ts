@@ -1,4 +1,4 @@
-import { postgres } from '../../../../dependencies/postgres'
+import { postgres } from '../../../../dependencies/database'
 import { UUID } from '../../../../domain'
 import { ChatPhotoFace } from '../../ChatPage/ChatPage'
 import { OpenAIMadeDeductions } from '../../sendToOpenAIForDeductions/OpenAIMadeDeductions'

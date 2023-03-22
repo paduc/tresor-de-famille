@@ -1,4 +1,4 @@
-import { postgres } from '../../../dependencies/postgres'
+import { postgres } from '../../../dependencies/database'
 import { getProfilePicUrlForUser } from '../../../dependencies/uploadPhoto'
 import { UUID } from '../../../domain'
 import { ChatEvent } from '../ChatPage/ChatPage'
