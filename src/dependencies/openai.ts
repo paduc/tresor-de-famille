@@ -17,8 +17,14 @@ export const openai = new OpenAIApi(configuration)
 //   model: 'gpt-3.5-turbo',
 //   messages: [
 //     {
+//       role: 'system',
+//       content: 'You are a nice assistant.',
+//     },
+//     {
 //       role: 'user',
-//       content: 'Write a blog on artificial intelligence',
+//       name: 'Pierre',
+//       content: 'What color are bluebirds ?',
 //     },
 //   ],
+//   temperature: 0
 // })

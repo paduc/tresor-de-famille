@@ -49,35 +49,40 @@ pageRouter
   })
   .post(requireAuth(), upload.single('photo'), async (request, response) => {
     console.log(`POST on /photo.html`)
-
-    const userId = request.session.user!.id
     const { chatId } = zod.object({ chatId: zIsUUID }).parse(request.params)
 
-    const { caption, photoId } = zod.object({ caption: zod.string().optional(), photoId: zIsUUID }).parse(request.body)
+    try {
+      const userId = request.session.user!.id
 
-    const { file } = request
-    if (file) {
-      const photoId = getUuid()
+      const { caption, photoId } = zod.object({ caption: zod.string().optional(), photoId: zIsUUID }).parse(request.body)
 
-      await uploadPhotoToChat({ file, photoId, chatId, userId })
+      const { file } = request
+      if (file) {
+        const photoId = getUuid()
 
-      await detectAWSFacesInChatPhoto({ file, chatId, photoId })
-    } else if (caption) {
-      const captionId = getUuid()
+        await uploadPhotoToChat({ file, photoId, chatId, userId })
 
-      await publish(
-        UserAddedCaptionToPhoto({
-          chatId,
-          photoId,
-          caption: {
-            id: captionId,
-            body: caption,
-          },
-          addedBy: userId,
-        })
-      )
+        await detectAWSFacesInChatPhoto({ file, chatId, photoId })
+      } else if (caption) {
+        const captionId = getUuid()
 
-      await makeDeductionsWithOpenAI({ chatId, userId })
+        await publish(
+          UserAddedCaptionToPhoto({
+            chatId,
+            photoId,
+            caption: {
+              id: captionId,
+              body: caption,
+            },
+            addedBy: userId,
+          })
+        )
+
+        await makeDeductionsWithOpenAI({ chatId, userId, debug: false })
+      }
+    } catch (error) {
+      console.log('Error in chat route')
+      throw error
     }
 
     return response.redirect(`/photo/${chatId}/photo.html`)

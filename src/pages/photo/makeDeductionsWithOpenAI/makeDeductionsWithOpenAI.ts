@@ -35,34 +35,35 @@ export async function makeDeductionsWithOpenAI({ chatId, userId, debug }: MakeDe
   if (!currentPerson) return
 
   // DOING: Adapt describe family
-  const family = await describeFamily({ personId: currentPersonId, distance: 3 })
+  const family = await describeFamily({ personId: currentPersonId, distance: 1 })
 
   let prompt = `
 You are chatting with ${currentPerson.name} and this is a description of his family:
 ${family.description}
-
 ${
   photoFacesDescription
-    ? `${currentPerson.name} shows you a photo where faces have been detected, from left to right : ${photoFacesDescription.description}`
+    ? `${currentPerson.name} shows you a photo.
+    
+    Face recognition software has detected faces in the photo. From left to right : ${photoFacesDescription.description}. THE GENDERS ARE NOT TO BE TRUSTED.`
     : ''
 }
 
-Caption:
+${currentPerson.name} added a caption describing the photo:
 "${photo.captions.map(({ body }) => body).join('\n')}"
 
-Parse the caption to determine which persons are ${photoFacesDescription.unknownFaces.join(', ')}.${
+Use the caption and family tree to determine which persons are ${photoFacesDescription.unknownFaces.join(', ')}.${
     photoFacesDescription.knownPersons.length
       ? `${photoFacesDescription.knownPersons.join(' and ')} are not possible because they already appear in the photo.`
       : ''
   }
 Use the following JSON schema for your response:
-{ "faces": [{ "faceCode": "faceA", "person": "John Doe" }, ... ]}}
+{ "steps": "First steps to determine the faces...", "faces": [{ "faceCode": "faceA", "person": "John Doe" }, ... ]}}
+Use the "steps" property to explain step by step how you got the results.
 
-ONLY RESPOND WITH VALID JSON. DO NOT EXPLAIN THE RESULT.
-
-You:
-      `
+You: { "steps": "`
   if (debug) console.log(prompt)
+
+  const prefixResultWith = `{ "steps": "`
 
   const promptId = getUuid()
   try {
@@ -74,7 +75,7 @@ You:
       max_tokens: 2000,
       user: userId,
     })
-    const gptResult = response.data.choices[0].text
+    const gptResult = prefixResultWith + response.data.choices[0].text
     if (!debug) {
       await publish(
         OpenAIPrompted({
@@ -93,7 +94,7 @@ You:
     console.log(JSON.stringify({ jsonGptResult }, null, 2))
 
     const { faces } = zod
-      .object({ faces: zod.array(zod.object({ faceCode: zod.string(), person: zod.string() })) })
+      .object({ steps: zod.string(), faces: zod.array(zod.object({ faceCode: zod.string(), person: zod.string() })) })
       .parse(jsonGptResult)
 
     const deductions: OpenAIMadeDeductions['payload']['deductions'] = []
@@ -132,7 +133,7 @@ You:
     }
     // TODO: publish event to be used in chat thread OpenAIAnnotatedChatPhoto
   } catch (error: any) {
-    console.log('OpenAI failed to parse prompt')
+    console.log('OpenAI failed to parse prompt', error)
     await publish(OpenAIFailedToMakeDeductions({ promptId, chatId, errorMessage: error.message || 'no message' }))
   }
 }

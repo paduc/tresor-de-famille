@@ -1,5 +1,4 @@
-import { UUID } from '../../../domain'
-import { getUuid } from '../../getUuid'
+import { v4 as uuid } from 'uuid'
 
 export type DomainEvent = BaseDomainEvent & {
   type: string
@@ -7,7 +6,7 @@ export type DomainEvent = BaseDomainEvent & {
 }
 
 export type BaseDomainEvent = {
-  eventId: UUID
+  eventId: string
   occurredAt: number
   aggregateId?: string | string[]
 }
@@ -19,7 +18,7 @@ export const makeDomainEvent = <T extends string, P>(specifics: {
   payload: P
   aggregateId?: DomainEvent['aggregateId']
 }): BaseDomainEvent & { type: T; payload: P } => ({
-  eventId: getUuid(),
+  eventId: uuid(), // postgres does not accept ULID
   occurredAt: Date.now(),
   type: specifics.type,
   payload: specifics.payload,
