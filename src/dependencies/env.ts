@@ -1,10 +1,10 @@
 import dotenv from 'dotenv'
 dotenv.config()
 
-export const throwIfUndefined = (variableName: string, condition: boolean) => {
+export const throwIfUndefined = (variableName: string, condition: boolean = true): string => {
   const value = process.env[variableName]
   if (!value && condition) throw new Error(`Expected ${variableName} to be Defined`)
-  return value
+  return value!
 }
 
 export const AUTHN = process.env.AUTHN

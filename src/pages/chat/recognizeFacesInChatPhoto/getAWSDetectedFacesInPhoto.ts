@@ -1,15 +1,5 @@
-import aws from 'aws-sdk'
 import { BoundingBox } from 'aws-sdk/clients/rekognition'
-import { UUID } from '../../../domain'
-
-// TODO: move this to /dependencies
-aws.config.update({
-  accessKeyId: process.env.AWS_ACCESS_KEY,
-  secretAccessKey: process.env.AWS_SECRET_KEY,
-  region: 'us-east-1',
-})
-
-const rekognition = new aws.Rekognition()
+import { getRekognition } from '../../../dependencies/face-recognition'
 
 const SIMILARITY_THRESHOLD = 95
 
@@ -21,7 +11,7 @@ export type AWSRecognizedFace = {
   awsFaceId: string
   position: BoundingBox
   confidence: number
-  details?: aws.Rekognition.FaceDetail
+  details?: AWS.Rekognition.FaceDetail
 }
 
 type GetDetectedFacesInPhotoArgs = {
@@ -34,6 +24,8 @@ export const getAWSDetectedFacesInPhoto = async ({
   photoContents,
   collectionId,
 }: GetDetectedFacesInPhotoArgs): Promise<AWSRecognizedFace[]> => {
+  const rekognition = getRekognition()
+
   const indexFacesResult = await rekognition
     .indexFaces({
       CollectionId: collectionId,

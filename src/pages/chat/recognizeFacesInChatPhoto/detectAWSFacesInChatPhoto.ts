@@ -2,11 +2,11 @@ import fs from 'node:fs'
 import sharp from 'sharp'
 import { publish } from '../../../dependencies/eventStore'
 import { postgres } from '../../../dependencies/database'
-import { awsRekognitionCollectionId } from '../../../dependencies/face-recognition'
 import { UUID } from '../../../domain'
 import { getUuid } from '../../../libs/getUuid'
 import { AWSFacesDetectedInChatPhoto } from './AWSFacesDetectedInChatPhoto'
 import { getAWSDetectedFacesInPhoto } from './getAWSDetectedFacesInPhoto'
+import { getAwsRekognitionCollectionId } from '../../../dependencies/face-recognition'
 
 type DetectFacesInChatPhotoArgs = {
   file: Express.Multer.File
@@ -20,7 +20,7 @@ export async function detectAWSFacesInChatPhoto({ file, chatId, photoId }: Detec
 
   const awsDetectedFaces = await getAWSDetectedFacesInPhoto({
     photoContents: fs.readFileSync(compressedFilePath),
-    collectionId: awsRekognitionCollectionId,
+    collectionId: getAwsRekognitionCollectionId(),
   })
 
   if (awsDetectedFaces.length) {
