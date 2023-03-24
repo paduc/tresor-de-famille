@@ -1,5 +1,5 @@
 import { postgres } from '../../../dependencies/database'
-import { getProfilePicUrlForUser } from '../../../dependencies/uploadPhoto'
+import { getProfilePicUrlForUser } from '../../../dependencies/photo-storage'
 import { UUID } from '../../../domain'
 import { ChatEvent } from '../ChatPage/ChatPage'
 import { UserSentMessageToChat } from '../sendMessageToChat/UserSentMessageToChat'

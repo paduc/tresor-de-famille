@@ -1,6 +1,6 @@
 import { postgres } from '../../dependencies/database'
 import { normalizeBBOX } from '../../dependencies/face-recognition'
-import { getPhotoUrlFromId } from '../../dependencies/uploadPhoto'
+import { getPhotoUrlFromId } from '../../dependencies/photo-storage'
 import { UUID } from '../../domain'
 import { AWSFacesDetectedInChatPhoto } from '../chat/recognizeFacesInChatPhoto/AWSFacesDetectedInChatPhoto'
 import { OpenAIMadeDeductions } from '../chat/sendToOpenAIForDeductions/OpenAIMadeDeductions'

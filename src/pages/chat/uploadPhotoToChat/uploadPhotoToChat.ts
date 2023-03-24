@@ -1,5 +1,5 @@
 import fs from 'node:fs'
-import { uploadPhoto } from '../../../dependencies/uploadPhoto'
+import { uploadPhoto } from '../../../dependencies/photo-storage'
 import { publish } from '../../../dependencies/eventStore'
 import { UserUploadedPhotoToChat } from './UserUploadedPhotoToChat'
 import { UUID } from '../../../domain'

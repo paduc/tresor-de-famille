@@ -1,6 +1,6 @@
 import { postgres } from '../../../../dependencies/database'
 import { normalizeBBOX } from '../../../../dependencies/face-recognition'
-import { getPhotoUrlFromId, getProfilePicUrlForUser } from '../../../../dependencies/uploadPhoto'
+import { getPhotoUrlFromId, getProfilePicUrlForUser } from '../../../../dependencies/photo-storage'
 import { UUID } from '../../../../domain'
 import { getPersonById } from '../../../_getPersonById'
 import { ChatEvent } from '../../ChatPage/ChatPage'
