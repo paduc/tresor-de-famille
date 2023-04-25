@@ -1,15 +1,14 @@
 import express, { Express } from 'express'
-require('express-async-errors')
 import session from 'express-session'
 import path from 'node:path'
+require('express-async-errors')
 
-import { tables } from './tables'
-import { sessionStore } from './dependencies/session'
-import { pageRouter } from './pages'
 import { actionsRouter } from './actions'
 import { registerAuth } from './dependencies/authn'
-import { subscribeAll } from './dependencies/eventStore'
 import { SESSION_SECRET } from './dependencies/env'
+import { sessionStore } from './dependencies/session'
+import { pageRouter } from './pages'
+import { createHistoryTable } from './dependencies/addToHistory'
 
 const PORT: number = parseInt(process.env.PORT ?? '3000')
 
@@ -45,13 +44,9 @@ app.use(actionsRouter)
 
 app.use(express.static(path.join(__dirname, 'assets')))
 
-app.listen(PORT, (): void => {
+app.listen(PORT, async (): Promise<void> => {
+  await createHistoryTable()
+
   // eslint-disable-next-line no-console
   console.log('Server listening to port', PORT)
-
-  subscribeAll(async (event) => {
-    for (const projectionTable of tables) {
-      await projectionTable.handleEvent(event)
-    }
-  })
 })

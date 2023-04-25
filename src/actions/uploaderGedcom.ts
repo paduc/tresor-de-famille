@@ -3,7 +3,7 @@ import { parse as parseGedcom } from 'parse-gedcom'
 import { v4 as uuid } from 'uuid'
 import { GedcomImported } from '../events/GedcomImported'
 
-import { publish } from '../dependencies/eventStore'
+import { addToHistory } from '../dependencies/addToHistory'
 import { actionsRouter } from './actionsRouter'
 import multer from 'multer'
 import bodyParser from 'body-parser'
@@ -79,7 +79,7 @@ actionsRouter.post(
         }
       }
 
-      await publish(
+      await addToHistory(
         GedcomImported({
           rawGedcom: fileContents,
           relationships: uniqueRelationships.map(({ parent, child }) => ({

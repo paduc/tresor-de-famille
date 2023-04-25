@@ -1,5 +1,5 @@
 import { UUID } from '../../../domain'
-import { BaseDomainEvent, makeDomainEvent } from '../../../libs/eventSourcing'
+import { DomainEvent, makeDomainEvent } from '../../../dependencies/addToHistory'
 
 type Deduction = {
   deductionId: UUID
@@ -16,17 +16,13 @@ type Deduction = {
     }
 )
 
-export type OpenAIMadeDeductions = BaseDomainEvent & {
-  type: 'OpenAIMadeDeductions'
-  payload: {
+export type OpenAIMadeDeductions = DomainEvent<
+  'OpenAIMadeDeductions',
+  {
     chatId: UUID
     promptId: UUID
     deductions: Deduction[]
   }
-}
+>
 
-export const OpenAIMadeDeductions = (payload: OpenAIMadeDeductions['payload']): OpenAIMadeDeductions =>
-  makeDomainEvent({
-    type: 'OpenAIMadeDeductions',
-    payload,
-  })
+export const OpenAIMadeDeductions = makeDomainEvent<OpenAIMadeDeductions>('OpenAIMadeDeductions')

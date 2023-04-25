@@ -1,5 +1,5 @@
 import { MediaTime, UUID } from '../domain'
-import { BaseDomainEvent, makeDomainEvent } from '../libs/eventSourcing'
+import { DomainEvent, makeDomainEvent } from '../dependencies/addToHistory'
 import { Epoch, zCustom } from '../libs/typeguards'
 
 export type TaggedPerson = UUID
@@ -24,13 +24,6 @@ export type VideoSequence = {
   addedOn: Epoch
 }
 
-export type VideoSequenceAdded = BaseDomainEvent & {
-  type: 'VideoSequenceAdded'
-  payload: VideoSequence
-}
+export type VideoSequenceAdded = DomainEvent<'VideoSequenceAdded', VideoSequence>
 
-export const VideoSequenceAdded = (payload: VideoSequenceAdded['payload']): VideoSequenceAdded =>
-  makeDomainEvent({
-    type: 'VideoSequenceAdded',
-    payload,
-  })
+export const VideoSequenceAdded = makeDomainEvent<VideoSequenceAdded>('VideoSequenceAdded')

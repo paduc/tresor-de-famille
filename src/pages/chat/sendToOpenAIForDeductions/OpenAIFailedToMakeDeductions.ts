@@ -1,17 +1,13 @@
 import { UUID } from '../../../domain'
-import { BaseDomainEvent, makeDomainEvent } from '../../../libs/eventSourcing'
+import { DomainEvent, makeDomainEvent } from '../../../dependencies/addToHistory'
 
-export type OpenAIFailedToMakeDeductions = BaseDomainEvent & {
-  type: 'OpenAIFailedToMakeDeductions'
-  payload: {
+export type OpenAIFailedToMakeDeductions = DomainEvent<
+  'OpenAIFailedToMakeDeductions',
+  {
     chatId: UUID
     promptId: UUID
     errorMessage: string
   }
-}
+>
 
-export const OpenAIFailedToMakeDeductions = (payload: OpenAIFailedToMakeDeductions['payload']): OpenAIFailedToMakeDeductions =>
-  makeDomainEvent({
-    type: 'OpenAIFailedToMakeDeductions',
-    payload,
-  })
+export const OpenAIFailedToMakeDeductions = makeDomainEvent<OpenAIFailedToMakeDeductions>('OpenAIFailedToMakeDeductions')

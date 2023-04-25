@@ -1,15 +1,11 @@
-import { BaseDomainEvent, makeDomainEvent } from '../libs/eventSourcing/types/DomainEvent'
+import { DomainEvent, makeDomainEvent } from '../dependencies/addToHistory'
 
-export type FauxUtilisateurInscrit = BaseDomainEvent & {
-  type: 'FauxUtilisateurInscrit'
-  payload: {
+export type FauxUtilisateurInscrit = DomainEvent<
+  'FauxUtilisateurInscrit',
+  {
     userId: string
     nom: string
   }
-}
+>
 
-export const FauxUtilisateurInscrit = (payload: FauxUtilisateurInscrit['payload']): FauxUtilisateurInscrit =>
-  makeDomainEvent({
-    type: 'FauxUtilisateurInscrit',
-    payload,
-  })
+export const FauxUtilisateurInscrit = makeDomainEvent<FauxUtilisateurInscrit>('FauxUtilisateurInscrit')

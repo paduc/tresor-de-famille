@@ -4,7 +4,7 @@ import { ImportGedcomSuccessPage } from './ImportGedcomSuccessPage'
 import { requireAuth } from '../../dependencies/authn'
 import { getGedcom } from './getGedcom.query'
 import { UserHasDesignatedThemselfAsPerson } from '../../events/UserHasDesignatedThemselfAsPerson'
-import { publish } from '../../dependencies/eventStore'
+import { addToHistory } from '../../dependencies/addToHistory'
 import z from 'zod'
 import { zIsUUID } from '../../domain'
 
@@ -28,7 +28,7 @@ pageRouter.route('/importGedcomSuccess.html').post(async (request, response) => 
 
     console.log('POST on /importGedcomSuccess.html')
 
-    await publish(UserHasDesignatedThemselfAsPerson({ userId, personId }))
+    await addToHistory(UserHasDesignatedThemselfAsPerson({ userId, personId }))
 
     response.redirect(`/person/:${personId}'`)
   } catch (error) {

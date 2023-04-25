@@ -1,4 +1,4 @@
-import { publish } from '../../../dependencies/eventStore'
+import { addToHistory } from '../../../dependencies/addToHistory'
 import { resetDatabase } from '../../../dependencies/__test__/resetDatabase'
 import { GedcomImported } from '../../../events'
 import { getUuid } from '../../../libs/getUuid'
@@ -21,7 +21,7 @@ const auntBeth = getUuid()
 describe('describeFamily', () => {
   beforeEach(async () => {
     await resetDatabase()
-    await publish(
+    await addToHistory(
       GedcomImported({
         rawGedcom: '',
         relationships: [

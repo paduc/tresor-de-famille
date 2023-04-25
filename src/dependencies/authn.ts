@@ -1,16 +1,10 @@
 import { Express, RequestHandler } from 'express'
 import { AUTHN } from './env'
-import { addFakeAuthRoutes } from './fakeAuth/addFakeAuthRoutes'
 import { addPasswordAuthRoutes } from './passwordAuth/addPasswordAuthRoutes'
 
 export const registerAuth = (app: Express) => {
   if (AUTHN === 'password') {
     addPasswordAuthRoutes(app)
-  }
-
-  if (AUTHN === 'fake') {
-    // For demo only
-    addFakeAuthRoutes(app)
   }
 }
 

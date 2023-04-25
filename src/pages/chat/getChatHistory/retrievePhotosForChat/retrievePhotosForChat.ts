@@ -24,7 +24,7 @@ export async function retrievePhotosForChat(chatId: UUID): Promise<ChatPhotoEven
 
   const photoRows = photoRowsRes.map(({ occurredAt, payload: { uploadedBy, photoId } }): ChatEvent & { type: 'photo' } => ({
     type: 'photo',
-    timestamp: occurredAt,
+    timestamp: occurredAt.getTime(),
     profilePicUrl: getProfilePicUrlForUser(uploadedBy),
     photo: {
       id: photoId,

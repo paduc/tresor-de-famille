@@ -2,7 +2,7 @@ import { IoTRoboRunner } from 'aws-sdk'
 import multer from 'multer'
 import zod from 'zod'
 import { requireAuth } from '../../dependencies/authn'
-import { publish } from '../../dependencies/eventStore'
+import { addToHistory } from '../../dependencies/addToHistory'
 import { zIsUUID } from '../../domain'
 import { getUuid } from '../../libs/getUuid'
 import { responseAsHtml } from '../../libs/ssr/responseAsHtml'
@@ -66,7 +66,7 @@ pageRouter
       } else if (caption) {
         const captionId = getUuid()
 
-        await publish(
+        await addToHistory(
           UserAddedCaptionToPhoto({
             chatId,
             photoId,

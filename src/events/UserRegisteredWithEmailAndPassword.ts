@@ -1,20 +1,16 @@
 import { UUID } from '../domain'
-import { BaseDomainEvent, makeDomainEvent } from '../libs/eventSourcing/types/DomainEvent'
+import { DomainEvent, makeDomainEvent } from '../dependencies/addToHistory'
 
-export type UserRegisteredWithEmailAndPassword = BaseDomainEvent & {
-  type: 'UserRegisteredWithEmailAndPassword'
-  payload: {
+export type UserRegisteredWithEmailAndPassword = DomainEvent<
+  'UserRegisteredWithEmailAndPassword',
+  {
     userId: UUID
     email: string
     passwordHash: string
     code?: string
   }
-}
+>
 
-export const UserRegisteredWithEmailAndPassword = (
-  payload: UserRegisteredWithEmailAndPassword['payload']
-): UserRegisteredWithEmailAndPassword =>
-  makeDomainEvent({
-    type: 'UserRegisteredWithEmailAndPassword',
-    payload,
-  })
+export const UserRegisteredWithEmailAndPassword = makeDomainEvent<UserRegisteredWithEmailAndPassword>(
+  'UserRegisteredWithEmailAndPassword'
+)

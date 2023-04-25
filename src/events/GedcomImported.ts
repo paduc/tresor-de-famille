@@ -1,5 +1,5 @@
 import { UUID } from '../domain'
-import { BaseDomainEvent, makeDomainEvent } from '../libs/eventSourcing/types/DomainEvent'
+import { DomainEvent, makeDomainEvent } from '../dependencies/addToHistory'
 
 type Relationship = {
   parentId: UUID
@@ -16,18 +16,14 @@ type Person = {
   sex?: 'M' | 'F'
 }
 
-export type GedcomImported = BaseDomainEvent & {
-  type: 'GedcomImported'
-  payload: {
+export type GedcomImported = DomainEvent<
+  'GedcomImported',
+  {
     rawGedcom: string
     relationships: Relationship[]
     persons: Person[]
     importedBy: UUID
   }
-}
+>
 
-export const GedcomImported = (payload: GedcomImported['payload']): GedcomImported =>
-  makeDomainEvent({
-    type: 'GedcomImported',
-    payload,
-  })
+export const GedcomImported = makeDomainEvent<GedcomImported>('GedcomImported')

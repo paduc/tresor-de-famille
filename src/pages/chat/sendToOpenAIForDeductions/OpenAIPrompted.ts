@@ -1,20 +1,16 @@
 import { UUID } from '../../../domain'
-import { BaseDomainEvent, makeDomainEvent } from '../../../libs/eventSourcing'
+import { DomainEvent, makeDomainEvent } from '../../../dependencies/addToHistory'
 
-export type OpenAIPrompted = BaseDomainEvent & {
-  type: 'OpenAIPrompted'
-  payload: {
+export type OpenAIPrompted = DomainEvent<
+  'OpenAIPrompted',
+  {
     chatId: UUID
     promptId: UUID
     promptedBy: UUID
     model: string
     prompt: string
-    response: string | undefined
+    response?: string
   }
-}
+>
 
-export const OpenAIPrompted = (payload: OpenAIPrompted['payload']): OpenAIPrompted =>
-  makeDomainEvent({
-    type: 'OpenAIPrompted',
-    payload,
-  })
+export const OpenAIPrompted = makeDomainEvent<OpenAIPrompted>('OpenAIPrompted')

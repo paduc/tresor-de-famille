@@ -2,7 +2,7 @@ import { responseAsHtml } from '../../libs/ssr/responseAsHtml'
 import { pageRouter } from '../pageRouter'
 import { requireAuth } from '../../dependencies/authn'
 import { WhoAreYouPage } from './WhoAreYouPage'
-import { publish } from '../../dependencies/eventStore'
+import { addToHistory } from '../../dependencies/addToHistory'
 import { UserHasDesignatedThemselfAsPerson } from '../../events'
 import { getPersonIdForUserId } from '../_getPersonIdForUserId.query'
 import { getPersonById, getPersonByIdOrThrow } from '../_getPersonById'
@@ -23,7 +23,7 @@ pageRouter
       return
     }
 
-    await publish(
+    await addToHistory(
       UserHasDesignatedThemselfAsPerson({
         userId: request.session.user!.id,
         personId: selectedPersonId,

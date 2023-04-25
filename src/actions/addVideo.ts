@@ -1,5 +1,5 @@
 import { requireAuth } from '../dependencies/authn'
-import { publish } from '../dependencies/eventStore'
+import { addToHistory } from '../dependencies/addToHistory'
 import { UserAddedBunnyCDNVideo } from '../events'
 import { responseAsHtml } from '../libs/ssr'
 import { AddVideoPage } from '../pages'
@@ -8,7 +8,7 @@ import { actionsRouter } from './actionsRouter'
 actionsRouter.post('/addVideo', requireAuth(), async (request, response) => {
   const { title, videoId, directPlayUrl, hlsPlaylistUrl, thumbnailUrl, previewUrl } = request.body
 
-  await publish(
+  await addToHistory(
     UserAddedBunnyCDNVideo({
       title,
       videoId,

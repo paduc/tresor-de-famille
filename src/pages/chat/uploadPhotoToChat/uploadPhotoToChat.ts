@@ -1,6 +1,6 @@
 import fs from 'node:fs'
 import { uploadPhoto } from '../../../dependencies/photo-storage'
-import { publish } from '../../../dependencies/eventStore'
+import { addToHistory } from '../../../dependencies/addToHistory'
 import { UserUploadedPhotoToChat } from './UserUploadedPhotoToChat'
 import { UUID } from '../../../domain'
 
@@ -15,5 +15,5 @@ export async function uploadPhotoToChat({ file, photoId, chatId, userId }: Uploa
 
   await uploadPhoto({ contents: fs.createReadStream(originalPath), id: photoId })
 
-  await publish(UserUploadedPhotoToChat({ chatId: chatId as UUID, photoId, uploadedBy: userId }))
+  await addToHistory(UserUploadedPhotoToChat({ chatId: chatId as UUID, photoId, uploadedBy: userId }))
 }

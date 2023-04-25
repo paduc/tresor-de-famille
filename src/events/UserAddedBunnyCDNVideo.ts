@@ -1,5 +1,5 @@
 import { UUID } from '../domain'
-import { BaseDomainEvent, makeDomainEvent } from '../libs/eventSourcing/types/DomainEvent'
+import { DomainEvent, makeDomainEvent } from '../dependencies/addToHistory'
 
 export type BunnyCDNVideo = {
   title: string
@@ -10,13 +10,6 @@ export type BunnyCDNVideo = {
   previewUrl: string
 }
 
-export type UserAddedBunnyCDNVideo = BaseDomainEvent & {
-  type: 'UserAddedBunnyCDNVideo'
-  payload: BunnyCDNVideo
-}
+export type UserAddedBunnyCDNVideo = DomainEvent<'UserAddedBunnyCDNVideo', BunnyCDNVideo>
 
-export const UserAddedBunnyCDNVideo = (payload: UserAddedBunnyCDNVideo['payload']): UserAddedBunnyCDNVideo =>
-  makeDomainEvent({
-    type: 'UserAddedBunnyCDNVideo',
-    payload,
-  })
+export const UserAddedBunnyCDNVideo = makeDomainEvent<UserAddedBunnyCDNVideo>('UserAddedBunnyCDNVideo')

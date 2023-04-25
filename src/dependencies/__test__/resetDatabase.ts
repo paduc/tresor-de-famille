@@ -1,17 +1,11 @@
 import { postgres } from '../database'
-import { tables } from '../../tables'
 
 export const resetDatabase = async () => {
-  const tableNames = tables.map((p) => p.name)
-
   const client = await postgres.connect()
 
   try {
     await client.query('BEGIN')
 
-    for (const tableName of tableNames) {
-      await client.query(`TRUNCATE ${tableName}`)
-    }
     await client.query(`TRUNCATE events`)
 
     await client.query('COMMIT')

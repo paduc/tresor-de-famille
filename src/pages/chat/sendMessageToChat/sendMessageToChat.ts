@@ -1,4 +1,4 @@
-import { publish } from '../../../dependencies/eventStore'
+import { addToHistory } from '../../../dependencies/addToHistory'
 import { UUID } from '../../../domain'
 import { UserSentMessageToChat } from './UserSentMessageToChat'
 
@@ -9,7 +9,7 @@ type SendMessageToChatArgs = {
   message: string
 }
 export async function sendMessageToChat({ messageId, chatId, userId, message }: SendMessageToChatArgs) {
-  await publish(
+  await addToHistory(
     UserSentMessageToChat({
       chatId,
       sentBy: userId,

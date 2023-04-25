@@ -106,7 +106,7 @@ ${description}`
       //     })
       //     .parse(request.body)
 
-      //   await publish(
+      //   await addToHistory(
       //     VideoSequenceAdded({
       //       videoId,
       //       startTime,

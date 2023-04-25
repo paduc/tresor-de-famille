@@ -1,18 +1,14 @@
 import { UUID } from '../domain'
-import { BaseDomainEvent, makeDomainEvent } from '../libs/eventSourcing/types/DomainEvent'
+import { DomainEvent, makeDomainEvent } from '../dependencies/addToHistory'
 
-export type UserHasDesignatedThemselfAsPerson = BaseDomainEvent & {
-  type: 'UserHasDesignatedThemselfAsPerson'
-  payload: {
+export type UserHasDesignatedThemselfAsPerson = DomainEvent<
+  'UserHasDesignatedThemselfAsPerson',
+  {
     userId: UUID
     personId: UUID
   }
-}
+>
 
-export const UserHasDesignatedThemselfAsPerson = (
-  payload: UserHasDesignatedThemselfAsPerson['payload']
-): UserHasDesignatedThemselfAsPerson =>
-  makeDomainEvent({
-    type: 'UserHasDesignatedThemselfAsPerson',
-    payload,
-  })
+export const UserHasDesignatedThemselfAsPerson = makeDomainEvent<UserHasDesignatedThemselfAsPerson>(
+  'UserHasDesignatedThemselfAsPerson'
+)

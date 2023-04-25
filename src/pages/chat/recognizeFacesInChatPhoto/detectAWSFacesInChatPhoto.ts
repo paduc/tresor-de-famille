@@ -1,6 +1,6 @@
 import fs from 'node:fs'
 import sharp from 'sharp'
-import { publish } from '../../../dependencies/eventStore'
+import { addToHistory } from '../../../dependencies/addToHistory'
 import { postgres } from '../../../dependencies/database'
 import { UUID } from '../../../domain'
 import { getUuid } from '../../../libs/getUuid'
@@ -32,7 +32,7 @@ export async function detectAWSFacesInChatPhoto({ file, chatId, photoId }: Detec
         faceId,
       })
     }
-    await publish(
+    await addToHistory(
       AWSFacesDetectedInChatPhoto({
         chatId,
         photoId,

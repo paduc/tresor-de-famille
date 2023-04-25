@@ -12,7 +12,7 @@ export async function retrieveMessagesForChat(chatId: UUID) {
 
   const messageRows = messageRowsRes.map(({ occurredAt, payload: { sentBy, message } }): ChatEvent & { type: 'message' } => ({
     type: 'message',
-    timestamp: occurredAt,
+    timestamp: occurredAt.getTime(),
     profilePicUrl: getProfilePicUrlForUser(sentBy),
     message: {
       body: message,

@@ -1,5 +1,5 @@
 import zod from 'zod'
-import { publish } from '../../../dependencies/eventStore'
+import { addToHistory } from '../../../dependencies/addToHistory'
 import { openai } from '../../../dependencies/LLM'
 import { UUID } from '../../../domain'
 import { getUuid } from '../../../libs/getUuid'
@@ -77,7 +77,7 @@ You: { "steps": "`
     })
     const gptResult = prefixResultWith + response.data.choices[0].text
     if (!debug) {
-      await publish(
+      await addToHistory(
         OpenAIPrompted({
           chatId,
           promptId: promptId,
@@ -123,7 +123,7 @@ You: { "steps": "`
       console.log(JSON.stringify({ deductions }, null, 2))
     }
     if (!debug) {
-      await publish(
+      await addToHistory(
         OpenAIMadeDeductions({
           chatId,
           promptId,
@@ -131,9 +131,9 @@ You: { "steps": "`
         })
       )
     }
-    // TODO: publish event to be used in chat thread OpenAIAnnotatedChatPhoto
+    // TODO: addToHistory event to be used in chat thread OpenAIAnnotatedChatPhoto
   } catch (error: any) {
     console.log('OpenAI failed to parse prompt', error)
-    await publish(OpenAIFailedToMakeDeductions({ promptId, chatId, errorMessage: error.message || 'no message' }))
+    await addToHistory(OpenAIFailedToMakeDeductions({ promptId, chatId, errorMessage: error.message || 'no message' }))
   }
 }

@@ -1,4 +1,4 @@
-import { publish } from '../../../../dependencies/eventStore'
+import { addToHistory } from '../../../../dependencies/addToHistory'
 import { resetDatabase } from '../../../../dependencies/__test__/resetDatabase'
 import { UUID } from '../../../../domain'
 import { getUuid } from '../../../../libs/getUuid'
@@ -61,7 +61,7 @@ describe('augmentChatPhotosWithFacesDetected', () => {
 
       beforeAll(async () => {
         await resetDatabase()
-        await publish(
+        await addToHistory(
           FacesDetectedInChatPhoto({
             chatId,
             photoId,
@@ -114,7 +114,7 @@ describe('augmentChatPhotosWithFacesDetected', () => {
 
       beforeAll(async () => {
         await resetDatabase()
-        await publish(
+        await addToHistory(
           FacesDetectedInChatPhoto({
             chatId,
             photoId,

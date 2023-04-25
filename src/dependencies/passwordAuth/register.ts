@@ -1,14 +1,14 @@
 import { UserRegisteredWithEmailAndPassword } from '../../events/UserRegisteredWithEmailAndPassword'
 import { getUuid } from '../../libs/getUuid'
-import { DomainEvent } from '../../libs/eventSourcing'
+import { DomainEvent } from '../addToHistory'
 import { postgres } from '../database'
 
 type RegisterDeps = {
-  publish: (event: DomainEvent) => unknown
+  addToHistory: (event: DomainEvent) => unknown
   hashPassword: (password: string) => Promise<string>
 }
 export const makeRegister =
-  ({ publish, hashPassword }: RegisterDeps) =>
+  ({ addToHistory, hashPassword }: RegisterDeps) =>
   async (email: string, password: string, code?: string) => {
     const { rowCount } = await postgres.query(
       "SELECT * FROM events WHERE type = 'UserRegisteredWithEmailAndPassword' AND payload->>'email'=$1 LIMIT 1",
@@ -22,7 +22,7 @@ export const makeRegister =
     const passwordHash = await hashPassword(password)
 
     const userId = getUuid()
-    await publish(
+    await addToHistory(
       UserRegisteredWithEmailAndPassword({
         userId,
         email,

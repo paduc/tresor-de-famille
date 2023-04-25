@@ -1,18 +1,14 @@
 import { UUID } from '../../../domain'
-import { BaseDomainEvent, makeDomainEvent } from '../../../libs/eventSourcing'
+import { DomainEvent, makeDomainEvent } from '../../../dependencies/addToHistory'
 
-export type UserSentMessageToChat = BaseDomainEvent & {
-  type: 'UserSentMessageToChat'
-  payload: {
+export type UserSentMessageToChat = DomainEvent<
+  'UserSentMessageToChat',
+  {
     chatId: UUID
     message: string
     messageId: UUID
     sentBy: UUID
   }
-}
+>
 
-export const UserSentMessageToChat = (payload: UserSentMessageToChat['payload']): UserSentMessageToChat =>
-  makeDomainEvent({
-    type: 'UserSentMessageToChat',
-    payload,
-  })
+export const UserSentMessageToChat = makeDomainEvent<UserSentMessageToChat>('UserSentMessageToChat')

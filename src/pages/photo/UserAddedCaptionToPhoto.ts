@@ -1,9 +1,9 @@
 import { UUID } from '../../domain'
-import { BaseDomainEvent, makeDomainEvent } from '../../libs/eventSourcing'
+import { DomainEvent, makeDomainEvent } from '../../dependencies/addToHistory'
 
-export type UserAddedCaptionToPhoto = BaseDomainEvent & {
-  type: 'UserAddedCaptionToPhoto'
-  payload: {
+export type UserAddedCaptionToPhoto = DomainEvent<
+  'UserAddedCaptionToPhoto',
+  {
     chatId: UUID
     photoId: UUID
     caption: {
@@ -12,10 +12,6 @@ export type UserAddedCaptionToPhoto = BaseDomainEvent & {
     }
     addedBy: UUID
   }
-}
+>
 
-export const UserAddedCaptionToPhoto = (payload: UserAddedCaptionToPhoto['payload']): UserAddedCaptionToPhoto =>
-  makeDomainEvent({
-    type: 'UserAddedCaptionToPhoto',
-    payload,
-  })
+export const UserAddedCaptionToPhoto = makeDomainEvent<UserAddedCaptionToPhoto>('UserAddedCaptionToPhoto')

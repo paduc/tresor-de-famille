@@ -38,7 +38,7 @@ export async function retrieveDeductionsForChat(chatId: UUID): Promise<ChatDeduc
 
     deductionsRows.push({
       type: 'deductions',
-      timestamp: deductionsRow.occurredAt,
+      timestamp: deductionsRow.occurredAt.getTime(),
       deductions,
     })
   }

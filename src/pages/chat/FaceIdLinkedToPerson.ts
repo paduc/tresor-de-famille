@@ -1,16 +1,12 @@
 import { UUID } from '../../domain'
-import { BaseDomainEvent, makeDomainEvent } from '../../libs/eventSourcing'
+import { DomainEvent, makeDomainEvent } from '../../dependencies/addToHistory'
 
-export type FaceIdLinkedToPerson = BaseDomainEvent & {
-  type: 'FaceIdLinkedToPerson'
-  payload: {
+export type FaceIdLinkedToPerson = DomainEvent<
+  'FaceIdLinkedToPerson',
+  {
     faceId: UUID
     personId: UUID
   }
-}
+>
 
-export const FaceIdLinkedToPerson = (payload: FaceIdLinkedToPerson['payload']): FaceIdLinkedToPerson =>
-  makeDomainEvent({
-    type: 'FaceIdLinkedToPerson',
-    payload,
-  })
+export const FaceIdLinkedToPerson = makeDomainEvent<FaceIdLinkedToPerson>('FaceIdLinkedToPerson')

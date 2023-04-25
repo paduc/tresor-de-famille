@@ -1,4 +1,4 @@
-import { publish } from '../../../../dependencies/eventStore'
+import { addToHistory } from '../../../../dependencies/addToHistory'
 import { resetDatabase } from '../../../../dependencies/__test__/resetDatabase'
 import { getUuid } from '../../../../libs/getUuid'
 import { ChatEvent } from '../../ChatPage/ChatPage'
@@ -77,7 +77,7 @@ describe('augmentChatPhotosWithPersonsDeducted', () => {
 
   //   beforeAll(async () => {
   //     await resetDatabase()
-  //     await publish(
+  //     await addToHistory(
   //       OpenAIMadeDeductions({
   //         chatId,
   //         promptId: getUuid(),
@@ -162,7 +162,7 @@ describe('augmentChatPhotosWithPersonsDeducted', () => {
 
   //   beforeAll(async () => {
   //     await resetDatabase()
-  //     await publish(
+  //     await addToHistory(
   //       OpenAIMadeDeductions({
   //         chatId,
   //         promptId: getUuid(),
@@ -177,7 +177,7 @@ describe('augmentChatPhotosWithPersonsDeducted', () => {
   //         ],
   //       })
   //     )
-  //     await publish(
+  //     await addToHistory(
   //       OpenAIMadeDeductions({
   //         chatId,
   //         promptId: getUuid(),

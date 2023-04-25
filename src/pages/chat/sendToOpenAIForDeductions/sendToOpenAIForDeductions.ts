@@ -48,7 +48,7 @@ export async function sendToOpenAIForDeductions({ chatId, userId, message, messa
 
   //     const gptResult = response.data.choices[0].text
 
-  //     await publish(
+  //     await addToHistory(
   //       OpenAIPrompted({
   //         chatId,
   //         promptId: promptId,
@@ -66,7 +66,7 @@ export async function sendToOpenAIForDeductions({ chatId, userId, message, messa
   //       .object({ faces: zod.array(zod.object({ faceCode: zod.string(), personCode: zod.string() })) })
   //       .parse(jsonGptResult)
 
-  //     await publish(
+  //     await addToHistory(
   //       OpenAIMadeDeductions({
   //         chatId,
   //         promptId,
@@ -80,10 +80,10 @@ export async function sendToOpenAIForDeductions({ chatId, userId, message, messa
   //       })
   //     )
 
-  //     // TODO: publish event to be used in chat thread OpenAIAnnotatedChatPhoto
+  //     // TODO: addToHistory event to be used in chat thread OpenAIAnnotatedChatPhoto
   //   } catch (error: any) {
   //     console.log('OpenAI failed to parse prompt')
-  //     await publish(OpenAIFailedToMakeDeductions({ promptId, chatId, errorMessage: error.message || 'no message' }))
+  //     await addToHistory(OpenAIFailedToMakeDeductions({ promptId, chatId, errorMessage: error.message || 'no message' }))
   //   }
   // }
 }

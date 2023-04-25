@@ -6,7 +6,7 @@ import { makeLogin } from './login'
 import { ConnexionPage } from './passwordConnexionPage'
 import bcrypt from 'bcryptjs'
 import { makeRegister } from './register'
-import { publish } from '../eventStore'
+import { addToHistory } from '../addToHistory'
 import { parseZodErrors } from '../../libs/parseZodErrors'
 import { PASSWORD_SALT, REGISTRATION_CODE } from '../env'
 import { getPersonIdForUserId } from '../../pages/_getPersonIdForUserId.query'
@@ -14,7 +14,7 @@ import { getPersonByIdOrThrow } from '../../pages/_getPersonById'
 
 const login = makeLogin(bcrypt.compare)
 const register = makeRegister({
-  publish: publish,
+  addToHistory: addToHistory,
   hashPassword: (password: string) => bcrypt.hash(password, PASSWORD_SALT),
 })
 
