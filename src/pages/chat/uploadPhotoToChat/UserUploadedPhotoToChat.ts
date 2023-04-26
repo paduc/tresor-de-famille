@@ -6,6 +6,14 @@ export type UserUploadedPhotoToChat = DomainEvent<
   {
     chatId: UUID
     photoId: UUID
+    location:
+      | {
+          type: 'S3'
+          bucket: string
+          endpoint: string
+          key: string
+        }
+      | { type: 'localfile' }
     uploadedBy: UUID
   }
 >

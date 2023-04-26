@@ -7,8 +7,17 @@ import { throwIfUndefined } from './env'
 
 const { PHOTO_STORAGE } = zod.object({ PHOTO_STORAGE: zod.enum(['S3', 'local']) }).parse(process.env)
 
+type PhotoLocation =
+  | {
+      type: 'S3'
+      bucket: string
+      endpoint: string
+      key: string
+    }
+  | { type: 'localfile' }
+
 let downloadPhoto: (photoId: UUID) => NodeJS.ReadableStream = downloadPhotoLocally
-let uploadPhoto: (args: UploadPhotoArgs) => Promise<unknown> = uploadPhotoLocally
+let uploadPhoto: (args: UploadPhotoArgs) => Promise<PhotoLocation> = uploadPhotoLocally
 
 if (PHOTO_STORAGE === 'S3') {
   const PHOTO_ACCESS_KEY_ID = throwIfUndefined('PHOTO_ACCESS_KEY_ID')
@@ -26,6 +35,13 @@ if (PHOTO_STORAGE === 'S3') {
 
   uploadPhoto = async ({ contents, id }: UploadPhotoArgs) => {
     await s3client.upload({ Bucket: PHOTO_BUCKET, Key: id, Body: contents }).promise()
+
+    return {
+      type: 'S3',
+      bucket: PHOTO_BUCKET,
+      endpoint: PHOTO_ENDPOINT,
+      key: id,
+    }
   }
 }
 
@@ -43,7 +59,7 @@ type UploadPhotoArgs = {
 }
 async function uploadPhotoLocally({ contents, id }: UploadPhotoArgs) {
   const filePath = localFilePath(id)
-  return new Promise((resolve, reject) => {
+  await new Promise((resolve, reject) => {
     const uploadWriteStream = fs.createWriteStream(filePath, {
       autoClose: true,
     })
@@ -51,6 +67,8 @@ async function uploadPhotoLocally({ contents, id }: UploadPhotoArgs) {
     uploadWriteStream.on('close', resolve)
     contents.pipe(uploadWriteStream)
   })
+
+  return { type: 'localfile' as const }
 }
 
 export const getPhotoUrlFromId = (photoId: UUID) => {

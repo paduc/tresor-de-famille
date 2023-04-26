@@ -13,7 +13,7 @@ type UploadPhotoToChatArgs = {
 export async function uploadPhotoToChat({ file, photoId, chatId, userId }: UploadPhotoToChatArgs) {
   const { path: originalPath } = file
 
-  await uploadPhoto({ contents: fs.createReadStream(originalPath), id: photoId })
+  const location = await uploadPhoto({ contents: fs.createReadStream(originalPath), id: photoId })
 
-  await addToHistory(UserUploadedPhotoToChat({ chatId: chatId as UUID, photoId, uploadedBy: userId }))
+  await addToHistory(UserUploadedPhotoToChat({ chatId: chatId as UUID, photoId, location, uploadedBy: userId }))
 }
