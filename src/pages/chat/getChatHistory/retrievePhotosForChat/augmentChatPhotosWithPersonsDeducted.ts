@@ -11,7 +11,7 @@ type AugmentChatPhotosWithPersonsDeductedDeps = {
 export const makeAugmentChatPhotosWithPersonsDeducted = ({ getPersonById }: AugmentChatPhotosWithPersonsDeductedDeps) =>
   async function augmentChatPhotosWithPersonsDeducted(chatId: UUID, photoRows: ChatPhotoEvent[]) {
     const { rows: openAIMadeDeductionRows } = await postgres.query<OpenAIMadeDeductions>(
-      "SELECT * FROM events WHERE type='OpenAIMadeDeductions' AND payload->>'chatId'=$1 ORDER BY occurred_at ASC",
+      "SELECT * FROM history WHERE type='OpenAIMadeDeductions' AND payload->>'chatId'=$1 ORDER BY \"occurredAt\" ASC",
       [chatId]
     )
 

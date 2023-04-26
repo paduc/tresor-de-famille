@@ -11,7 +11,7 @@ export const makeRegister =
   ({ addToHistory, hashPassword }: RegisterDeps) =>
   async (email: string, password: string, code?: string) => {
     const { rowCount } = await postgres.query(
-      "SELECT * FROM events WHERE type = 'UserRegisteredWithEmailAndPassword' AND payload->>'email'=$1 LIMIT 1",
+      "SELECT * FROM history WHERE type = 'UserRegisteredWithEmailAndPassword' AND payload->>'email'=$1 LIMIT 1",
       [email]
     )
 

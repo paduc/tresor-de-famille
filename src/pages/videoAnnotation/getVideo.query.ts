@@ -7,7 +7,7 @@ import { TaggedPersonDTO, VideoSequenceDTO } from './VideoAnnotationPage'
 
 export const getVideo = async (videoId: UUID): Promise<{ video: BunnyCDNVideo; sequences: VideoSequenceDTO[] }> => {
   const { rows: addedVideoEvents } = await postgres.query<UserAddedBunnyCDNVideo>(
-    "SELECT * FROM events WHERE type = 'UserAddedBunnyCDNVideo' AND payload->>'videoId'=$1 LIMIT 1",
+    "SELECT * FROM history WHERE type = 'UserAddedBunnyCDNVideo' AND payload->>'videoId'=$1 LIMIT 1",
     [videoId]
   )
 
@@ -18,7 +18,7 @@ export const getVideo = async (videoId: UUID): Promise<{ video: BunnyCDNVideo; s
   const video = addedVideoEvents[0].payload
 
   const { rows: allSequenceAddedEvents } = await postgres.query<VideoSequenceAdded>(
-    "SELECT * FROM events WHERE type = 'VideoSequenceAdded' AND payload->>'videoId'=$1 ORDER BY payload->>'addedOn' DESC",
+    "SELECT * FROM history WHERE type = 'VideoSequenceAdded' AND payload->>'videoId'=$1 ORDER BY payload->>'addedOn' DESC",
     [videoId]
   )
 

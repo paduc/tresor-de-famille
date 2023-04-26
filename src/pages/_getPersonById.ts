@@ -19,7 +19,7 @@ export const getPersonById = async (personId: UUID): Promise<PersonById | null> 
   }
 
   const { rows: gedcomImportedRows } = await postgres.query<GedcomImported>(
-    "SELECT * FROM events WHERE type = 'GedcomImported' LIMIT 1"
+    "SELECT * FROM history WHERE type = 'GedcomImported' LIMIT 1"
   )
 
   if (gedcomImportedRows.length) {
@@ -30,7 +30,7 @@ export const getPersonById = async (personId: UUID): Promise<PersonById | null> 
   }
 
   const { rows: deductionRows } = await postgres.query<OpenAIMadeDeductions>(
-    "SELECT * FROM events WHERE type = 'OpenAIMadeDeductions' ORDER BY occurred_at ASC"
+    'SELECT * FROM history WHERE type = \'OpenAIMadeDeductions\' ORDER BY "occurredAt" ASC'
   )
   for (const { payload } of deductionRows) {
     const personsFromDeductions = payload.deductions.filter(isNewPersonDeduction)

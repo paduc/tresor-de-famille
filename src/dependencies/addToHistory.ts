@@ -12,7 +12,7 @@ export const addToHistory = async ({ id, type, payload, occurredAt }: DomainEven
 
 export const createHistoryTable = async () => {
   return postgres.query(
-    `CREATE TABLE IF NOT EXISTS history (id UUID PRIMARY KEY, type VARCHAR(255) NOT NULL, details JSONB, "occurredAt" TIMESTAMPTZ NOT NULL);`
+    `CREATE TABLE IF NOT EXISTS history (id UUID PRIMARY KEY, type VARCHAR(255) NOT NULL, payload JSONB, "occurredAt" TIMESTAMPTZ NOT NULL);`
   )
 }
 

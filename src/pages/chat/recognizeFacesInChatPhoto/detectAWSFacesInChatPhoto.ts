@@ -44,7 +44,7 @@ export async function detectAWSFacesInChatPhoto({ file, chatId, photoId }: Detec
 
 async function getFaceIdForAWSFaceId(awsFaceId: string): Promise<UUID> {
   const { rows } = await postgres.query<AWSFacesDetectedInChatPhoto>(
-    "SELECT * FROM events WHERE type='AWSFacesDetectedInChatPhoto'",
+    "SELECT * FROM history WHERE type='AWSFacesDetectedInChatPhoto'",
     []
   )
 

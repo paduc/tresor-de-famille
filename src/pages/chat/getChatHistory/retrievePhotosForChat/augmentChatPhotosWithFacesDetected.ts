@@ -16,7 +16,7 @@ export const makeAugmentChatPhotosWithFacesDetected = ({
 }: AugmentChatPhotosWithFacesDetectedDeps) =>
   async function augmentChatPhotosWithFacesDetected(chatId: UUID, photoRows: ChatPhotoEvent[]) {
     const { rows: faceDetectedRowsRes } = await postgres.query<AWSFacesDetectedInChatPhoto>(
-      "SELECT * FROM events WHERE type='AWSFacesDetectedInChatPhoto' AND payload->>'chatId'=$1",
+      "SELECT * FROM history WHERE type='AWSFacesDetectedInChatPhoto' AND payload->>'chatId'=$1",
       [chatId]
     )
 

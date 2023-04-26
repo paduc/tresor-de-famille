@@ -11,7 +11,7 @@ import { UserAddedCaptionToPhoto } from './UserAddedCaptionToPhoto'
 
 export const getPhoto = async (chatId: UUID): Promise<PhotoPageProps['photo']> => {
   const { rows: photoRowsRes } = await postgres.query<UserUploadedPhotoToChat>(
-    "SELECT * FROM events WHERE type='UserUploadedPhotoToChat' AND payload->>'chatId'=$1 ORDER BY occurred_at DESC",
+    "SELECT * FROM history WHERE type='UserUploadedPhotoToChat' AND payload->>'chatId'=$1 ORDER BY \"occurredAt\" DESC",
     [chatId]
   )
 
@@ -89,7 +89,7 @@ type FaceId = UUID
 type PersonId = UUID
 async function getFaceIdToPersonIdDeductions(chatId: UUID, photoId: UUID): Promise<Map<FaceId, PersonId>> {
   const { rows: openAIMadeDeductionRows } = await postgres.query<OpenAIMadeDeductions>(
-    "SELECT * FROM events WHERE type='OpenAIMadeDeductions' AND payload->>'chatId'=$1 ORDER BY occurred_at ASC",
+    "SELECT * FROM history WHERE type='OpenAIMadeDeductions' AND payload->>'chatId'=$1 ORDER BY \"occurredAt\" ASC",
     [chatId]
   )
 
@@ -110,7 +110,7 @@ async function getDetectedFaces(chatId: UUID, photoId: UUID) {
   const detectedFaces: { faceId: UUID; position: PhotoFace['position'] }[] = []
 
   const { rows: faceDetectedRowsRes } = await postgres.query<AWSFacesDetectedInChatPhoto>(
-    "SELECT * FROM events WHERE type='AWSFacesDetectedInChatPhoto' AND payload->>'chatId'=$1",
+    "SELECT * FROM history WHERE type='AWSFacesDetectedInChatPhoto' AND payload->>'chatId'=$1",
     [chatId]
   )
   const facesDetectedRows = faceDetectedRowsRes.map((row) => row.payload).filter((faceRow) => faceRow.photoId === photoId)
@@ -128,7 +128,7 @@ async function getDetectedFaces(chatId: UUID, photoId: UUID) {
 
 async function getCaptionsForPhoto(chatId: UUID, photoId: UUID) {
   const { rows } = await postgres.query<UserAddedCaptionToPhoto>(
-    "SELECT * FROM events WHERE type='UserAddedCaptionToPhoto' AND payload->>'chatId'=$1 AND payload->>'photoId'=$2",
+    "SELECT * FROM history WHERE type='UserAddedCaptionToPhoto' AND payload->>'chatId'=$1 AND payload->>'photoId'=$2",
     [chatId, photoId]
   )
 
@@ -138,7 +138,7 @@ async function getCaptionsForPhoto(chatId: UUID, photoId: UUID) {
 const getPersonIdForFaceId = async (faceId: UUID): Promise<UUID | null> => {
   // For now, the only link is from OpenAI api calls
   const { rows } = await postgres.query<OpenAIMadeDeductions>(
-    "SELECT * FROM events WHERE type = 'OpenAIMadeDeductions' ORDER BY occurred_at DESC"
+    'SELECT * FROM history WHERE type = \'OpenAIMadeDeductions\' ORDER BY "occurredAt" DESC'
   )
 
   if (!rows.length) {

@@ -18,7 +18,7 @@ const augmentChatPhotosWithPersonsDeducted = makeAugmentChatPhotosWithPersonsDed
 export type ChatPhotoEvent = ChatEvent & { type: 'photo' }
 export async function retrievePhotosForChat(chatId: UUID): Promise<ChatPhotoEvent[]> {
   const { rows: photoRowsRes } = await postgres.query<UserUploadedPhotoToChat>(
-    "SELECT * FROM events WHERE type='UserUploadedPhotoToChat' AND payload->>'chatId'=$1",
+    "SELECT * FROM history WHERE type='UserUploadedPhotoToChat' AND payload->>'chatId'=$1",
     [chatId]
   )
 

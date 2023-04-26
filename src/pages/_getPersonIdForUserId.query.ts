@@ -3,7 +3,7 @@ import { UUID } from '../domain'
 
 export const getPersonIdForUserId = async (userId: UUID): Promise<UUID> => {
   const { rows: userHasDesignatedThemselfAsPersonRows } = await postgres.query(
-    "SELECT * FROM events WHERE type = 'UserHasDesignatedThemselfAsPerson' AND payload->>'userId'=$1 LIMIT 1",
+    "SELECT * FROM history WHERE type = 'UserHasDesignatedThemselfAsPerson' AND payload->>'userId'=$1 LIMIT 1",
     [userId]
   )
 

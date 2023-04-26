@@ -19,7 +19,7 @@ export const describeFamily = async ({
   personCodeMap: ReturnType<typeof makeIdCodeMap>
 }> => {
   const { rows: gedcomImportedRows } = await postgres.query<GedcomImported>(
-    "SELECT * FROM events WHERE type = 'GedcomImported' LIMIT 1"
+    "SELECT * FROM history WHERE type = 'GedcomImported' LIMIT 1"
   )
 
   if (!gedcomImportedRows.length) {

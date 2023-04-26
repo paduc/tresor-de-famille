@@ -6,7 +6,7 @@ import { UserSentMessageToChat } from '../sendMessageToChat/UserSentMessageToCha
 
 export async function retrieveMessagesForChat(chatId: UUID) {
   const { rows: messageRowsRes } = await postgres.query<UserSentMessageToChat>(
-    "SELECT * FROM events WHERE type='UserSentMessageToChat' AND payload->>'chatId'=$1",
+    "SELECT * FROM history WHERE type='UserSentMessageToChat' AND payload->>'chatId'=$1",
     [chatId]
   )
 

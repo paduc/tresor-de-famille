@@ -11,7 +11,7 @@ type ChatDeductionEvent = ChatEvent & { type: 'deductions' }
 type ChatDeduction = ChatDeductionEvent['deductions'][number]
 export async function retrieveDeductionsForChat(chatId: UUID): Promise<ChatDeductionEvent[]> {
   const { rows: deductionsRowsRes } = await postgres.query<OpenAIMadeDeductions>(
-    "SELECT * FROM events WHERE type='OpenAIMadeDeductions' AND payload->>'chatId'=$1",
+    "SELECT * FROM history WHERE type='OpenAIMadeDeductions' AND payload->>'chatId'=$1",
     [chatId]
   )
 
@@ -50,7 +50,7 @@ type Position = ChatDeduction['position']
 
 const getFaceBBoxInPhoto = async (faceId: UUID, photoId: UUID): Promise<Position> => {
   const { rows } = await postgres.query<AWSFacesDetectedInChatPhoto>(
-    "SELECT * FROM events WHERE type = 'AWSFacesDetectedInChatPhoto' AND payload->>'photoId'=$1 ORDER BY occurred_at ASC",
+    "SELECT * FROM history WHERE type = 'AWSFacesDetectedInChatPhoto' AND payload->>'photoId'=$1 ORDER BY \"occurredAt\" ASC",
     [photoId]
   )
 
