@@ -1,9 +1,8 @@
 import { Combobox } from '@headlessui/react'
 import { CheckIcon, PlusIcon } from '@heroicons/react/solid'
 import * as React from 'react'
-import { UUID } from '../../domain'
 
-import { BunnyCDNVideo } from '../../events'
+import { BunnyCDNVideo, VideoSequence } from '../../events'
 import { getUuid } from '../../libs/getUuid'
 import { withBrowserBundle } from '../../libs/ssr/withBrowserBundle'
 import { useSearchClient } from '../_components/AlgoliaContext'
@@ -25,8 +24,8 @@ export type TaggedPersonDTO = {
 }
 
 export type VideoSequenceDTO = {
-  videoId: UUID
-  sequenceId: UUID
+  videoId: string
+  sequenceId: string
   startTime?: string
   endTime?: string
   title?: string
@@ -42,28 +41,22 @@ export type VideoAnnotationProps =
       error: string
       video?: never
       sequences?: never
-      description?: never
-      parsedDescription?: never
     }
   | {
       success: string
       error?: never
       video?: never
       sequences?: never
-      description?: never
-      parsedDescription?: never
     }
   | {
       success?: never
       error?: never
       video: BunnyCDNVideo
-      description: string
-      parsedDescription: any
       sequences: VideoSequenceDTO[]
     }
 
 export const VideoAnnotationPage = withBrowserBundle(
-  ({ error, success, video, sequences: initialSequences = [], description = '', parsedDescription }: VideoAnnotationProps) => {
+  ({ error, success, video, sequences: initialSequences = [] }: VideoAnnotationProps) => {
     if (!video) {
       return (
         <AppLayout>
@@ -92,15 +85,7 @@ export const VideoAnnotationPage = withBrowserBundle(
 
           <SuccessError success={success} error={error} />
 
-          <form method='POST'>
-            <label htmlFor='description'>Description</label>
-            <textarea name='description' defaultValue={description}></textarea>
-            <button>Valider</button>
-          </form>
-
-          <pre>{JSON.stringify(parsedDescription, null, 2)}</pre>
-
-          {/* <div className='mt-5 md:grid md:grid-cols-1 md:gap-6'>
+          <div className='mt-5 md:grid md:grid-cols-1 md:gap-6'>
             {sequences.map((sequence) => (
               <SequenceBox sequence={sequence} key={`sequence_${sequence.sequenceId}`} />
             ))}
@@ -112,7 +97,7 @@ export const VideoAnnotationPage = withBrowserBundle(
             onClick={() => addNewSequence()}>
             <PlusIcon className='-ml-0.5 mr-2 h-4 w-4' aria-hidden='true' />
             Ajouter une séquence
-          </button> */}
+          </button>
         </div>
       </AppLayout>
     )

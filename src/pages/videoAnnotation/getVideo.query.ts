@@ -1,7 +1,6 @@
 import { postgres } from '../../dependencies/database'
 import { UUID } from '../../domain'
 import { BunnyCDNVideo, UserAddedBunnyCDNVideo, VideoSequence, VideoSequenceAdded } from '../../events'
-import { getGedcom } from '../importGedcomSuccess/getGedcom.query'
 import { getPersonById } from '../_getPersonById'
 import { TaggedPersonDTO, VideoSequenceDTO } from './VideoAnnotationPage'
 
