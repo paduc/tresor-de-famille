@@ -12,7 +12,7 @@ import { Layout } from './Layout'
 const sidebarNavigation = [
   // { name: 'Ma famille', href: '/personnes', icon: UserGroupIcon },
   // { name: 'All Files', href: '#', icon: ViewGridIcon },
-  { name: 'Chat', href: '/chat.html', icon: AnnotationIcon },
+  { name: 'Fils', href: '/threads.html', icon: AnnotationIcon },
   { name: 'Photos', href: '/photos.html', icon: PhotographIcon },
   { name: 'Videos', href: '/videos.html', icon: VideoCameraIcon },
   // { name: 'Albums', href: '#', icon: CollectionIcon },
