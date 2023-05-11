@@ -4,7 +4,6 @@ import path from 'node:path'
 require('express-async-errors')
 
 import { actionsRouter } from './actions'
-import { registerAuth } from './dependencies/authn'
 import { SESSION_SECRET } from './dependencies/env'
 import { sessionStore } from './dependencies/session'
 import { pageRouter } from './pages'
@@ -37,8 +36,6 @@ app.use(
     cookie: { maxAge: 30 * 24 * 60 * 60 * 1000 },
   })
 )
-
-registerAuth(app)
 
 app.use(pageRouter)
 app.use(actionsRouter)

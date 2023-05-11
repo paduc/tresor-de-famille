@@ -1,16 +1,16 @@
-import { Express } from 'express'
 import z, { ZodError } from 'zod'
+import bcrypt from 'bcryptjs'
 
 import { responseAsHtml } from '../../libs/ssr/responseAsHtml'
+import { pageRouter } from '../pageRouter'
+import { ConnexionPage } from './ConnexionPage'
 import { makeLogin } from './login'
-import { ConnexionPage } from './passwordConnexionPage'
-import bcrypt from 'bcryptjs'
 import { makeRegister } from './register'
-import { addToHistory } from '../addToHistory'
+import { addToHistory } from '../../dependencies/addToHistory'
+import { PASSWORD_SALT, REGISTRATION_CODE } from '../../dependencies/env'
 import { parseZodErrors } from '../../libs/parseZodErrors'
-import { PASSWORD_SALT, REGISTRATION_CODE } from '../env'
-import { getPersonIdForUserId } from '../../pages/_getPersonIdForUserId.query'
-import { getPersonByIdOrThrow } from '../../pages/_getPersonById'
+import { getPersonByIdOrThrow } from '../_getPersonById'
+import { getPersonIdForUserId } from '../_getPersonIdForUserId.query'
 
 const login = makeLogin(bcrypt.compare)
 const register = makeRegister({
@@ -18,8 +18,9 @@ const register = makeRegister({
   hashPassword: (password: string) => bcrypt.hash(password, PASSWORD_SALT),
 })
 
-export const addPasswordAuthRoutes = (app: Express) => {
-  app.get('/login.html', async (request, response) => {
+pageRouter
+  .route('/login.html')
+  .get(async (request, response) => {
     const { redirectTo, code } = z
       .object({
         code: z.string().optional(),
@@ -29,8 +30,7 @@ export const addPasswordAuthRoutes = (app: Express) => {
 
     responseAsHtml(request, response, ConnexionPage({ redirectTo, code }))
   })
-
-  app.post('/login.html', async (request, response) => {
+  .post(async (request, response) => {
     try {
       const { loginType, email, password, redirectTo, code } = z
         .object({
@@ -94,4 +94,3 @@ export const addPasswordAuthRoutes = (app: Express) => {
       )
     }
   })
-}

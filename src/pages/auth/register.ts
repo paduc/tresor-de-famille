@@ -1,7 +1,7 @@
+import { DomainEvent } from '../../dependencies/addToHistory'
+import { postgres } from '../../dependencies/database'
 import { UserRegisteredWithEmailAndPassword } from '../../events/UserRegisteredWithEmailAndPassword'
 import { getUuid } from '../../libs/getUuid'
-import { DomainEvent } from '../addToHistory'
-import { postgres } from '../database'
 
 type RegisterDeps = {
   addToHistory: (event: DomainEvent) => unknown
