@@ -22,8 +22,6 @@ const fakeProfilePicUrl =
   'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80'
 
 pageRouter.route('/chat.html').get(requireAuth(), async (request, response) => {
-  console.log(`GET on /chat.html`)
-
   const newChatId = getUuid()
 
   response.redirect(`/chat/${newChatId}/chat.html`)
@@ -32,8 +30,6 @@ pageRouter.route('/chat.html').get(requireAuth(), async (request, response) => {
 pageRouter
   .route('/chat/:chatId/chat.html')
   .get(requireAuth(), async (request, response) => {
-    console.log(`GET on /chat/:chatId/chat.html`)
-
     const { chatId } = zod.object({ chatId: zIsUUID }).parse(request.params)
 
     const history: ChatPageProps['history'] = await getChatHistory(chatId)
@@ -48,8 +44,6 @@ pageRouter
     )
   })
   .post(requireAuth(), upload.single('photo'), async (request, response) => {
-    console.log(`POST on /chat.html`)
-
     const userId = request.session.user!.id
     const { chatId } = zod.object({ chatId: zIsUUID }).parse(request.params)
 

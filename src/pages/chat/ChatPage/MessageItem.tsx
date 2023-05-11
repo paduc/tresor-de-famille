@@ -19,7 +19,7 @@ export const MessageItem = ({ event }: MessageItemProps) => {
       </div>
       <div className='min-w-0 flex-1 pt-0 py-1.5'>
         <div className='mt-2 text-sm text-gray-700'>
-          <p>{event.message.body}</p>
+          <p className='whitespace-pre-wrap'>{event.message.body}</p>
         </div>
       </div>
     </ChatItem>

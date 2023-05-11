@@ -2,6 +2,7 @@ import * as React from 'react'
 import { SessionContext } from '../../_components'
 
 import { ChatEvent, ChatPage } from './ChatPage'
+import { UUID } from '../../../domain'
 
 export default { title: 'Chat avec IA', component: ChatPage }
 
@@ -15,12 +16,12 @@ const starterHistory: ChatEvent[] = [
     profilePicUrl:
       'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80',
     photo: {
-      id: 'photo123',
+      id: 'photo123' as UUID,
       url: 'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=500&h=500&q=80',
       faces: [
         {
           person: null,
-          faceId: 'face123',
+          faceId: 'face123' as UUID,
           position: {
             width: 0.3004770278930664,
             height: 0.39314860105514526,
@@ -48,7 +49,7 @@ const starterHistory: ChatEvent[] = [
         person: {
           name: 'Toto',
         },
-        faceId: 'face123',
+        faceId: 'face123' as UUID,
         photo: {
           url: 'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=500&h=500&q=80',
         },
