@@ -24,8 +24,6 @@ const fakeProfilePicUrl =
   'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80'
 
 pageRouter.route('/photo.html').get(requireAuth(), async (request, response) => {
-  console.log(`GET on /photos.html`)
-
   const newChatId = getUuid()
 
   response.redirect(`/photo/${newChatId}/photo.html`)
@@ -34,8 +32,6 @@ pageRouter.route('/photo.html').get(requireAuth(), async (request, response) => 
 pageRouter
   .route('/photo/:chatId/photo.html')
   .get(requireAuth(), async (request, response) => {
-    console.log(`GET on /photo/:chatId/photo.html`)
-
     try {
       const { chatId } = zod.object({ chatId: zIsUUID }).parse(request.params)
 
@@ -43,12 +39,11 @@ pageRouter
 
       responseAsHtml(request, response, PhotoPage({ photo }))
     } catch (error) {
-      console.log('error', error)
+      console.error('error', error)
       response.send(error)
     }
   })
   .post(requireAuth(), upload.single('photo'), async (request, response) => {
-    console.log(`POST on /photo.html`)
     const { chatId } = zod.object({ chatId: zIsUUID }).parse(request.params)
 
     try {
@@ -81,7 +76,7 @@ pageRouter
         await makeDeductionsWithOpenAI({ chatId, userId, debug: false })
       }
     } catch (error) {
-      console.log('Error in chat route')
+      console.error('Error in chat route')
       throw error
     }
 

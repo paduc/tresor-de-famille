@@ -10,9 +10,7 @@ import { getPersonById, getPersonByIdOrThrow } from '../_getPersonById'
 pageRouter
   .route('/qui-es-tu')
   .get(requireAuth(), async (request, response) => {
-    console.log(`GET on /qui-es-tu`)
-
-    responseAsHtml(request, response, WhoAreYouPage())
+    responseAsHtml(request, response, WhoAreYouPage({}))
   })
   .post(requireAuth(), async (request, response) => {
     const { selectedPersonId } = request.body

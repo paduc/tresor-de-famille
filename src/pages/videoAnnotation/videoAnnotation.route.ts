@@ -13,8 +13,6 @@ pageRouter
   .route('/video/:videoId/annotate.html')
   .all(requireAuth())
   .get(async (request, response) => {
-    console.log(`GET on /video/:videoId/annotate.html`, request.params)
-
     try {
       const { videoId } = zod.object({ videoId: zIsUUID }).parse(request.params)
 
@@ -22,13 +20,11 @@ pageRouter
 
       responseAsHtml(request, response, VideoAnnotationPage({ video, sequences }))
     } catch (error: any) {
-      console.log({ error })
+      console.error({ error })
       return responseAsHtml(request, response, VideoAnnotationPage({ error: error.message }))
     }
   })
   .post(async (request, response) => {
-    console.log(`POST on /video/:videoId/annotate.html`)
-
     try {
       // Parse and validate the form fields using Zod
       const { videoId, sequenceId, title, description, date, places, persons, startTime, endTime } = zod

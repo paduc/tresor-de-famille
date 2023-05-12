@@ -13,7 +13,6 @@ export const useSearchClient = () => {
 
     const { appId, searchKey } = (window as any).__ALGOLIA__
 
-    console.log('Setting searchClient')
     const searchClient = algoliasearch(appId, searchKey)
     setSearchClient(searchClient)
     const index = searchClient.initIndex('persons')

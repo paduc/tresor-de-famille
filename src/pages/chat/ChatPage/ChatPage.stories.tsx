@@ -4,7 +4,7 @@ import { SessionContext } from '../../_components'
 import { ChatEvent, ChatPage } from './ChatPage'
 import { UUID } from '../../../domain'
 
-export default { title: 'Chat avec IA', component: ChatPage }
+export default { title: 'Chat avec IA', component: ChatPage, parameters: { layout: 'fullscreen' } }
 
 const t0 = Date.now()
 const HOUR = 3600 * 1000

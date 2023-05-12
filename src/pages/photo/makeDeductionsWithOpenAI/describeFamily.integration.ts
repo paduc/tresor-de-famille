@@ -3,6 +3,7 @@ import { resetDatabase } from '../../../dependencies/__test__/resetDatabase'
 import { GedcomImported } from '../../../events'
 import { getUuid } from '../../../libs/getUuid'
 import { describeFamily } from './describeFamily'
+import { UUID } from '../../../domain'
 
 const personId = getUuid()
 const wifeId = getUuid()
@@ -156,14 +157,13 @@ describe('describeFamily', () => {
             name: 'Aunt Bethany',
           },
         ],
-        importedBy: '',
+        importedBy: '' as UUID,
       })
     )
   })
 
   it('should return a string description of the person family', async () => {
     const res = await describeFamily({ personId })
-    console.log(res)
     expect(res).toBeDefined()
   })
 })

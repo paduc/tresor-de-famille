@@ -1,5 +1,5 @@
 import callsites from 'callsites'
-import React from 'react'
+import React, { FunctionComponent } from 'react'
 import { hydrate } from 'react-dom'
 import { LocationContext } from '../../pages/_components/LocationContext'
 import { SessionContext } from '../../pages/_components/SessionContext'
@@ -8,12 +8,12 @@ import { withContext } from './withContext'
 
 const isServerContext = typeof window === 'undefined'
 
-export function withBrowserBundle<ComponentProps>(Component: (props: ComponentProps) => JSX.Element) {
+export function withBrowserBundle<ComponentType extends FunctionComponent<any>>(Component: ComponentType) {
   // This will be executed twice
 
   if (isServerContext) {
     // 1) On the server, for server-side rendering
-    return serverCode<ComponentProps>(Component)
+    return serverCode(Component)
   }
 
   // 2) On the browser, for client-side hydrating
@@ -25,9 +25,9 @@ export function withBrowserBundle<ComponentProps>(Component: (props: ComponentPr
  * @param Component
  * @returns Component with additional outerProps and componentName properties
  */
-function serverCode<ComponentProps>(Component: (props: ComponentProps) => JSX.Element) {
+function serverCode<ComponentType extends FunctionComponent>(Component: ComponentType) {
   const componentName = getComponentNameFromCallsite()
-  return (props?: ComponentProps) => {
+  return (props?: ExtractPropsType<ComponentType>) => {
     // Call React.createElement to transform pure function to React Function Component
     // this enables hooks (see https://stackoverflow.com/questions/65982665/react-17-0-1-invalid-hook-call-hooks-can-only-be-called-inside-of-the-body-of)
 
@@ -35,7 +35,11 @@ function serverCode<ComponentProps>(Component: (props: ComponentProps) => JSX.El
   }
 }
 
-const browserCode = (Component: (props?: any) => JSX.Element) => {
+type ExtractPropsType<ComponentType extends FunctionComponent> = ComponentType extends FunctionComponent<infer Props>
+  ? Props
+  : never
+
+const browserCode = <ComponentType extends FunctionComponent>(Component: ComponentType) => {
   // The following code executes in the browser
 
   window.addEventListener('DOMContentLoaded', function () {

@@ -9,7 +9,6 @@ import z from 'zod'
 import { zIsUUID } from '../../domain'
 
 pageRouter.route('/importGedcomSuccess.html').get(requireAuth(), async (request, response) => {
-  console.log(`GET on /importGedcomSucess.html`)
   const gedcom = await getGedcom()
 
   // @ts-ignore
@@ -25,8 +24,6 @@ pageRouter.route('/importGedcomSuccess.html').post(async (request, response) => 
       .parse(request.body)
 
     const userId = request.session.user?.id!
-
-    console.log('POST on /importGedcomSuccess.html')
 
     await addToHistory(UserHasDesignatedThemselfAsPerson({ userId, personId }))
 

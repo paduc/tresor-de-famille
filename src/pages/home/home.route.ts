@@ -7,8 +7,6 @@ import { getPersonIdForUserId } from '../_getPersonIdForUserId.query'
 import { getPersonByIdOrThrow } from '../_getPersonById'
 
 pageRouter.route('/').get(requireAuth(), async (request, response) => {
-  console.log(`GET on /`)
-
   const userHasDesignatedThemselfAsPerson = await hasUserDesignatedThemselfAsPerson(request.session.user!.id)
 
   if (!userHasDesignatedThemselfAsPerson) {

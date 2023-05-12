@@ -1,4 +1,4 @@
-import * as React from 'react'
+import React, { FunctionComponent } from 'react'
 import { UUID } from '../../../domain'
 
 import { withBrowserBundle } from '../../../libs/ssr/withBrowserBundle'
