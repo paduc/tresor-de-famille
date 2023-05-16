@@ -1,14 +1,13 @@
-import { responseAsHtml } from '../../libs/ssr/responseAsHtml'
-import { pageRouter } from '../pageRouter'
-import { requireAuth } from '../../dependencies/authn'
-import { WhoAreYouPage } from './WhoAreYouPage'
 import { addToHistory } from '../../dependencies/addToHistory'
+import { requireAuth } from '../../dependencies/authn'
 import { UserHasDesignatedThemselfAsPerson } from '../../events'
-import { getPersonIdForUserId } from '../_getPersonIdForUserId.query'
-import { getPersonById, getPersonByIdOrThrow } from '../_getPersonById'
+import { responseAsHtml } from '../../libs/ssr/responseAsHtml'
+import { getPersonByIdOrThrow } from '../_getPersonById'
+import { pageRouter } from '../pageRouter'
+import { WhoAreYouPage } from './WhoAreYouPage'
 
 pageRouter
-  .route('/qui-es-tu')
+  .route('/qui-es-tu.html')
   .get(requireAuth(), async (request, response) => {
     responseAsHtml(request, response, WhoAreYouPage({}))
   })
