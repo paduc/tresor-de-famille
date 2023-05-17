@@ -56,6 +56,11 @@ module.exports = {
   },
   output: {
     filename: '[name].js',
-    path: path.resolve(__dirname, 'dist', 'assets', 'js'),
+    path: path.resolve(
+      __dirname,
+      process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'staging' ? 'dist' : 'src',
+      'assets',
+      'js'
+    ),
   },
 }

@@ -44,7 +44,7 @@ export function responseAsHtml(
               `
             : ''}
         </head>
-        <body class="h-full overflow-hidden">
+        <body class="h-full">
           <!-- prettier-ignore -->
           <div id="root">${ReactDOMServer.renderToString(
             withContext(

@@ -8,6 +8,7 @@ import { SuccessError } from '../../_components/SuccessError'
 import { HoverContext, HoverProvider } from './HoverProvider'
 import { PhotoIcon } from './PhotoIcon'
 import { SendIcon } from './SendIcon'
+import { InlinePhotoUpload } from '../../_components/InlinePhotoUpload'
 
 // @ts-ignore
 function classNames(...classes) {
@@ -84,12 +85,6 @@ export type PhotoPageProps = {
 }
 
 export const PhotoPage = withBrowserBundle(({ error, success, photo }: PhotoPageProps) => {
-  const photoUploadForm = React.useRef<HTMLFormElement>(null)
-
-  const photoUploadFileSelected = (e: any) => {
-    if (photoUploadForm.current !== null) photoUploadForm.current.submit()
-  }
-
   const knownFaces = photo?.faces
     ?.filter((face) => face.person !== null)
     .sort((faceA, faceB) => faceA.position.left - faceB.position.left)
@@ -170,23 +165,12 @@ export const PhotoPage = withBrowserBundle(({ error, success, photo }: PhotoPage
                 <p className='max-w-xl mt-5 mx-auto text-xl text-gray-500'>
                   Téléverse une photo et rajoute une description pour la postérité.
                 </p>
-                <form ref={photoUploadForm} method='post' encType='multipart/form-data'>
-                  <input type='hidden' name='photoId' defaultValue={getUuid()} />
-                  <input
-                    type='file'
-                    id='file-input'
-                    name='photo'
-                    className='hidden'
-                    accept='image/png, image/jpeg, image/jpg'
-                    onChange={photoUploadFileSelected}
-                  />
-                  <label
-                    htmlFor='file-input'
-                    className='inline-flex items-center mt-6 px-3 py-1.5 border border-transparent sm:text-sm cursor-pointer font-medium rounded-full shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
+                <InlinePhotoUpload>
+                  <span className='inline-flex items-center mt-6 px-3 py-1.5 border border-transparent sm:text-sm cursor-pointer font-medium rounded-full shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
                     <PhotoIcon className='-ml-0.5 mr-2 h-4 w-4' aria-hidden='true' />
                     Ajouter une photo
-                  </label>
-                </form>
+                  </span>
+                </InlinePhotoUpload>
               </div>
             </div>
           )}

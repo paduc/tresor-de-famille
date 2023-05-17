@@ -40,6 +40,7 @@ pageRouter
       ChatPage({
         history,
         userProfilePicUrl: fakeProfilePicUrl,
+        chatId,
       })
     )
   })
@@ -66,15 +67,4 @@ pageRouter
 
     // TODO: try catch error and send it back as HTML (or redirect if OK)
     return response.redirect(`/chat/${chatId}/chat.html`)
-
-    const history: ChatPageProps['history'] = await getChatHistory(chatId)
-
-    responseAsHtml(
-      request,
-      response,
-      ChatPage({
-        history,
-        userProfilePicUrl: fakeProfilePicUrl,
-      })
-    )
   })

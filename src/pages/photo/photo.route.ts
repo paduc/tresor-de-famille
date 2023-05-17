@@ -82,3 +82,31 @@ pageRouter
 
     return response.redirect(`/photo/${chatId}/photo.html`)
   })
+
+pageRouter.route('/add-photo.html').post(requireAuth(), upload.single('photo'), async (request, response) => {
+  try {
+    const { chatId: chatIdFromForm } = zod.object({ chatId: zIsUUID.optional() }).parse(request.body)
+
+    const chatId = chatIdFromForm || getUuid()
+
+    const userId = request.session.user!.id
+
+    const { file } = request
+    if (file) {
+      const photoId = getUuid()
+
+      await uploadPhotoToChat({ file, photoId, chatId, userId })
+
+      await detectAWSFacesInChatPhoto({ file, chatId, photoId })
+    }
+
+    if (chatIdFromForm) {
+      return response.redirect(`/chat/${chatIdFromForm}/chat.html`)
+    }
+
+    return response.redirect(`/photo/${chatId}/photo.html`)
+  } catch (error) {
+    console.error('Error in chat route')
+    throw error
+  }
+})

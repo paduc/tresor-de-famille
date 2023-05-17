@@ -73,9 +73,10 @@ export type ChatPageProps = {
   error?: string
   history: ChatEvent[]
   userProfilePicUrl: string
+  chatId: string
 }
 
-export const ChatPage = withBrowserBundle(({ error, success, history, userProfilePicUrl }: ChatPageProps) => {
+export const ChatPage = withBrowserBundle(({ error, success, history, userProfilePicUrl, chatId }: ChatPageProps) => {
   return (
     <AppLayout>
       <HoverProvider>
@@ -100,7 +101,7 @@ export const ChatPage = withBrowserBundle(({ error, success, history, userProfil
                     return null
                   })
                 : null}
-              <AddPhotoOrMessageItem userProfilePicUrl={userProfilePicUrl} />
+              <AddPhotoOrMessageItem userProfilePicUrl={userProfilePicUrl} chatId={chatId} />
             </ul>
           </div>
         </div>

@@ -3,15 +3,10 @@ import { useRef } from 'react'
 import { SendIcon } from './SendIcon'
 import { ChatItem } from './ChatPage'
 import { PhotoIcon } from './PhotoIcon'
+import { InlinePhotoUpload } from '../../_components/InlinePhotoUpload'
 
-type AddPhotoOrMessageItemProps = { userProfilePicUrl: string }
-export const AddPhotoOrMessageItem = ({ userProfilePicUrl }: AddPhotoOrMessageItemProps) => {
-  const photoUploadForm = useRef<HTMLFormElement>(null)
-
-  const photoUploadFileSelected = (e: any) => {
-    if (photoUploadForm.current !== null) photoUploadForm.current.submit()
-  }
-
+type AddPhotoOrMessageItemProps = { userProfilePicUrl: string; chatId: string }
+export const AddPhotoOrMessageItem = ({ userProfilePicUrl, chatId }: AddPhotoOrMessageItemProps) => {
   return (
     <ChatItem isLastItem={true}>
       <div className='relative'>
@@ -64,22 +59,12 @@ export const AddPhotoOrMessageItem = ({ userProfilePicUrl }: AddPhotoOrMessageIt
             <span className='bg-white px-2 text-sm text-gray-500'>ou</span>
           </div>
         </div>
-        <form ref={photoUploadForm} method='post' encType='multipart/form-data'>
-          <input
-            type='file'
-            id='file-input'
-            name='photo'
-            className='hidden'
-            accept='image/png, image/jpeg, image/jpg'
-            onChange={photoUploadFileSelected}
-          />
-          <label
-            htmlFor='file-input'
-            className='inline-flex items-center mt-3 px-3 py-1.5 border border-transparent sm:text-xs font-medium rounded-full shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
+        <InlinePhotoUpload chatId={chatId}>
+          <span className='inline-flex items-center mt-6 px-3 py-1.5 border border-transparent sm:text-sm cursor-pointer font-medium rounded-full shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
             <PhotoIcon className='-ml-0.5 mr-2 h-4 w-4' aria-hidden='true' />
             Ajouter une photo
-          </label>
-        </form>
+          </span>
+        </InlinePhotoUpload>
       </div>
     </ChatItem>
   )

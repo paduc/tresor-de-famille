@@ -1,6 +1,6 @@
 import callsites from 'callsites'
 import React, { FunctionComponent } from 'react'
-import { hydrate } from 'react-dom'
+import { hydrateRoot } from 'react-dom/client'
 import { LocationContext } from '../../pages/_components/LocationContext'
 import { SessionContext } from '../../pages/_components/SessionContext'
 import { AlgoliaContext } from '../../pages/_components/AlgoliaContext'
@@ -51,13 +51,14 @@ const browserCode = <ComponentType extends FunctionComponent>(Component: Compone
     const url = (window as any).__URL__
     const algolia = (window as any).__ALGOLIA__
 
-    hydrate(
+    const container = document.getElementById('root')
+    hydrateRoot(
+      container!,
       withContext(
         LocationContext,
         url,
         withContext(SessionContext, session, withContext(AlgoliaContext, algolia, React.createElement(Component, props)))
-      ),
-      document.querySelector('#root')
+      )
     )
   })
 

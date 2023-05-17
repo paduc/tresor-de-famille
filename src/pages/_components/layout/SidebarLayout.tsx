@@ -12,7 +12,7 @@
   }
   ```
 */
-import React, { Fragment, useContext, useState } from 'react'
+import React, { Fragment, useContext, useRef, useState } from 'react'
 import { Dialog, Menu, Transition } from '@headlessui/react'
 import {
   MenuIcon,
@@ -33,6 +33,7 @@ import { AnnotationIcon, MenuAlt2Icon, PhotographIcon, VideoCameraIcon } from '@
 import { SessionContext } from '../SessionContext'
 import { LocationContext } from '../LocationContext'
 import { Logo } from '../Logo'
+import { InlinePhotoUpload } from '../InlinePhotoUpload'
 
 const navigation = [
   { name: 'Photos', href: '/photos.html', icon: PhotographIcon },
@@ -134,12 +135,12 @@ export default function SidebarLayout({ children }: SidebarLayoutProps) {
                               </a>
                             </li>
                             <li>
-                              <button
-                                type='button'
-                                className='inline-flex items-center gap-x-1.5 rounded-md  px-2.5 py-1.5 text-sm text-white border-1 ring-1 ring-inset ring-indigo-200 shadow-sm hover:bg-white/20'>
-                                <PlusSmIcon className='-ml-0.5 h-5 w-5' aria-hidden='true' />
-                                Nouvelle photo
-                              </button>
+                              <InlinePhotoUpload>
+                                <span className='button inline-flex items-center gap-x-1.5 rounded-md  px-2.5 py-1.5 text-sm text-white border-1 ring-1 ring-inset ring-indigo-200 shadow-sm hover:bg-white/20'>
+                                  <PlusSmIcon className='-ml-0.5 h-5 w-5' aria-hidden='true' />
+                                  Nouvelle photo
+                                </span>
+                              </InlinePhotoUpload>
                             </li>
                           </ul>
                         </li>
@@ -232,12 +233,12 @@ export default function SidebarLayout({ children }: SidebarLayoutProps) {
                       </a>
                     </li>
                     <li>
-                      <button
-                        type='button'
-                        className='inline-flex items-center gap-x-1.5 rounded-md  px-2.5 py-1.5 text-sm text-white border-1 ring-1 ring-inset ring-indigo-200 shadow-sm hover:bg-white/20'>
-                        <PlusSmIcon className='-ml-0.5 h-5 w-5' aria-hidden='true' />
-                        Nouvelle photo
-                      </button>
+                      <InlinePhotoUpload>
+                        <span className='button inline-flex items-center gap-x-1.5 rounded-md  px-2.5 py-1.5 text-sm text-white border-1 ring-1 ring-inset ring-indigo-200 shadow-sm hover:bg-white/20'>
+                          <PlusSmIcon className='-ml-0.5 h-5 w-5' aria-hidden='true' />
+                          Nouvelle photo
+                        </span>
+                      </InlinePhotoUpload>
                     </li>
                   </ul>
                 </li>
