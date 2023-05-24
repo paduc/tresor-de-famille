@@ -76,14 +76,14 @@ export const ListPhotosPage = withBrowserBundle(({ error, success, photos }: Lis
                 </li>
               ))}
             </ul>
-            <p className='mt-5'>
+            <div className='mt-5'>
               <InlinePhotoUpload>
                 <span className='inline-flex items-center mt-6 px-3 py-1.5 border border-transparent sm:text-sm cursor-pointer font-medium rounded-full shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
                   <PhotoIcon className='-ml-0.5 mr-2 h-4 w-4' aria-hidden='true' />
                   Ajouter une nouvelle photo
                 </span>
               </InlinePhotoUpload>
-            </p>
+            </div>
           </>
         )}
       </div>
