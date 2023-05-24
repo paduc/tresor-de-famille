@@ -144,7 +144,7 @@ export default function SidebarLayout({ children }: SidebarLayoutProps) {
                             </li>
                           </ul>
                         </li>
-                        <li>
+                        {/* <li>
                           <div className='text-xs font-semibold leading-6 text-indigo-200'>Vos fils récents</div>
                           <ul role='list' className='-mx-2 mt-2 space-y-1'>
                             {teams.map((team) => (
@@ -165,7 +165,7 @@ export default function SidebarLayout({ children }: SidebarLayoutProps) {
                               </li>
                             ))}
                           </ul>
-                        </li>
+                        </li> */}
                         <li>
                           <div className='text-xs font-semibold leading-6 text-indigo-200'>Par type</div>
                           <ul role='list' className='-mx-2 space-y-1'>
@@ -242,7 +242,7 @@ export default function SidebarLayout({ children }: SidebarLayoutProps) {
                     </li>
                   </ul>
                 </li>
-                <li>
+                {/* <li>
                   <div className='text-xs font-semibold leading-6 text-indigo-200'>Vos fils récents</div>
                   <ul role='list' className='-mx-2 mt-2 space-y-1'>
                     {teams.map((team) => (
@@ -261,7 +261,7 @@ export default function SidebarLayout({ children }: SidebarLayoutProps) {
                       </li>
                     ))}
                   </ul>
-                </li>
+                </li> */}
                 <li>
                   <div className='text-xs font-semibold leading-6 text-indigo-200'>Par type</div>
                   <ul role='list' className='-mx-2 space-y-1'>
