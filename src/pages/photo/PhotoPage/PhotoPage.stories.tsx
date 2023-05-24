@@ -4,7 +4,7 @@ import { SessionContext } from '../../_components'
 import { getUuid } from '../../../libs/getUuid'
 import { ChatEvent, PhotoPage } from './PhotoPage'
 
-export default { title: 'Ajouter une Photo', component: PhotoPage, parameters: { layout: 'fullscreen' } }
+export default { title: 'Page Photo', component: PhotoPage, parameters: { layout: 'fullscreen' } }
 
 const t0 = Date.now()
 const HOUR = 3600 * 1000
@@ -64,7 +64,7 @@ const starterHistory: ChatEvent[] = [
   },
 ]
 
-export const Démarrage = () => (
+export const Vide = () => (
   <SessionContext.Provider value={{ isLoggedIn: true, userName: 'toto', isAdmin: false }}>
     <PhotoPage photo={null} />
   </SessionContext.Provider>

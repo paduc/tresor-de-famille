@@ -1,66 +1,52 @@
 import * as React from 'react'
-import { ChatEvent, ChatItem, ChatPhotoFace } from './ChatPage'
-import { HoverContext } from './HoverProvider'
-import { PhotoIcon } from './PhotoIcon'
+import { ChatItem } from './ChatPage'
+import { UUID } from '../../../domain/UUID'
 
-type PhotoItemProps = { event: ChatEvent & { type: 'photo' } }
-export const PhotoItem = ({ event }: PhotoItemProps) => {
+export type PhotoItemProps = {
+  photoId: UUID
+  url: string
+  description?: string
+  personsInPhoto: string[]
+  unrecognizedFacesInPhoto: number
+}
+
+export const PhotoItem = (props: PhotoItemProps) => {
+  const { description, url, personsInPhoto, unrecognizedFacesInPhoto } = props
+  let descriptionOfPeople = personsInPhoto.join(', ')
+
+  if (unrecognizedFacesInPhoto) {
+    if (descriptionOfPeople.length > 35) {
+      descriptionOfPeople = `${descriptionOfPeople.substring(0, 40)}...`
+    }
+    descriptionOfPeople += `${descriptionOfPeople ? 'et ' : ''}${unrecognizedFacesInPhoto} visages inconnus`
+  } else {
+    if (descriptionOfPeople.length > 70) descriptionOfPeople = `${descriptionOfPeople.substring(0, 70)}...`
+  }
+
   return (
     <ChatItem>
-      <div className='relative'>
-        <img
-          className='flex h-10 w-10 items-center justify-center rounded-full bg-gray-400 ring-8 ring-white'
-          src={event.profilePicUrl}
-          alt=''
-          style={{ maxWidth: 400 }}
-        />
-
-        <span className='absolute -bottom-0.5 -right-1 rounded-tl bg-white px-0.5 py-px'>
-          <PhotoIcon className='h-5 w-5 text-gray-500' aria-hidden='true' />
-        </span>
-      </div>
-      <div className='min-w-0 flex-1 py-1.5'>
-        <div className='relative inline-block'>
-          <img src={event.photo.url} className='max-w-md max-h-fit' />
-          {event.photo.faces?.map((face, index) => (
-            <HoverableFace key={`face${index}`} face={face} />
-          ))}
+      <div className='bg-gray-200'>
+        <div className='grid grid-cols-1 w-full sm:max-w-2xl sm:mx-auto pb-2 lg:mx-0 lg:pl-8'>
+          <a href={`/photo/${props.photoId}/photo.html`}>
+            <img src={url} className='max-w-full' />
+          </a>
+          <p className='text-sm py-2 px-2'>{description || descriptionOfPeople}</p>
+          <p>
+            <a
+              href={`/photo/${props.photoId}/photo.html`}
+              className='text-sm font-medium ml-2 text-indigo-600 hover:text-indigo-500'>
+              Annoter
+            </a>
+            {description || descriptionOfPeople ? (
+              <a
+                href={`/photo/${props.photoId}/photo.html`}
+                className='text-sm font-medium ml-2 text-indigo-600 hover:text-indigo-500'>
+                En savoir plus...
+              </a>
+            ) : null}
+          </p>
         </div>
       </div>
     </ChatItem>
-  )
-}
-
-type HoverableFaceProps = {
-  face: ChatPhotoFace
-}
-const HoverableFace = ({ face }: HoverableFaceProps) => {
-  const { hoveredFaceId, setHoveredFaceId } = React.useContext(HoverContext)
-
-  const isFaceHovered = hoveredFaceId === face.faceId
-
-  return (
-    <div
-      onMouseOver={() => {
-        setHoveredFaceId(face.faceId)
-      }}
-      onMouseOut={() => {
-        setHoveredFaceId(null)
-      }}
-      style={{
-        top: `${Math.round(face.position.top * 100)}%`,
-        left: `${Math.round(face.position.left * 100)}%`,
-        width: `${Math.round(face.position.width * 100)}%`,
-        height: `calc(${Math.round(face.position.height * 100)}% + 20px)`,
-      }}
-      className={`absolute  ${isFaceHovered ? 'border-2' : 'border-0'} border-white`}>
-      {isFaceHovered ? (
-        <div className='block absolute bottom-0 text-sm text-white' style={{ height: 20 }}>
-          {face.person?.name || ''}
-        </div>
-      ) : (
-        ''
-      )}
-    </div>
   )
 }

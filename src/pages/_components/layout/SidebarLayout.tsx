@@ -372,9 +372,7 @@ export default function SidebarLayout({ children }: SidebarLayoutProps) {
             </div>
           </div>
 
-          <main className='py-10'>
-            <div className='px-4 sm:px-6 lg:px-8'>{children}</div>
-          </main>
+          <main>{children}</main>
         </div>
       </div>
     </>
