@@ -9,19 +9,19 @@ import { getPersonByIdOrThrow } from '../_getPersonById'
 import { PhotoFace, PhotoPageProps } from './PhotoPage/PhotoPage'
 import { UserAddedCaptionToPhoto } from './UserAddedCaptionToPhoto'
 
-export const getPhoto = async (chatId: UUID): Promise<PhotoPageProps['photo']> => {
+export const getPhoto = async (photoId: UUID): Promise<PhotoPageProps['photo']> => {
   const { rows: photoRowsRes } = await postgres.query<UserUploadedPhotoToChat>(
-    "SELECT * FROM history WHERE type='UserUploadedPhotoToChat' AND payload->>'chatId'=$1 ORDER BY \"occurredAt\" DESC",
-    [chatId]
+    "SELECT * FROM history WHERE type='UserUploadedPhotoToChat' AND payload->>'photoId'=$1 ORDER BY \"occurredAt\" DESC",
+    [photoId]
   )
 
   const photoRow = photoRowsRes[0]?.payload
 
   if (!photoRow) return null
 
-  const { photoId } = photoRow
+  const { chatId } = photoRow
 
-  const detectedFaces = await getDetectedFaces(chatId, photoId)
+  const detectedFaces = await getDetectedFaces(photoId)
   // We have a list of faceId and positions from rekognition
 
   // To do: remove personId from the payload of FacesDetectedInChatPhoto
@@ -106,14 +106,14 @@ async function getFaceIdToPersonIdDeductions(chatId: UUID, photoId: UUID): Promi
   return faceIdToPersonId
 }
 
-async function getDetectedFaces(chatId: UUID, photoId: UUID) {
+async function getDetectedFaces(photoId: UUID) {
   const detectedFaces: { faceId: UUID; position: PhotoFace['position'] }[] = []
 
   const { rows: faceDetectedRowsRes } = await postgres.query<AWSFacesDetectedInChatPhoto>(
-    "SELECT * FROM history WHERE type='AWSFacesDetectedInChatPhoto' AND payload->>'chatId'=$1",
-    [chatId]
+    "SELECT * FROM history WHERE type='AWSFacesDetectedInChatPhoto' AND payload->>'photoId'=$1",
+    [photoId]
   )
-  const facesDetectedRows = faceDetectedRowsRes.map((row) => row.payload).filter((faceRow) => faceRow.photoId === photoId)
+  const facesDetectedRows = faceDetectedRowsRes.map((row) => row.payload)
   for (const facesDetectedRow of facesDetectedRows) {
     for (const awsFace of facesDetectedRow.faces) {
       detectedFaces.push({

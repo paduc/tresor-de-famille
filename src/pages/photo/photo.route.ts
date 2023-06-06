@@ -23,19 +23,13 @@ const upload = multer({
 const fakeProfilePicUrl =
   'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80'
 
-pageRouter.route('/photo.html').get(requireAuth(), async (request, response) => {
-  const newChatId = getUuid()
-
-  response.redirect(`/photo/${newChatId}/photo.html`)
-})
-
 pageRouter
-  .route('/photo/:chatId/photo.html')
+  .route('/photo/:photoId/photo.html')
   .get(requireAuth(), async (request, response) => {
     try {
-      const { chatId } = zod.object({ chatId: zIsUUID }).parse(request.params)
+      const { photoId } = zod.object({ photoId: zIsUUID }).parse(request.params)
 
-      const photo = await getPhoto(chatId)
+      const photo = await getPhoto(photoId)
 
       responseAsHtml(request, response, PhotoPage({ photo }))
     } catch (error) {
@@ -92,19 +86,19 @@ pageRouter.route('/add-photo.html').post(requireAuth(), upload.single('photo'), 
     const userId = request.session.user!.id
 
     const { file } = request
-    if (file) {
-      const photoId = getUuid()
 
-      await uploadPhotoToChat({ file, photoId, chatId, userId })
+    if (!file) return new Error('We did not receive any image.')
+    const photoId = getUuid()
 
-      await detectAWSFacesInChatPhoto({ file, chatId, photoId })
-    }
+    await uploadPhotoToChat({ file, photoId, chatId, userId })
+
+    await detectAWSFacesInChatPhoto({ file, chatId, photoId })
 
     if (chatIdFromForm) {
       return response.redirect(`/chat/${chatIdFromForm}/chat.html`)
     }
 
-    return response.redirect(`/photo/${chatId}/photo.html`)
+    return response.redirect(`/photo/${photoId}/photo.html`)
   } catch (error) {
     console.error('Error in chat route')
     throw error
