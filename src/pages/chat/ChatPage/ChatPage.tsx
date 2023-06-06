@@ -82,6 +82,8 @@ export const ChatPage = withBrowserBundle(({ error, success, history, chatId }: 
                   return null
                 })
               : null}
+
+            <AddPhotoOrMessageItem chatId={chatId} />
           </ul>
         </div>
       </HoverProvider>

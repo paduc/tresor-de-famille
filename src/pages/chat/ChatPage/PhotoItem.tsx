@@ -30,11 +30,11 @@ export const PhotoItem = (props: PhotoItemProps) => {
           <a href={`/photo/${props.photoId}/photo.html`}>
             <img src={url} className='max-w-full' />
           </a>
-          <p className='text-sm py-2 px-2'>{description || descriptionOfPeople}</p>
+          <p className='text-sm py-2 px-2 sm:px-0'>{description || descriptionOfPeople}</p>
           <p>
             <a
               href={`/photo/${props.photoId}/photo.html`}
-              className='text-sm font-medium ml-2 text-indigo-600 hover:text-indigo-500'>
+              className='text-sm font-medium ml-2 sm:ml-0 text-indigo-600 hover:text-indigo-500'>
               Annoter
             </a>
             {description || descriptionOfPeople ? (
