@@ -39,7 +39,6 @@ pageRouter
       response,
       ChatPage({
         history,
-        userProfilePicUrl: fakeProfilePicUrl,
         chatId,
       })
     )
