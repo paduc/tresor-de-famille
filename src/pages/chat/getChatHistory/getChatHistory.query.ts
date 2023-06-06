@@ -1,6 +1,5 @@
 import { ChatPageProps } from '../ChatPage/ChatPage'
 import { retrieveMessagesForChat } from './retrieveMessagesForChat'
-import { retrieveDeductionsForChat } from './retrieveDeductionsForChat'
 import { retrievePhotosForChat } from './retrievePhotosForChat'
 import { UUID } from '../../../domain'
 

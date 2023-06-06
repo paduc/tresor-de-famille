@@ -1,5 +1,5 @@
 import { ulid } from 'ulid'
-import { UUID } from '../domain'
+import type { UUID } from '../domain'
 
 export const getUuid = (): UUID => {
   return ulid() as UUID
