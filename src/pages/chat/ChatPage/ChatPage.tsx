@@ -66,7 +66,7 @@ export const ChatPage = withBrowserBundle(({ error, success, history, chatId }: 
   return (
     <AppLayout>
       <HoverProvider>
-        <div className=''>
+        <div className='bg-white'>
           <SuccessError success={success} error={error} />
           <ul role='list' className='grid grid-cols-1 divide-y divide-gray-300'>
             {history
