@@ -11,15 +11,16 @@ export const AddPhotoOrMessageItem = ({ chatId }: AddPhotoOrMessageItemProps) =>
     <ChatItem isLastItem={true}>
       <div className='min-w-0 flex-1 pb-8'>
         <form method='POST' className='relative'>
-          <div className='overflow-hidden'>
-            <label htmlFor='message' className='sr-only'>
-              Ajouter un message
+          <input type='hidden' name='chatId' defaultValue={chatId} />
+          <div className='overflow-hidden sm:border border-gray-300 shadow-sm focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500'>
+            <label htmlFor='caption' className='sr-only'>
+              Ajouter un message...
             </label>
             <textarea
               rows={3}
-              name='message'
-              id='message'
-              className='block focus:shadow-none focus:border-none focus:ring-none focus:outline-none outline-none ring-none border-none text-sm sm:text-md text-gray-700 px-2 py-1.5 sm:py-3 sm:px-4 md:px-8 w-full max-w-lg'
+              name='caption'
+              id='caption'
+              className='block w-full resize-none border-0 px-4 md:px-8  py-1.5 sm:py-3  max-w-lg focus:ring-0 sm:text-sm text-md text-gray-700'
               placeholder='Ajouter un message...'
               defaultValue={''}
             />
@@ -37,7 +38,7 @@ export const AddPhotoOrMessageItem = ({ chatId }: AddPhotoOrMessageItemProps) =>
             <div className='flex-shrink-0'>
               <button
                 type='submit'
-                className='inline-flex items-center ml-6 mt-3 px-3 py-1.5 border border-transparent sm:sm:text-xs font-medium rounded-full shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
+                className='inline-flex items-center ml-6 mt-3 px-3 py-1.5 border border-transparent sm:text-xs font-medium rounded-full shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
                 <SendIcon className='-ml-0.5 mr-2 h-4 w-4' aria-hidden='true' />
                 Envoyer
               </button>

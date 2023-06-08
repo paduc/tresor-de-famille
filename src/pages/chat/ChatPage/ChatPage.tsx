@@ -65,28 +65,26 @@ export type ChatPageProps = {
 export const ChatPage = withBrowserBundle(({ error, success, history, chatId }: ChatPageProps) => {
   return (
     <AppLayout>
-      <HoverProvider>
-        <div className='bg-white'>
-          <SuccessError success={success} error={error} />
-          <ul role='list' className='grid grid-cols-1 divide-y divide-gray-300'>
-            {history
-              ? history.map((event, index) => {
-                  if (event.type === 'photo') {
-                    return <PhotoItem key={`event_${index}`} {...event} />
-                  }
+      <div className='bg-white'>
+        <SuccessError success={success} error={error} />
+        <ul role='list' className='grid grid-cols-1 divide-y divide-gray-300'>
+          {history
+            ? history.map((event, index) => {
+                if (event.type === 'photo') {
+                  return <PhotoItem key={`event_${index}`} {...event} />
+                }
 
-                  if (event.type === 'message') {
-                    return <MessageItem key={`event_${index}`} {...event} />
-                  }
+                if (event.type === 'message') {
+                  return <MessageItem key={`event_${index}`} {...event} />
+                }
 
-                  return null
-                })
-              : null}
+                return null
+              })
+            : null}
 
-            <AddPhotoOrMessageItem chatId={chatId} />
-          </ul>
-        </div>
-      </HoverProvider>
+          <AddPhotoOrMessageItem chatId={chatId} />
+        </ul>
+      </div>
     </AppLayout>
   )
 })
