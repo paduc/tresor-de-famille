@@ -13,13 +13,13 @@ export const AddPhotoOrMessageItem = ({ chatId }: AddPhotoOrMessageItemProps) =>
         <form method='POST' className='relative'>
           <input type='hidden' name='chatId' defaultValue={chatId} />
           <div className='overflow-hidden sm:border border-gray-300 shadow-sm focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500'>
-            <label htmlFor='caption' className='sr-only'>
+            <label htmlFor='message' className='sr-only'>
               Ajouter un message...
             </label>
             <textarea
               rows={3}
-              name='caption'
-              id='caption'
+              name='message'
+              id='message'
               className='block w-full resize-none border-0 px-4 md:px-8  py-1.5 sm:py-3  max-w-lg focus:ring-0 sm:text-sm text-md text-gray-700'
               placeholder='Ajouter un message...'
               defaultValue={''}
