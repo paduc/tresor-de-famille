@@ -53,44 +53,45 @@ const HOUR = 3600 * 1000
 //   </SessionContext.Provider>
 // )
 
-// export const PhotoAvecVisagesConnus = () => (
-//   <SessionContext.Provider value={{ isLoggedIn: true, userName: 'toto', isAdmin: false }}>
-//     <PhotoPage
-//       photo={{
-//         id: getUuid(),
-//         url: 'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=4032&h=3024&q=80',
-//         faces: [
-//           {
-//             person: {
-//               name: 'Toto',
-//               annotatedBy: 'ai',
-//             },
-//             faceId: getUuid(),
-//             position: {
-//               width: 0.3004770278930664,
-//               height: 0.39314860105514526,
-//               left: 0.3541097640991211,
-//               top: 0.24908018112182617,
-//             },
-//           },
-//           {
-//             person: {
-//               name: 'Fantome',
-//               annotatedBy: 'face-recognition',
-//             },
-//             faceId: getUuid(),
-//             position: {
-//               width: 0.3004770278930664,
-//               height: 0.39314860105514526,
-//               left: 0,
-//               top: 0,
-//             },
-//           },
-//         ],
-//       }}
-//     />
-//   </SessionContext.Provider>
-// )
+export const PhotoAvecVisagesConnus = () => (
+  <SessionContext.Provider value={{ isLoggedIn: true, userName: 'toto', isAdmin: false }}>
+    <PhotoPage
+      photoId={getUuid()}
+      url={
+        'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=4032&h=3024&q=80'
+      }
+      faceDetections={[
+        {
+          occurredAt: Date.now(),
+          faces: [
+            {
+              person: {
+                name: 'Toto',
+              },
+              faceId: getUuid(),
+              position: {
+                width: 0.3004770278930664,
+                height: 0.39314860105514526,
+                left: 0.3541097640991211,
+                top: 0.24908018112182617,
+              },
+            },
+            {
+              person: null,
+              faceId: getUuid(),
+              position: {
+                width: 0.2,
+                height: 0.2,
+                left: 0,
+                top: 0,
+              },
+            },
+          ],
+        },
+      ]}
+    />
+  </SessionContext.Provider>
+)
 
 export const PhotoAvecLegende = () => (
   <SessionContext.Provider value={{ isLoggedIn: true, userName: 'toto', isAdmin: false }}>
@@ -102,6 +103,7 @@ export const PhotoAvecLegende = () => (
       caption={
         'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Tincidunt nunc ipsum tempor purus vitae id. Morbi in vestibulum nec varius. Et diam cursus quis sed purus nam.'
       }
+      faceDetections={[]}
     />
   </SessionContext.Provider>
 )

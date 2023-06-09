@@ -15,7 +15,7 @@ function classNames(...classes) {
 export type PhotoFace = {
   person: {
     name: string
-    annotatedBy: 'face-recognition' | 'ai'
+    // annotatedBy: 'face-recognition' | 'ai'
   } | null
   faceId: UUID
   position: {
@@ -36,9 +36,10 @@ export type PhotoPageProps = {
   photoId: UUID
   url: string
   caption?: string
+  faceDetections: { occurredAt: number; faces: PhotoFace[] }[]
 }
 
-export const PhotoPage = withBrowserBundle(({ error, success, photoId, url, caption }: PhotoPageProps) => {
+export const PhotoPage = withBrowserBundle(({ error, success, photoId, url, caption, faceDetections }: PhotoPageProps) => {
   // const knownFaces = photo?.faces
   //   ?.filter((face) => face.person !== null)
   //   .sort((faceA, faceB) => faceA.position.left - faceB.position.left)
@@ -55,18 +56,10 @@ export const PhotoPage = withBrowserBundle(({ error, success, photoId, url, capt
           <div className='w-full sm:max-w-2xl sm:mx-auto grid grid-cols-1 justify-items-center bg-gray-100 sm:border sm:rounded-lg overflow-hidden'>
             <div className='relative'>
               <img src={url} className='' />
-              {/* {photo.faces?.map((face, index) => (
-                  <HoverableFace key={`face${index}`} face={face} />
-                ))} */}
+              {faceDetections.map((faceDetection) => {
+                return faceDetection.faces.map((face, index) => <HoverableFace key={`faceSpot${face.faceId}`} face={face} />)
+              })}
             </div>
-            {/* <div className='pl-2 pt-3 w-full'>
-                {knownFaces?.map(({ faceId, person }, index) => (
-                  <FaceBadge key={`face${index}`} faceId={faceId} person={person!} />
-                ))}
-                <div className='inline-block mr-3 pr-3 align-middle sm:text-sm text-gray-700'>
-                  {unknownFacesCount ? `${knownFaces?.length ? 'et ' : ''} ${unknownFacesCount} visages non identifiés` : ''}
-                </div>
-              </div> */}
 
             <div className='bg-white w-full'>
               <form method='POST' className='relative'>
@@ -110,6 +103,27 @@ export const PhotoPage = withBrowserBundle(({ error, success, photoId, url, capt
                 ) : null}
               </form>
             </div>
+            <div className='bg-gray-100 w-full'>
+              {faceDetections.map((faceDetection, faceDetectionIndex) => {
+                return (
+                  <div className='pl-2 pt-3 w-full'>
+                    <div className='text-gray-700 text-sm'>Le {new Date(faceDetection.occurredAt).toLocaleDateString()}</div>
+                    <div className='text-gray-900 text-sm'>AWS Rekognition a détecté:</div>
+                    <ul className='mt-2 mb-2'>
+                      {faceDetection.faces
+                        .sort((faceA, faceB) => {
+                          return faceB.position.width * faceB.position.height - faceA.position.width * faceA.position.height
+                        })
+                        .map((face) => (
+                          <li key={'face' + faceDetectionIndex + face.faceId} className='mb-1 mr-2 inline-block'>
+                            <FaceBadge faceId={face.faceId} title={face.person ? face.person.name : 'un visage inconnu'} />
+                          </li>
+                        ))}
+                    </ul>
+                  </div>
+                )
+              })}
+            </div>
           </div>
         </div>
       </HoverProvider>
@@ -131,16 +145,13 @@ export const ChatItem = ({ children, isLastItem }: ChatItemProps) => {
 
 type FaceBadgeProps = {
   faceId: UUID
-  person: {
-    name: string
-    annotatedBy: 'face-recognition' | 'ai'
-  }
+  title: string
 }
-const FaceBadge = ({ person, faceId }: FaceBadgeProps) => {
+const FaceBadge = ({ title, faceId }: FaceBadgeProps) => {
   const { hoveredFaceId, setHoveredFaceId } = React.useContext(HoverContext)
   return (
     <div
-      className={`inline-block mr-3 mb-3 rounded-full pr-3  bg-white ${
+      className={`inline-block rounded-full py-1 px-2  bg-white ${
         hoveredFaceId === faceId ? 'ring-indigo-500 ring-2' : 'ring-1 ring-gray-300'
       }`}
       onMouseOver={() => {
@@ -151,45 +162,11 @@ const FaceBadge = ({ person, faceId }: FaceBadgeProps) => {
       }}>
       <a href='#' className='group block flex-shrink-0 '>
         <div className='flex items-center'>
-          <div
+          {/* <div
             className={`inline-block h-4 w-4 ml-2 text-gray-500 ${
               hoveredFaceId === faceId ? 'text-indigo-700' : 'text-gray-500'
-            }`}>
-            {person.annotatedBy === 'face-recognition' ? (
-              <svg
-                fill='none'
-                stroke='currentColor'
-                strokeWidth={1.5}
-                viewBox='0 0 24 24'
-                xmlns='http://www.w3.org/2000/svg'
-                aria-hidden='true'>
-                <path
-                  strokeLinecap='round'
-                  strokeLinejoin='round'
-                  d='M7.5 3.75H6A2.25 2.25 0 003.75 6v1.5M16.5 3.75H18A2.25 2.25 0 0120.25 6v1.5m0 9V18A2.25 2.25 0 0118 20.25h-1.5m-9 0H6A2.25 2.25 0 013.75 18v-1.5M15 12a3 3 0 11-6 0 3 3 0 016 0z'
-                />
-              </svg>
-            ) : (
-              <svg
-                fill='none'
-                stroke='currentColor'
-                strokeWidth={1.5}
-                viewBox='0 0 24 24'
-                xmlns='http://www.w3.org/2000/svg'
-                aria-hidden='true'>
-                <path
-                  strokeLinecap='round'
-                  strokeLinejoin='round'
-                  d='M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z'
-                />
-              </svg>
-            )}
-          </div>
-          <div className='ml-1'>
-            <p className={`text-sm font-medium  ${hoveredFaceId === faceId ? 'text-indigo-700' : 'text-gray-700'}`}>
-              {person.name}
-            </p>
-          </div>
+            }`}></div> */}
+          <p className={`text-sm font-medium  ${hoveredFaceId === faceId ? 'text-indigo-700' : 'text-gray-700'}`}>{title}</p>
         </div>
       </a>
     </div>
