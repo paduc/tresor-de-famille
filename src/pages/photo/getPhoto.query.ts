@@ -2,7 +2,7 @@ import { postgres } from '../../dependencies/database'
 import { normalizeBBOX } from '../../dependencies/face-recognition'
 import { getPhotoUrlFromId } from '../../dependencies/photo-storage'
 import { UUID } from '../../domain'
-import { AWSFacesDetectedInChatPhoto } from '../chat/recognizeFacesInChatPhoto/AWSFacesDetectedInChatPhoto'
+import { AWSDetectedFacesInPhoto } from './recognizeFacesInChatPhoto/AWSDetectedFacesInPhoto'
 import { OpenAIMadeDeductions } from '../chat/sendToOpenAIForDeductions/OpenAIMadeDeductions'
 import { UserUploadedPhotoToChat } from '../chat/uploadPhotoToChat/UserUploadedPhotoToChat'
 import { getPersonByIdOrThrow } from '../_getPersonById'
@@ -108,7 +108,7 @@ async function getFaceIdToPersonIdDeductions(chatId: UUID, photoId: UUID): Promi
 async function getDetectedFaces(photoId: UUID) {
   const detectedFaces: { faceId: UUID; position: PhotoFace['position'] }[] = []
 
-  const { rows: faceDetectedRowsRes } = await postgres.query<AWSFacesDetectedInChatPhoto>(
+  const { rows: faceDetectedRowsRes } = await postgres.query<AWSDetectedFacesInPhoto>(
     "SELECT * FROM history WHERE type='AWSFacesDetectedInChatPhoto' AND payload->>'photoId'=$1",
     [photoId]
   )

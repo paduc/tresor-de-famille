@@ -6,7 +6,7 @@ import { addToHistory } from '../../dependencies/addToHistory'
 import { zIsUUID } from '../../domain'
 import { getUuid } from '../../libs/getUuid'
 import { responseAsHtml } from '../../libs/ssr/responseAsHtml'
-import { detectAWSFacesInChatPhoto } from '../chat/recognizeFacesInChatPhoto/detectAWSFacesInChatPhoto'
+import { detectFacesInPhotoUsingAWS } from './recognizeFacesInChatPhoto/detectFacesInPhotoUsingAWS'
 import { uploadPhotoToChat } from '../chat/uploadPhotoToChat/uploadPhotoToChat'
 import { pageRouter } from '../pageRouter'
 import { getPhoto } from './getPhoto.query'
@@ -82,7 +82,7 @@ pageRouter.route('/add-photo.html').post(requireAuth(), upload.single('photo'), 
 
     await uploadPhotoToChat({ file, photoId, chatId, userId })
 
-    await detectAWSFacesInChatPhoto({ file, chatId, photoId })
+    await detectFacesInPhotoUsingAWS({ file, chatId, photoId })
 
     if (chatIdFromForm) {
       return response.redirect(`/chat/${chatIdFromForm}/chat.html`)

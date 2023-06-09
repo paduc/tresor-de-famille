@@ -1,7 +1,7 @@
 import Rekognition from 'aws-sdk/clients/rekognition'
 import { postgres } from '../../../dependencies/database'
 import { UUID } from '../../../domain'
-import { AWSFacesDetectedInChatPhoto } from '../recognizeFacesInChatPhoto/AWSFacesDetectedInChatPhoto'
+import { AWSDetectedFacesInPhoto } from '../../photo/recognizeFacesInChatPhoto/AWSDetectedFacesInPhoto'
 import { UserUploadedPhotoToChat } from '../uploadPhotoToChat/UserUploadedPhotoToChat'
 
 type PhotoFace = {
@@ -23,7 +23,7 @@ export const getLatestPhotoFaces = async (chatId: UUID): Promise<{ photoId: UUID
   }
 
   const latestPhoto = latestPhotos[0].payload
-  const { rows: latestPhotoFacesList } = await postgres.query<AWSFacesDetectedInChatPhoto>(
+  const { rows: latestPhotoFacesList } = await postgres.query<AWSDetectedFacesInPhoto>(
     "SELECT * FROM history WHERE type='AWSFacesDetectedInChatPhoto' AND payload->>'chatId'=$1 AND payload->>'photoId'=$2 ORDER BY \"occurredAt\" DESC LIMIT 1",
     [chatId, latestPhoto.photoId]
   )

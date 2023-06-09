@@ -7,7 +7,7 @@ import { UUID } from '../../../domain'
 import { getUuid } from '../../../libs/getUuid'
 import { getPersonById } from '../../_getPersonById'
 import { getPersonIdForUserId } from '../../_getPersonIdForUserId.query'
-import { AWSFacesDetectedInChatPhoto } from '../../chat/recognizeFacesInChatPhoto/AWSFacesDetectedInChatPhoto'
+import { AWSDetectedFacesInPhoto } from '../recognizeFacesInChatPhoto/AWSDetectedFacesInPhoto'
 import { OpenAIFailedToMakeDeductions } from '../../chat/sendToOpenAIForDeductions/OpenAIFailedToMakeDeductions'
 import { OpenAIMadeDeductions } from '../../chat/sendToOpenAIForDeductions/OpenAIMadeDeductions'
 import { OpenAIPrompted } from '../../chat/sendToOpenAIForDeductions/OpenAIPrompted'
@@ -171,7 +171,7 @@ async function getCaptionForPhoto(photoId: UUID) {
 async function getDetectedFaces(photoId: UUID) {
   const detectedFaces = []
 
-  const { rows: faceDetectedRowsRes } = await postgres.query<AWSFacesDetectedInChatPhoto>(
+  const { rows: faceDetectedRowsRes } = await postgres.query<AWSDetectedFacesInPhoto>(
     "SELECT * FROM history WHERE type='AWSFacesDetectedInChatPhoto' AND payload->>'photoId'=$1",
     [photoId]
   )

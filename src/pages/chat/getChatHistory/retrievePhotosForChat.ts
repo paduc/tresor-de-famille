@@ -2,7 +2,7 @@ import { postgres } from '../../../dependencies/database'
 import { getPhotoUrlFromId } from '../../../dependencies/photo-storage'
 import { UUID } from '../../../domain'
 import { ChatEvent } from '../ChatPage/ChatPage'
-import { AWSFacesDetectedInChatPhoto } from '../recognizeFacesInChatPhoto/AWSFacesDetectedInChatPhoto'
+import { AWSDetectedFacesInPhoto } from '../../photo/recognizeFacesInChatPhoto/AWSDetectedFacesInPhoto'
 import { UserUploadedPhotoToChat } from '../uploadPhotoToChat/UserUploadedPhotoToChat'
 
 export type ChatPhotoEvent = ChatEvent & { type: 'photo' }
@@ -33,7 +33,7 @@ async function getFaceDetectionMap(chatId: UUID): Promise<Map<PhotoId, { unrecog
 
   const facesForPhotoId = new Map<PhotoId, { unrecognizedFacesInPhoto: number }>()
 
-  const { rows: faceDetectedRowsRes } = await postgres.query<AWSFacesDetectedInChatPhoto>(
+  const { rows: faceDetectedRowsRes } = await postgres.query<AWSDetectedFacesInPhoto>(
     "SELECT * FROM history WHERE type='AWSFacesDetectedInChatPhoto' AND payload->>'chatId'=$1",
     [chatId]
   )

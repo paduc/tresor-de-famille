@@ -4,7 +4,7 @@ import { addToHistory } from '../../../dependencies/addToHistory'
 import { postgres } from '../../../dependencies/database'
 import { UUID } from '../../../domain'
 import { getUuid } from '../../../libs/getUuid'
-import { AWSFacesDetectedInChatPhoto } from './AWSFacesDetectedInChatPhoto'
+import { AWSDetectedFacesInPhoto } from './AWSDetectedFacesInPhoto'
 import { getAWSDetectedFacesInPhoto } from './getAWSDetectedFacesInPhoto'
 import { getAwsRekognitionCollectionId } from '../../../dependencies/face-recognition'
 
@@ -13,7 +13,7 @@ type DetectFacesInChatPhotoArgs = {
   chatId: UUID
   photoId: UUID
 }
-export async function detectAWSFacesInChatPhoto({ file, chatId, photoId }: DetectFacesInChatPhotoArgs) {
+export async function detectFacesInPhotoUsingAWS({ file, photoId }: DetectFacesInChatPhotoArgs) {
   const { path: originalPath } = file
   const compressedFilePath = originalPath + '-compressed.jpeg'
   await sharp(originalPath).jpeg({ quality: 30 }).toFile(compressedFilePath)
@@ -24,7 +24,7 @@ export async function detectAWSFacesInChatPhoto({ file, chatId, photoId }: Detec
   })
 
   if (awsDetectedFaces.length) {
-    const faces: AWSFacesDetectedInChatPhoto['payload']['faces'] = []
+    const faces: AWSDetectedFacesInPhoto['payload']['faces'] = []
     for (const awsFace of awsDetectedFaces) {
       const faceId = await getFaceIdForAWSFaceId(awsFace.awsFaceId)
       faces.push({
@@ -33,8 +33,7 @@ export async function detectAWSFacesInChatPhoto({ file, chatId, photoId }: Detec
       })
     }
     await addToHistory(
-      AWSFacesDetectedInChatPhoto({
-        chatId,
+      AWSDetectedFacesInPhoto({
         photoId,
         faces,
       })
@@ -43,10 +42,7 @@ export async function detectAWSFacesInChatPhoto({ file, chatId, photoId }: Detec
 }
 
 async function getFaceIdForAWSFaceId(awsFaceId: string): Promise<UUID> {
-  const { rows } = await postgres.query<AWSFacesDetectedInChatPhoto>(
-    "SELECT * FROM history WHERE type='AWSFacesDetectedInChatPhoto'",
-    []
-  )
+  const { rows } = await postgres.query<AWSDetectedFacesInPhoto>("SELECT * FROM history WHERE type='AWSDetectedFacesInPhoto'")
 
   const awsFaceIdIndex = new Map<string, UUID>()
 

@@ -56,13 +56,12 @@ type AWSDetectedFace = {
   }
 }
 
-export type AWSFacesDetectedInChatPhoto = DomainEvent<
-  'AWSFacesDetectedInChatPhoto',
+export type AWSDetectedFacesInPhoto = DomainEvent<
+  'AWSDetectedFacesInPhoto',
   {
-    chatId: UUID
     photoId: UUID
     faces: AWSDetectedFace[]
   }
 >
 
-export const AWSFacesDetectedInChatPhoto = makeDomainEvent<AWSFacesDetectedInChatPhoto>('AWSFacesDetectedInChatPhoto')
+export const AWSDetectedFacesInPhoto = makeDomainEvent<AWSDetectedFacesInPhoto>('AWSDetectedFacesInPhoto')
