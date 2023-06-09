@@ -4,7 +4,7 @@ import { DomainEvent, makeDomainEvent } from '../../dependencies/addToHistory'
 export type UserAddedCaptionToPhoto = DomainEvent<
   'UserAddedCaptionToPhoto',
   {
-    chatId: UUID
+    // chatId: UUID => removed because it is not a necessary context
     photoId: UUID
     caption: {
       id: UUID

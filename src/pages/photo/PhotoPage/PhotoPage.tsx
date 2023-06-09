@@ -1,14 +1,11 @@
 import * as React from 'react'
 import { UUID } from '../../../domain'
-import { getUuid } from '../../../libs/getUuid'
 
 import { withBrowserBundle } from '../../../libs/ssr/withBrowserBundle'
-import { AppLayout } from '../../_components/layout/AppLayout'
 import { SuccessError } from '../../_components/SuccessError'
+import { AppLayout } from '../../_components/layout/AppLayout'
 import { HoverContext, HoverProvider } from './HoverProvider'
-import { PhotoIcon } from './PhotoIcon'
 import { SendIcon } from './SendIcon'
-import { InlinePhotoUpload } from '../../_components/InlinePhotoUpload'
 
 // @ts-ignore
 function classNames(...classes) {
@@ -29,46 +26,6 @@ export type PhotoFace = {
   }
 }
 
-export type ChatDeduction = {
-  // type: 'face-is-person'
-  person: {
-    name: string
-  }
-  faceId: UUID
-  photo: {
-    url: string
-  }
-  position: {
-    width: number
-    height: number
-    left: number
-    top: number
-  }
-}
-
-export type ChatEvent = { timestamp: number } & (
-  | {
-      type: 'photo'
-      profilePicUrl: string
-      photo: {
-        id: UUID
-        url: string
-        faces?: PhotoFace[]
-      }
-    }
-  | {
-      type: 'message'
-      profilePicUrl: string
-      message: {
-        body: string
-      }
-    }
-  | {
-      type: 'deductions'
-      deductions: ChatDeduction[]
-    }
-)
-
 type PhotoCaption = {
   body: string
 }
@@ -76,73 +33,70 @@ type PhotoCaption = {
 export type PhotoPageProps = {
   success?: string
   error?: string
-  photo: {
-    id: UUID
-    url: string
-    faces?: PhotoFace[]
-    captions?: PhotoCaption[]
-  } | null
+  photoId: UUID
+  url: string
+  caption?: string
 }
 
-export const PhotoPage = withBrowserBundle(({ error, success, photo }: PhotoPageProps) => {
-  const knownFaces = photo?.faces
-    ?.filter((face) => face.person !== null)
-    .sort((faceA, faceB) => faceA.position.left - faceB.position.left)
+export const PhotoPage = withBrowserBundle(({ error, success, photoId, url, caption }: PhotoPageProps) => {
+  // const knownFaces = photo?.faces
+  //   ?.filter((face) => face.person !== null)
+  //   .sort((faceA, faceB) => faceA.position.left - faceB.position.left)
 
-  const unknownFacesCount = (photo?.faces?.length || 0) - (knownFaces?.length || 0)
+  // const unknownFacesCount = (photo?.faces?.length || 0) - (knownFaces?.length || 0)
+
+  const [isSubmitCaptionButtonVisible, setSubmitCaptionButtonVisible] = React.useState(false)
 
   return (
     <AppLayout>
       <HoverProvider>
         <div className='bg-white w-full h-full pt-3'>
           <SuccessError success={success} error={error} />
-          {photo ? (
-            <div className='w-full sm:max-w-2xl sm:mx-auto grid grid-cols-1 justify-items-center bg-gray-100 sm:border sm:rounded-lg overflow-hidden'>
-              <div className='relative'>
-                <img src={photo.url} className='' />
-                {photo.faces?.map((face, index) => (
+          <div className='w-full sm:max-w-2xl sm:mx-auto grid grid-cols-1 justify-items-center bg-gray-100 sm:border sm:rounded-lg overflow-hidden'>
+            <div className='relative'>
+              <img src={url} className='' />
+              {/* {photo.faces?.map((face, index) => (
                   <HoverableFace key={`face${index}`} face={face} />
-                ))}
-              </div>
-              <div className='pl-2 pt-3 w-full'>
+                ))} */}
+            </div>
+            {/* <div className='pl-2 pt-3 w-full'>
                 {knownFaces?.map(({ faceId, person }, index) => (
                   <FaceBadge key={`face${index}`} faceId={faceId} person={person!} />
                 ))}
                 <div className='inline-block mr-3 pr-3 align-middle sm:text-sm text-gray-700'>
                   {unknownFacesCount ? `${knownFaces?.length ? 'et ' : ''} ${unknownFacesCount} visages non identifiés` : ''}
                 </div>
-              </div>
+              </div> */}
 
-              <div className='bg-white w-full'>
-                <form method='POST' className='relative'>
-                  <input type='hidden' name='photoId' defaultValue={photo.id} />
-                  <div className='overflow-hidden sm:border border-gray-300 shadow-sm focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500'>
-                    {photo.captions?.map(({ body }, index) => (
-                      <p className='sm:text-sm px-3 pt-3 text-gray-700 ' key={`caption${index}`}>
-                        {body}
-                      </p>
-                    ))}
-                    <label htmlFor='caption' className='sr-only'>
-                      Ajouter une légende...
-                    </label>
-                    <textarea
-                      rows={3}
-                      name='caption'
-                      id='caption'
-                      className='block w-full resize-none border-0 py-3 focus:ring-0 sm:text-sm'
-                      placeholder='Ajouter une légende...'
-                      defaultValue={''}
-                    />
+            <div className='bg-white w-full'>
+              <form method='POST' className='relative'>
+                <input type='hidden' name='photoId' defaultValue={photoId} />
+                <div className='overflow-hidden sm:border border-gray-300 shadow-sm focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500'>
+                  <label htmlFor='caption' className='sr-only'>
+                    Ajouter une légende...
+                  </label>
+                  <textarea
+                    rows={3}
+                    name='caption'
+                    id='caption'
+                    className='block w-full resize-none border-0 py-3 focus:ring-0 sm:text-sm'
+                    placeholder='Ajouter une légende...'
+                    defaultValue={caption}
+                    onKeyUp={(e) => {
+                      setSubmitCaptionButtonVisible(e.currentTarget.value !== caption)
+                    }}
+                  />
 
-                    {/* Spacer element to match the height of the toolbar */}
-                    <div className='py-2' aria-hidden='true'>
-                      {/* Matches height of button in toolbar (1px border + 36px content height) */}
-                      <div className='py-px'>
-                        <div className='h-9' />
-                      </div>
+                  {/* Spacer element to match the height of the toolbar */}
+                  <div className='py-2' aria-hidden='true'>
+                    {/* Matches height of button in toolbar (1px border + 36px content height) */}
+                    <div className='py-px'>
+                      <div className='h-9' />
                     </div>
                   </div>
+                </div>
 
+                {isSubmitCaptionButtonVisible ? (
                   <div className='absolute inset-x-0 bottom-0 flex justify-between py-2 pl-3 pr-2'>
                     <div className='flex-shrink-0'>
                       <button
@@ -153,27 +107,10 @@ export const PhotoPage = withBrowserBundle(({ error, success, photo }: PhotoPage
                       </button>
                     </div>
                   </div>
-                </form>
-              </div>
+                ) : null}
+              </form>
             </div>
-          ) : (
-            <div className='max-w-7xl mx-auto py-16 px-4 sm:py-24 sm:px-6 lg:px-8'>
-              <div className='text-center'>
-                <p className='mt-1 text-4xl font-extrabold text-gray-900 sm:text-5xl sm:tracking-tight lg:text-6xl'>
-                  Des photos !
-                </p>
-                <p className='max-w-xl mt-5 mx-auto text-xl text-gray-500'>
-                  Téléverse une photo et rajoute une description pour la postérité.
-                </p>
-                <InlinePhotoUpload>
-                  <span className='inline-flex items-center mt-6 px-3 py-1.5 border border-transparent sm:text-sm cursor-pointer font-medium rounded-full shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
-                    <PhotoIcon className='-ml-0.5 mr-2 h-4 w-4' aria-hidden='true' />
-                    Ajouter une photo
-                  </span>
-                </InlinePhotoUpload>
-              </div>
-            </div>
-          )}
+          </div>
         </div>
       </HoverProvider>
     </AppLayout>

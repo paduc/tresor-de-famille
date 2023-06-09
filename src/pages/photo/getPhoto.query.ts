@@ -9,7 +9,7 @@ import { getPersonByIdOrThrow } from '../_getPersonById'
 import { PhotoFace, PhotoPageProps } from './PhotoPage/PhotoPage'
 import { UserAddedCaptionToPhoto } from './UserAddedCaptionToPhoto'
 
-export const getPhoto = async (photoId: UUID): Promise<PhotoPageProps['photo']> => {
+export const getPhoto = async (photoId: UUID): Promise<PhotoPageProps> => {
   const { rows: photoRowsRes } = await postgres.query<UserUploadedPhotoToChat>(
     "SELECT * FROM history WHERE type='UserUploadedPhotoToChat' AND payload->>'photoId'=$1 ORDER BY \"occurredAt\" DESC",
     [photoId]
@@ -17,66 +17,65 @@ export const getPhoto = async (photoId: UUID): Promise<PhotoPageProps['photo']> 
 
   const photoRow = photoRowsRes[0]?.payload
 
-  if (!photoRow) return null
+  if (!photoRow) throw new Error('Unkown photo')
 
   const { chatId } = photoRow
 
-  const detectedFaces = await getDetectedFaces(photoId)
-  // We have a list of faceId and positions from rekognition
+  // const detectedFaces = await getDetectedFaces(photoId)
+  // // We have a list of faceId and positions from rekognition
 
-  // To do: remove personId from the payload of FacesDetectedInChatPhoto
-  // done : Renamed FacesDetectedInChatPhoto
-  // done : Removed personId from event (will be call during query)
+  // // To do: remove personId from the payload of FacesDetectedInChatPhoto
+  // // done : Renamed FacesDetectedInChatPhoto
+  // // done : Removed personId from event (will be call during query)
 
-  // Next: get the list of faceId + personIds from AI deductions
-  const faceIdToPersonIdDeductions = detectedFaces.length
-    ? await getFaceIdToPersonIdDeductions(chatId, photoId)
-    : new Map<UUID, UUID>()
+  // // Next: get the list of faceId + personIds from AI deductions
+  // const faceIdToPersonIdDeductions = detectedFaces.length
+  //   ? await getFaceIdToPersonIdDeductions(chatId, photoId)
+  //   : new Map<UUID, UUID>()
 
-  // For each detectedFace, check for a
-  const faces: PhotoFace[] = []
-  for (const { faceId, position } of detectedFaces) {
-    // first, if a deduction has been made, use it
-    const personIdFromDeductions = faceIdToPersonIdDeductions.get(faceId)
-    if (personIdFromDeductions) {
-      const { name } = await getPersonByIdOrThrow(personIdFromDeductions)
-      faces.push({
-        faceId,
-        position,
-        person: { name, annotatedBy: 'ai' },
-      })
+  // // For each detectedFace, check for a
+  // const faces: PhotoFace[] = []
+  // for (const { faceId, position } of detectedFaces) {
+  //   // first, if a deduction has been made, use it
+  //   const personIdFromDeductions = faceIdToPersonIdDeductions.get(faceId)
+  //   if (personIdFromDeductions) {
+  //     const { name } = await getPersonByIdOrThrow(personIdFromDeductions)
+  //     faces.push({
+  //       faceId,
+  //       position,
+  //       person: { name, annotatedBy: 'ai' },
+  //     })
 
-      continue
-    }
+  //     continue
+  //   }
 
-    // next, search the faceId-personId index
-    const personIdFromIndex = await getPersonIdForFaceId(faceId)
-    if (personIdFromIndex) {
-      const { name } = await getPersonByIdOrThrow(personIdFromIndex)
-      faces.push({
-        faceId,
-        position,
-        person: { name, annotatedBy: 'face-recognition' },
-      })
+  //   // next, search the faceId-personId index
+  //   const personIdFromIndex = await getPersonIdForFaceId(faceId)
+  //   if (personIdFromIndex) {
+  //     const { name } = await getPersonByIdOrThrow(personIdFromIndex)
+  //     faces.push({
+  //       faceId,
+  //       position,
+  //       person: { name, annotatedBy: 'face-recognition' },
+  //     })
 
-      continue
-    }
+  //     continue
+  //   }
 
-    // else return the faceId without a person
-    faces.push({
-      faceId,
-      position,
-      person: null,
-    })
-  }
+  //   // else return the faceId without a person
+  //   faces.push({
+  //     faceId,
+  //     position,
+  //     person: null,
+  //   })
+  // }
 
-  const captions = await getCaptionsForPhoto(chatId, photoId)
+  const caption = await getCaptionForPhoto(photoId)
 
   return {
-    id: photoId,
+    photoId,
     url: getPhotoUrlFromId(photoId),
-    faces,
-    captions,
+    caption,
   }
 }
 
@@ -126,13 +125,13 @@ async function getDetectedFaces(photoId: UUID) {
   return detectedFaces
 }
 
-async function getCaptionsForPhoto(chatId: UUID, photoId: UUID) {
+async function getCaptionForPhoto(photoId: UUID) {
   const { rows } = await postgres.query<UserAddedCaptionToPhoto>(
-    "SELECT * FROM history WHERE type='UserAddedCaptionToPhoto' AND payload->>'chatId'=$1 AND payload->>'photoId'=$2",
-    [chatId, photoId]
+    `SELECT * FROM history WHERE type='UserAddedCaptionToPhoto' AND payload->>'photoId'=$1 ORDER BY "occurredAt" DESC LIMIT 1`,
+    [photoId]
   )
 
-  return rows.map((row) => row.payload.caption)
+  return rows[0]?.payload.caption.body
 }
 
 const getPersonIdForFaceId = async (faceId: UUID): Promise<UUID | null> => {

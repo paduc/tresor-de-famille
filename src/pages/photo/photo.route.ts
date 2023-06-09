@@ -31,33 +31,23 @@ pageRouter
 
       const photo = await getPhoto(photoId)
 
-      responseAsHtml(request, response, PhotoPage({ photo }))
+      responseAsHtml(request, response, PhotoPage({ ...photo }))
     } catch (error) {
       console.error('error', error)
       response.send(error)
     }
   })
-  .post(requireAuth(), upload.single('photo'), async (request, response) => {
-    const { chatId } = zod.object({ chatId: zIsUUID }).parse(request.params)
-
+  .post(requireAuth(), async (request, response) => {
     try {
       const userId = request.session.user!.id
 
       const { caption, photoId } = zod.object({ caption: zod.string().optional(), photoId: zIsUUID }).parse(request.body)
 
-      const { file } = request
-      if (file) {
-        const photoId = getUuid()
-
-        await uploadPhotoToChat({ file, photoId, chatId, userId })
-
-        await detectAWSFacesInChatPhoto({ file, chatId, photoId })
-      } else if (caption) {
+      if (caption) {
         const captionId = getUuid()
 
         await addToHistory(
           UserAddedCaptionToPhoto({
-            chatId,
             photoId,
             caption: {
               id: captionId,
@@ -67,14 +57,14 @@ pageRouter
           })
         )
 
-        await makeDeductionsWithOpenAI({ chatId, userId, debug: false })
+        // await makeDeductionsWithOpenAI({ userId, debug: false })
       }
+
+      return response.redirect(`/photo/${photoId}/photo.html`)
     } catch (error) {
       console.error('Error in chat route')
       throw error
     }
-
-    return response.redirect(`/photo/${chatId}/photo.html`)
   })
 
 pageRouter.route('/add-photo.html').post(requireAuth(), upload.single('photo'), async (request, response) => {

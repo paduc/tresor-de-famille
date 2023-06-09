@@ -1,14 +1,18 @@
 import zod from 'zod'
-import { addToHistory } from '../../../dependencies/addToHistory'
 import { openai } from '../../../dependencies/LLM'
+import { addToHistory } from '../../../dependencies/addToHistory'
+import { postgres } from '../../../dependencies/database'
+import { normalizeBBOX } from '../../../dependencies/face-recognition'
 import { UUID } from '../../../domain'
 import { getUuid } from '../../../libs/getUuid'
+import { getPersonById } from '../../_getPersonById'
+import { getPersonIdForUserId } from '../../_getPersonIdForUserId.query'
+import { AWSFacesDetectedInChatPhoto } from '../../chat/recognizeFacesInChatPhoto/AWSFacesDetectedInChatPhoto'
 import { OpenAIFailedToMakeDeductions } from '../../chat/sendToOpenAIForDeductions/OpenAIFailedToMakeDeductions'
 import { OpenAIMadeDeductions } from '../../chat/sendToOpenAIForDeductions/OpenAIMadeDeductions'
 import { OpenAIPrompted } from '../../chat/sendToOpenAIForDeductions/OpenAIPrompted'
-import { getPersonById } from '../../_getPersonById'
-import { getPersonIdForUserId } from '../../_getPersonIdForUserId.query'
-import { getPhoto } from '../getPhoto.query'
+import { UserUploadedPhotoToChat } from '../../chat/uploadPhotoToChat/UserUploadedPhotoToChat'
+import { UserAddedCaptionToPhoto } from '../UserAddedCaptionToPhoto'
 import { describeFamily } from './describeFamily'
 import { describePhotoFaces } from './describePhotoFaces'
 
@@ -18,13 +22,19 @@ type MakeDeductionsWithOpenAIArgs = {
   debug?: boolean
 }
 export async function makeDeductionsWithOpenAI({ chatId, userId, debug }: MakeDeductionsWithOpenAIArgs) {
-  // getPhoto to know what we already know
-  const photo = await getPhoto(chatId)
-
   // make sure there is at least a photo with faces and at least one caption
-  if (!photo || !photo.captions || !photo.captions.length || !photo.faces || !photo.faces.length) return
+  const photo = await getPhoto(chatId)
+  if (!photo) return
 
-  const photoFacesDescription = await describePhotoFaces(chatId, photo.id, photo.faces)
+  const { photoId } = photo
+
+  const caption = await getCaptionForPhoto(photo.photoId)
+  if (!caption || !caption.length) return
+
+  const faces = await getDetectedFaces(photo.photoId)
+  if (!faces || !faces.length) return
+
+  const photoFacesDescription = await describePhotoFaces(chatId, photoId, faces)
 
   // Build prompt :
 
@@ -49,7 +59,7 @@ ${
 }
 
 ${currentPerson.name} added a caption describing the photo:
-"${photo.captions.map(({ body }) => body).join('\n')}"
+"${caption}"
 
 Use the caption and family tree to determine which persons are ${photoFacesDescription.unknownFaces.join(', ')}.${
     photoFacesDescription.knownPersons.length
@@ -107,7 +117,7 @@ You: { "steps": "`
           faceId: photoFacesDescription.faceCodeMap.codeToId(faceCode)!,
           personId: getUuid(),
           name: person,
-          photoId: photo.id,
+          photoId,
         })
         continue
       }
@@ -116,7 +126,7 @@ You: { "steps": "`
         deductionId: getUuid(),
         faceId: photoFacesDescription.faceCodeMap.codeToId(faceCode)!,
         personId,
-        photoId: photo.id,
+        photoId,
       })
     }
     if (debug) {
@@ -136,4 +146,45 @@ You: { "steps": "`
     console.log('OpenAI failed to parse prompt', error)
     await addToHistory(OpenAIFailedToMakeDeductions({ promptId, chatId, errorMessage: error.message || 'no message' }))
   }
+}
+
+const getPhoto = async (photoId: UUID) => {
+  const { rows: photoRowsRes } = await postgres.query<UserUploadedPhotoToChat>(
+    "SELECT * FROM history WHERE type='UserUploadedPhotoToChat' AND payload->>'photoId'=$1 ORDER BY \"occurredAt\" DESC",
+    [photoId]
+  )
+
+  const photoRow = photoRowsRes[0]?.payload
+
+  return photoRow
+}
+
+async function getCaptionForPhoto(photoId: UUID) {
+  const { rows } = await postgres.query<UserAddedCaptionToPhoto>(
+    `SELECT * FROM history WHERE type='UserAddedCaptionToPhoto' AND payload->>'photoId'=$2 ORDER BY "occurredAt" DESC LIMIT 1`,
+    [photoId]
+  )
+
+  return rows[0]?.payload.caption.body
+}
+
+async function getDetectedFaces(photoId: UUID) {
+  const detectedFaces = []
+
+  const { rows: faceDetectedRowsRes } = await postgres.query<AWSFacesDetectedInChatPhoto>(
+    "SELECT * FROM history WHERE type='AWSFacesDetectedInChatPhoto' AND payload->>'photoId'=$1",
+    [photoId]
+  )
+  const facesDetectedRows = faceDetectedRowsRes.map((row) => row.payload)
+  for (const facesDetectedRow of facesDetectedRows) {
+    for (const awsFace of facesDetectedRow.faces) {
+      detectedFaces.push({
+        faceId: awsFace.faceId,
+        person: null,
+        position: normalizeBBOX(awsFace.position),
+      })
+    }
+  }
+
+  return detectedFaces
 }
