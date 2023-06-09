@@ -116,7 +116,7 @@ export const PhotoPage = withBrowserBundle(({ error, success, photoId, url, capt
                         })
                         .map((face) => (
                           <li key={'face' + faceDetectionIndex + face.faceId} className='mb-1 mr-2 inline-block'>
-                            <FaceBadge faceId={face.faceId} title={face.person ? face.person.name : 'un visage inconnu'} />
+                            <FaceBadge faceId={face.faceId} title={face.person ? face.person.name : face.faceId} />
                           </li>
                         ))}
                     </ul>
