@@ -24,7 +24,7 @@ export const getLatestPhotoFaces = async (chatId: UUID): Promise<{ photoId: UUID
 
   const latestPhoto = latestPhotos[0].payload
   const { rows: latestPhotoFacesList } = await postgres.query<AWSDetectedFacesInPhoto>(
-    "SELECT * FROM history WHERE type='AWSFacesDetectedInChatPhoto' AND payload->>'chatId'=$1 AND payload->>'photoId'=$2 ORDER BY \"occurredAt\" DESC LIMIT 1",
+    "SELECT * FROM history WHERE type='AWSDetectedFacesInPhoto' AND payload->>'chatId'=$1 AND payload->>'photoId'=$2 ORDER BY \"occurredAt\" DESC LIMIT 1",
     [chatId, latestPhoto.photoId]
   )
 

@@ -172,7 +172,7 @@ async function getDetectedFaces(photoId: UUID) {
   const detectedFaces = []
 
   const { rows: faceDetectedRowsRes } = await postgres.query<AWSDetectedFacesInPhoto>(
-    "SELECT * FROM history WHERE type='AWSFacesDetectedInChatPhoto' AND payload->>'photoId'=$1",
+    "SELECT * FROM history WHERE type='AWSDetectedFacesInPhoto' AND payload->>'photoId'=$1",
     [photoId]
   )
   const facesDetectedRows = faceDetectedRowsRes.map((row) => row.payload)

@@ -34,7 +34,7 @@ async function getFaceDetectionMap(chatId: UUID): Promise<Map<PhotoId, { unrecog
   const facesForPhotoId = new Map<PhotoId, { unrecognizedFacesInPhoto: number }>()
 
   const { rows: faceDetectedRowsRes } = await postgres.query<AWSDetectedFacesInPhoto>(
-    "SELECT * FROM history WHERE type='AWSFacesDetectedInChatPhoto' AND payload->>'chatId'=$1",
+    "SELECT * FROM history WHERE type='AWSDetectedFacesInPhoto' AND payload->>'chatId'=$1",
     [chatId]
   )
 

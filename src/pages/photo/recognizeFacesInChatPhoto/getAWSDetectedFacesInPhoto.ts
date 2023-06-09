@@ -40,13 +40,14 @@ export const getAWSDetectedFacesInPhoto = async ({
   const facesToReturn = []
 
   for (const faceRecord of indexFacesResult.FaceRecords!) {
-    if (
-      faceRecord.FaceDetail!.Quality!.Sharpness! < SHARPNESS_THRESHOLD ||
-      faceRecord.FaceDetail!.Confidence! < CONFIDENCE_THRESHOLD
-    ) {
-      facesToDelete.push(faceRecord.Face!.FaceId!)
-      continue
-    }
+    // Only index faces above a certain quality
+    // if (
+    //   faceRecord.FaceDetail!.Quality!.Sharpness! < SHARPNESS_THRESHOLD ||
+    //   faceRecord.FaceDetail!.Confidence! < CONFIDENCE_THRESHOLD
+    // ) {
+    //   facesToDelete.push(faceRecord.Face!.FaceId!)
+    //   continue
+    // }
 
     const matches = await rekognition
       .searchFaces({

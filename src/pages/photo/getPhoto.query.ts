@@ -105,24 +105,19 @@ async function getFaceIdToPersonIdDeductions(chatId: UUID, photoId: UUID): Promi
   return faceIdToPersonId
 }
 
-async function getDetectedFaces(photoId: UUID) {
-  const detectedFaces: { faceId: UUID; position: PhotoFace['position'] }[] = []
-
+async function getFaceDetections(photoId: UUID) {
   const { rows: faceDetectedRowsRes } = await postgres.query<AWSDetectedFacesInPhoto>(
-    "SELECT * FROM history WHERE type='AWSFacesDetectedInChatPhoto' AND payload->>'photoId'=$1",
+    "SELECT * FROM history WHERE type='AWSDetectedFacesInPhoto' AND payload->>'photoId'=$1",
     [photoId]
   )
-  const facesDetectedRows = faceDetectedRowsRes.map((row) => row.payload)
-  for (const facesDetectedRow of facesDetectedRows) {
-    for (const awsFace of facesDetectedRow.faces) {
-      detectedFaces.push({
-        faceId: awsFace.faceId,
-        position: normalizeBBOX(awsFace.position),
-      })
-    }
-  }
 
-  return detectedFaces
+  return faceDetectedRowsRes.map(({ payload, occurredAt }) => ({
+    occurredAt,
+    faces: payload.faces.map((awsFace) => ({
+      faceId: awsFace.faceId,
+      position: normalizeBBOX(awsFace.position),
+    })),
+  }))
 }
 
 async function getCaptionForPhoto(photoId: UUID) {
