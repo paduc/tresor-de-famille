@@ -1,4 +1,4 @@
-import { DomainEvent, makeDomainEvent } from '../dependencies/addToHistory'
+import { DomainEvent, makeDomainEvent } from '../dependencies/DomainEvent'
 
 export type FauxUtilisateurInscrit = DomainEvent<
   'FauxUtilisateurInscrit',

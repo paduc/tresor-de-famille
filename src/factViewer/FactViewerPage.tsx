@@ -1,5 +1,5 @@
 import React from 'react'
-import { DomainEvent } from '../dependencies/addToHistory'
+import { DomainEvent } from '../dependencies/DomainEvent'
 
 type FactViewerPageProps = {
   facts: DomainEvent[]

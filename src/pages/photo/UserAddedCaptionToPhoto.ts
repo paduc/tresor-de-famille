@@ -1,5 +1,5 @@
 import { UUID } from '../../domain'
-import { DomainEvent, makeDomainEvent } from '../../dependencies/addToHistory'
+import { DomainEvent, makeDomainEvent } from '../../dependencies/DomainEvent'
 
 export type UserAddedCaptionToPhoto = DomainEvent<
   'UserAddedCaptionToPhoto',

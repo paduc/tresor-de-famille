@@ -1,4 +1,4 @@
-import { DomainEvent } from '../dependencies/addToHistory'
+import { DomainEvent } from '../dependencies/DomainEvent'
 import { postgres } from '../dependencies/database'
 
 export const getFactTypes = async (): Promise<string[]> => {

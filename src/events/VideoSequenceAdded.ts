@@ -1,5 +1,5 @@
 import { MediaTime, UUID } from '../domain'
-import { DomainEvent, makeDomainEvent } from '../dependencies/addToHistory'
+import { DomainEvent, makeDomainEvent } from '../dependencies/DomainEvent'
 import { Epoch, zCustom } from '../libs/typeguards'
 
 export type TaggedPerson = UUID
