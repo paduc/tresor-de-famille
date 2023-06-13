@@ -1,18 +1,16 @@
-import { IoTRoboRunner } from 'aws-sdk'
 import multer from 'multer'
 import zod from 'zod'
-import { requireAuth } from '../../dependencies/authn'
 import { addToHistory } from '../../dependencies/addToHistory'
+import { requireAuth } from '../../dependencies/authn'
 import { zIsUUID } from '../../domain'
 import { getUuid } from '../../libs/getUuid'
 import { responseAsHtml } from '../../libs/ssr/responseAsHtml'
-import { detectFacesInPhotoUsingAWS } from './recognizeFacesInChatPhoto/detectFacesInPhotoUsingAWS'
 import { uploadPhotoToChat } from '../chat/uploadPhotoToChat/uploadPhotoToChat'
 import { pageRouter } from '../pageRouter'
-import { getPhoto } from './getPhoto.query'
-import { makeDeductionsWithOpenAI } from './makeDeductionsWithOpenAI/makeDeductionsWithOpenAI'
 import { PhotoPage } from './PhotoPage/PhotoPage'
 import { UserAddedCaptionToPhoto } from './UserAddedCaptionToPhoto'
+import { getPhoto } from './getPhoto.query'
+import { detectFacesInPhotoUsingAWS } from './recognizeFacesInChatPhoto/detectFacesInPhotoUsingAWS'
 
 const FILE_SIZE_LIMIT_MB = 50
 const upload = multer({

@@ -8,20 +8,19 @@ import { getUuid } from '../../../libs/getUuid'
 import { getPersonById } from '../../_getPersonById'
 import { getPersonIdForUserId } from '../../_getPersonIdForUserId.query'
 import { AWSDetectedFacesInPhoto } from '../recognizeFacesInChatPhoto/AWSDetectedFacesInPhoto'
-import { OpenAIFailedToMakeDeductions } from '../../chat/sendToOpenAIForDeductions/OpenAIFailedToMakeDeductions'
-import { OpenAIMadeDeductions } from '../../chat/sendToOpenAIForDeductions/OpenAIMadeDeductions'
-import { OpenAIPrompted } from '../../chat/sendToOpenAIForDeductions/OpenAIPrompted'
 import { UserUploadedPhotoToChat } from '../../chat/uploadPhotoToChat/UserUploadedPhotoToChat'
 import { UserAddedCaptionToPhoto } from '../UserAddedCaptionToPhoto'
 import { describeFamily } from './describeFamily'
 import { describePhotoFaces } from './describePhotoFaces'
+import { PhotoAnnotationUsingOpenAIFailed } from './PhotoAnnotationUsingOpenAIFailed'
+import { PhotoAnnotatedUsingOpenAI } from './PhotoAnnotatedUsingOpenAI'
 
-type MakeDeductionsWithOpenAIArgs = {
+type AnnotatePhotoUsingOpenAIArgs = {
   chatId: UUID
   userId: UUID
   debug?: boolean
 }
-export async function makeDeductionsWithOpenAI({ chatId, userId, debug }: MakeDeductionsWithOpenAIArgs) {
+export async function annotatePhotoUsingOpenAI({ chatId, userId, debug }: AnnotatePhotoUsingOpenAIArgs) {
   // make sure there is at least a photo with faces and at least one caption
   const photo = await getPhoto(chatId)
   if (!photo) return
@@ -75,9 +74,8 @@ You: { "steps": "`
 
   const prefixResultWith = `{ "steps": "`
 
-  const promptId = getUuid()
+  const model = 'text-davinci-003'
   try {
-    const model = 'text-davinci-003'
     const response = await openai.createCompletion({
       model,
       prompt,
@@ -86,18 +84,6 @@ You: { "steps": "`
       user: userId,
     })
     const gptResult = prefixResultWith + response.data.choices[0].text
-    if (!debug) {
-      await addToHistory(
-        OpenAIPrompted({
-          chatId,
-          promptId: promptId,
-          promptedBy: userId,
-          prompt,
-          model,
-          response: gptResult,
-        })
-      )
-    }
     if (!gptResult) throw new Error('Result is empty')
 
     const jsonGptResult = JSON.parse(gptResult)
@@ -107,7 +93,7 @@ You: { "steps": "`
       .object({ steps: zod.string(), faces: zod.array(zod.object({ faceCode: zod.string(), person: zod.string() })) })
       .parse(jsonGptResult)
 
-    const deductions: OpenAIMadeDeductions['payload']['deductions'] = []
+    const deductions: PhotoAnnotatedUsingOpenAI['payload']['deductions'] = []
     for (const { faceCode, person } of faces) {
       const personId = family.personIdMap.get(person)
       if (!personId) {
@@ -134,17 +120,19 @@ You: { "steps": "`
     }
     if (!debug) {
       await addToHistory(
-        OpenAIMadeDeductions({
-          chatId,
-          promptId,
+        PhotoAnnotatedUsingOpenAI({
+          photoId,
+          prompt,
+          model,
+          response: gptResult,
           deductions,
         })
       )
     }
     // TODO: addToHistory event to be used in chat thread OpenAIAnnotatedChatPhoto
   } catch (error: any) {
-    console.log('OpenAI failed to parse prompt', error)
-    await addToHistory(OpenAIFailedToMakeDeductions({ promptId, chatId, errorMessage: error.message || 'no message' }))
+    console.error('OpenAI failed to parse prompt', error)
+    await addToHistory(PhotoAnnotationUsingOpenAIFailed({ photoId, prompt, model, error: error.message || 'no message' }))
   }
 }
 

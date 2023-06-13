@@ -26,10 +26,6 @@ export type PhotoFace = {
   }
 }
 
-type PhotoCaption = {
-  body: string
-}
-
 export type PhotoPageProps = {
   success?: string
   error?: string
@@ -37,99 +33,135 @@ export type PhotoPageProps = {
   url: string
   caption?: string
   faceDetections: { occurredAt: number; faces: PhotoFace[] }[]
+  aiDeductions: {
+    occurredAt: number
+    deductions: {
+      type: 'face-is-person'
+      faceId: UUID
+      person: {
+        id: UUID
+        name: string
+      }
+      raw: {
+        prompt: string
+        response: string
+      }
+    }[]
+  }[]
 }
 
-export const PhotoPage = withBrowserBundle(({ error, success, photoId, url, caption, faceDetections }: PhotoPageProps) => {
-  // const knownFaces = photo?.faces
-  //   ?.filter((face) => face.person !== null)
-  //   .sort((faceA, faceB) => faceA.position.left - faceB.position.left)
+export const PhotoPage = withBrowserBundle(
+  ({ error, success, photoId, url, caption, faceDetections, aiDeductions }: PhotoPageProps) => {
+    // const knownFaces = photo?.faces
+    //   ?.filter((face) => face.person !== null)
+    //   .sort((faceA, faceB) => faceA.position.left - faceB.position.left)
 
-  // const unknownFacesCount = (photo?.faces?.length || 0) - (knownFaces?.length || 0)
+    // const unknownFacesCount = (photo?.faces?.length || 0) - (knownFaces?.length || 0)
 
-  const [isSubmitCaptionButtonVisible, setSubmitCaptionButtonVisible] = React.useState(false)
+    const [isSubmitCaptionButtonVisible, setSubmitCaptionButtonVisible] = React.useState(false)
 
-  return (
-    <AppLayout>
-      <HoverProvider>
-        <div className='bg-white w-full h-full pt-3'>
-          <SuccessError success={success} error={error} />
-          <div className='w-full sm:max-w-2xl sm:mx-auto grid grid-cols-1 justify-items-center bg-gray-100 sm:border sm:rounded-lg overflow-hidden'>
-            <div className='relative'>
-              <img src={url} className='' />
-              {faceDetections.map((faceDetection) => {
-                return faceDetection.faces.map((face, index) => <HoverableFace key={`faceSpot${face.faceId}`} face={face} />)
-              })}
-            </div>
+    return (
+      <AppLayout>
+        <HoverProvider>
+          <div className='bg-white w-full h-full pt-3'>
+            <SuccessError success={success} error={error} />
+            <div className='w-full sm:max-w-2xl sm:mx-auto grid grid-cols-1 justify-items-center bg-gray-100 sm:border sm:rounded-lg overflow-hidden'>
+              <div className='relative'>
+                <img src={url} className='' />
+                {faceDetections.map((faceDetection) => {
+                  return faceDetection.faces.map((face, index) => <HoverableFace key={`faceSpot${face.faceId}`} face={face} />)
+                })}
+              </div>
 
-            <div className='bg-white w-full'>
-              <form method='POST' className='relative'>
-                <input type='hidden' name='photoId' defaultValue={photoId} />
-                <div className='overflow-hidden sm:border border-gray-300 shadow-sm focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500'>
-                  <label htmlFor='caption' className='sr-only'>
-                    Ajouter une légende...
-                  </label>
-                  <textarea
-                    rows={3}
-                    name='caption'
-                    id='caption'
-                    className='block w-full resize-none border-0 py-3 focus:ring-0 sm:text-sm'
-                    placeholder='Ajouter une légende...'
-                    defaultValue={caption}
-                    onKeyUp={(e) => {
-                      setSubmitCaptionButtonVisible(e.currentTarget.value !== caption)
-                    }}
-                  />
+              <div className='bg-white w-full'>
+                <form method='POST' className='relative'>
+                  <input type='hidden' name='photoId' defaultValue={photoId} />
+                  <div className='overflow-hidden sm:border border-gray-300 shadow-sm focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500'>
+                    <label htmlFor='caption' className='sr-only'>
+                      Ajouter une légende...
+                    </label>
+                    <textarea
+                      rows={3}
+                      name='caption'
+                      id='caption'
+                      className='block w-full resize-none border-0 py-3 focus:ring-0 sm:text-sm'
+                      placeholder='Ajouter une légende...'
+                      defaultValue={caption}
+                      onKeyUp={(e) => {
+                        setSubmitCaptionButtonVisible(e.currentTarget.value !== caption)
+                      }}
+                    />
 
-                  {/* Spacer element to match the height of the toolbar */}
-                  <div className='py-2' aria-hidden='true'>
-                    {/* Matches height of button in toolbar (1px border + 36px content height) */}
-                    <div className='py-px'>
-                      <div className='h-9' />
+                    {/* Spacer element to match the height of the toolbar */}
+                    <div className='py-2' aria-hidden='true'>
+                      {/* Matches height of button in toolbar (1px border + 36px content height) */}
+                      <div className='py-px'>
+                        <div className='h-9' />
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                {isSubmitCaptionButtonVisible ? (
-                  <div className='absolute inset-x-0 bottom-0 flex justify-between py-2 pl-3 pr-2'>
-                    <div className='flex-shrink-0'>
-                      <button
-                        type='submit'
-                        className='inline-flex items-center mt-3 px-3 py-1.5 border border-transparent sm:sm:text-xs font-medium rounded-full shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
-                        <SendIcon className='-ml-0.5 mr-2 h-4 w-4' aria-hidden='true' />
-                        Envoyer
-                      </button>
+                  {isSubmitCaptionButtonVisible ? (
+                    <div className='absolute inset-x-0 bottom-0 flex justify-between py-2 pl-3 pr-2'>
+                      <div className='flex-shrink-0'>
+                        <button
+                          type='submit'
+                          className='inline-flex items-center mt-3 px-3 py-1.5 border border-transparent sm:sm:text-xs font-medium rounded-full shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
+                          <SendIcon className='-ml-0.5 mr-2 h-4 w-4' aria-hidden='true' />
+                          Envoyer
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                ) : null}
-              </form>
-            </div>
-            <div className='bg-gray-100 w-full'>
-              {faceDetections.map((faceDetection, faceDetectionIndex) => {
-                return (
-                  <div className='pl-2 pt-3 w-full'>
-                    <div className='text-gray-700 text-sm'>Le {new Date(faceDetection.occurredAt).toLocaleDateString()}</div>
-                    <div className='text-gray-900 text-sm'>AWS Rekognition a détecté:</div>
-                    <ul className='mt-2 mb-2'>
-                      {faceDetection.faces
-                        .sort((faceA, faceB) => {
-                          return faceB.position.width * faceB.position.height - faceA.position.width * faceA.position.height
-                        })
-                        .map((face) => (
-                          <li key={'face' + faceDetectionIndex + face.faceId} className='mb-1 mr-2 inline-block'>
-                            <FaceBadge faceId={face.faceId} title={face.person ? face.person.name : face.faceId} />
-                          </li>
-                        ))}
-                    </ul>
-                  </div>
-                )
-              })}
+                  ) : null}
+                </form>
+              </div>
+              <div className='bg-gray-100 w-full'>
+                {faceDetections.map((faceDetection, faceDetectionIndex) => {
+                  return (
+                    <div className='pl-2 pt-3 w-full'>
+                      <div className='text-gray-700 text-sm'>Le {new Date(faceDetection.occurredAt).toLocaleDateString()}</div>
+                      <div className='text-gray-900 text-sm'>AWS Rekognition a détecté:</div>
+                      <ul className='mt-2 mb-2'>
+                        {faceDetection.faces
+                          .sort((faceA, faceB) => {
+                            return faceB.position.width * faceB.position.height - faceA.position.width * faceA.position.height
+                          })
+                          .map((face) => (
+                            <li key={'face' + faceDetectionIndex + face.faceId} className='mb-1 mr-2 inline-block'>
+                              <FaceBadge faceId={face.faceId} title={face.person ? face.person.name : face.faceId} />
+                            </li>
+                          ))}
+                      </ul>
+                    </div>
+                  )
+                })}
+                {/* {aiDeductions.map((aiDeduction, aiDeductionIndex) => {
+                  return (
+                    <div className='pl-2 pt-3 w-full'>
+                      <div className='text-gray-700 text-sm'>Le {new Date(aiDeduction.occurredAt).toLocaleDateString()}</div>
+                      <div className='text-gray-900 text-sm'>OpenAI a fait une suggestion:</div>
+                      <ul className='mt-2 mb-2'>
+                        {aiDeduction.faces
+                          .sort((faceA, faceB) => {
+                            return faceB.position.width * faceB.position.height - faceA.position.width * faceA.position.height
+                          })
+                          .map((face) => (
+                            <li key={'face' + aiDeductionIndex + face.faceId} className='mb-1 mr-2 inline-block'>
+                              <FaceBadge faceId={face.faceId} title={face.person ? face.person.name : face.faceId} />
+                            </li>
+                          ))}
+                      </ul>
+                    </div>
+                  )
+                })} */}
+              </div>
             </div>
           </div>
-        </div>
-      </HoverProvider>
-    </AppLayout>
-  )
-})
+        </HoverProvider>
+      </AppLayout>
+    )
+  }
+)
 
 type ChatItemProps = { children: React.ReactNode; isLastItem?: boolean }
 export const ChatItem = ({ children, isLastItem }: ChatItemProps) => {
