@@ -9,6 +9,7 @@ import { SendIcon } from './SendIcon'
 import type { UserAddedCaptionToPhoto } from '../UserAddedCaptionToPhoto'
 import type { PhotoAnnotatedUsingOpenAI } from '../annotatePhotoUsingOpenAI/PhotoAnnotatedUsingOpenAI'
 import type { AWSDetectedFacesInPhoto } from '../recognizeFacesInChatPhoto/AWSDetectedFacesInPhoto'
+import { PhotoIcon } from './PhotoIcon'
 
 // @ts-ignore
 function classNames(...classes) {
@@ -47,6 +48,8 @@ export type PhotoPageProps = {
 export const PhotoPage = withBrowserBundle(
   ({ error, success, photoId, url, caption, personsByFaceId, personById, annotationEvents }: PhotoPageProps) => {
     const [isSubmitCaptionButtonVisible, setSubmitCaptionButtonVisible] = React.useState(false)
+
+    annotationEvents.forEach((event) => (event.occurredAt = new Date(event.occurredAt)))
 
     const faces = annotationEvents
       .filter((event): event is AWSDetectedFacesInPhoto => {
@@ -126,90 +129,105 @@ export const PhotoPage = withBrowserBundle(
                 </form>
               </div>
               <div className='bg-gray-100 w-full  divide-y divide-dashed divide-gray-400'>
-                {annotationEvents.map((event) => {
-                  if (event.type === 'AWSDetectedFacesInPhoto' && event.payload.faces.length === 0) return
+                {annotationEvents
+                  .sort((eventA, eventB) => {
+                    return eventB.occurredAt.getTime() - eventA.occurredAt.getTime()
+                  })
+                  .map((event) => {
+                    if (event.type === 'AWSDetectedFacesInPhoto' && event.payload.faces.length === 0) return
 
-                  return (
-                    <div className='pl-2 pt-3 w-full'>
-                      <div className='text-gray-500 text-sm'>
-                        Le {new Date(event.occurredAt).toLocaleDateString()} à {new Date(event.occurredAt).toLocaleTimeString()}
-                        <span className='ml-2 italic'>{event.type}</span>
-                      </div>
-                      {event.type === 'AWSDetectedFacesInPhoto' ? (
-                        <div className='py-2 text-sm'>
-                          <div className='mb-1'>
-                            La reconnaissance automatique a détecté {event.payload.faces.length} visage(s).
+                    return (
+                      <div className='pl-2 pt-3 w-full' key={event.id}>
+                        <div className='text-gray-500 text-sm'>
+                          Le {new Date(event.occurredAt).toLocaleDateString()} à{' '}
+                          {new Date(event.occurredAt).toLocaleTimeString()}
+                          <span className='ml-2 italic'>{event.type}</span>
+                        </div>
+                        {event.type === 'AWSDetectedFacesInPhoto' ? (
+                          <div className='py-2 text-sm'>
+                            <div className='mb-1'>
+                              La reconnaissance automatique a détecté {event.payload.faces.length} visage(s).
+                            </div>
+                            <ul className=''>
+                              {event.payload.faces
+                                .sort((faceA, faceB) => {
+                                  return (
+                                    faceB.position.Width! * faceB.position.Height! -
+                                    faceA.position.Width! * faceA.position.Height!
+                                  )
+                                })
+                                .map((face, index) => (
+                                  <li key={'face' + event.id + face.faceId} className='mb-1 mr-2'>
+                                    <FaceBadge faceId={face.faceId} title={`Visage ${index + 1}`} />
+                                    {personsByFaceId[face.faceId] ? (
+                                      <span className='ml-1 text-sm'>
+                                        est reconnu et a été associé à{' '}
+                                        {personsByFaceId[face.faceId].map(({ name }) => name).join(' ou ')}
+                                      </span>
+                                    ) : (
+                                      <span className='ml-1 text-sm'>n'est pas connu</span>
+                                    )}
+                                  </li>
+                                ))}
+                            </ul>
                           </div>
-                          <ul className=''>
-                            {event.payload.faces
-                              .sort((faceA, faceB) => {
-                                return (
-                                  faceB.position.Width! * faceB.position.Height! -
-                                  faceA.position.Width! * faceA.position.Height!
-                                )
-                              })
-                              .map((face, index) => (
-                                <li key={'face' + event.id + face.faceId} className='mb-1 mr-2'>
-                                  <FaceBadge faceId={face.faceId} title={`Visage ${index + 1}`} />
-                                  {personsByFaceId[face.faceId] ? (
-                                    <span className='ml-1 text-sm'>
-                                      est reconnu et a été associé à{' '}
-                                      {personsByFaceId[face.faceId].map(({ name }) => name).join(' ou ')}
-                                    </span>
+                        ) : event.type === 'UserAddedCaptionToPhoto' ? (
+                          <div className='py-2 text-sm'>
+                            <div className='mb-1'>Vous avez mis à jour la légende.</div>
+                            <div className='italic'>{event.payload.caption.body}</div>
+                          </div>
+                        ) : event.type === 'PhotoAnnotatedUsingOpenAI' ? (
+                          <div className='py-2 text-sm'>
+                            <div className='mb-1'>
+                              A partir des informations connues, l'IA est arrivée aux conclusions suivantes.
+                            </div>
+                            <ul className='mt-2 mb-2'>
+                              {event.payload.deductions.map((deduction, index) => (
+                                <li key={'deduction' + event.id + deduction.faceId} className='mb-1 mr-2 text-sm'>
+                                  {deduction.type === 'face-is-person' ? (
+                                    <>
+                                      <FaceBadge faceId={deduction.faceId} title={`Visage ${index + 1}`} /> appartient à{' '}
+                                      {personById[deduction.personId]?.name}
+                                    </>
                                   ) : (
-                                    <span className='ml-1 text-sm'>n'est pas connu</span>
+                                    <>
+                                      <FaceBadge faceId={deduction.faceId} title={`Visage ${index + 1}`} /> appartient à une
+                                      nouvelle personne "{deduction.name}"
+                                    </>
                                   )}
                                 </li>
                               ))}
-                          </ul>
-                        </div>
-                      ) : event.type === 'UserAddedCaptionToPhoto' ? (
-                        <div className='py-2 text-sm'>
-                          <div className='mb-1'>Vous avez mis à jour la légende.</div>
-                          <div className='italic'>{event.payload.caption.body}</div>
-                        </div>
-                      ) : event.type === 'PhotoAnnotatedUsingOpenAI' ? (
-                        <div className='py-2 text-sm'>
-                          <div className='mb-1'>
-                            A partir des informations connues, l'IA est arrivée aux conclusions suivantes.
-                          </div>
-                          <ul className='mt-2 mb-2'>
-                            {event.payload.deductions.map((deduction, index) => (
-                              <li key={'deduction' + event.id + deduction.faceId} className='mb-1 mr-2 text-sm'>
-                                {deduction.type === 'face-is-person' ? (
-                                  <>
-                                    <FaceBadge faceId={deduction.faceId} title={`Visage ${index + 1}`} /> appartient à{' '}
-                                    {personById[deduction.personId]?.name}
-                                  </>
-                                ) : (
-                                  <>
-                                    <FaceBadge faceId={deduction.faceId} title={`Visage ${index + 1}`} /> appartient à une
-                                    nouvelle personne "{deduction.name}"
-                                  </>
-                                )}
-                              </li>
-                            ))}
-                          </ul>
-                          <details className='text-sm text-gray-600 ml-1'>
-                            <summary className='cursor-pointer'>voir les details</summary>
+                            </ul>
+                            <details className='text-sm text-gray-600 ml-1'>
+                              <summary className='cursor-pointer'>voir les details</summary>
 
-                            <div>model: {event.payload.model}</div>
-                            <div className='mt-2'>
-                              prompt:
-                              <pre>{event.payload.prompt}</pre>
-                            </div>
-                            {event.payload.response ? (
+                              <div>model: {event.payload.model}</div>
                               <div className='mt-2'>
-                                response:
-                                <pre>{event.payload.response}</pre>
+                                prompt:
+                                <pre>{event.payload.prompt}</pre>
                               </div>
-                            ) : null}
-                          </details>
-                        </div>
-                      ) : null}
-                    </div>
-                  )
-                })}
+                              {event.payload.response ? (
+                                <div className='mt-2'>
+                                  response:
+                                  <pre>{event.payload.response}</pre>
+                                </div>
+                              ) : null}
+                            </details>
+                          </div>
+                        ) : null}
+                      </div>
+                    )
+                  })}
+                {caption ? (
+                  <form method='POST' className='mb-3 ml-2'>
+                    <input type='hidden' name='action' value='triggerAnnotation' />
+                    <input type='hidden' name='photoId' value={photoId} />
+                    <button className='inline-flex items-center mt-3 px-3 py-1.5 border border-transparent sm:text-xs font-medium rounded-full shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
+                      <PhotoIcon className='-ml-0.5 mr-2 h-4 w-4' aria-hidden='true' />
+                      Lancer une annotation par IA
+                    </button>
+                  </form>
+                ) : null}
               </div>
             </div>
           </div>
