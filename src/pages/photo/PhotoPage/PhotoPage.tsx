@@ -6,6 +6,9 @@ import { SuccessError } from '../../_components/SuccessError'
 import { AppLayout } from '../../_components/layout/AppLayout'
 import { HoverContext, HoverProvider } from './HoverProvider'
 import { SendIcon } from './SendIcon'
+import type { UserAddedCaptionToPhoto } from '../UserAddedCaptionToPhoto'
+import type { PhotoAnnotatedUsingOpenAI } from '../annotatePhotoUsingOpenAI/PhotoAnnotatedUsingOpenAI'
+import type { AWSDetectedFacesInPhoto } from '../recognizeFacesInChatPhoto/AWSDetectedFacesInPhoto'
 
 // @ts-ignore
 function classNames(...classes) {
@@ -32,33 +35,40 @@ export type PhotoPageProps = {
   photoId: UUID
   url: string
   caption?: string
-  faceDetections: { occurredAt: number; faces: PhotoFace[] }[]
-  aiDeductions: {
-    occurredAt: number
-    deductions: {
-      type: 'face-is-person'
-      faceId: UUID
-      person: {
-        id: UUID
-        name: string
-      }
-      raw: {
-        prompt: string
-        response: string
-      }
-    }[]
-  }[]
+  personsByFaceId: {
+    [faceId: UUID]: { personId: UUID; name: string }[] // There can be multiple persons associated to a face
+  }
+  personById: {
+    [personId: UUID]: { name: string }
+  }
+  annotationEvents: (UserAddedCaptionToPhoto | PhotoAnnotatedUsingOpenAI | AWSDetectedFacesInPhoto)[]
 }
 
 export const PhotoPage = withBrowserBundle(
-  ({ error, success, photoId, url, caption, faceDetections, aiDeductions }: PhotoPageProps) => {
-    // const knownFaces = photo?.faces
-    //   ?.filter((face) => face.person !== null)
-    //   .sort((faceA, faceB) => faceA.position.left - faceB.position.left)
-
-    // const unknownFacesCount = (photo?.faces?.length || 0) - (knownFaces?.length || 0)
-
+  ({ error, success, photoId, url, caption, personsByFaceId, personById, annotationEvents }: PhotoPageProps) => {
     const [isSubmitCaptionButtonVisible, setSubmitCaptionButtonVisible] = React.useState(false)
+
+    const faces = annotationEvents
+      .filter((event): event is AWSDetectedFacesInPhoto => {
+        return event.type === 'AWSDetectedFacesInPhoto'
+      })
+      .reduce((faces, event) => {
+        for (const { faceId, position } of event.payload.faces) {
+          faces.set(faceId, {
+            faceId,
+            position: {
+              width: position.Width!,
+              height: position.Height!,
+              top: position.Top!,
+              left: position.Left!,
+            },
+            person: null,
+          })
+        }
+
+        return faces
+      }, new Map<string, PhotoFace>())
+      .values()
 
     return (
       <AppLayout>
@@ -68,8 +78,8 @@ export const PhotoPage = withBrowserBundle(
             <div className='w-full sm:max-w-2xl sm:mx-auto grid grid-cols-1 justify-items-center bg-gray-100 sm:border sm:rounded-lg overflow-hidden'>
               <div className='relative'>
                 <img src={url} className='' />
-                {faceDetections.map((faceDetection) => {
-                  return faceDetection.faces.map((face, index) => <HoverableFace key={`faceSpot${face.faceId}`} face={face} />)
+                {[...faces].map((face) => {
+                  return <HoverableFace key={`faceSpot${face.faceId}`} face={face} />
                 })}
               </div>
 
@@ -115,45 +125,91 @@ export const PhotoPage = withBrowserBundle(
                   ) : null}
                 </form>
               </div>
-              <div className='bg-gray-100 w-full'>
-                {faceDetections.map((faceDetection, faceDetectionIndex) => {
+              <div className='bg-gray-100 w-full  divide-y divide-dashed divide-gray-400'>
+                {annotationEvents.map((event) => {
+                  if (event.type === 'AWSDetectedFacesInPhoto' && event.payload.faces.length === 0) return
+
                   return (
                     <div className='pl-2 pt-3 w-full'>
-                      <div className='text-gray-700 text-sm'>Le {new Date(faceDetection.occurredAt).toLocaleDateString()}</div>
-                      <div className='text-gray-900 text-sm'>AWS Rekognition a détecté:</div>
-                      <ul className='mt-2 mb-2'>
-                        {faceDetection.faces
-                          .sort((faceA, faceB) => {
-                            return faceB.position.width * faceB.position.height - faceA.position.width * faceA.position.height
-                          })
-                          .map((face) => (
-                            <li key={'face' + faceDetectionIndex + face.faceId} className='mb-1 mr-2 inline-block'>
-                              <FaceBadge faceId={face.faceId} title={face.person ? face.person.name : face.faceId} />
-                            </li>
-                          ))}
-                      </ul>
+                      <div className='text-gray-500 text-sm'>
+                        Le {new Date(event.occurredAt).toLocaleDateString()} à {new Date(event.occurredAt).toLocaleTimeString()}
+                        <span className='ml-2 italic'>{event.type}</span>
+                      </div>
+                      {event.type === 'AWSDetectedFacesInPhoto' ? (
+                        <div className='py-2 text-sm'>
+                          <div className='mb-1'>
+                            La reconnaissance automatique a détecté {event.payload.faces.length} visage(s).
+                          </div>
+                          <ul className=''>
+                            {event.payload.faces
+                              .sort((faceA, faceB) => {
+                                return (
+                                  faceB.position.Width! * faceB.position.Height! -
+                                  faceA.position.Width! * faceA.position.Height!
+                                )
+                              })
+                              .map((face, index) => (
+                                <li key={'face' + event.id + face.faceId} className='mb-1 mr-2'>
+                                  <FaceBadge faceId={face.faceId} title={`Visage ${index + 1}`} />
+                                  {personsByFaceId[face.faceId] ? (
+                                    <span className='ml-1 text-sm'>
+                                      est reconnu et a été associé à{' '}
+                                      {personsByFaceId[face.faceId].map(({ name }) => name).join(' ou ')}
+                                    </span>
+                                  ) : (
+                                    <span className='ml-1 text-sm'>n'est pas connu</span>
+                                  )}
+                                </li>
+                              ))}
+                          </ul>
+                        </div>
+                      ) : event.type === 'UserAddedCaptionToPhoto' ? (
+                        <div className='py-2 text-sm'>
+                          <div className='mb-1'>Vous avez mis à jour la légende.</div>
+                          <div className='italic'>{event.payload.caption.body}</div>
+                        </div>
+                      ) : event.type === 'PhotoAnnotatedUsingOpenAI' ? (
+                        <div className='py-2 text-sm'>
+                          <div className='mb-1'>
+                            A partir des informations connues, l'IA est arrivée aux conclusions suivantes.
+                          </div>
+                          <ul className='mt-2 mb-2'>
+                            {event.payload.deductions.map((deduction, index) => (
+                              <li key={'deduction' + event.id + deduction.faceId} className='mb-1 mr-2 text-sm'>
+                                {deduction.type === 'face-is-person' ? (
+                                  <>
+                                    <FaceBadge faceId={deduction.faceId} title={`Visage ${index + 1}`} /> appartient à{' '}
+                                    {personById[deduction.personId]?.name}
+                                  </>
+                                ) : (
+                                  <>
+                                    <FaceBadge faceId={deduction.faceId} title={`Visage ${index + 1}`} /> appartient à une
+                                    nouvelle personne "{deduction.name}"
+                                  </>
+                                )}
+                              </li>
+                            ))}
+                          </ul>
+                          <details className='text-sm text-gray-600 ml-1'>
+                            <summary className='cursor-pointer'>voir les details</summary>
+
+                            <div>model: {event.payload.model}</div>
+                            <div className='mt-2'>
+                              prompt:
+                              <pre>{event.payload.prompt}</pre>
+                            </div>
+                            {event.payload.response ? (
+                              <div className='mt-2'>
+                                response:
+                                <pre>{event.payload.response}</pre>
+                              </div>
+                            ) : null}
+                          </details>
+                        </div>
+                      ) : null}
                     </div>
                   )
                 })}
-                {/* {aiDeductions.map((aiDeduction, aiDeductionIndex) => {
-                  return (
-                    <div className='pl-2 pt-3 w-full'>
-                      <div className='text-gray-700 text-sm'>Le {new Date(aiDeduction.occurredAt).toLocaleDateString()}</div>
-                      <div className='text-gray-900 text-sm'>OpenAI a fait une suggestion:</div>
-                      <ul className='mt-2 mb-2'>
-                        {aiDeduction.faces
-                          .sort((faceA, faceB) => {
-                            return faceB.position.width * faceB.position.height - faceA.position.width * faceA.position.height
-                          })
-                          .map((face) => (
-                            <li key={'face' + aiDeductionIndex + face.faceId} className='mb-1 mr-2 inline-block'>
-                              <FaceBadge faceId={face.faceId} title={face.person ? face.person.name : face.faceId} />
-                            </li>
-                          ))}
-                      </ul>
-                    </div>
-                  )
-                })} */}
               </div>
             </div>
           </div>
