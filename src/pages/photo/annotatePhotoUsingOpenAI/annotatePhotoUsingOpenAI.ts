@@ -16,16 +16,14 @@ import { PhotoAnnotationUsingOpenAIFailed } from './PhotoAnnotationUsingOpenAIFa
 import { PhotoAnnotatedUsingOpenAI } from './PhotoAnnotatedUsingOpenAI'
 
 type AnnotatePhotoUsingOpenAIArgs = {
-  chatId: UUID
+  photoId: UUID
   userId: UUID
   debug?: boolean
 }
-export async function annotatePhotoUsingOpenAI({ chatId, userId, debug }: AnnotatePhotoUsingOpenAIArgs) {
+export async function annotatePhotoUsingOpenAI({ photoId, userId, debug }: AnnotatePhotoUsingOpenAIArgs) {
   // make sure there is at least a photo with faces and at least one caption
-  const photo = await getPhoto(chatId)
+  const photo = await getPhoto(photoId)
   if (!photo) return
-
-  const { photoId } = photo
 
   const caption = await getCaptionForPhoto(photo.photoId)
   if (!caption || !caption.length) return
@@ -33,7 +31,7 @@ export async function annotatePhotoUsingOpenAI({ chatId, userId, debug }: Annota
   const faces = await getDetectedFaces(photo.photoId)
   if (!faces || !faces.length) return
 
-  const photoFacesDescription = await describePhotoFaces(chatId, photoId, faces)
+  const photoFacesDescription = await describePhotoFaces(photoId, faces)
 
   // Build prompt :
 

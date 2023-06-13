@@ -11,6 +11,7 @@ import { PhotoPage } from './PhotoPage/PhotoPage'
 import { UserAddedCaptionToPhoto } from './UserAddedCaptionToPhoto'
 import { getPhoto } from './getPhoto.query'
 import { detectFacesInPhotoUsingAWS } from './recognizeFacesInChatPhoto/detectFacesInPhotoUsingAWS'
+import { annotatePhotoUsingOpenAI } from './annotatePhotoUsingOpenAI/annotatePhotoUsingOpenAI'
 
 const FILE_SIZE_LIMIT_MB = 50
 const upload = multer({
@@ -39,7 +40,9 @@ pageRouter
     try {
       const userId = request.session.user!.id
 
-      const { caption, photoId } = zod.object({ caption: zod.string().optional(), photoId: zIsUUID }).parse(request.body)
+      const { caption, photoId, action } = zod
+        .object({ caption: zod.string().optional(), photoId: zIsUUID, action: zod.string().optional() })
+        .parse(request.body)
 
       if (caption) {
         const captionId = getUuid()
@@ -54,13 +57,15 @@ pageRouter
             addedBy: userId,
           })
         )
+      }
 
-        // await makeDeductionsWithOpenAI({ userId, debug: false })
+      if (action && action === 'launchAnnotation') {
+        await annotatePhotoUsingOpenAI({ photoId, userId, debug: false })
       }
 
       return response.redirect(`/photo/${photoId}/photo.html`)
     } catch (error) {
-      console.error('Error in chat route')
+      console.error('Error in photo route', error)
       throw error
     }
   })

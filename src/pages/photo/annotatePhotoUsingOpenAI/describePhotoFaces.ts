@@ -25,14 +25,10 @@ type PhotoFaceDescription = {
   faceCodeMap: ReturnType<typeof makeIdCodeMap>
 }
 
-export const describePhotoFaces = async (
-  chatId: UUID,
-  photoId: UUID,
-  photoFaces: PhotoFace[]
-): Promise<PhotoFaceDescription> => {
+export const describePhotoFaces = async (photoId: UUID, photoFaces: PhotoFace[]): Promise<PhotoFaceDescription> => {
   const { rows: facesDetectedInChatPhotoRows } = await postgres.query<AWSDetectedFacesInPhoto>(
-    "SELECT * FROM history WHERE type='AWSDetectedFacesInPhoto' AND payload->>'chatId'=$1 AND payload->>'photoId'=$2 ORDER BY \"occurredAt\" DESC LIMIT 1",
-    [chatId, photoId]
+    "SELECT * FROM history WHERE type='AWSDetectedFacesInPhoto' AND payload->>'photoId'=$1 ORDER BY \"occurredAt\" DESC LIMIT 1",
+    [photoId]
   )
 
   if (!facesDetectedInChatPhotoRows.length) {
