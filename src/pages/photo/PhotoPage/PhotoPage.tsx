@@ -10,6 +10,7 @@ import type { UserAddedCaptionToPhoto } from '../UserAddedCaptionToPhoto'
 import type { PhotoAnnotatedUsingOpenAI } from '../annotatePhotoUsingOpenAI/PhotoAnnotatedUsingOpenAI'
 import type { AWSDetectedFacesInPhoto } from '../recognizeFacesInChatPhoto/AWSDetectedFacesInPhoto'
 import { PhotoIcon } from './PhotoIcon'
+import { ClientOnly } from '../../_components/ClientOnly'
 
 // @ts-ignore
 function classNames(...classes) {
@@ -49,6 +50,8 @@ export const PhotoPage = withBrowserBundle(
   ({ error, success, photoId, url, caption, personsByFaceId, personById, annotationEvents }: PhotoPageProps) => {
     const [isSubmitCaptionButtonVisible, setSubmitCaptionButtonVisible] = React.useState(false)
 
+    // Serialization breaks dates in events,
+    // runtime gives us event.occurredAt as a string
     annotationEvents.forEach((event) => (event.occurredAt = new Date(event.occurredAt)))
 
     const faces = annotationEvents
@@ -131,18 +134,20 @@ export const PhotoPage = withBrowserBundle(
               <div className='bg-gray-100 w-full  divide-y divide-dashed divide-gray-400'>
                 {annotationEvents
                   .sort((eventA, eventB) => {
-                    return eventB.occurredAt.getTime() - eventA.occurredAt.getTime()
+                    return eventA.occurredAt.getTime() - eventB.occurredAt.getTime()
                   })
                   .map((event) => {
                     if (event.type === 'AWSDetectedFacesInPhoto' && event.payload.faces.length === 0) return
 
                     return (
                       <div className='pl-2 pt-3 w-full' key={event.id}>
-                        <div className='text-gray-500 text-sm'>
-                          Le {new Date(event.occurredAt).toLocaleDateString()} à{' '}
-                          {new Date(event.occurredAt).toLocaleTimeString()}
-                          <span className='ml-2 italic'>{event.type}</span>
-                        </div>
+                        <ClientOnly>
+                          <div className='text-gray-500 text-sm'>
+                            Le {new Date(event.occurredAt).toLocaleDateString()} à{' '}
+                            {new Date(event.occurredAt).toLocaleTimeString()}
+                            <span className='ml-2 italic'>{event.type}</span>
+                          </div>
+                        </ClientOnly>
                         {event.type === 'AWSDetectedFacesInPhoto' ? (
                           <div className='py-2 text-sm'>
                             <div className='mb-1'>
@@ -204,12 +209,12 @@ export const PhotoPage = withBrowserBundle(
                               <div>model: {event.payload.model}</div>
                               <div className='mt-2'>
                                 prompt:
-                                <pre>{event.payload.prompt}</pre>
+                                <pre className='overflow-scroll'>{event.payload.prompt}</pre>
                               </div>
                               {event.payload.response ? (
                                 <div className='mt-2'>
                                   response:
-                                  <pre>{event.payload.response}</pre>
+                                  <pre className='overflow-scroll'>{event.payload.response}</pre>
                                 </div>
                               ) : null}
                             </details>
@@ -222,7 +227,9 @@ export const PhotoPage = withBrowserBundle(
                   <form method='POST' className='mb-3 ml-2'>
                     <input type='hidden' name='action' value='triggerAnnotation' />
                     <input type='hidden' name='photoId' value={photoId} />
-                    <button className='inline-flex items-center mt-3 px-3 py-1.5 border border-transparent sm:text-xs font-medium rounded-full shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
+                    <button
+                      type='submit'
+                      className='inline-flex items-center mt-3 px-3 py-1.5 border border-transparent sm:text-xs font-medium rounded-full shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
                       <PhotoIcon className='-ml-0.5 mr-2 h-4 w-4' aria-hidden='true' />
                       Lancer une annotation par IA
                     </button>

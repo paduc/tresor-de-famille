@@ -12,7 +12,7 @@ import { AWSDetectedFacesInPhoto } from './recognizeFacesInChatPhoto/AWSDetected
 
 export const getPhoto = async (photoId: UUID): Promise<PhotoPageProps> => {
   const { rows: photoRowsRes } = await postgres.query<UserUploadedPhotoToChat>(
-    "SELECT * FROM history WHERE type='UserUploadedPhotoToChat' AND payload->>'photoId'=$1 ORDER BY \"occurredAt\" DESC",
+    "SELECT * FROM history WHERE type='UserUploadedPhotoToChat' AND payload->>'photoId'=$1 ORDER BY \"occurredAt\" DESC LIMIT 1",
     [photoId]
   )
 
@@ -116,7 +116,7 @@ const getPersonIdsForFaceId = async (faceId: UUID): Promise<UUID[]> => {
 
 const getAnnotationEvents = async (photoId: UUID) => {
   const { rows } = await postgres.query<AWSDetectedFacesInPhoto | UserAddedCaptionToPhoto | PhotoAnnotatedUsingOpenAI>(
-    "SELECT * FROM history WHERE type IN ('AWSDetectedFacesInPhoto', 'UserAddedCaptionToPhoto','PhotoAnnotatedUsingOpenAI') AND payload->>'photoId'=$1 ORDER BY \"occurredAt\" DESC",
+    "SELECT * FROM history WHERE type IN ('AWSDetectedFacesInPhoto', 'UserAddedCaptionToPhoto','PhotoAnnotatedUsingOpenAI') AND payload->>'photoId'=$1 ORDER BY \"occurredAt\" ASC",
     [photoId]
   )
   return rows

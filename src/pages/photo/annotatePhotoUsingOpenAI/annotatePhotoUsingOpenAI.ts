@@ -147,7 +147,7 @@ const getPhoto = async (photoId: UUID) => {
 
 async function getCaptionForPhoto(photoId: UUID) {
   const { rows } = await postgres.query<UserAddedCaptionToPhoto>(
-    `SELECT * FROM history WHERE type='UserAddedCaptionToPhoto' AND payload->>'photoId'=$2 ORDER BY "occurredAt" DESC LIMIT 1`,
+    `SELECT * FROM history WHERE type='UserAddedCaptionToPhoto' AND payload->>'photoId'=$1 ORDER BY "occurredAt" DESC LIMIT 1`,
     [photoId]
   )
 

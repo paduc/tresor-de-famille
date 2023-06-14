@@ -59,7 +59,7 @@ pageRouter
         )
       }
 
-      if (action && action === 'launchAnnotation') {
+      if (action && action === 'triggerAnnotation') {
         await annotatePhotoUsingOpenAI({ photoId, userId, debug: false })
       }
 
