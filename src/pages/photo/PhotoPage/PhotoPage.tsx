@@ -80,7 +80,7 @@ export const PhotoPage = withBrowserBundle(
     return (
       <AppLayout>
         <HoverProvider>
-          <div className='bg-white w-full h-full pt-3'>
+          <div className='bg-white w-full min-h-full pt-3 pb-10'>
             <SuccessError success={success} error={error} />
             <div className='w-full sm:max-w-2xl sm:mx-auto grid grid-cols-1 justify-items-center bg-gray-100 sm:border sm:rounded-lg overflow-hidden'>
               <div className='relative'>
