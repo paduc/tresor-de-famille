@@ -41,7 +41,12 @@ pageRouter
       const userId = request.session.user!.id
 
       const { caption, photoId, action } = zod
-        .object({ caption: zod.string().optional(), photoId: zIsUUID, action: zod.string().optional() })
+        .object({
+          caption: zod.string().optional(),
+          photoId: zIsUUID,
+          action: zod.string().optional(),
+          deductionId: zIsUUID.optional(),
+        })
         .parse(request.body)
 
       if (caption) {
@@ -60,7 +65,10 @@ pageRouter
       }
 
       if (action && action === 'triggerAnnotation') {
-        await annotatePhotoUsingOpenAI({ photoId, userId, debug: false })
+        if (action === 'triggerAnnotation') {
+          await annotatePhotoUsingOpenAI({ photoId, userId, debug: false })
+        } else if (action === 'confirmAnnotation') {
+        }
       }
 
       return response.redirect(`/photo/${photoId}/photo.html`)

@@ -11,6 +11,7 @@ import type { PhotoAnnotatedUsingOpenAI } from '../annotatePhotoUsingOpenAI/Phot
 import type { AWSDetectedFacesInPhoto } from '../recognizeFacesInChatPhoto/AWSDetectedFacesInPhoto'
 import { PhotoIcon } from './PhotoIcon'
 import { ClientOnly } from '../../_components/ClientOnly'
+import { CheckIcon } from '@heroicons/react/solid'
 
 // @ts-ignore
 function classNames(...classes) {
@@ -170,6 +171,7 @@ export const PhotoPage = withBrowserBundle(
                                         {personsByFaceId[face.faceId].map(({ name }) => name).join(' ou ')}
                                       </span>
                                     ) : (
+                                      // Il y a deux cas ici: première fois qu'on le voit (vraiment inconnu) et présent dans d'autres photos mais pas associé à une personne
                                       <span className='ml-1 text-sm'>n'est pas connu</span>
                                     )}
                                   </li>
@@ -193,6 +195,17 @@ export const PhotoPage = withBrowserBundle(
                                     <>
                                       <FaceBadge faceId={deduction.faceId} title={`Visage ${index + 1}`} /> appartient à{' '}
                                       {personById[deduction.personId]?.name}
+                                      <form method='POST' className='inline-block ml-2'>
+                                        <input type='hidden' name='action' value='confirmAnnotation' />
+                                        <input type='hidden' name='photoId' value={photoId} />
+                                        <input type='hidden' name='deductionId' value={deduction.deductionId} />
+                                        <button
+                                          type='submit'
+                                          className='inline-flex items-center py-1 px-2 pl-7 rounded-full bg-white text-sm relative hover:font-semibold text-green-600 shadow-sm ring-1 hover:ring-2 ring-green-600 ring-inset'>
+                                          <CheckIcon className='absolute left-2 h-4 w-4' aria-hidden='true' />
+                                          Je valide
+                                        </button>
+                                      </form>
                                     </>
                                   ) : (
                                     <>
