@@ -21,7 +21,6 @@ function classNames(...classes) {
 export type PhotoFace = {
   person: {
     name: string
-    // annotatedBy: 'face-recognition' | 'ai'
   } | null
   faceId: UUID
   position: {
@@ -38,6 +37,7 @@ export type PhotoPageProps = {
   photoId: UUID
   url: string
   caption?: string
+  confirmedPersons: PhotoFace[]
   personsByFaceId: {
     [faceId: UUID]: { personId: UUID; name: string }[] // There can be multiple persons associated to a face
   }
@@ -48,7 +48,17 @@ export type PhotoPageProps = {
 }
 
 export const PhotoPage = withBrowserBundle(
-  ({ error, success, photoId, url, caption, personsByFaceId, personById, annotationEvents }: PhotoPageProps) => {
+  ({
+    error,
+    success,
+    photoId,
+    url,
+    caption,
+    personsByFaceId,
+    personById,
+    annotationEvents,
+    confirmedPersons,
+  }: PhotoPageProps) => {
     const [isSubmitCaptionButtonVisible, setSubmitCaptionButtonVisible] = React.useState(false)
 
     // Serialization breaks dates in events,
@@ -90,6 +100,18 @@ export const PhotoPage = withBrowserBundle(
                 })}
               </div>
 
+              {confirmedPersons && Boolean(confirmedPersons.length) ? (
+                <div className='bg-gray-100 w-full py-2 px-2'>
+                  {confirmedPersons.map((person) => (
+                    <FaceBadge
+                      faceId={person.faceId}
+                      title={person.person!.name}
+                      className='mr-2'
+                      key={`confirmedPerson${person.faceId}`}
+                    />
+                  ))}
+                </div>
+              ) : null}
               <div className='bg-white w-full'>
                 <form method='POST' className='relative'>
                   <input type='hidden' name='photoId' defaultValue={photoId} />
@@ -272,14 +294,15 @@ export const ChatItem = ({ children, isLastItem }: ChatItemProps) => {
 type FaceBadgeProps = {
   faceId: UUID
   title: string
+  className?: string
 }
-const FaceBadge = ({ title, faceId }: FaceBadgeProps) => {
+const FaceBadge = ({ title, faceId, className }: FaceBadgeProps) => {
   const { hoveredFaceId, setHoveredFaceId } = React.useContext(HoverContext)
   return (
     <div
       className={`inline-block rounded-full py-1 px-2  bg-white ${
         hoveredFaceId === faceId ? 'ring-indigo-500 ring-2' : 'ring-1 ring-gray-300'
-      }`}
+      } ${className || ''}`}
       onMouseOver={() => {
         setHoveredFaceId(faceId)
       }}

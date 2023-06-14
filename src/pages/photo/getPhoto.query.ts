@@ -2,9 +2,9 @@ import { postgres } from '../../dependencies/database'
 import { normalizeBBOX } from '../../dependencies/face-recognition'
 import { getPhotoUrlFromId } from '../../dependencies/photo-storage'
 import { UUID } from '../../domain'
-import { getPersonByIdOrThrow } from '../_getPersonById'
+import { getPersonById, getPersonByIdOrThrow } from '../_getPersonById'
 import { UserUploadedPhotoToChat } from '../chat/uploadPhotoToChat/UserUploadedPhotoToChat'
-import { PhotoPageProps } from './PhotoPage/PhotoPage'
+import { PhotoFace, PhotoPageProps } from './PhotoPage/PhotoPage'
 import { UserAddedCaptionToPhoto } from './UserAddedCaptionToPhoto'
 import { PhotoAnnotatedUsingOpenAI } from './annotatePhotoUsingOpenAI/PhotoAnnotatedUsingOpenAI'
 import { PhotoAnnotationConfirmed } from './confirmPhotoAnnotation/PhotoAnnotationConfirmed'
@@ -27,6 +27,8 @@ export const getPhoto = async (photoId: UUID): Promise<PhotoPageProps> => {
   const personsByFaceId = await makePersonsByFacedId(annotationEvents)
   const personById = await makePersonById(annotationEvents)
 
+  const confirmedPersons = await getConfirmedPersons(photoId)
+
   return {
     photoId,
     url: getPhotoUrlFromId(photoId),
@@ -34,6 +36,7 @@ export const getPhoto = async (photoId: UUID): Promise<PhotoPageProps> => {
     personsByFaceId,
     personById,
     annotationEvents,
+    confirmedPersons,
   }
 }
 
@@ -120,4 +123,24 @@ const getAnnotationEvents = async (photoId: UUID) => {
     [photoId]
   )
   return rows
+}
+
+const getConfirmedPersons = async (photoId: UUID): Promise<PhotoFace[]> => {
+  const { rows } = await postgres.query<PhotoAnnotationConfirmed>(
+    "SELECT * FROM history WHERE type='PhotoAnnotationConfirmed' AND payload->>'photoId'=$1 ORDER BY \"occurredAt\" ASC",
+    [photoId]
+  )
+
+  const persons: PhotoFace[] = []
+
+  for (const row of rows) {
+    const { personId, faceId, position } = row.payload
+    const person = await getPersonById(personId)
+    persons.push({
+      person: { name: person?.name || 'N/A' },
+      faceId,
+      position,
+    })
+  }
+  return persons
 }
