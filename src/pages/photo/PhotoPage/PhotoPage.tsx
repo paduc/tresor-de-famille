@@ -38,6 +38,7 @@ export type PhotoPageProps = {
   url: string
   caption?: string
   confirmedPersons: PhotoFace[]
+  confirmedDeductions: UUID[]
   personsByFaceId: {
     [faceId: UUID]: { personId: UUID; name: string }[] // There can be multiple persons associated to a face
   }
@@ -58,6 +59,7 @@ export const PhotoPage = withBrowserBundle(
     personById,
     annotationEvents,
     confirmedPersons,
+    confirmedDeductions,
   }: PhotoPageProps) => {
     const [isSubmitCaptionButtonVisible, setSubmitCaptionButtonVisible] = React.useState(false)
 
@@ -217,17 +219,24 @@ export const PhotoPage = withBrowserBundle(
                                     <>
                                       <FaceBadge faceId={deduction.faceId} title={`Visage ${index + 1}`} /> appartient à{' '}
                                       {personById[deduction.personId]?.name}
-                                      <form method='POST' className='inline-block ml-2'>
-                                        <input type='hidden' name='action' value='confirmAnnotation' />
-                                        <input type='hidden' name='photoId' value={photoId} />
-                                        <input type='hidden' name='deductionId' value={deduction.deductionId} />
-                                        <button
-                                          type='submit'
-                                          className='inline-flex items-center py-1 px-2 pl-7 rounded-full bg-white text-sm relative hover:font-semibold text-green-600 shadow-sm ring-1 hover:ring-2 ring-green-600 ring-inset'>
+                                      {confirmedDeductions.includes(deduction.deductionId) ? (
+                                        <div className='inline-flex items-center ml-1 py-1 px-2 pl-7 rounded-full bg-white text-sm relative font-semibold  text-green-600 shadow-sm ring-1 ring-green-600 ring-inset'>
                                           <CheckIcon className='absolute left-2 h-4 w-4' aria-hidden='true' />
-                                          Je valide
-                                        </button>
-                                      </form>
+                                          Validé
+                                        </div>
+                                      ) : (
+                                        <form method='POST' className='inline-block ml-2'>
+                                          <input type='hidden' name='action' value='confirmAnnotation' />
+                                          <input type='hidden' name='photoId' value={photoId} />
+                                          <input type='hidden' name='deductionId' value={deduction.deductionId} />
+                                          <button
+                                            type='submit'
+                                            className='inline-flex items-center py-1 px-2 pl-7 rounded-full bg-white text-sm relative hover:font-semibold text-green-600 shadow-sm ring-1 hover:ring-2 ring-green-600 ring-inset'>
+                                            <CheckIcon className='absolute left-2 h-4 w-4' aria-hidden='true' />
+                                            Je valide
+                                          </button>
+                                        </form>
+                                      )}
                                     </>
                                   ) : (
                                     <>

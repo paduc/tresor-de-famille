@@ -16,6 +16,7 @@ const totoFaceId = getUuid()
 const ghostFaceId = getUuid()
 const totoPersonId = getUuid()
 const ghostPersonId = getUuid()
+const confirmedDeductionId = getUuid()
 // export const ApresUploadPhotoLarge = () => (
 //   <SessionContext.Provider value={{ isLoggedIn: true, userName: 'toto', isAdmin: false }}>
 //     <PhotoPage
@@ -89,6 +90,7 @@ export const PhotoAvecAnnotations = () => (
           },
         },
       ]}
+      confirmedDeductions={[confirmedDeductionId]}
       personsByFaceId={{
         [totoFaceId]: [
           { personId: totoPersonId, name: 'Toto' },
@@ -145,7 +147,7 @@ export const PhotoAvecAnnotations = () => (
               type: 'face-is-person',
               faceId: totoFaceId,
               personId: totoPersonId,
-              deductionId: getUuid(),
+              deductionId: confirmedDeductionId,
               photoId: getUuid(),
             },
             {

@@ -27,7 +27,7 @@ export const getPhoto = async (photoId: UUID): Promise<PhotoPageProps> => {
   const personsByFaceId = await makePersonsByFacedId(annotationEvents)
   const personById = await makePersonById(annotationEvents)
 
-  const confirmedPersons = await getConfirmedPersons(photoId)
+  const { persons: confirmedPersons, deductions: confirmedDeductions } = await getConfirmedPersons(photoId)
 
   return {
     photoId,
@@ -37,6 +37,7 @@ export const getPhoto = async (photoId: UUID): Promise<PhotoPageProps> => {
     personById,
     annotationEvents,
     confirmedPersons,
+    confirmedDeductions,
   }
 }
 
@@ -114,7 +115,7 @@ const getPersonIdsForFaceId = async (faceId: UUID): Promise<UUID[]> => {
     [faceId]
   )
 
-  return rows.map((row) => row.payload.personId)
+  return Array.from(new Set(rows.map((row) => row.payload.personId)))
 }
 
 const getAnnotationEvents = async (photoId: UUID) => {
@@ -125,16 +126,18 @@ const getAnnotationEvents = async (photoId: UUID) => {
   return rows
 }
 
-const getConfirmedPersons = async (photoId: UUID): Promise<PhotoFace[]> => {
+const getConfirmedPersons = async (photoId: UUID): Promise<{ persons: PhotoFace[]; deductions: UUID[] }> => {
   const { rows } = await postgres.query<PhotoAnnotationConfirmed>(
     "SELECT * FROM history WHERE type='PhotoAnnotationConfirmed' AND payload->>'photoId'=$1 ORDER BY \"occurredAt\" ASC",
     [photoId]
   )
 
   const persons: PhotoFace[] = []
+  const deductions: UUID[] = []
 
   for (const row of rows) {
-    const { personId, faceId, position } = row.payload
+    const { personId, faceId, position, deductionId } = row.payload
+    deductions.push(deductionId)
     const person = await getPersonById(personId)
     persons.push({
       person: { name: person?.name || 'N/A' },
@@ -142,5 +145,5 @@ const getConfirmedPersons = async (photoId: UUID): Promise<PhotoFace[]> => {
       position,
     })
   }
-  return persons
+  return { persons, deductions }
 }
