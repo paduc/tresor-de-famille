@@ -3,11 +3,11 @@ import { normalizeBBOX } from '../../dependencies/face-recognition'
 import { getPhotoUrlFromId } from '../../dependencies/photo-storage'
 import { UUID } from '../../domain'
 import { getPersonByIdOrThrow } from '../_getPersonById'
-import { FaceIdLinkedToPerson } from '../chat/FaceIdLinkedToPerson'
 import { UserUploadedPhotoToChat } from '../chat/uploadPhotoToChat/UserUploadedPhotoToChat'
 import { PhotoPageProps } from './PhotoPage/PhotoPage'
 import { UserAddedCaptionToPhoto } from './UserAddedCaptionToPhoto'
 import { PhotoAnnotatedUsingOpenAI } from './annotatePhotoUsingOpenAI/PhotoAnnotatedUsingOpenAI'
+import { PhotoAnnotationConfirmed } from './confirmPhotoAnnotation/PhotoAnnotationConfirmed'
 import { AWSDetectedFacesInPhoto } from './recognizeFacesInChatPhoto/AWSDetectedFacesInPhoto'
 
 export const getPhoto = async (photoId: UUID): Promise<PhotoPageProps> => {
@@ -69,7 +69,7 @@ async function makePersonsByFacedId(
     for (const personId of personIds) {
       const person = await getPersonByIdOrThrow(personId)
       personsByFaceId[face.faceId] = [
-        ...personsByFaceId[face.faceId],
+        ...(personsByFaceId[face.faceId] || []),
         {
           personId,
           name: person.name,
@@ -106,8 +106,8 @@ async function getCaptionForPhoto(photoId: UUID) {
 }
 
 const getPersonIdsForFaceId = async (faceId: UUID): Promise<UUID[]> => {
-  const { rows } = await postgres.query<FaceIdLinkedToPerson>(
-    "SELECT * FROM history WHERE type = 'FaceIdLinkedToPerson'  AND payload->>'faceId'=$1 ORDER BY \"occurredAt\" DESC",
+  const { rows } = await postgres.query<PhotoAnnotationConfirmed>(
+    "SELECT * FROM history WHERE type = 'PhotoAnnotationConfirmed'  AND payload->>'faceId'=$1",
     [faceId]
   )
 

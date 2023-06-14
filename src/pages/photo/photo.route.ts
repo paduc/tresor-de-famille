@@ -12,6 +12,8 @@ import { UserAddedCaptionToPhoto } from './UserAddedCaptionToPhoto'
 import { getPhoto } from './getPhoto.query'
 import { detectFacesInPhotoUsingAWS } from './recognizeFacesInChatPhoto/detectFacesInPhotoUsingAWS'
 import { annotatePhotoUsingOpenAI } from './annotatePhotoUsingOpenAI/annotatePhotoUsingOpenAI'
+import { PhotoAnnotationConfirmed } from './confirmPhotoAnnotation/PhotoAnnotationConfirmed'
+import { confirmPhotoAnnotation } from './confirmPhotoAnnotation/confirmPhotoAnnotation'
 
 const FILE_SIZE_LIMIT_MB = 50
 const upload = multer({
@@ -40,7 +42,7 @@ pageRouter
     try {
       const userId = request.session.user!.id
 
-      const { caption, photoId, action } = zod
+      const { caption, photoId, action, deductionId } = zod
         .object({
           caption: zod.string().optional(),
           photoId: zIsUUID,
@@ -64,10 +66,11 @@ pageRouter
         )
       }
 
-      if (action && action === 'triggerAnnotation') {
+      if (action) {
         if (action === 'triggerAnnotation') {
           await annotatePhotoUsingOpenAI({ photoId, userId, debug: false })
-        } else if (action === 'confirmAnnotation') {
+        } else if (action === 'confirmAnnotation' && deductionId) {
+          await confirmPhotoAnnotation({ deductionId, photoId, confirmedBy: userId })
         }
       }
 
