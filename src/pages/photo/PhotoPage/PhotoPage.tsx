@@ -63,6 +63,10 @@ export const PhotoPage = withBrowserBundle(
   }: PhotoPageProps) => {
     const [isSubmitCaptionButtonVisible, setSubmitCaptionButtonVisible] = React.useState(false)
 
+    const getConfirmedPersonForFace = (faceId: UUID) => {
+      return confirmedPersons.find(({ faceId: _faceId }) => _faceId === faceId)?.person?.name
+    }
+
     // Serialization breaks dates in events,
     // runtime gives us event.occurredAt as a string
     annotationEvents.forEach((event) => (event.occurredAt = new Date(event.occurredAt)))
@@ -186,20 +190,25 @@ export const PhotoPage = withBrowserBundle(
                                     faceA.position.Width! * faceA.position.Height!
                                   )
                                 })
-                                .map((face, index) => (
-                                  <li key={'face' + event.id + face.faceId} className='mb-1 mr-2'>
-                                    <FaceBadge faceId={face.faceId} title={`Visage ${index + 1}`} />
-                                    {personsByFaceId[face.faceId] ? (
-                                      <span className='ml-1 text-sm'>
-                                        est reconnu et a été associé à{' '}
-                                        {personsByFaceId[face.faceId].map(({ name }) => name).join(' ou ')}
-                                      </span>
-                                    ) : (
-                                      // Il y a deux cas ici: première fois qu'on le voit (vraiment inconnu) et présent dans d'autres photos mais pas associé à une personne
-                                      <span className='ml-1 text-sm'>n'est pas connu</span>
-                                    )}
-                                  </li>
-                                ))}
+                                .map((face, index) => {
+                                  const confirmedNameForFace = getConfirmedPersonForFace(face.faceId)
+                                  return (
+                                    <li key={'face' + event.id + face.faceId} className='mb-1 mr-2'>
+                                      <FaceBadge faceId={face.faceId} title={`Visage ${index + 1}`} />
+                                      {confirmedNameForFace ? (
+                                        <span className='ml-1 text-sm'>confirmé comme étant {confirmedNameForFace}</span>
+                                      ) : personsByFaceId[face.faceId] ? (
+                                        <span className='ml-1 text-sm'>
+                                          est reconnu et a été associé à{' '}
+                                          {personsByFaceId[face.faceId].map(({ name }) => name).join(' ou ')}
+                                        </span>
+                                      ) : (
+                                        // Il y a deux cas ici: première fois qu'on le voit (vraiment inconnu) et présent dans d'autres photos mais pas associé à une personne
+                                        <span className='ml-1 text-sm'>n'est pas connu</span>
+                                      )}
+                                    </li>
+                                  )
+                                })}
                             </ul>
                           </div>
                         ) : event.type === 'UserAddedCaptionToPhoto' ? (
@@ -213,23 +222,29 @@ export const PhotoPage = withBrowserBundle(
                               A partir des informations connues, l'IA est arrivée aux conclusions suivantes.
                             </div>
                             <ul className='mt-2 mb-2'>
-                              {event.payload.deductions.map((deduction, index) => (
-                                <li key={'deduction' + event.id + deduction.faceId} className='mb-1 mr-2 text-sm'>
-                                  <>
-                                    <FaceBadge faceId={deduction.faceId} title={`Visage ${index + 1}`} />
-                                    {deduction.type === 'face-is-person'
-                                      ? `appartient à
+                              {event.payload.deductions.map((deduction, index) => {
+                                const confirmedDeduction = confirmedDeductions.includes(deduction.deductionId)
+                                const confirmedNameForFace = getConfirmedPersonForFace(deduction.faceId)
+                                return (
+                                  <li key={'deduction' + event.id + deduction.faceId} className='mb-1 mr-2 text-sm'>
+                                    <>
+                                      <FaceBadge faceId={deduction.faceId} title={`Visage ${index + 1}`} />
+                                      {deduction.type === 'face-is-person'
+                                        ? ` appartiendrait à
                                       ${personById[deduction.personId]?.name}`
-                                      : ` appartient à une
+                                        : ` appartiendrait à une
                                       nouvelle personne "${deduction.name}"`}
-                                    {confirmedDeductions.includes(deduction.deductionId) ? (
-                                      <ConfirmedBadge />
-                                    ) : (
-                                      <ConfirmButton photoId={photoId} deduction={deduction} />
-                                    )}
-                                  </>
-                                </li>
-                              ))}
+                                      {confirmedDeduction ? (
+                                        <ConfirmedBadge />
+                                      ) : confirmedNameForFace ? (
+                                        <span className='ml-1 text-sm'>(confirmé comme étant {confirmedNameForFace})</span>
+                                      ) : (
+                                        <ConfirmButton photoId={photoId} deduction={deduction} />
+                                      )}
+                                    </>
+                                  </li>
+                                )
+                              })}
                             </ul>
                             <details className='text-sm text-gray-600 ml-1'>
                               <summary className='cursor-pointer'>voir les details</summary>
