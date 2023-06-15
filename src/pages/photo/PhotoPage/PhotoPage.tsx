@@ -193,18 +193,18 @@ export const PhotoPage = withBrowserBundle(
                                 .map((face, index) => {
                                   const confirmedNameForFace = getConfirmedPersonForFace(face.faceId)
                                   return (
-                                    <li key={'face' + event.id + face.faceId} className='mb-1 mr-2'>
-                                      <FaceBadge faceId={face.faceId} title={`Visage ${index + 1}`} />
+                                    <li key={'face' + event.id + face.faceId} className='mb-1 mr-2 text-sm'>
+                                      <PhotoBadge faceId={face.faceId} photoId={photoId} className='mr-2' />
                                       {confirmedNameForFace ? (
-                                        <span className='ml-1 text-sm'>confirmé comme étant {confirmedNameForFace}</span>
+                                        <span className=''>confirmé comme étant {confirmedNameForFace}</span>
                                       ) : personsByFaceId[face.faceId] ? (
-                                        <span className='ml-1 text-sm'>
+                                        <span className=''>
                                           est reconnu et a été associé à{' '}
                                           {personsByFaceId[face.faceId].map(({ name }) => name).join(' ou ')}
                                         </span>
                                       ) : (
                                         // Il y a deux cas ici: première fois qu'on le voit (vraiment inconnu) et présent dans d'autres photos mais pas associé à une personne
-                                        <span className='ml-1 text-sm'>n'est pas connu</span>
+                                        <span className=''>n'est pas connu</span>
                                       )}
                                     </li>
                                   )
@@ -228,16 +228,16 @@ export const PhotoPage = withBrowserBundle(
                                 return (
                                   <li key={'deduction' + event.id + deduction.faceId} className='mb-1 mr-2 text-sm'>
                                     <>
-                                      <FaceBadge faceId={deduction.faceId} title={`Visage ${index + 1}`} />
+                                      <PhotoBadge photoId={photoId} faceId={deduction.faceId} className='mr-1' />
                                       {deduction.type === 'face-is-person'
-                                        ? ` appartiendrait à
+                                        ? ` serait le visage de 
                                       ${personById[deduction.personId]?.name}`
-                                        : ` appartiendrait à une
-                                      nouvelle personne "${deduction.name}"`}
+                                        : ` serait le visage d'une
+                                      nouvelle personne appelée "${deduction.name}"`}
                                       {confirmedDeduction ? (
                                         <ConfirmedBadge />
                                       ) : confirmedNameForFace ? (
-                                        <span className='ml-1 text-sm'>(confirmé comme étant {confirmedNameForFace})</span>
+                                        <span className=''>(confirmé comme étant {confirmedNameForFace})</span>
                                       ) : (
                                         <ConfirmButton photoId={photoId} deduction={deduction} />
                                       )}
@@ -327,6 +327,30 @@ const FaceBadge = ({ title, faceId, className }: FaceBadgeProps) => {
         </div>
       </a>
     </div>
+  )
+}
+
+type PhotoBadgeProps = {
+  faceId: UUID
+  photoId: UUID
+  className?: string
+}
+const PhotoBadge = ({ photoId, faceId, className }: PhotoBadgeProps) => {
+  const { hoveredFaceId, setHoveredFaceId } = React.useContext(HoverContext)
+  return (
+    <img
+      // src='https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=100&h=100&q=80'
+      src={`/photo/${photoId}/face/${faceId}`}
+      className={`inline-block rounded-full h-8 w-8 bg-white ${
+        hoveredFaceId === faceId ? 'ring-indigo-500 ring-2' : 'ring-2 ring-white'
+      } ${className || ''}`}
+      onMouseOver={() => {
+        setHoveredFaceId(faceId)
+      }}
+      onMouseOut={() => {
+        setHoveredFaceId(null)
+      }}
+    />
   )
 }
 
