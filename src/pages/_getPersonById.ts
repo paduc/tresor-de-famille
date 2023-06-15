@@ -2,6 +2,7 @@ import { postgres } from '../dependencies/database'
 import { UUID } from '../domain'
 import { GedcomImported } from '../events'
 import { OpenAIMadeDeductions } from './chat/sendToOpenAIForDeductions/OpenAIMadeDeductions'
+import { PhotoAnnotatedUsingOpenAI } from './photo/annotatePhotoUsingOpenAI/PhotoAnnotatedUsingOpenAI'
 
 type OpenAIDeductionPerson = { name: string }
 type GedcomPerson = GedcomImported['payload']['persons'][number]
@@ -33,6 +34,17 @@ export const getPersonById = async (personId: UUID): Promise<PersonById | null> 
     'SELECT * FROM history WHERE type = \'OpenAIMadeDeductions\' ORDER BY "occurredAt" ASC'
   )
   for (const { payload } of deductionRows) {
+    const personsFromDeductions = payload.deductions.filter(isNewPersonDeduction)
+
+    for (const { personId, name } of personsFromDeductions) {
+      addOrMerge(personId, { name })
+    }
+  }
+
+  const { rows: openAIAnnotationRows } = await postgres.query<PhotoAnnotatedUsingOpenAI>(
+    'SELECT * FROM history WHERE type = \'PhotoAnnotatedUsingOpenAI\' ORDER BY "occurredAt" ASC'
+  )
+  for (const { payload } of openAIAnnotationRows) {
     const personsFromDeductions = payload.deductions.filter(isNewPersonDeduction)
 
     for (const { personId, name } of personsFromDeductions) {
