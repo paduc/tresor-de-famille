@@ -17,8 +17,8 @@ export type PhotoAnnotationConfirmed = DomainEvent<
     }
     // in this photo
     photoId: UUID
-    // as suggested by (AI)
-    deductionId: UUID
+    // as suggested by (if OpenAI)
+    deductionId?: UUID
     // using this face (Rekognition)
     faceId: UUID
   }

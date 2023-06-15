@@ -192,15 +192,27 @@ export const PhotoPage = withBrowserBundle(
                                 })
                                 .map((face, index) => {
                                   const confirmedNameForFace = getConfirmedPersonForFace(face.faceId)
+                                  const personsForThisFace = personsByFaceId[face.faceId]
                                   return (
                                     <li key={'face' + event.id + face.faceId} className='mb-1 mr-2 text-sm'>
                                       <PhotoBadge faceId={face.faceId} photoId={photoId} className='mr-2' />
                                       {confirmedNameForFace ? (
                                         <span className=''>confirmé comme étant {confirmedNameForFace}</span>
-                                      ) : personsByFaceId[face.faceId] ? (
+                                      ) : personsForThisFace ? (
                                         <span className=''>
-                                          est reconnu et a été associé à{' '}
-                                          {personsByFaceId[face.faceId].map(({ name }) => name).join(' ou ')}
+                                          est reconnu et a été associé à :
+                                          <ul className='ml-10'>
+                                            {personsForThisFace.map(({ name, personId }) => (
+                                              <li className='mb-2' key={`confirmAWSPerson_${personId}${face.faceId}`}>
+                                                {name}
+                                                <ConfirmPersonByFaceButton
+                                                  photoId={photoId}
+                                                  personId={personId}
+                                                  faceId={face.faceId}
+                                                />
+                                              </li>
+                                            ))}
+                                          </ul>
                                         </span>
                                       ) : (
                                         // Il y a deux cas ici: première fois qu'on le voit (vraiment inconnu) et présent dans d'autres photos mais pas associé à une personne
@@ -239,7 +251,7 @@ export const PhotoPage = withBrowserBundle(
                                       ) : confirmedNameForFace ? (
                                         <span className=''>(confirmé comme étant {confirmedNameForFace})</span>
                                       ) : (
-                                        <ConfirmButton photoId={photoId} deduction={deduction} />
+                                        <ConfirmOpenAIDeductionButton photoId={photoId} deduction={deduction} />
                                       )}
                                     </>
                                   </li>
@@ -379,13 +391,31 @@ const HoverableFace = ({ face }: HoverableFaceProps) => {
       className={`absolute  ${isFaceHovered ? 'border-2' : 'border-0'} border-white cursor-pointer`}></div>
   )
 }
-function ConfirmButton(props: { photoId: UUID; deduction: { deductionId: UUID; photoId: UUID } }) {
+function ConfirmOpenAIDeductionButton(props: { photoId: UUID; deduction: { deductionId: UUID; photoId: UUID } }) {
   const { photoId, deduction } = props
   return (
     <form method='POST' className='inline-block ml-2'>
       <input type='hidden' name='action' value='confirmOpenAIAnnotation' />
       <input type='hidden' name='photoId' value={photoId} />
       <input type='hidden' name='deductionId' value={deduction.deductionId} />
+      <button
+        type='submit'
+        className='inline-flex items-center py-1 px-2 pl-7 rounded-full bg-white text-sm relative hover:font-semibold text-green-600 shadow-sm ring-1 hover:ring-2 ring-green-600 ring-inset'>
+        <CheckIcon className='absolute left-2 h-4 w-4' aria-hidden='true' />
+        Je valide
+      </button>
+    </form>
+  )
+}
+
+function ConfirmPersonByFaceButton(props: { photoId: UUID; faceId: UUID; personId: UUID }) {
+  const { photoId, faceId, personId } = props
+  return (
+    <form method='POST' className='inline-block ml-1'>
+      <input type='hidden' name='action' value='confirmAWSAnnotation' />
+      <input type='hidden' name='photoId' value={photoId} />
+      <input type='hidden' name='faceId' value={faceId} />
+      <input type='hidden' name='personId' value={personId} />
       <button
         type='submit'
         className='inline-flex items-center py-1 px-2 pl-7 rounded-full bg-white text-sm relative hover:font-semibold text-green-600 shadow-sm ring-1 hover:ring-2 ring-green-600 ring-inset'>

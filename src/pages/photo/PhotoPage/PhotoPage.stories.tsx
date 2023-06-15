@@ -79,16 +79,6 @@ export const PhotoAvecAnnotations = () => (
             top: 0.24908018112182617,
           },
         },
-        {
-          faceId: totoFaceId,
-          person: { name: 'Toto' },
-          position: {
-            width: 0.3004770278930664,
-            height: 0.39314860105514526,
-            left: 0.3541097640991211,
-            top: 0.24908018112182617,
-          },
-        },
       ]}
       confirmedDeductions={[confirmedDeductionId]}
       personsByFaceId={{

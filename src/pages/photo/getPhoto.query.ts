@@ -137,7 +137,7 @@ const getConfirmedPersons = async (photoId: UUID): Promise<{ persons: PhotoFace[
 
   for (const row of rows) {
     const { personId, faceId, position, deductionId } = row.payload
-    deductions.push(deductionId)
+    if (deductionId) deductions.push(deductionId)
     const person = await getPersonById(personId)
     persons.push({
       person: { name: person?.name || 'N/A' },
