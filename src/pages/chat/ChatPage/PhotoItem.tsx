@@ -18,7 +18,7 @@ export const PhotoItem = (props: PhotoItemProps) => {
     if (descriptionOfPeople.length > 35) {
       descriptionOfPeople = `${descriptionOfPeople.substring(0, 40)}...`
     }
-    descriptionOfPeople += `${descriptionOfPeople ? 'et ' : ''}${unrecognizedFacesInPhoto} visages inconnus`
+    descriptionOfPeople += `${descriptionOfPeople ? ' et ' : ''}${unrecognizedFacesInPhoto} visage(s) inconnu(s)`
   } else {
     if (descriptionOfPeople.length > 70) descriptionOfPeople = `${descriptionOfPeople.substring(0, 70)}...`
   }
