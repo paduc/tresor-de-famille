@@ -215,35 +215,19 @@ export const PhotoPage = withBrowserBundle(
                             <ul className='mt-2 mb-2'>
                               {event.payload.deductions.map((deduction, index) => (
                                 <li key={'deduction' + event.id + deduction.faceId} className='mb-1 mr-2 text-sm'>
-                                  {deduction.type === 'face-is-person' ? (
-                                    <>
-                                      <FaceBadge faceId={deduction.faceId} title={`Visage ${index + 1}`} /> appartient à{' '}
-                                      {personById[deduction.personId]?.name}
-                                      {confirmedDeductions.includes(deduction.deductionId) ? (
-                                        <div className='inline-flex items-center ml-1 py-1 px-2 pl-7 rounded-full bg-white text-sm relative font-semibold  text-green-600 shadow-sm ring-1 ring-green-600 ring-inset'>
-                                          <CheckIcon className='absolute left-2 h-4 w-4' aria-hidden='true' />
-                                          Validé
-                                        </div>
-                                      ) : (
-                                        <form method='POST' className='inline-block ml-2'>
-                                          <input type='hidden' name='action' value='confirmAnnotation' />
-                                          <input type='hidden' name='photoId' value={photoId} />
-                                          <input type='hidden' name='deductionId' value={deduction.deductionId} />
-                                          <button
-                                            type='submit'
-                                            className='inline-flex items-center py-1 px-2 pl-7 rounded-full bg-white text-sm relative hover:font-semibold text-green-600 shadow-sm ring-1 hover:ring-2 ring-green-600 ring-inset'>
-                                            <CheckIcon className='absolute left-2 h-4 w-4' aria-hidden='true' />
-                                            Je valide
-                                          </button>
-                                        </form>
-                                      )}
-                                    </>
-                                  ) : (
-                                    <>
-                                      <FaceBadge faceId={deduction.faceId} title={`Visage ${index + 1}`} /> appartient à une
-                                      nouvelle personne "{deduction.name}"
-                                    </>
-                                  )}
+                                  <>
+                                    <FaceBadge faceId={deduction.faceId} title={`Visage ${index + 1}`} />
+                                    {deduction.type === 'face-is-person'
+                                      ? `appartient à
+                                      ${personById[deduction.personId]?.name}`
+                                      : ` appartient à une
+                                      nouvelle personne "${deduction.name}"`}
+                                    {confirmedDeductions.includes(deduction.deductionId) ? (
+                                      <ConfirmedBadge />
+                                    ) : (
+                                      <ConfirmButton photoId={photoId} deduction={deduction} />
+                                    )}
+                                  </>
                                 </li>
                               ))}
                             </ul>
@@ -354,5 +338,30 @@ const HoverableFace = ({ face }: HoverableFaceProps) => {
         height: `${Math.round(face.position.height * 100)}%`,
       }}
       className={`absolute  ${isFaceHovered ? 'border-2' : 'border-0'} border-white cursor-pointer`}></div>
+  )
+}
+function ConfirmButton(props: { photoId: UUID; deduction: { deductionId: UUID; photoId: UUID } }) {
+  const { photoId, deduction } = props
+  return (
+    <form method='POST' className='inline-block ml-2'>
+      <input type='hidden' name='action' value='confirmAnnotation' />
+      <input type='hidden' name='photoId' value={photoId} />
+      <input type='hidden' name='deductionId' value={deduction.deductionId} />
+      <button
+        type='submit'
+        className='inline-flex items-center py-1 px-2 pl-7 rounded-full bg-white text-sm relative hover:font-semibold text-green-600 shadow-sm ring-1 hover:ring-2 ring-green-600 ring-inset'>
+        <CheckIcon className='absolute left-2 h-4 w-4' aria-hidden='true' />
+        Je valide
+      </button>
+    </form>
+  )
+}
+
+function ConfirmedBadge() {
+  return (
+    <div className='inline-flex items-center ml-1 py-1 px-2 pl-7 rounded-full bg-white text-sm relative font-semibold  text-green-600 shadow-sm ring-1 ring-green-600 ring-inset'>
+      <CheckIcon className='absolute left-2 h-4 w-4' aria-hidden='true' />
+      Validé
+    </div>
   )
 }
