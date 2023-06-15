@@ -383,7 +383,7 @@ function ConfirmButton(props: { photoId: UUID; deduction: { deductionId: UUID; p
   const { photoId, deduction } = props
   return (
     <form method='POST' className='inline-block ml-2'>
-      <input type='hidden' name='action' value='confirmAnnotation' />
+      <input type='hidden' name='action' value='confirmOpenAIAnnotation' />
       <input type='hidden' name='photoId' value={photoId} />
       <input type='hidden' name='deductionId' value={deduction.deductionId} />
       <button

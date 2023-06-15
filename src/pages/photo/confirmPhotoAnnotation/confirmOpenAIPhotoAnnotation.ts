@@ -6,13 +6,13 @@ import { PhotoAnnotationConfirmed } from './PhotoAnnotationConfirmed'
 import { PhotoAnnotatedUsingOpenAI } from '../annotatePhotoUsingOpenAI/PhotoAnnotatedUsingOpenAI'
 import { AWSDetectedFacesInPhoto } from '../recognizeFacesInChatPhoto/AWSDetectedFacesInPhoto'
 
-type ConfirmPhotoAnnotationArgs = {
+type ConfirmOpenAIPhotoAnnotationArgs = {
   photoId: UUID
   deductionId: UUID
   confirmedBy: UUID
 }
 
-export const confirmPhotoAnnotation = async ({ photoId, deductionId, confirmedBy }: ConfirmPhotoAnnotationArgs) => {
+export const confirmOpenAIPhotoAnnotation = async ({ photoId, deductionId, confirmedBy }: ConfirmOpenAIPhotoAnnotationArgs) => {
   const deduction = await getDeductionById(photoId, deductionId)
 
   if (!deduction) throw new Error('Could not find deduction for this deductionId and photoId')
