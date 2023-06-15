@@ -22,7 +22,6 @@ type AWSBoundingBox = {
 
 type AWSDetectedFace = {
   awsFaceId: string
-  deductionId: UUID
   faceId: UUID
   position: AWSBoundingBox
   confidence: number

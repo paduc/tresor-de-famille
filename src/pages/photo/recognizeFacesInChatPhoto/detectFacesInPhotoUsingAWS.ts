@@ -30,7 +30,6 @@ export async function detectFacesInPhotoUsingAWS({ file, photoId }: DetectFacesI
       faces.push({
         ...awsFace,
         faceId,
-        deductionId: getUuid(),
       })
     }
     await addToHistory(
