@@ -278,18 +278,7 @@ export const PhotoPage = withBrowserBundle(
                       </div>
                     )
                   })}
-                {caption ? (
-                  <form method='POST' className='mb-3 ml-2'>
-                    <input type='hidden' name='action' value='triggerAnnotation' />
-                    <input type='hidden' name='photoId' value={photoId} />
-                    <button
-                      type='submit'
-                      className='inline-flex items-center mt-3 px-3 py-1.5 border border-transparent sm:text-xs font-medium rounded-full shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
-                      <PhotoIcon className='-ml-0.5 mr-2 h-4 w-4' aria-hidden='true' />
-                      Lancer une annotation par IA
-                    </button>
-                  </form>
-                ) : null}
+                {caption ? <TriggerOpenAIButton photoId={photoId} /> : null}
               </div>
             </div>
           </div>
@@ -391,6 +380,45 @@ const HoverableFace = ({ face }: HoverableFaceProps) => {
       className={`absolute  ${isFaceHovered ? 'border-2' : 'border-0'} border-white cursor-pointer`}></div>
   )
 }
+
+type TriggerOpenAIProps = {
+  photoId: UUID
+}
+
+const TriggerOpenAIButton = ({ photoId }: TriggerOpenAIProps) => {
+  const [isLoading, toggleLoading] = React.useState(false)
+  const triggerForm = React.useRef<HTMLFormElement>(null)
+
+  React.useEffect(() => {
+    console.log('trigger form, isLoading', isLoading)
+    if (isLoading && triggerForm.current !== null) {
+      console.log('useEffect is submitting form')
+      setTimeout(() => {
+        if (triggerForm.current !== null) triggerForm.current.submit()
+      }, 200)
+    }
+  }, [isLoading, triggerForm])
+
+  return (
+    <form method='POST' className='mb-3 ml-2' ref={triggerForm}>
+      <input type='hidden' name='action' value='triggerAnnotation' />
+      <input type='hidden' name='photoId' value={photoId} />
+      <button
+        type='submit'
+        disabled={isLoading}
+        onClick={(e) => {
+          toggleLoading(true)
+        }}
+        className={`inline-flex items-center mt-3 px-3 py-1.5 border border-transparent sm:text-xs font-medium rounded-full shadow-sm text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${
+          isLoading ? 'bg-indigo-400' : 'bg-indigo-600 hover:bg-indigo-700'
+        }`}>
+        <PhotoIcon className='-ml-0.5 mr-2 h-4 w-4' aria-hidden='true' />
+        {isLoading ? 'Chargement...' : 'Lancer une annotation par IA'}
+      </button>
+    </form>
+  )
+}
+
 function ConfirmOpenAIDeductionButton(props: { photoId: UUID; deduction: { deductionId: UUID; photoId: UUID } }) {
   const { photoId, deduction } = props
   return (
