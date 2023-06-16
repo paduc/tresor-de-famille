@@ -340,9 +340,9 @@ const PhotoBadge = ({ photoId, faceId, className }: PhotoBadgeProps) => {
   const { hoveredFaceId, setHoveredFaceId } = React.useContext(HoverContext)
   return (
     <img
-      // src='https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=100&h=100&q=80'
+      // src='https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=100&h=100&q=80'
       src={`/photo/${photoId}/face/${faceId}`}
-      className={`inline-block rounded-full h-8 w-8 bg-white ${
+      className={`inline-block rounded-full h-14 w-14 bg-white ${
         hoveredFaceId === faceId ? 'ring-indigo-500 ring-2' : 'ring-2 ring-white'
       } ${className || ''}`}
       onMouseOver={() => {
