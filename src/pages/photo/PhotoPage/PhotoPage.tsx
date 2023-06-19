@@ -63,8 +63,6 @@ export const PhotoPage = withBrowserBundle(
     confirmedPersons,
     confirmedDeductions,
   }: PhotoPageProps) => {
-    const [isSubmitCaptionButtonVisible, setSubmitCaptionButtonVisible] = React.useState(false)
-
     const getConfirmedPersonForFace = (faceId: UUID) => {
       return confirmedPersons.find(({ faceId: _faceId }) => _faceId === faceId)?.person
     }
@@ -73,27 +71,29 @@ export const PhotoPage = withBrowserBundle(
     // runtime gives us event.occurredAt as a string
     annotationEvents.forEach((event) => (event.occurredAt = new Date(event.occurredAt)))
 
-    const faces = annotationEvents
-      .filter((event): event is AWSDetectedFacesInPhoto => {
-        return event.type === 'AWSDetectedFacesInPhoto'
-      })
-      .reduce((faces, event) => {
-        for (const { faceId, position } of event.payload.faces) {
-          faces.set(faceId, {
-            faceId,
-            position: {
-              width: position.Width!,
-              height: position.Height!,
-              top: position.Top!,
-              left: position.Left!,
-            },
-            person: null,
-          })
-        }
+    const faces = Array.from(
+      annotationEvents
+        .filter((event): event is AWSDetectedFacesInPhoto => {
+          return event.type === 'AWSDetectedFacesInPhoto'
+        })
+        .reduce((faces, event) => {
+          for (const { faceId, position } of event.payload.faces) {
+            faces.set(faceId, {
+              faceId,
+              position: {
+                width: position.Width!,
+                height: position.Height!,
+                top: position.Top!,
+                left: position.Left!,
+              },
+              person: null,
+            })
+          }
 
-        return faces
-      }, new Map<string, PhotoFace>())
-      .values()
+          return faces
+        }, new Map<string, PhotoFace>())
+        .values()
+    )
 
     return (
       <AppLayout>
@@ -101,69 +101,12 @@ export const PhotoPage = withBrowserBundle(
           <div className='bg-white w-full min-h-full pt-3 pb-10'>
             <SuccessError success={success} error={error} />
             <div className='w-full sm:max-w-2xl sm:mx-auto grid grid-cols-1 justify-items-center bg-gray-100 sm:border sm:rounded-lg overflow-hidden'>
-              <div className='relative'>
-                <img src={url} className='' />
-                {[...faces].map((face) => {
-                  return <HoverableFace key={`faceSpot${face.faceId}`} face={face} />
-                })}
-              </div>
+              <ImageAndFaceBboxs faces={faces} url={url} />
 
-              {confirmedPersons && Boolean(confirmedPersons.length) ? (
-                <div className='bg-gray-100 w-full py-2 px-2'>
-                  {confirmedPersons.map((person) => (
-                    <FaceBadge
-                      faceId={person.faceId}
-                      personId={person.person?.id}
-                      title={person.person!.name}
-                      className='mr-2'
-                      key={`confirmedPerson${person.faceId}`}
-                    />
-                  ))}
-                </div>
-              ) : null}
-              <div className='bg-white w-full'>
-                <form method='POST' className='relative'>
-                  <input type='hidden' name='photoId' defaultValue={photoId} />
-                  <div className='overflow-hidden sm:border border-gray-300 shadow-sm focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500'>
-                    <label htmlFor='caption' className='sr-only'>
-                      Ajouter une légende...
-                    </label>
-                    <textarea
-                      rows={3}
-                      name='caption'
-                      id='caption'
-                      className='block w-full resize-none border-0 py-3 focus:ring-0 sm:text-sm'
-                      placeholder='Ajouter une légende...'
-                      defaultValue={caption}
-                      onKeyUp={(e) => {
-                        setSubmitCaptionButtonVisible(e.currentTarget.value !== caption)
-                      }}
-                    />
+              <ConfirmedPersons confirmedPersons={confirmedPersons} />
 
-                    {/* Spacer element to match the height of the toolbar */}
-                    <div className='py-2' aria-hidden='true'>
-                      {/* Matches height of button in toolbar (1px border + 36px content height) */}
-                      <div className='py-px'>
-                        <div className='h-9' />
-                      </div>
-                    </div>
-                  </div>
-
-                  {isSubmitCaptionButtonVisible ? (
-                    <div className='absolute inset-x-0 bottom-0 flex justify-between py-2 pl-3 pr-2'>
-                      <div className='flex-shrink-0'>
-                        <button
-                          type='submit'
-                          className='inline-flex items-center mt-3 px-3 py-1.5 border border-transparent sm:sm:text-xs font-medium rounded-full shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
-                          <SendIcon className='-ml-0.5 mr-2 h-4 w-4' aria-hidden='true' />
-                          Envoyer
-                        </button>
-                      </div>
-                    </div>
-                  ) : null}
-                </form>
-              </div>
-              <div className='bg-gray-100 w-full  divide-y divide-dashed divide-gray-400'>
+              <EditCaption caption={caption} photoId={photoId} />
+              <div className='bg-gray-100 w-full divide-y divide-dashed divide-gray-400'>
                 {annotationEvents
                   .sort((eventA, eventB) => {
                     return eventA.occurredAt.getTime() - eventB.occurredAt.getTime()
@@ -171,139 +114,124 @@ export const PhotoPage = withBrowserBundle(
                   .map((event) => {
                     if (event.type === 'AWSDetectedFacesInPhoto' && event.payload.faces.length === 0) return
 
-                    return (
-                      <div className='pl-2 pt-3 w-full' key={event.id}>
-                        <ClientOnly>
-                          <div className='text-gray-500 text-sm'>
-                            Le {new Date(event.occurredAt).toLocaleDateString()} à{' '}
-                            {new Date(event.occurredAt).toLocaleTimeString()}
-                            <span className='ml-2 italic'>{event.type}</span>
-                          </div>
-                        </ClientOnly>
-                        {event.type === 'AWSDetectedFacesInPhoto' ? (
-                          <div className='py-2 text-sm'>
-                            <div className='mb-1'>
-                              La reconnaissance automatique a détecté {event.payload.faces.length} visage(s).
+                    switch (event.type) {
+                      case 'AWSDetectedFacesInPhoto':
+                        return (
+                          <div className='pl-2 pt-3 w-full' key={event.id}>
+                            <EventTitleAndTime event={event} />
+                            <div className='py-2 text-sm'>
+                              <div className='mb-1'>
+                                {event.payload.faces.length > 0
+                                  ? `La reconnaissance automatique a détecté ${event.payload.faces.length} visage(s).`
+                                  : "La reconnaissance automatique n'a détecté aucun visage"}
+                              </div>
+                              <ul className=''>
+                                {event.payload.faces
+                                  .sort((faceA, faceB) => {
+                                    return (
+                                      faceB.position.Width! * faceB.position.Height! -
+                                      faceA.position.Width! * faceA.position.Height!
+                                    )
+                                  })
+                                  .map((face, index) => {
+                                    const confirmedNameForFace = getConfirmedPersonForFace(face.faceId)
+                                    const personsForThisFace = personsByFaceId[face.faceId]
+                                    return (
+                                      <AWSFaceListItem
+                                        key={'face' + event.id + face.faceId}
+                                        confirmedNameForFace={confirmedNameForFace}
+                                        face={face}
+                                        personsForThisFace={personsForThisFace}
+                                        photoId={photoId}
+                                      />
+                                    )
+                                  })}
+                              </ul>
                             </div>
-                            <ul className=''>
-                              {event.payload.faces
-                                .sort((faceA, faceB) => {
+                          </div>
+                        )
+                      case 'UserAddedCaptionToPhoto':
+                        return (
+                          <div className='pl-2 pt-3 w-full' key={event.id}>
+                            <EventTitleAndTime event={event} />
+                            <div className='py-2 text-sm'>
+                              <div className='mb-1'>Vous avez mis à jour la légende.</div>
+                              <div className='italic'>{event.payload.caption.body}</div>
+                            </div>
+                          </div>
+                        )
+                      case 'PhotoAnnotatedUsingOpenAI':
+                        return (
+                          <div className='pl-2 pt-3 w-full' key={event.id}>
+                            <EventTitleAndTime event={event} />
+                            <div className='py-2 text-sm'>
+                              <div className='mb-1'>
+                                A partir des informations connues, l'IA est arrivée aux conclusions suivantes.
+                              </div>
+                              <ul className='mt-2 mb-2'>
+                                {event.payload.deductions.map((deduction, index) => {
+                                  const confirmedDeduction = confirmedDeductions.includes(deduction.deductionId)
+                                  const confirmedNameForFace = getConfirmedPersonForFace(deduction.faceId)
                                   return (
-                                    faceB.position.Width! * faceB.position.Height! -
-                                    faceA.position.Width! * faceA.position.Height!
-                                  )
-                                })
-                                .map((face, index) => {
-                                  const confirmedNameForFace = getConfirmedPersonForFace(face.faceId)
-                                  const personsForThisFace = personsByFaceId[face.faceId]
-                                  return (
-                                    <li key={'face' + event.id + face.faceId} className='mb-1 mr-2 text-sm'>
-                                      <PhotoBadge faceId={face.faceId} photoId={photoId} className='mr-2' />
-                                      {confirmedNameForFace ? (
-                                        <span className=''>
-                                          confirmé comme étant{' '}
-                                          <a
-                                            className='text-indigo-700 hover:text-indigo-500'
-                                            href={`${PersonPageURL(confirmedNameForFace.id)}`}>
-                                            {confirmedNameForFace.name}
-                                          </a>
-                                        </span>
-                                      ) : personsForThisFace ? (
-                                        <span className=''>
-                                          est reconnu et a été associé à :
-                                          <ul className='ml-10'>
-                                            {personsForThisFace.map(({ name, personId }) => (
-                                              <li className='mb-2' key={`confirmAWSPerson_${personId}${face.faceId}`}>
-                                                {name}
-                                                <ConfirmPersonByFaceButton
-                                                  photoId={photoId}
-                                                  personId={personId}
-                                                  faceId={face.faceId}
-                                                />
-                                              </li>
-                                            ))}
-                                          </ul>
-                                        </span>
-                                      ) : (
-                                        // Il y a deux cas ici: première fois qu'on le voit (vraiment inconnu) et présent dans d'autres photos mais pas associé à une personne
-                                        <span className=''>n'est pas connu</span>
-                                      )}
+                                    <li key={'deduction' + event.id + deduction.faceId} className='mb-1 mr-2 text-sm'>
+                                      <>
+                                        <PhotoBadge photoId={photoId} faceId={deduction.faceId} className='mr-1' />
+                                        {deduction.type === 'face-is-person' ? (
+                                          <>
+                                            {' '}
+                                            serait le visage de{' '}
+                                            <a
+                                              className='text-indigo-700 hover:text-indigo-500'
+                                              href={`${PersonPageURL(deduction.personId)}`}>
+                                              {personById[deduction.personId]?.name}
+                                            </a>
+                                          </>
+                                        ) : (
+                                          ` serait le visage d'une
+                                      nouvelle personne appelée "${deduction.name}"`
+                                        )}
+                                        {confirmedDeduction ? (
+                                          <ConfirmedBadge />
+                                        ) : confirmedNameForFace ? (
+                                          <span className=''>
+                                            (confirmé comme étant{' '}
+                                            <a
+                                              className='text-indigo-700 hover:text-indigo-500'
+                                              href={`${PersonPageURL(confirmedNameForFace.id)}`}>
+                                              {confirmedNameForFace.name}
+                                            </a>
+                                            )
+                                          </span>
+                                        ) : (
+                                          <ConfirmOpenAIDeductionButton photoId={photoId} deduction={deduction} />
+                                        )}
+                                      </>
                                     </li>
                                   )
                                 })}
-                            </ul>
-                          </div>
-                        ) : event.type === 'UserAddedCaptionToPhoto' ? (
-                          <div className='py-2 text-sm'>
-                            <div className='mb-1'>Vous avez mis à jour la légende.</div>
-                            <div className='italic'>{event.payload.caption.body}</div>
-                          </div>
-                        ) : event.type === 'PhotoAnnotatedUsingOpenAI' ? (
-                          <div className='py-2 text-sm'>
-                            <div className='mb-1'>
-                              A partir des informations connues, l'IA est arrivée aux conclusions suivantes.
-                            </div>
-                            <ul className='mt-2 mb-2'>
-                              {event.payload.deductions.map((deduction, index) => {
-                                const confirmedDeduction = confirmedDeductions.includes(deduction.deductionId)
-                                const confirmedNameForFace = getConfirmedPersonForFace(deduction.faceId)
-                                return (
-                                  <li key={'deduction' + event.id + deduction.faceId} className='mb-1 mr-2 text-sm'>
-                                    <>
-                                      <PhotoBadge photoId={photoId} faceId={deduction.faceId} className='mr-1' />
-                                      {deduction.type === 'face-is-person' ? (
-                                        <>
-                                          {' '}
-                                          serait le visage de{' '}
-                                          <a
-                                            className='text-indigo-700 hover:text-indigo-500'
-                                            href={`${PersonPageURL(deduction.personId)}`}>
-                                            {personById[deduction.personId]?.name}
-                                          </a>
-                                        </>
-                                      ) : (
-                                        ` serait le visage d'une
-                                      nouvelle personne appelée "${deduction.name}"`
-                                      )}
-                                      {confirmedDeduction ? (
-                                        <ConfirmedBadge />
-                                      ) : confirmedNameForFace ? (
-                                        <span className=''>
-                                          (confirmé comme étant{' '}
-                                          <a
-                                            className='text-indigo-700 hover:text-indigo-500'
-                                            href={`${PersonPageURL(confirmedNameForFace.id)}`}>
-                                            {confirmedNameForFace.name}
-                                          </a>
-                                          )
-                                        </span>
-                                      ) : (
-                                        <ConfirmOpenAIDeductionButton photoId={photoId} deduction={deduction} />
-                                      )}
-                                    </>
-                                  </li>
-                                )
-                              })}
-                            </ul>
-                            <details className='text-sm text-gray-600 ml-1'>
-                              <summary className='cursor-pointer'>voir les details</summary>
+                              </ul>
+                              <details className='text-sm text-gray-600 ml-1'>
+                                <summary className='cursor-pointer'>voir les details</summary>
 
-                              <div>model: {event.payload.model}</div>
-                              <div className='mt-2'>
-                                prompt:
-                                <pre className='overflow-scroll'>{event.payload.prompt}</pre>
-                              </div>
-                              {event.payload.response ? (
+                                <div>model: {event.payload.model}</div>
                                 <div className='mt-2'>
-                                  response:
-                                  <pre className='overflow-scroll'>{event.payload.response}</pre>
+                                  prompt:
+                                  <pre className='overflow-scroll'>{event.payload.prompt}</pre>
                                 </div>
-                              ) : null}
-                            </details>
+                                {event.payload.response ? (
+                                  <div className='mt-2'>
+                                    response:
+                                    <pre className='overflow-scroll'>{event.payload.response}</pre>
+                                  </div>
+                                ) : null}
+                              </details>
+                            </div>
                           </div>
-                        ) : null}
-                      </div>
-                    )
+                        )
+
+                      default:
+                        break
+                    }
                   })}
                 {caption ? <TriggerOpenAIButton photoId={photoId} /> : null}
               </div>
@@ -488,5 +416,138 @@ function ConfirmedBadge() {
       <CheckIcon className='absolute left-2 h-4 w-4' aria-hidden='true' />
       Validé
     </div>
+  )
+}
+
+function ImageAndFaceBboxs({ faces, url }: { faces: PhotoFace[]; url: string }) {
+  return (
+    <div className='relative'>
+      <img src={url} className='' />
+      {[...faces].map((face) => {
+        return <HoverableFace key={`faceSpot${face.faceId}`} face={face} />
+      })}
+    </div>
+  )
+}
+
+function ConfirmedPersons({ confirmedPersons }: { confirmedPersons: PhotoFace[] }) {
+  return (
+    <>
+      {confirmedPersons && Boolean(confirmedPersons.length) ? (
+        <div className='bg-gray-100 w-full py-2 px-2'>
+          {confirmedPersons.map((person) => (
+            <FaceBadge
+              faceId={person.faceId}
+              personId={person.person?.id}
+              title={person.person!.name}
+              className='mr-2'
+              key={`confirmedPerson${person.faceId}`}
+            />
+          ))}
+        </div>
+      ) : null}
+    </>
+  )
+}
+
+function EditCaption({ caption, photoId }: { caption: string | undefined; photoId: UUID }) {
+  const [isSubmitCaptionButtonVisible, setSubmitCaptionButtonVisible] = React.useState(false)
+
+  return (
+    <div className='bg-white w-full'>
+      <form method='POST' className='relative'>
+        <input type='hidden' name='photoId' defaultValue={photoId} />
+        <div className='overflow-hidden sm:border border-gray-300 shadow-sm focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500'>
+          <label htmlFor='caption' className='sr-only'>
+            Ajouter une légende...
+          </label>
+          <textarea
+            rows={3}
+            name='caption'
+            id='caption'
+            className='block w-full resize-none border-0 py-3 focus:ring-0 sm:text-sm'
+            placeholder='Ajouter une légende...'
+            defaultValue={caption}
+            onKeyUp={(e) => {
+              setSubmitCaptionButtonVisible(e.currentTarget.value !== caption)
+            }}
+          />
+
+          {/* Spacer element to match the height of the toolbar */}
+          <div className='py-2' aria-hidden='true'>
+            {/* Matches height of button in toolbar (1px border + 36px content height) */}
+            <div className='py-px'>
+              <div className='h-9' />
+            </div>
+          </div>
+        </div>
+
+        {isSubmitCaptionButtonVisible ? (
+          <div className='absolute inset-x-0 bottom-0 flex justify-between py-2 pl-3 pr-2'>
+            <div className='flex-shrink-0'>
+              <button
+                type='submit'
+                className='inline-flex items-center mt-3 px-3 py-1.5 border border-transparent sm:sm:text-xs font-medium rounded-full shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
+                <SendIcon className='-ml-0.5 mr-2 h-4 w-4' aria-hidden='true' />
+                Envoyer
+              </button>
+            </div>
+          </div>
+        ) : null}
+      </form>
+    </div>
+  )
+}
+
+function EventTitleAndTime({ event }: { event: PhotoPageProps['annotationEvents'][number] }) {
+  return (
+    <ClientOnly>
+      <div className='text-gray-500 text-sm'>
+        Le {new Date(event.occurredAt).toLocaleDateString()} à {new Date(event.occurredAt).toLocaleTimeString()}
+        <span className='ml-2 italic'>{event.type}</span>
+      </div>
+    </ClientOnly>
+  )
+}
+
+function AWSFaceListItem({
+  confirmedNameForFace,
+  face,
+  personsForThisFace,
+  photoId,
+}: {
+  confirmedNameForFace: { id: UUID; name: string } | null | undefined
+  face: AWSDetectedFacesInPhoto['payload']['faces'][number]
+  personsForThisFace: { personId: UUID; name: string }[]
+  photoId: UUID
+}) {
+  return (
+    <li className='mb-1 mr-2 text-sm'>
+      <PhotoBadge faceId={face.faceId} photoId={photoId} className='mr-2' />
+
+      {confirmedNameForFace ? (
+        <span className=''>
+          confirmé comme étant{' '}
+          <a className='text-indigo-700 hover:text-indigo-500' href={`${PersonPageURL(confirmedNameForFace.id)}`}>
+            {confirmedNameForFace.name}
+          </a>
+        </span>
+      ) : personsForThisFace ? (
+        <span className=''>
+          est reconnu et a été associé à :
+          <ul className='ml-10'>
+            {personsForThisFace.map(({ name, personId }) => (
+              <li className='mb-2' key={`confirmAWSPerson_${personId}${face.faceId}`}>
+                {name}
+                <ConfirmPersonByFaceButton photoId={photoId} personId={personId} faceId={face.faceId} />
+              </li>
+            ))}
+          </ul>
+        </span>
+      ) : (
+        // Il y a deux cas ici: première fois qu'on le voit (vraiment inconnu) et présent dans d'autres photos mais pas associé à une personne
+        <span className=''>n'est pas connu</span>
+      )}
+    </li>
   )
 }
