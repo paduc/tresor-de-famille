@@ -140,7 +140,7 @@ const getConfirmedPersons = async (photoId: UUID): Promise<{ persons: PhotoFace[
     if (deductionId) deductions.push(deductionId)
     const person = await getPersonById(personId)
     persons.push({
-      person: { name: person?.name || 'N/A' },
+      person: { id: personId, name: person?.name || 'N/A' },
       faceId,
       position,
     })

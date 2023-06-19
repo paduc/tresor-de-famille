@@ -12,6 +12,7 @@ import type { AWSDetectedFacesInPhoto } from '../recognizeFacesInChatPhoto/AWSDe
 import { PhotoIcon } from './PhotoIcon'
 import { ClientOnly } from '../../_components/ClientOnly'
 import { CheckIcon } from '@heroicons/react/solid'
+import { PersonPageURL } from '../../person/PersonPageURL'
 
 // @ts-ignore
 function classNames(...classes) {
@@ -20,6 +21,7 @@ function classNames(...classes) {
 
 export type PhotoFace = {
   person: {
+    id: UUID
     name: string
   } | null
   faceId: UUID
@@ -64,7 +66,7 @@ export const PhotoPage = withBrowserBundle(
     const [isSubmitCaptionButtonVisible, setSubmitCaptionButtonVisible] = React.useState(false)
 
     const getConfirmedPersonForFace = (faceId: UUID) => {
-      return confirmedPersons.find(({ faceId: _faceId }) => _faceId === faceId)?.person?.name
+      return confirmedPersons.find(({ faceId: _faceId }) => _faceId === faceId)?.person
     }
 
     // Serialization breaks dates in events,
@@ -111,6 +113,7 @@ export const PhotoPage = withBrowserBundle(
                   {confirmedPersons.map((person) => (
                     <FaceBadge
                       faceId={person.faceId}
+                      personId={person.person?.id}
                       title={person.person!.name}
                       className='mr-2'
                       key={`confirmedPerson${person.faceId}`}
@@ -197,7 +200,14 @@ export const PhotoPage = withBrowserBundle(
                                     <li key={'face' + event.id + face.faceId} className='mb-1 mr-2 text-sm'>
                                       <PhotoBadge faceId={face.faceId} photoId={photoId} className='mr-2' />
                                       {confirmedNameForFace ? (
-                                        <span className=''>confirmé comme étant {confirmedNameForFace}</span>
+                                        <span className=''>
+                                          confirmé comme étant{' '}
+                                          <a
+                                            className='text-indigo-700 hover:text-indigo-500'
+                                            href={`${PersonPageURL(confirmedNameForFace.id)}`}>
+                                            {confirmedNameForFace.name}
+                                          </a>
+                                        </span>
                                       ) : personsForThisFace ? (
                                         <span className=''>
                                           est reconnu et a été associé à :
@@ -241,15 +251,32 @@ export const PhotoPage = withBrowserBundle(
                                   <li key={'deduction' + event.id + deduction.faceId} className='mb-1 mr-2 text-sm'>
                                     <>
                                       <PhotoBadge photoId={photoId} faceId={deduction.faceId} className='mr-1' />
-                                      {deduction.type === 'face-is-person'
-                                        ? ` serait le visage de 
-                                      ${personById[deduction.personId]?.name}`
-                                        : ` serait le visage d'une
-                                      nouvelle personne appelée "${deduction.name}"`}
+                                      {deduction.type === 'face-is-person' ? (
+                                        <>
+                                          {' '}
+                                          serait le visage de{' '}
+                                          <a
+                                            className='text-indigo-700 hover:text-indigo-500'
+                                            href={`${PersonPageURL(deduction.personId)}`}>
+                                            {personById[deduction.personId]?.name}
+                                          </a>
+                                        </>
+                                      ) : (
+                                        ` serait le visage d'une
+                                      nouvelle personne appelée "${deduction.name}"`
+                                      )}
                                       {confirmedDeduction ? (
                                         <ConfirmedBadge />
                                       ) : confirmedNameForFace ? (
-                                        <span className=''>(confirmé comme étant {confirmedNameForFace})</span>
+                                        <span className=''>
+                                          (confirmé comme étant{' '}
+                                          <a
+                                            className='text-indigo-700 hover:text-indigo-500'
+                                            href={`${PersonPageURL(confirmedNameForFace.id)}`}>
+                                            {confirmedNameForFace.name}
+                                          </a>
+                                          )
+                                        </span>
                                       ) : (
                                         <ConfirmOpenAIDeductionButton photoId={photoId} deduction={deduction} />
                                       )}
@@ -302,10 +329,11 @@ export const ChatItem = ({ children, isLastItem }: ChatItemProps) => {
 
 type FaceBadgeProps = {
   faceId: UUID
+  personId?: UUID
   title: string
   className?: string
 }
-const FaceBadge = ({ title, faceId, className }: FaceBadgeProps) => {
+const FaceBadge = ({ title, faceId, personId, className }: FaceBadgeProps) => {
   const { hoveredFaceId, setHoveredFaceId } = React.useContext(HoverContext)
   return (
     <div
@@ -318,7 +346,7 @@ const FaceBadge = ({ title, faceId, className }: FaceBadgeProps) => {
       onMouseOut={() => {
         setHoveredFaceId(null)
       }}>
-      <a href='#' className='group block flex-shrink-0 '>
+      <a href={`${personId ? PersonPageURL(personId) : '#'}`} className='group block flex-shrink-0 '>
         <div className='flex items-center'>
           {/* <div
             className={`inline-block h-4 w-4 ml-2 text-gray-500 ${

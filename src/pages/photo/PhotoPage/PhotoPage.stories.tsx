@@ -71,7 +71,7 @@ export const PhotoAvecAnnotations = () => (
       confirmedPersons={[
         {
           faceId: totoFaceId,
-          person: { name: 'Toto' },
+          person: { id: getUuid(), name: 'Toto' },
           position: {
             width: 0.3004770278930664,
             height: 0.39314860105514526,
