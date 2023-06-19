@@ -1,6 +1,7 @@
 export * from './_components'
 export * from './addVideo'
 export * from './chat'
+export * from './person/person.route'
 export * from './photo/photo.route'
 export * from './auth/auth.route'
 export * from './home'
