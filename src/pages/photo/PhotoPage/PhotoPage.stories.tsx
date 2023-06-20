@@ -68,18 +68,20 @@ export const PhotoAvecAnnotations = () => (
       url={
         'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=4032&h=3024&q=80'
       }
-      confirmedPersons={[
-        {
-          faceId: totoFaceId,
-          person: { id: getUuid(), name: 'Toto' },
-          position: {
-            width: 0.3004770278930664,
-            height: 0.39314860105514526,
-            left: 0.3541097640991211,
-            top: 0.24908018112182617,
-          },
-        },
-      ]}
+      confirmedPersons={
+        [
+          // {
+          //   faceId: totoFaceId,
+          //   person: { id: getUuid(), name: 'Toto' },
+          //   position: {
+          //     width: 0.3004770278930664,
+          //     height: 0.39314860105514526,
+          //     left: 0.3541097640991211,
+          //     top: 0.24908018112182617,
+          //   },
+          // },
+        ]
+      }
       confirmedDeductions={[confirmedDeductionId]}
       personsByFaceId={{
         [totoFaceId]: [

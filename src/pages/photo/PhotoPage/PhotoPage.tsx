@@ -11,7 +11,7 @@ import type { PhotoAnnotatedUsingOpenAI } from '../annotatePhotoUsingOpenAI/Phot
 import type { AWSDetectedFacesInPhoto } from '../recognizeFacesInChatPhoto/AWSDetectedFacesInPhoto'
 import { PhotoIcon } from './PhotoIcon'
 import { ClientOnly } from '../../_components/ClientOnly'
-import { CheckIcon } from '@heroicons/react/solid'
+import { CheckIcon, SearchIcon } from '@heroicons/react/solid'
 import { PersonPageURL } from '../../person/PersonPageURL'
 
 // @ts-ignore
@@ -410,6 +410,24 @@ function ConfirmPersonByFaceButton(props: { photoId: UUID; faceId: UUID; personI
   )
 }
 
+function SearchPersonForFaceButton(props: { photoId: UUID; faceId: UUID }) {
+  const { photoId, faceId } = props
+  return (
+    <form method='POST' className='inline-block ml-1'>
+      <input type='hidden' name='action' value='confirmAWSAnnotation' />
+      <input type='hidden' name='photoId' value={photoId} />
+      <input type='hidden' name='faceId' value={faceId} />
+      {/* <input type='hidden' name='personId' value={personId} /> */}
+      <button
+        type='submit'
+        className='inline-flex items-center py-1 px-2 pl-7 rounded-full bg-yellow-50 text-sm relative hover:font-semibold text-yellow-600 shadow-sm ring-1 hover:ring-2 ring-yellow-600 ring-inset'>
+        <SearchIcon className='absolute left-2 h-4 w-4' aria-hidden='true' />
+        Rechercher
+      </button>
+    </form>
+  )
+}
+
 function ConfirmedBadge() {
   return (
     <div className='inline-flex items-center ml-1 py-1 px-2 pl-7 rounded-full bg-white text-sm relative font-semibold  text-green-600 shadow-sm ring-1 ring-green-600 ring-inset'>
@@ -542,11 +560,16 @@ function AWSFaceListItem({
                 <ConfirmPersonByFaceButton photoId={photoId} personId={personId} faceId={face.faceId} />
               </li>
             ))}
+            <li>
+              <SearchPersonForFaceButton faceId={face.faceId} photoId={photoId} />
+            </li>
           </ul>
         </span>
       ) : (
         // Il y a deux cas ici: première fois qu'on le voit (vraiment inconnu) et présent dans d'autres photos mais pas associé à une personne
-        <span className=''>n'est pas connu</span>
+        <span className=''>
+          n'est pas connu <SearchPersonForFaceButton faceId={face.faceId} photoId={photoId} />
+        </span>
       )}
     </li>
   )
