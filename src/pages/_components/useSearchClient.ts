@@ -1,7 +1,5 @@
 import algoliasearch, { SearchClient, SearchIndex } from 'algoliasearch/lite'
-import React, { useEffect, useState } from 'react'
-
-export const AlgoliaContext = React.createContext<SearchClient | null>(null)
+import { useEffect, useState } from 'react'
 
 const isServerContext = typeof window === 'undefined'
 export const useSearchClient = () => {

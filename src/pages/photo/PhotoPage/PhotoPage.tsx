@@ -1,18 +1,18 @@
 import * as React from 'react'
 import { UUID } from '../../../domain'
 
+import { CheckIcon, MagnifyingGlassIcon } from '@heroicons/react/20/solid'
 import { withBrowserBundle } from '../../../libs/ssr/withBrowserBundle'
+import { ClientOnly } from '../../_components/ClientOnly'
 import { SuccessError } from '../../_components/SuccessError'
 import { AppLayout } from '../../_components/layout/AppLayout'
-import { HoverContext, HoverProvider } from './HoverProvider'
-import { SendIcon } from './SendIcon'
+import { PersonPageURL } from '../../person/PersonPageURL'
 import type { UserAddedCaptionToPhoto } from '../UserAddedCaptionToPhoto'
 import type { PhotoAnnotatedUsingOpenAI } from '../annotatePhotoUsingOpenAI/PhotoAnnotatedUsingOpenAI'
 import type { AWSDetectedFacesInPhoto } from '../recognizeFacesInChatPhoto/AWSDetectedFacesInPhoto'
+import { HoverContext, HoverProvider } from './HoverProvider'
 import { PhotoIcon } from './PhotoIcon'
-import { ClientOnly } from '../../_components/ClientOnly'
-import { CheckIcon, MagnifyingGlassIcon } from '@heroicons/react/20/solid'
-import { PersonPageURL } from '../../person/PersonPageURL'
+import { SendIcon } from './SendIcon'
 import { PersonSearch } from './PersonSearch'
 
 // @ts-ignore

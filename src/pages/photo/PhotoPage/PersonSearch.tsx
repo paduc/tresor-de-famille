@@ -1,7 +1,15 @@
-import React, { Fragment, useState } from 'react'
-import { MagnifyingGlassIcon } from '@heroicons/react/20/solid'
 import { Combobox, Dialog, Transition } from '@headlessui/react'
+import { CheckIcon, MagnifyingGlassIcon } from '@heroicons/react/20/solid'
+import React, { Fragment, useState } from 'react'
 import { UUID } from '../../../domain/UUID'
+import { usePersonSearch } from '../../_components/usePersonSearch'
+
+type SearchPersonHitDTO = {
+  objectID: string
+  name: string
+  bornOn?: string
+  sex?: 'M' | 'F'
+}
 
 type PersonSearchProps = {
   onPersonSelected: (personId: UUID) => unknown
@@ -22,12 +30,27 @@ function classNames(...classes) {
 export const PersonSearch = ({ onPersonSelected, open, setOpen }: PersonSearchProps) => {
   const [query, setQuery] = useState('')
 
-  const filteredPeople =
-    query === ''
-      ? []
-      : people.filter((person) => {
-          return person.name.toLowerCase().includes(query.toLowerCase())
-        })
+  const index = usePersonSearch()
+  if (index === null) return null
+
+  console.log('PersonSearch received index', index)
+
+  const [hits, setHits] = React.useState<SearchPersonHitDTO[]>([])
+
+  React.useEffect(() => {
+    if (!index) return
+
+    const fetchResults = async () => {
+      if (query === '') {
+        setHits([])
+        return
+      }
+      const { hits } = await index.search(query)
+      setHits(hits as SearchPersonHitDTO[])
+    }
+
+    fetchResults()
+  }, [index, setHits, query])
 
   return (
     <>
@@ -54,7 +77,7 @@ export const PersonSearch = ({ onPersonSelected, open, setOpen }: PersonSearchPr
               leaveFrom='opacity-100 scale-100'
               leaveTo='opacity-0 scale-95'>
               <Dialog.Panel className='mx-auto max-w-xl transform divide-y divide-gray-100 overflow-hidden rounded-xl bg-white shadow-2xl ring-1 ring-black ring-opacity-5 transition-all'>
-                <Combobox onChange={(person: any) => onPersonSelected(person.id)}>
+                <Combobox onChange={(person: any) => onPersonSelected(person.objectID)}>
                   <div className='relative'>
                     <MagnifyingGlassIcon
                       className='pointer-events-none absolute left-4 top-3.5 h-5 w-5 text-gray-400'
@@ -67,22 +90,50 @@ export const PersonSearch = ({ onPersonSelected, open, setOpen }: PersonSearchPr
                     />
                   </div>
 
-                  {filteredPeople.length > 0 && (
-                    <Combobox.Options static className='max-h-72 scroll-py-2 overflow-y-auto py-2 text-sm text-gray-800'>
-                      {filteredPeople.map((person) => (
+                  {hits.length > 0 && (
+                    <Combobox.Options className='max-h-72 scroll-py-2 overflow-y-auto py-2 text-sm text-gray-800'>
+                      {hits.map((hit) => (
                         <Combobox.Option
-                          key={person.id}
-                          value={person}
+                          key={`hit_${hit.objectID}`}
+                          value={hit}
                           className={({ active }) =>
                             classNames('cursor-default select-none px-4 py-2', active && 'bg-indigo-600 text-white')
                           }>
-                          {person.name}
+                          {({ active, selected }) => (
+                            <>
+                              <div className='sm:flex'>
+                                <div className={classNames('truncate', selected && 'font-semibold')}>{hit.name}</div>
+                                {hit.bornOn ? (
+                                  <div
+                                    className={classNames(
+                                      'sm:ml-2 truncate text-gray-500',
+                                      active ? 'text-indigo-200' : 'text-gray-500'
+                                    )}>
+                                    {hit.sex === 'M' ? 'né le ' : 'née le '}
+                                    {hit.bornOn}
+                                  </div>
+                                ) : (
+                                  ''
+                                )}
+                              </div>
+
+                              {selected && (
+                                <span
+                                  className={classNames(
+                                    'absolute inset-y-0 right-0 flex items-center pr-4',
+                                    active ? 'text-white' : 'text-indigo-600'
+                                  )}>
+                                  <CheckIcon className='h-5 w-5' aria-hidden='true' />
+                                </span>
+                              )}
+                            </>
+                          )}
                         </Combobox.Option>
                       ))}
                     </Combobox.Options>
                   )}
 
-                  {query !== '' && filteredPeople.length === 0 && <p className='p-4 text-sm text-gray-500'>No people found.</p>}
+                  {query !== '' && hits.length === 0 && <p className='p-4 text-sm text-gray-500'>No people found.</p>}
                 </Combobox>
               </Dialog.Panel>
             </Transition.Child>

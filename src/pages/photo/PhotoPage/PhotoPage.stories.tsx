@@ -6,6 +6,9 @@ import { PhotoPage } from './PhotoPage'
 import { AWSDetectedFacesInPhoto } from '../recognizeFacesInChatPhoto/AWSDetectedFacesInPhoto'
 import { UserAddedCaptionToPhoto } from '../UserAddedCaptionToPhoto'
 import { PhotoAnnotatedUsingOpenAI } from '../annotatePhotoUsingOpenAI/PhotoAnnotatedUsingOpenAI'
+import { AlgoliaContext } from '../../_components/AlgoliaContext'
+import { SearchIndex } from 'algoliasearch/lite'
+import { PersonSearchContext } from '../../_components/usePersonSearch'
 
 export default { title: 'Page Photo', component: PhotoPage, parameters: { layout: 'fullscreen' } }
 
@@ -61,99 +64,105 @@ const confirmedDeductionId = getUuid()
 //   </SessionContext.Provider>
 // )
 
+const fakePersonSearch = async (query: string) => {
+  return { hits: [{ objectID: getUuid(), name: 'John Doe' }] }
+}
+
 export const PhotoAvecAnnotations = () => (
   <SessionContext.Provider value={{ isLoggedIn: true, userName: 'toto', isAdmin: false }}>
-    <PhotoPage
-      photoId={getUuid()}
-      url={
-        'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=4032&h=3024&q=80'
-      }
-      confirmedPersons={
-        [
-          // {
-          //   faceId: totoFaceId,
-          //   person: { id: getUuid(), name: 'Toto' },
-          //   position: {
-          //     width: 0.3004770278930664,
-          //     height: 0.39314860105514526,
-          //     left: 0.3541097640991211,
-          //     top: 0.24908018112182617,
-          //   },
-          // },
-        ]
-      }
-      confirmedDeductions={[confirmedDeductionId]}
-      personsByFaceId={{
-        [totoFaceId]: [
-          { personId: totoPersonId, name: 'Toto' },
-          { personId: getUuid(), name: 'Tata' },
-        ],
-      }}
-      personById={{
-        [totoPersonId]: { name: 'Toto' },
-        [ghostPersonId]: { name: 'Ghost' },
-      }}
-      annotationEvents={[
-        AWSDetectedFacesInPhoto({
-          photoId: getUuid(),
-          faces: [
-            {
-              faceId: totoFaceId,
-              awsFaceId: '',
-              confidence: 1,
-              position: {
-                Width: 0.3004770278930664,
-                Height: 0.39314860105514526,
-                Left: 0.3541097640991211,
-                Top: 0.24908018112182617,
-              },
-            },
-            {
-              awsFaceId: '',
-              confidence: 1,
-              faceId: ghostFaceId,
-              position: {
-                Width: 0.2,
-                Height: 0.2,
-                Left: 0,
-                Top: 0,
-              },
-            },
+    <PersonSearchContext.Provider value={{ search: fakePersonSearch } as unknown as SearchIndex}>
+      <PhotoPage
+        photoId={getUuid()}
+        url={
+          'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=4032&h=3024&q=80'
+        }
+        confirmedPersons={
+          [
+            // {
+            //   faceId: totoFaceId,
+            //   person: { id: getUuid(), name: 'Toto' },
+            //   position: {
+            //     width: 0.3004770278930664,
+            //     height: 0.39314860105514526,
+            //     left: 0.3541097640991211,
+            //     top: 0.24908018112182617,
+            //   },
+            // },
+          ]
+        }
+        confirmedDeductions={[confirmedDeductionId]}
+        personsByFaceId={{
+          [totoFaceId]: [
+            { personId: totoPersonId, name: 'Toto' },
+            { personId: getUuid(), name: 'Tata' },
           ],
-        }),
-        UserAddedCaptionToPhoto({
-          photoId: getUuid(),
-          caption: {
-            id: getUuid(),
-            body: 'This is a picture of Toto and a ghost.',
-          },
-          addedBy: getUuid(),
-        }),
-        PhotoAnnotatedUsingOpenAI({
-          photoId: getUuid(),
-          model: 'model',
-          prompt: 'prompt',
-          response: 'response',
-          deductions: [
-            {
-              type: 'face-is-person',
-              faceId: totoFaceId,
-              personId: totoPersonId,
-              deductionId: confirmedDeductionId,
-              photoId: getUuid(),
+        }}
+        personById={{
+          [totoPersonId]: { name: 'Toto' },
+          [ghostPersonId]: { name: 'Ghost' },
+        }}
+        annotationEvents={[
+          AWSDetectedFacesInPhoto({
+            photoId: getUuid(),
+            faces: [
+              {
+                faceId: totoFaceId,
+                awsFaceId: '',
+                confidence: 1,
+                position: {
+                  Width: 0.3004770278930664,
+                  Height: 0.39314860105514526,
+                  Left: 0.3541097640991211,
+                  Top: 0.24908018112182617,
+                },
+              },
+              {
+                awsFaceId: '',
+                confidence: 1,
+                faceId: ghostFaceId,
+                position: {
+                  Width: 0.2,
+                  Height: 0.2,
+                  Left: 0,
+                  Top: 0,
+                },
+              },
+            ],
+          }),
+          UserAddedCaptionToPhoto({
+            photoId: getUuid(),
+            caption: {
+              id: getUuid(),
+              body: 'This is a picture of Toto and a ghost.',
             },
-            {
-              type: 'face-is-new-person',
-              faceId: ghostFaceId,
-              personId: ghostPersonId,
-              name: 'Ghost',
-              deductionId: getUuid(),
-              photoId: getUuid(),
-            },
-          ],
-        }),
-      ]}
-    />
+            addedBy: getUuid(),
+          }),
+          PhotoAnnotatedUsingOpenAI({
+            photoId: getUuid(),
+            model: 'model',
+            prompt: 'prompt',
+            response: 'response',
+            deductions: [
+              {
+                type: 'face-is-person',
+                faceId: totoFaceId,
+                personId: totoPersonId,
+                deductionId: confirmedDeductionId,
+                photoId: getUuid(),
+              },
+              {
+                type: 'face-is-new-person',
+                faceId: ghostFaceId,
+                personId: ghostPersonId,
+                name: 'Ghost',
+                deductionId: getUuid(),
+                photoId: getUuid(),
+              },
+            ],
+          }),
+        ]}
+      />
+    </PersonSearchContext.Provider>
   </SessionContext.Provider>
 )
 

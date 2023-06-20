@@ -1,11 +1,11 @@
-import type { Response, Request } from 'express'
+import { SearchIndex } from 'algoliasearch/lite'
+import type { Request, Response } from 'express'
 import ReactDOMServer from 'react-dom/server'
-import { LocationContext } from '../../pages/_components/LocationContext'
-import { AlgoliaContext } from '../../pages/_components/AlgoliaContext'
-import { Session, SessionContext } from '../../pages/_components/SessionContext'
-import { withContext } from './withContext'
-import { SearchClient } from 'algoliasearch/lite'
 import { ADMIN_USERID } from '../../dependencies/env'
+import { LocationContext } from '../../pages/_components/LocationContext'
+import { Session, SessionContext } from '../../pages/_components/SessionContext'
+import { PersonSearchContext } from '../../pages/_components/usePersonSearch'
+import { withContext } from './withContext'
 
 const html = String.raw
 
@@ -50,7 +50,7 @@ export function responseAsHtml(
             withContext(
               LocationContext,
               request.url,
-              withContext(SessionContext, session, withContext(AlgoliaContext, null as SearchClient | null, element))
+              withContext(SessionContext, session, withContext(PersonSearchContext, null as SearchIndex | null, element))
             )
           )}</div>
           ${bundle.shouldIncludeBrowserBundle

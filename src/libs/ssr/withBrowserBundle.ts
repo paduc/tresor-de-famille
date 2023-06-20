@@ -3,8 +3,9 @@ import React, { FunctionComponent } from 'react'
 import { hydrateRoot } from 'react-dom/client'
 import { LocationContext } from '../../pages/_components/LocationContext'
 import { SessionContext } from '../../pages/_components/SessionContext'
-import { AlgoliaContext } from '../../pages/_components/AlgoliaContext'
 import { withContext } from './withContext'
+import algoliasearch, { SearchIndex } from 'algoliasearch/lite'
+import { PersonSearchContext } from '../../pages/_components/usePersonSearch'
 
 const isServerContext = typeof window === 'undefined'
 
@@ -49,17 +50,24 @@ const browserCode = <ComponentType extends FunctionComponent>(Component: Compone
     const props = (window as any).__INITIAL_PROPS__
     const session = (window as any).__SESSION__
     const url = (window as any).__URL__
-    const algolia = (window as any).__ALGOLIA__
+    const algolia = (window as any).__ALGOLIA__ as { appId: string; searchKey: string } | null
+
+    let index: SearchIndex | null = null
+
+    if (algolia) {
+      const { appId, searchKey } = algolia
+
+      const searchClient = algoliasearch(appId, searchKey)
+      index = searchClient.initIndex('persons')
+    }
 
     const container = document.getElementById('root')
-    hydrateRoot(
-      container!,
-      withContext(
-        LocationContext,
-        url,
-        withContext(SessionContext, session, withContext(AlgoliaContext, algolia, React.createElement(Component, props)))
-      )
-    )
+
+    const rawElement = React.createElement(Component, props)
+
+    const elementWithSearch = index ? withContext(PersonSearchContext, index as SearchIndex | null, rawElement) : rawElement
+
+    hydrateRoot(container!, withContext(LocationContext, url, withContext(SessionContext, session, elementWithSearch)))
   })
 
   return Component

@@ -2,7 +2,7 @@ import * as React from 'react'
 import { Combobox } from '@headlessui/react'
 
 import { withBrowserBundle } from '../../libs/ssr/withBrowserBundle'
-import { useSearchClient } from '../_components/AlgoliaContext'
+import { useSearchClient } from '../_components/useSearchClient'
 import { AppLayout } from '../_components/layout/AppLayout'
 import { useState } from 'react'
 import { CheckIcon } from '@heroicons/react/20/solid'
