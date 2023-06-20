@@ -13,6 +13,7 @@ import { PhotoIcon } from './PhotoIcon'
 import { ClientOnly } from '../../_components/ClientOnly'
 import { CheckIcon, MagnifyingGlassIcon } from '@heroicons/react/20/solid'
 import { PersonPageURL } from '../../person/PersonPageURL'
+import { PersonSearch } from './PersonSearch'
 
 // @ts-ignore
 function classNames(...classes) {
@@ -412,19 +413,23 @@ function ConfirmPersonByFaceButton(props: { photoId: UUID; faceId: UUID; personI
 
 function SearchPersonForFaceButton(props: { photoId: UUID; faceId: UUID }) {
   const { photoId, faceId } = props
+  const [open, setOpen] = React.useState(false)
   return (
-    <form method='POST' className='inline-block ml-1'>
-      <input type='hidden' name='action' value='confirmAWSAnnotation' />
-      <input type='hidden' name='photoId' value={photoId} />
-      <input type='hidden' name='faceId' value={faceId} />
-      {/* <input type='hidden' name='personId' value={personId} /> */}
+    <div className='inline-block ml-1'>
+      <PersonSearch
+        onPersonSelected={() => {
+          window.alert('Selected person')
+        }}
+        open={open}
+        setOpen={setOpen}
+      />
       <button
-        type='submit'
+        onClick={() => setOpen(true)}
         className='inline-flex items-center py-1 px-2 pl-7 rounded-full bg-yellow-50 text-sm relative hover:font-semibold text-yellow-600 shadow-sm ring-1 hover:ring-2 ring-yellow-600 ring-inset'>
         <MagnifyingGlassIcon className='absolute left-2 h-4 w-4' aria-hidden='true' />
         Rechercher
       </button>
-    </form>
+    </div>
   )
 }
 
