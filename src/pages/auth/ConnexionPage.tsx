@@ -1,5 +1,5 @@
 import c from 'classnames'
-import { XCircleIcon } from '@heroicons/react/solid'
+import { XCircleIcon } from '@heroicons/react/20/solid'
 import * as React from 'react'
 import { Layout, Logo } from '../_components'
 

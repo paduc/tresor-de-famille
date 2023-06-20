@@ -1,12 +1,10 @@
 import * as React from 'react'
 
+import { PlusIcon } from '@heroicons/react/24/outline'
 import { UUID } from '../../domain'
 import { withBrowserBundle } from '../../libs/ssr/withBrowserBundle'
 import { SuccessError } from '../_components/SuccessError'
 import { AppLayout } from '../_components/layout/AppLayout'
-import { PhotoIcon } from '../photo/PhotoPage/PhotoIcon'
-import { PlusCircleIcon, PlusIcon } from '@heroicons/react/outline'
-import { ChatBubbleLeftEllipsisIcon } from '../chat/ChatPage/ChatBubbleLeftEllipsisIcon'
 import { ChatBubbleLeftIconOutline } from '../chat/ChatPage/ChatBubbleLeftIconOutline'
 
 // @ts-ignore

@@ -5,7 +5,7 @@ import { withBrowserBundle } from '../../libs/ssr/withBrowserBundle'
 import { useSearchClient } from '../_components/AlgoliaContext'
 import { AppLayout } from '../_components/layout/AppLayout'
 import { useState } from 'react'
-import { CheckIcon } from '@heroicons/react/solid'
+import { CheckIcon } from '@heroicons/react/20/solid'
 import { SuccessError } from '../_components/SuccessError'
 
 // @ts-ignore

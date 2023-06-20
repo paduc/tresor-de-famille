@@ -5,7 +5,6 @@ import { withBrowserBundle } from '../../libs/ssr/withBrowserBundle'
 import { SuccessError } from '../_components/SuccessError'
 import { AppLayout } from '../_components/layout/AppLayout'
 import { PhotoIcon } from '../photo/PhotoPage/PhotoIcon'
-import { PlusCircleIcon, PlusIcon } from '@heroicons/react/outline'
 import { InlinePhotoUpload } from '../_components/InlinePhotoUpload'
 
 // @ts-ignore

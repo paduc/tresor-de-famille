@@ -12,33 +12,19 @@
   }
   ```
 */
-import React, { Fragment, useContext, useRef, useState } from 'react'
 import { Dialog, Menu, Transition } from '@headlessui/react'
-import {
-  MenuIcon,
-  BellIcon,
-  CalendarIcon,
-  ChartPieIcon,
-  CogIcon,
-  DocumentDuplicateIcon,
-  FolderIcon,
-  HomeIcon,
-  UsersIcon,
-  XIcon,
-  CheckCircleIcon,
-  PlusSmIcon,
-} from '@heroicons/react/outline'
-import { ChevronDownIcon, SearchIcon } from '@heroicons/react/solid'
-import { AnnotationIcon, MenuAlt2Icon, PhotographIcon, VideoCameraIcon } from '@heroicons/react/outline'
-import { SessionContext } from '../SessionContext'
+import { Bars3Icon, PlusSmallIcon, XMarkIcon } from '@heroicons/react/24/outline'
+import { BookOpenIcon, PhotoIcon, VideoCameraIcon } from '@heroicons/react/24/outline'
+import React, { Fragment, useContext, useState } from 'react'
+import { InlinePhotoUpload } from '../InlinePhotoUpload'
 import { LocationContext } from '../LocationContext'
 import { Logo } from '../Logo'
-import { InlinePhotoUpload } from '../InlinePhotoUpload'
+import { SessionContext } from '../SessionContext'
 
 const navigation = [
-  { name: 'Photos', href: '/photos.html', icon: PhotographIcon },
+  { name: 'Photos', href: '/photos.html', icon: PhotoIcon },
   { name: 'Videos', href: '/videos.html', icon: VideoCameraIcon },
-  { name: 'Tous fils', href: '/threads.html', icon: AnnotationIcon, current: true },
+  { name: 'Tous fils', href: '/threads.html', icon: BookOpenIcon, current: true },
 ]
 const teams = [
   { id: 1, name: 'Heroicons', href: '#', initial: 'H', current: false },
@@ -110,7 +96,7 @@ export default function SidebarLayout({ children }: SidebarLayoutProps) {
                     <div className='absolute left-full top-0 flex w-16 justify-center pt-5'>
                       <button type='button' className='-m-2.5 p-2.5' onClick={() => setSidebarOpen(false)}>
                         <span className='sr-only'>Close sidebar</span>
-                        <XIcon className='h-6 w-6 text-white' aria-hidden='true' />
+                        <XMarkIcon className='h-6 w-6 text-white' aria-hidden='true' />
                       </button>
                     </div>
                   </Transition.Child>
@@ -130,14 +116,14 @@ export default function SidebarLayout({ children }: SidebarLayoutProps) {
                               <a
                                 href='/chat.html'
                                 className='button inline-flex items-center gap-x-1.5 rounded-md  px-2.5 py-1.5 text-sm text-white border-1 ring-1 ring-inset ring-indigo-200 shadow-sm hover:bg-white/20'>
-                                <PlusSmIcon className='-ml-0.5 h-5 w-5' aria-hidden='true' />
+                                <PlusSmallIcon className='-ml-0.5 h-5 w-5' aria-hidden='true' />
                                 Nouveau fil
                               </a>
                             </li>
                             <li>
                               <InlinePhotoUpload>
                                 <span className='button inline-flex items-center gap-x-1.5 rounded-md  px-2.5 py-1.5 text-sm text-white border-1 ring-1 ring-inset ring-indigo-200 shadow-sm hover:bg-white/20'>
-                                  <PlusSmIcon className='-ml-0.5 h-5 w-5' aria-hidden='true' />
+                                  <PlusSmallIcon className='-ml-0.5 h-5 w-5' aria-hidden='true' />
                                   Nouvelle photo
                                 </span>
                               </InlinePhotoUpload>
@@ -228,14 +214,14 @@ export default function SidebarLayout({ children }: SidebarLayoutProps) {
                       <a
                         href='/chat.html'
                         className='button inline-flex items-center gap-x-1.5 rounded-md  px-2.5 py-1.5 text-sm text-white border-1 ring-1 ring-inset ring-indigo-200 shadow-sm hover:bg-white/20'>
-                        <PlusSmIcon className='-ml-0.5 h-5 w-5' aria-hidden='true' />
+                        <PlusSmallIcon className='-ml-0.5 h-5 w-5' aria-hidden='true' />
                         Nouveau fil
                       </a>
                     </li>
                     <li>
                       <InlinePhotoUpload>
                         <span className='button inline-flex items-center gap-x-1.5 rounded-md  px-2.5 py-1.5 text-sm text-white border-1 ring-1 ring-inset ring-indigo-200 shadow-sm hover:bg-white/20'>
-                          <PlusSmIcon className='-ml-0.5 h-5 w-5' aria-hidden='true' />
+                          <PlusSmallIcon className='-ml-0.5 h-5 w-5' aria-hidden='true' />
                           Nouvelle photo
                         </span>
                       </InlinePhotoUpload>
@@ -307,7 +293,7 @@ export default function SidebarLayout({ children }: SidebarLayoutProps) {
           <div className='sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-200 bg-white px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8'>
             <button type='button' className='-m-2.5 p-2.5 text-gray-700 lg:hidden' onClick={() => setSidebarOpen(true)}>
               <span className='sr-only'>Open sidebar</span>
-              <MenuIcon className='h-6 w-6' aria-hidden='true' />
+              <Bars3Icon className='h-6 w-6' aria-hidden='true' />
             </button>
 
             {/* Separator */}

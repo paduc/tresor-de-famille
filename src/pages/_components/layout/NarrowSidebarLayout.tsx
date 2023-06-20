@@ -4,7 +4,7 @@ import { SessionContext } from '../SessionContext'
 
 import { Logo } from '..'
 
-import { AnnotationIcon, MenuAlt2Icon, PhotographIcon, VideoCameraIcon, XIcon } from '@heroicons/react/outline'
+import { BookOpenIcon, Bars3Icon, PhotoIcon, VideoCameraIcon, XMarkIcon } from '@heroicons/react/24/outline'
 
 import { LocationContext } from '../LocationContext'
 import { Layout } from './Layout'
@@ -12,8 +12,8 @@ import { Layout } from './Layout'
 const sidebarNavigation = [
   // { name: 'Ma famille', href: '/personnes', icon: UserGroupIcon },
   // { name: 'All Files', href: '#', icon: ViewGridIcon },
-  { name: 'Fils', href: '/threads.html', icon: AnnotationIcon },
-  { name: 'Photos', href: '/photos.html', icon: PhotographIcon },
+  { name: 'Fils', href: '/threads.html', icon: BookOpenIcon },
+  { name: 'Photos', href: '/photos.html', icon: PhotoIcon },
   { name: 'Videos', href: '/videos.html', icon: VideoCameraIcon },
   // { name: 'Albums', href: '#', icon: CollectionIcon },
   // { name: 'Settings', href: '#', icon: CogIcon },
@@ -109,7 +109,7 @@ export function NarrowSidebarLayout({ children }: NarrowSidebarLayoutProps) {
                         type='button'
                         className='h-12 w-12 rounded-full flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-white'
                         onClick={() => setMobileMenuOpen(false)}>
-                        <XIcon className='h-6 w-6 text-white' aria-hidden='true' />
+                        <XMarkIcon className='h-6 w-6 text-white' aria-hidden='true' />
                         <span className='sr-only'>Fermer la barre de navigation</span>
                       </button>
                     </div>
@@ -166,7 +166,7 @@ export function NarrowSidebarLayout({ children }: NarrowSidebarLayoutProps) {
                 className='border-r border-gray-200 px-4 text-gray-500 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500 md:hidden'
                 onClick={() => setMobileMenuOpen(true)}>
                 <span className='sr-only'>Ouvrir la barre de navigation</span>
-                <MenuAlt2Icon className='h-6 w-6' aria-hidden='true' />
+                <Bars3Icon className='h-6 w-6' aria-hidden='true' />
               </button>
               <div className='flex-1 flex justify-between px-4 sm:px-6'>
                 <div className='flex-1 flex'>

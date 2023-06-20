@@ -1,5 +1,5 @@
 import { Combobox } from '@headlessui/react'
-import { CheckIcon, PlusIcon } from '@heroicons/react/solid'
+import { CheckIcon, PlusIcon } from '@heroicons/react/20/solid'
 import * as React from 'react'
 
 import { BunnyCDNVideo, VideoSequence } from '../../events'

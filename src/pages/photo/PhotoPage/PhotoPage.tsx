@@ -11,7 +11,7 @@ import type { PhotoAnnotatedUsingOpenAI } from '../annotatePhotoUsingOpenAI/Phot
 import type { AWSDetectedFacesInPhoto } from '../recognizeFacesInChatPhoto/AWSDetectedFacesInPhoto'
 import { PhotoIcon } from './PhotoIcon'
 import { ClientOnly } from '../../_components/ClientOnly'
-import { CheckIcon, SearchIcon } from '@heroicons/react/solid'
+import { CheckIcon, MagnifyingGlassIcon } from '@heroicons/react/20/solid'
 import { PersonPageURL } from '../../person/PersonPageURL'
 
 // @ts-ignore
@@ -421,7 +421,7 @@ function SearchPersonForFaceButton(props: { photoId: UUID; faceId: UUID }) {
       <button
         type='submit'
         className='inline-flex items-center py-1 px-2 pl-7 rounded-full bg-yellow-50 text-sm relative hover:font-semibold text-yellow-600 shadow-sm ring-1 hover:ring-2 ring-yellow-600 ring-inset'>
-        <SearchIcon className='absolute left-2 h-4 w-4' aria-hidden='true' />
+        <MagnifyingGlassIcon className='absolute left-2 h-4 w-4' aria-hidden='true' />
         Rechercher
       </button>
     </form>
