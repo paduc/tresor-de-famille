@@ -414,6 +414,36 @@ function ConfirmPersonByFaceButton(props: { photoId: UUID; faceId: UUID; personI
 function SearchPersonForFaceButton(props: { photoId: UUID; faceId: UUID }) {
   const { photoId, faceId } = props
   const [open, setOpen] = React.useState(false)
+  const personSearchForm = React.useRef<HTMLFormElement>(null)
+
+  const handlePersonSelected = (personId: UUID) => {
+    if (personSearchForm.current !== null) {
+      const element = personSearchForm.current.elements.namedItem('personId')
+      if (element !== null) {
+        ;(element as HTMLInputElement).value = personId
+      }
+      personSearchForm.current.submit()
+    }
+  }
+
+  return (
+    <>
+      <PersonSearch onPersonSelected={handlePersonSelected} open={open} setOpen={setOpen} />
+      <a
+        onClick={() => setOpen(true)}
+        className='button inline-flex items-center py-1 px-2 pl-7 rounded-full bg-yellow-50 text-sm relative hover:font-semibold text-yellow-600 shadow-sm ring-1 hover:ring-2 ring-yellow-600 ring-inset cursor-pointer'>
+        <MagnifyingGlassIcon className='absolute left-2 h-4 w-4' aria-hidden='true' />
+        Rechercher
+      </a>
+      <form method='POST' className='inline-block ml-1' ref={personSearchForm}>
+        <input type='hidden' name='photoId' value={photoId} />
+        <input type='hidden' name='faceId' value={faceId} />
+        <input type='hidden' name='action' value='manualAnnotation' />
+        <input type='hidden' name='personId' />
+      </form>
+    </>
+  )
+
   return (
     <div className='inline-block ml-1'>
       <PersonSearch

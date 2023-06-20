@@ -14,6 +14,7 @@ import { confirmOpenAIPhotoAnnotation } from './confirmPhotoAnnotation/confirmOp
 import { getPhoto } from './getPhoto.query'
 import { detectFacesInPhotoUsingAWS } from './recognizeFacesInChatPhoto/detectFacesInPhotoUsingAWS'
 import { confirmAWSPhotoAnnotation } from './confirmPhotoAnnotation/confirmAWSPhotoAnnotation'
+import { annotateManually } from './annotateManually/annotateManually'
 
 const FILE_SIZE_LIMIT_MB = 50
 const upload = multer({
@@ -39,6 +40,7 @@ pageRouter
     }
   })
   .post(requireAuth(), async (request, response) => {
+    console.log('photo route POST', JSON.stringify(request.body, null, 2))
     try {
       const userId = request.session.user!.id
 
@@ -75,6 +77,8 @@ pageRouter
           await confirmOpenAIPhotoAnnotation({ deductionId, photoId, confirmedBy: userId })
         } else if (action === 'confirmAWSAnnotation' && personId && faceId) {
           await confirmAWSPhotoAnnotation({ personId, faceId, photoId, confirmedBy: userId })
+        } else if (action === 'manualAnnotation' && personId && faceId) {
+          await annotateManually({ personId, faceId, photoId, annotatedBy: userId })
         }
       }
 

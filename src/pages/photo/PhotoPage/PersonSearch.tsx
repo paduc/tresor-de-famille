@@ -33,8 +33,6 @@ export const PersonSearch = ({ onPersonSelected, open, setOpen }: PersonSearchPr
   const index = usePersonSearch()
   if (index === null) return null
 
-  console.log('PersonSearch received index', index)
-
   const [hits, setHits] = React.useState<SearchPersonHitDTO[]>([])
 
   React.useEffect(() => {
@@ -64,7 +62,7 @@ export const PersonSearch = ({ onPersonSelected, open, setOpen }: PersonSearchPr
             leave='ease-in duration-200'
             leaveFrom='opacity-100'
             leaveTo='opacity-0'>
-            <div className='fixed inset-0 bg-white bg-opacity-100 transition-opacity' />
+            <div className='fixed inset-0 bg-white bg-opacity-100 lg:bg-opacity-50 transition-opacity' />
           </Transition.Child>
 
           <div className='fixed inset-0 z-10 overflow-y-auto p-4 sm:p-6 md:p-20'>
@@ -133,7 +131,9 @@ export const PersonSearch = ({ onPersonSelected, open, setOpen }: PersonSearchPr
                     </Combobox.Options>
                   )}
 
-                  {query !== '' && hits.length === 0 && <p className='p-4 text-sm text-gray-500'>No people found.</p>}
+                  {query !== '' && hits.length === 0 && (
+                    <p className='p-4 text-sm text-gray-500'>Cette personne n'est pas encore connu ?!</p>
+                  )}
                 </Combobox>
               </Dialog.Panel>
             </Transition.Child>
