@@ -6,6 +6,7 @@ import { getPersonById, getPersonByIdOrThrow } from '../_getPersonById'
 import { UserUploadedPhotoToChat } from '../chat/uploadPhotoToChat/UserUploadedPhotoToChat'
 import { PhotoFace, PhotoPageProps } from './PhotoPage/PhotoPage'
 import { UserAddedCaptionToPhoto } from './UserAddedCaptionToPhoto'
+import { PhotoManuallyAnnotated } from './annotateManually/PhotoManuallyAnnotated'
 import { PhotoAnnotatedUsingOpenAI } from './annotatePhotoUsingOpenAI/PhotoAnnotatedUsingOpenAI'
 import { PhotoAnnotationConfirmed } from './confirmPhotoAnnotation/PhotoAnnotationConfirmed'
 import { AWSDetectedFacesInPhoto } from './recognizeFacesInChatPhoto/AWSDetectedFacesInPhoto'
@@ -110,8 +111,8 @@ async function getCaptionForPhoto(photoId: UUID) {
 }
 
 const getPersonIdsForFaceId = async (faceId: UUID): Promise<UUID[]> => {
-  const { rows } = await postgres.query<PhotoAnnotationConfirmed>(
-    "SELECT * FROM history WHERE type = 'PhotoAnnotationConfirmed'  AND payload->>'faceId'=$1",
+  const { rows } = await postgres.query<PhotoAnnotationConfirmed | PhotoManuallyAnnotated>(
+    "SELECT * FROM history WHERE type IN ('PhotoAnnotationConfirmed','PhotoManuallyAnnotated) AND payload->>'faceId'=$1",
     [faceId]
   )
 
@@ -127,8 +128,8 @@ const getAnnotationEvents = async (photoId: UUID) => {
 }
 
 const getConfirmedPersons = async (photoId: UUID): Promise<{ persons: PhotoFace[]; deductions: UUID[] }> => {
-  const { rows } = await postgres.query<PhotoAnnotationConfirmed>(
-    "SELECT * FROM history WHERE type='PhotoAnnotationConfirmed' AND payload->>'photoId'=$1 ORDER BY \"occurredAt\" ASC",
+  const { rows } = await postgres.query<PhotoAnnotationConfirmed | PhotoManuallyAnnotated>(
+    "SELECT * FROM history WHERE type IN ('PhotoAnnotationConfirmed','PhotoManuallyAnnotated) AND payload->>'photoId'=$1 ORDER BY \"occurredAt\" ASC",
     [photoId]
   )
 
@@ -136,14 +137,18 @@ const getConfirmedPersons = async (photoId: UUID): Promise<{ persons: PhotoFace[
   const deductions: UUID[] = []
 
   for (const row of rows) {
-    const { personId, faceId, position, deductionId } = row.payload
-    if (deductionId) deductions.push(deductionId)
+    const { personId, faceId, position } = row.payload
+
     const person = await getPersonById(personId)
     persons.push({
       person: { id: personId, name: person?.name || 'N/A' },
       faceId,
       position,
     })
+
+    if (row.type === 'PhotoAnnotationConfirmed' && row.payload.deductionId) {
+      deductions.push(row.payload.deductionId)
+    }
   }
   return { persons, deductions }
 }

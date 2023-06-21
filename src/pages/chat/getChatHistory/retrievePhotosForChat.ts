@@ -6,6 +6,7 @@ import { AWSDetectedFacesInPhoto } from '../../photo/recognizeFacesInChatPhoto/A
 import { UserUploadedPhotoToChat } from '../uploadPhotoToChat/UserUploadedPhotoToChat'
 import { PhotoAnnotationConfirmed } from '../../photo/confirmPhotoAnnotation/PhotoAnnotationConfirmed'
 import { getPersonById } from '../../_getPersonById'
+import { PhotoManuallyAnnotated } from '../../photo/annotateManually/PhotoManuallyAnnotated'
 
 export type ChatPhotoEvent = ChatEvent & { type: 'photo' }
 export async function retrievePhotosForChat(chatId: UUID): Promise<ChatPhotoEvent[]> {
@@ -52,8 +53,8 @@ async function getPhotoRows(chatId: UUID): Promise<UserUploadedPhotoToChat[]> {
 }
 
 async function getConfirmedPersons(photoId: UUID) {
-  const { rows: confirmedAnnotationRows } = await postgres.query<PhotoAnnotationConfirmed>(
-    "SELECT * FROM history WHERE type = 'PhotoAnnotationConfirmed'  AND payload->>'photoId'=$1",
+  const { rows: confirmedAnnotationRows } = await postgres.query<PhotoAnnotationConfirmed | PhotoManuallyAnnotated>(
+    "SELECT * FROM history WHERE type IN ('PhotoAnnotationConfirmed','PhotoManuallyAnnotated) AND payload->>'photoId'=$1 ORDER BY \"occurredAt\" ASC",
     [photoId]
   )
 
