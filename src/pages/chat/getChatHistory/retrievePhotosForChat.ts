@@ -54,7 +54,7 @@ async function getPhotoRows(chatId: UUID): Promise<UserUploadedPhotoToChat[]> {
 
 async function getConfirmedPersons(photoId: UUID) {
   const { rows: confirmedAnnotationRows } = await postgres.query<PhotoAnnotationConfirmed | PhotoManuallyAnnotated>(
-    "SELECT * FROM history WHERE type IN ('PhotoAnnotationConfirmed','PhotoManuallyAnnotated) AND payload->>'photoId'=$1 ORDER BY \"occurredAt\" ASC",
+    "SELECT * FROM history WHERE type IN ('PhotoAnnotationConfirmed','PhotoManuallyAnnotated') AND payload->>'photoId'=$1 ORDER BY \"occurredAt\" ASC",
     [photoId]
   )
 

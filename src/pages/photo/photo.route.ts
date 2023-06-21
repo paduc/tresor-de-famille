@@ -40,7 +40,6 @@ pageRouter
     }
   })
   .post(requireAuth(), async (request, response) => {
-    console.log('photo route POST', JSON.stringify(request.body, null, 2))
     try {
       const userId = request.session.user!.id
 

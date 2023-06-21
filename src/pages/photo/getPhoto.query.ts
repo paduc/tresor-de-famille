@@ -112,7 +112,7 @@ async function getCaptionForPhoto(photoId: UUID) {
 
 const getPersonIdsForFaceId = async (faceId: UUID): Promise<UUID[]> => {
   const { rows } = await postgres.query<PhotoAnnotationConfirmed | PhotoManuallyAnnotated>(
-    "SELECT * FROM history WHERE type IN ('PhotoAnnotationConfirmed','PhotoManuallyAnnotated) AND payload->>'faceId'=$1",
+    "SELECT * FROM history WHERE type IN ('PhotoAnnotationConfirmed','PhotoManuallyAnnotated') AND payload->>'faceId'=$1",
     [faceId]
   )
 
@@ -129,7 +129,7 @@ const getAnnotationEvents = async (photoId: UUID) => {
 
 const getConfirmedPersons = async (photoId: UUID): Promise<{ persons: PhotoFace[]; deductions: UUID[] }> => {
   const { rows } = await postgres.query<PhotoAnnotationConfirmed | PhotoManuallyAnnotated>(
-    "SELECT * FROM history WHERE type IN ('PhotoAnnotationConfirmed','PhotoManuallyAnnotated) AND payload->>'photoId'=$1 ORDER BY \"occurredAt\" ASC",
+    "SELECT * FROM history WHERE type IN ('PhotoAnnotationConfirmed','PhotoManuallyAnnotated') AND payload->>'photoId'=$1 ORDER BY \"occurredAt\" ASC",
     [photoId]
   )
 

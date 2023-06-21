@@ -18,7 +18,7 @@ export const getPersonPageProps = async (personId: UUID): Promise<PersonPageProp
 }
 async function getPersonPhotos(personId: UUID) {
   const { rows } = await postgres.query<PhotoAnnotationConfirmed | PhotoManuallyAnnotated>(
-    "SELECT * FROM history WHERE type IN ('PhotoAnnotationConfirmed','PhotoManuallyAnnotated) AND payload->>'personId'=$1",
+    "SELECT * FROM history WHERE type IN ('PhotoAnnotationConfirmed','PhotoManuallyAnnotated') AND payload->>'personId'=$1",
     [personId]
   )
 
