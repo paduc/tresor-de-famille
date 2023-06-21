@@ -6,8 +6,7 @@ import { PhotoPage } from './PhotoPage'
 import { AWSDetectedFacesInPhoto } from '../recognizeFacesInChatPhoto/AWSDetectedFacesInPhoto'
 import { UserAddedCaptionToPhoto } from '../UserAddedCaptionToPhoto'
 import { PhotoAnnotatedUsingOpenAI } from '../annotatePhotoUsingOpenAI/PhotoAnnotatedUsingOpenAI'
-import { AlgoliaContext } from '../../_components/AlgoliaContext'
-import { SearchIndex } from 'algoliasearch/lite'
+import type { SearchIndex } from 'algoliasearch/lite'
 import { PersonSearchContext } from '../../_components/usePersonSearch'
 
 export default { title: 'Page Photo', component: PhotoPage, parameters: { layout: 'fullscreen' } }
@@ -68,6 +67,12 @@ const fakePersonSearch = async (query: string) => {
   return { hits: [{ objectID: getUuid(), name: 'John Doe' }] }
 }
 
+const ghost2FaceId = getUuid()
+const ghost3FaceId = getUuid()
+const ghost4FaceId = getUuid()
+const ghost4PersonId = getUuid()
+const ghost3PersonId = getUuid()
+const ghost2PersonId = getUuid()
 export const PhotoAvecAnnotations = () => (
   <SessionContext.Provider value={{ isLoggedIn: true, userName: 'toto', isAdmin: false }}>
     <PersonSearchContext.Provider value={{ search: fakePersonSearch } as unknown as SearchIndex}>
@@ -76,20 +81,48 @@ export const PhotoAvecAnnotations = () => (
         url={
           'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=4032&h=3024&q=80'
         }
-        confirmedPersons={
-          [
-            // {
-            //   faceId: totoFaceId,
-            //   person: { id: getUuid(), name: 'Toto' },
-            //   position: {
-            //     width: 0.3004770278930664,
-            //     height: 0.39314860105514526,
-            //     left: 0.3541097640991211,
-            //     top: 0.24908018112182617,
-            //   },
-            // },
-          ]
-        }
+        confirmedPersons={[
+          {
+            faceId: totoFaceId,
+            person: { id: getUuid(), name: 'Tata' },
+            position: {
+              width: 0.3004770278930664,
+              height: 0.39314860105514526,
+              left: 0.3541097640991211,
+              top: 0.24908018112182617,
+            },
+          },
+          {
+            faceId: ghost2FaceId,
+            person: { id: ghost2PersonId, name: 'Ghost 2' },
+            position: {
+              width: 0.3004770278930664,
+              height: 0.39314860105514526,
+              left: 0.3541097640991211,
+              top: 0.24908018112182617,
+            },
+          },
+          {
+            faceId: ghost4FaceId,
+            person: { id: ghost3PersonId, name: 'Ghost 3' },
+            position: {
+              width: 0.3004770278930664,
+              height: 0.39314860105514526,
+              left: 0.3541097640991211,
+              top: 0.24908018112182617,
+            },
+          },
+          {
+            faceId: ghost3FaceId,
+            person: { id: getUuid(), name: 'Other nope' },
+            position: {
+              width: 0.3004770278930664,
+              height: 0.39314860105514526,
+              left: 0.3541097640991211,
+              top: 0.24908018112182617,
+            },
+          },
+        ]}
         confirmedDeductions={[confirmedDeductionId]}
         personsByFaceId={{
           [totoFaceId]: [
@@ -100,6 +133,9 @@ export const PhotoAvecAnnotations = () => (
         personById={{
           [totoPersonId]: { name: 'Toto' },
           [ghostPersonId]: { name: 'Ghost' },
+          [ghost2PersonId]: { name: 'Ghost 2' },
+          [ghost3PersonId]: { name: 'Ghost 3' },
+          [ghost4PersonId]: { name: 'Ghost 4' },
         }}
         annotationEvents={[
           AWSDetectedFacesInPhoto({
@@ -125,6 +161,39 @@ export const PhotoAvecAnnotations = () => (
                   Height: 0.2,
                   Left: 0,
                   Top: 0,
+                },
+              },
+              {
+                awsFaceId: '',
+                confidence: 1,
+                faceId: ghost2FaceId,
+                position: {
+                  Width: 0.2,
+                  Height: 0.2,
+                  Left: 0.8,
+                  Top: 0,
+                },
+              },
+              {
+                awsFaceId: '',
+                confidence: 1,
+                faceId: ghost3FaceId,
+                position: {
+                  Width: 0.2,
+                  Height: 0.2,
+                  Left: 0.8,
+                  Top: 0.8,
+                },
+              },
+              {
+                awsFaceId: '',
+                confidence: 1,
+                faceId: ghost4FaceId,
+                position: {
+                  Width: 0.2,
+                  Height: 0.2,
+                  Left: 0,
+                  Top: 0.8,
                 },
               },
             ],
@@ -155,6 +224,29 @@ export const PhotoAvecAnnotations = () => (
                 faceId: ghostFaceId,
                 personId: ghostPersonId,
                 name: 'Ghost',
+                deductionId: getUuid(),
+                photoId: getUuid(),
+              },
+              {
+                type: 'face-is-person',
+                faceId: ghost2FaceId,
+                personId: ghost2PersonId,
+                deductionId: getUuid(),
+                photoId: getUuid(),
+              },
+              {
+                type: 'face-is-new-person',
+                faceId: ghost3FaceId,
+                personId: ghost4PersonId,
+                name: 'Nope',
+                deductionId: getUuid(),
+                photoId: getUuid(),
+              },
+
+              {
+                type: 'face-is-person',
+                faceId: ghost4FaceId,
+                personId: ghost4PersonId,
                 deductionId: getUuid(),
                 photoId: getUuid(),
               },

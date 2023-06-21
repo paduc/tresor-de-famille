@@ -173,9 +173,52 @@ export const PhotoPage = withBrowserBundle(
                                 {event.payload.deductions.map((deduction, index) => {
                                   const confirmedDeduction = confirmedDeductions.includes(deduction.deductionId)
                                   const confirmedNameForFace = getConfirmedPersonForFace(deduction.faceId)
-                                  return (
-                                    <li key={'deduction' + event.id + deduction.faceId} className='mb-1 mr-2 text-sm'>
-                                      <>
+
+                                  const openAiGuessedRight =
+                                    confirmedDeduction ||
+                                    (confirmedNameForFace && confirmedNameForFace.id === deduction.personId)
+
+                                  const openAiGuessedWrong =
+                                    !confirmedDeduction &&
+                                    confirmedNameForFace &&
+                                    confirmedNameForFace.id !== deduction.personId
+
+                                  // OpenAI guessed right person
+                                  if (openAiGuessedRight && deduction.type === 'face-is-person') {
+                                    return (
+                                      <li key={'deduction' + event.id + deduction.faceId} className='mb-1 mr-2 text-sm'>
+                                        <PhotoBadge photoId={photoId} faceId={deduction.faceId} className='mr-1' /> avait
+                                        correctement déterminé que c'était le visage de{' '}
+                                        <a
+                                          className='text-indigo-700 hover:text-indigo-500'
+                                          href={`${PersonPageURL(deduction.personId)}`}>
+                                          {personById[deduction.personId]?.name}
+                                        </a>
+                                        <ConfirmedBadge />
+                                      </li>
+                                    )
+                                  }
+
+                                  // OpenAI guessed right that it was a new person
+                                  if (openAiGuessedRight && deduction.type === 'face-is-new-person') {
+                                    return (
+                                      <li key={'deduction' + event.id + deduction.faceId} className='mb-1 mr-2 text-sm'>
+                                        <PhotoBadge photoId={photoId} faceId={deduction.faceId} className='mr-1' /> avait
+                                        correctement déterminé que c'était le visage d'une nouvelle personne appelée{' '}
+                                        <a
+                                          className='text-indigo-700 hover:text-indigo-500'
+                                          href={`${PersonPageURL(deduction.personId)}`}>
+                                          {deduction.name}
+                                        </a>
+                                        <ConfirmedBadge />
+                                      </li>
+                                    )
+                                  }
+
+                                  // OpenAI guessed and the result is TBD
+                                  if (!confirmedDeduction && !confirmedNameForFace) {
+                                    return (
+                                      <li key={'deduction' + event.id + deduction.faceId} className='mb-1 mr-2 text-sm'>
                                         <PhotoBadge photoId={photoId} faceId={deduction.faceId} className='mr-1' />
                                         {deduction.type === 'face-is-person' ? (
                                           <>
@@ -191,24 +234,40 @@ export const PhotoPage = withBrowserBundle(
                                           ` serait le visage d'une
                                       nouvelle personne appelée "${deduction.name}"`
                                         )}
-                                        {confirmedDeduction ? (
-                                          <ConfirmedBadge />
-                                        ) : confirmedNameForFace ? (
-                                          <span className=''>
-                                            (confirmé comme étant{' '}
+                                        <ConfirmOpenAIDeductionButton photoId={photoId} deduction={deduction} />
+                                      </li>
+                                    )
+                                  }
+
+                                  if (openAiGuessedWrong) {
+                                    return (
+                                      <li key={'deduction' + event.id + deduction.faceId} className='mb-1 mr-2 text-sm'>
+                                        <PhotoBadge photoId={photoId} faceId={deduction.faceId} className='mr-1' />
+                                        {deduction.type === 'face-is-person' ? (
+                                          <>
+                                            {' '}
+                                            avait déterminé que c'était le visage de{' '}
                                             <a
                                               className='text-indigo-700 hover:text-indigo-500'
-                                              href={`${PersonPageURL(confirmedNameForFace.id)}`}>
-                                              {confirmedNameForFace.name}
+                                              href={`${PersonPageURL(deduction.personId)}`}>
+                                              {personById[deduction.personId]?.name}
                                             </a>
-                                            )
-                                          </span>
+                                          </>
                                         ) : (
-                                          <ConfirmOpenAIDeductionButton photoId={photoId} deduction={deduction} />
+                                          ` avait déterminé que c'était le visage d'une
+                                      nouvelle personne appelée "${deduction.name}"`
                                         )}
-                                      </>
-                                    </li>
-                                  )
+                                        <>
+                                          {` mais il s'agissait en fait de `}
+                                          <a
+                                            className='text-indigo-700 hover:text-indigo-500'
+                                            href={`${PersonPageURL(confirmedNameForFace.id)}`}>
+                                            {confirmedNameForFace.name}
+                                          </a>
+                                        </>
+                                      </li>
+                                    )
+                                  }
                                 })}
                               </ul>
                               <details className='text-sm text-gray-600 ml-1'>
