@@ -427,7 +427,7 @@ function SearchPersonForFaceButton(props: { photoId: UUID; faceId: UUID }) {
   }
 
   return (
-    <>
+    <ClientOnly>
       <PersonSearch onPersonSelected={handlePersonSelected} open={open} setOpen={setOpen} />
       <a
         onClick={() => setOpen(true)}
@@ -441,25 +441,7 @@ function SearchPersonForFaceButton(props: { photoId: UUID; faceId: UUID }) {
         <input type='hidden' name='action' value='manualAnnotation' />
         <input type='hidden' name='personId' />
       </form>
-    </>
-  )
-
-  return (
-    <div className='inline-block ml-1'>
-      <PersonSearch
-        onPersonSelected={() => {
-          window.alert('Selected person')
-        }}
-        open={open}
-        setOpen={setOpen}
-      />
-      <button
-        onClick={() => setOpen(true)}
-        className='inline-flex items-center py-1 px-2 pl-7 rounded-full bg-yellow-50 text-sm relative hover:font-semibold text-yellow-600 shadow-sm ring-1 hover:ring-2 ring-yellow-600 ring-inset'>
-        <MagnifyingGlassIcon className='absolute left-2 h-4 w-4' aria-hidden='true' />
-        Rechercher
-      </button>
-    </div>
+    </ClientOnly>
   )
 }
 
