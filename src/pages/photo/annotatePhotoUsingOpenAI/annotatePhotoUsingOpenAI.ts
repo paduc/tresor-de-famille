@@ -14,6 +14,8 @@ import { describeFamily } from './describeFamily'
 import { describePhotoFaces } from './describePhotoFaces'
 import { PhotoAnnotationUsingOpenAIFailed } from './PhotoAnnotationUsingOpenAIFailed'
 import { PhotoAnnotatedUsingOpenAI } from './PhotoAnnotatedUsingOpenAI'
+import { PhotoManuallyAnnotated } from '../annotateManually/PhotoManuallyAnnotated'
+import { PhotoAnnotationConfirmed } from '../confirmPhotoAnnotation/PhotoAnnotationConfirmed'
 
 type AnnotatePhotoUsingOpenAIArgs = {
   photoId: UUID
@@ -166,11 +168,24 @@ async function getDetectedFaces(photoId: UUID) {
     for (const awsFace of facesDetectedRow.faces) {
       detectedFaces.push({
         faceId: awsFace.faceId,
-        person: null,
+        person: await getConfirmedPersonForFaceId(photoId, awsFace.faceId),
         position: normalizeBBOX(awsFace.position),
       })
     }
   }
 
   return detectedFaces
+}
+
+const getConfirmedPersonForFaceId = async (photoId: UUID, faceId: UUID): Promise<{ name: string } | null> => {
+  const { rows } = await postgres.query<PhotoAnnotationConfirmed | PhotoManuallyAnnotated>(
+    "SELECT * FROM history WHERE type IN ('PhotoAnnotationConfirmed','PhotoManuallyAnnotated') AND payload->>'photoId'=$1 AND payload->>'faceId'=$2 ORDER BY \"occurredAt\" ASC",
+    [photoId, faceId]
+  )
+
+  if (!rows.length) return null
+
+  const personId = rows[0].payload.personId
+
+  return getPersonById(personId)
 }
