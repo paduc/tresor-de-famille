@@ -281,7 +281,17 @@ export const PhotoPage = withBrowserBundle(
                                 {event.payload.response ? (
                                   <div className='mt-2'>
                                     response:
-                                    <pre className='overflow-scroll'>{event.payload.response}</pre>
+                                    <pre className='overflow-scroll'>
+                                      {(() => {
+                                        const { response } = event.payload
+                                        try {
+                                          const parsedResponse = JSON.parse(response)
+                                          return JSON.stringify(parsedResponse, null, 2)
+                                        } catch (error) {
+                                          return response
+                                        }
+                                      })()}
+                                    </pre>
                                   </div>
                                 ) : null}
                               </details>
