@@ -5,6 +5,7 @@ import { UUID } from '../../../domain'
 import { PhotoAnnotationConfirmed } from './PhotoAnnotationConfirmed'
 import { PhotoAnnotatedUsingOpenAI } from '../annotatePhotoUsingOpenAI/PhotoAnnotatedUsingOpenAI'
 import { AWSDetectedFacesInPhoto } from '../recognizeFacesInChatPhoto/AWSDetectedFacesInPhoto'
+import { searchClient } from '../../../dependencies/search'
 
 type ConfirmOpenAIPhotoAnnotationArgs = {
   photoId: UUID
@@ -35,6 +36,19 @@ export const confirmOpenAIPhotoAnnotation = async ({ photoId, deductionId, confi
       confirmedBy,
     })
   )
+
+  if (deduction.type === 'face-is-new-person') {
+    const index = searchClient.initIndex('persons')
+    try {
+      await index.saveObject({
+        objectID: personId,
+        id: personId,
+        name: deduction.name,
+      })
+    } catch (error) {
+      console.error('Could not add new person to algolia index', error)
+    }
+  }
 }
 
 async function getFaceById(photoId: UUID, faceId: UUID) {
