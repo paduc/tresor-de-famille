@@ -10,7 +10,7 @@ pageRouter.route('/').get(requireAuth(), async (request, response) => {
   const userHasDesignatedThemselfAsPerson = await hasUserDesignatedThemselfAsPerson(request.session.user!.id)
 
   if (!userHasDesignatedThemselfAsPerson) {
-    return response.redirect('/qui-es-tu.html')
+    return response.redirect('/bienvenue.html')
   }
 
   const personId = await getPersonIdForUserId(request.session.user!.id)

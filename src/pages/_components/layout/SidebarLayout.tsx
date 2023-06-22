@@ -39,9 +39,10 @@ function classNames(...classes) {
 
 export type SidebarLayoutProps = {
   children: React.ReactNode
+  hideNavBarItems?: boolean
 }
 
-export default function SidebarLayout({ children }: SidebarLayoutProps) {
+export default function SidebarLayout({ children, hideNavBarItems }: SidebarLayoutProps) {
   const session = useContext(SessionContext)
   const url = useContext(LocationContext)
 
@@ -108,29 +109,30 @@ export default function SidebarLayout({ children }: SidebarLayoutProps) {
                         Trésor de famille
                       </span>
                     </div>
-                    <nav className='flex flex-1 flex-col'>
-                      <ul role='list' className='flex flex-1 flex-col gap-y-7'>
-                        <li>
-                          <ul role='list' className='-mx-2 mt-2 space-y-3'>
-                            <li>
-                              <a
-                                href='/chat.html'
-                                className='button inline-flex items-center gap-x-1.5 rounded-md  px-2.5 py-1.5 text-sm text-white border-1 ring-1 ring-inset ring-indigo-200 shadow-sm hover:bg-white/20'>
-                                <PlusSmallIcon className='-ml-0.5 h-5 w-5' aria-hidden='true' />
-                                Nouveau fil
-                              </a>
-                            </li>
-                            <li>
-                              <InlinePhotoUpload>
-                                <span className='button inline-flex items-center gap-x-1.5 rounded-md  px-2.5 py-1.5 text-sm text-white border-1 ring-1 ring-inset ring-indigo-200 shadow-sm hover:bg-white/20'>
+                    {!hideNavBarItems ? (
+                      <nav className='flex flex-1 flex-col'>
+                        <ul role='list' className='flex flex-1 flex-col gap-y-7'>
+                          <li>
+                            <ul role='list' className='-mx-2 mt-2 space-y-3'>
+                              <li>
+                                <a
+                                  href='/chat.html'
+                                  className='button inline-flex items-center gap-x-1.5 rounded-md  px-2.5 py-1.5 text-sm text-white border-1 ring-1 ring-inset ring-indigo-200 shadow-sm hover:bg-white/20'>
                                   <PlusSmallIcon className='-ml-0.5 h-5 w-5' aria-hidden='true' />
-                                  Nouvelle photo
-                                </span>
-                              </InlinePhotoUpload>
-                            </li>
-                          </ul>
-                        </li>
-                        {/* <li>
+                                  Nouveau fil
+                                </a>
+                              </li>
+                              <li>
+                                <InlinePhotoUpload>
+                                  <span className='button inline-flex items-center gap-x-1.5 rounded-md  px-2.5 py-1.5 text-sm text-white border-1 ring-1 ring-inset ring-indigo-200 shadow-sm hover:bg-white/20'>
+                                    <PlusSmallIcon className='-ml-0.5 h-5 w-5' aria-hidden='true' />
+                                    Nouvelle photo
+                                  </span>
+                                </InlinePhotoUpload>
+                              </li>
+                            </ul>
+                          </li>
+                          {/* <li>
                           <div className='text-xs font-semibold leading-6 text-indigo-200'>Vos fils récents</div>
                           <ul role='list' className='-mx-2 mt-2 space-y-1'>
                             {teams.map((team) => (
@@ -152,37 +154,37 @@ export default function SidebarLayout({ children }: SidebarLayoutProps) {
                             ))}
                           </ul>
                         </li> */}
-                        <li>
-                          <div className='text-xs font-semibold leading-6 text-indigo-200'>Par type</div>
-                          <ul role='list' className='-mx-2 space-y-1'>
-                            {navigation.map((item) => {
-                              const isCurrent = url.startsWith(item.href)
-                              return (
-                                <li key={item.name}>
-                                  <a
-                                    href={item.href}
-                                    className={classNames(
-                                      isCurrent
-                                        ? 'bg-indigo-700 text-white'
-                                        : 'text-indigo-200 hover:text-white hover:bg-indigo-700',
-                                      'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold'
-                                    )}>
-                                    <item.icon
+                          <li>
+                            <div className='text-xs font-semibold leading-6 text-indigo-200'>Par type</div>
+                            <ul role='list' className='-mx-2 space-y-1'>
+                              {navigation.map((item) => {
+                                const isCurrent = url.startsWith(item.href)
+                                return (
+                                  <li key={item.name}>
+                                    <a
+                                      href={item.href}
                                       className={classNames(
-                                        isCurrent ? 'text-white' : 'text-indigo-200 group-hover:text-white',
-                                        'h-6 w-6 shrink-0'
-                                      )}
-                                      aria-hidden='true'
-                                    />
-                                    {item.name}
-                                  </a>
-                                </li>
-                              )
-                            })}
-                          </ul>
-                        </li>
+                                        isCurrent
+                                          ? 'bg-indigo-700 text-white'
+                                          : 'text-indigo-200 hover:text-white hover:bg-indigo-700',
+                                        'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold'
+                                      )}>
+                                      <item.icon
+                                        className={classNames(
+                                          isCurrent ? 'text-white' : 'text-indigo-200 group-hover:text-white',
+                                          'h-6 w-6 shrink-0'
+                                        )}
+                                        aria-hidden='true'
+                                      />
+                                      {item.name}
+                                    </a>
+                                  </li>
+                                )
+                              })}
+                            </ul>
+                          </li>
 
-                        {/* <li className='mt-auto'>
+                          {/* <li className='mt-auto'>
                           <a
                             href='#'
                             className='group -mx-2 flex gap-x-3 rounded-md p-2 text-sm font-semibold leading-6 text-indigo-200 hover:bg-indigo-700 hover:text-white'>
@@ -190,8 +192,9 @@ export default function SidebarLayout({ children }: SidebarLayoutProps) {
                             Settings
                           </a>
                         </li> */}
-                      </ul>
-                    </nav>
+                        </ul>
+                      </nav>
+                    ) : null}
                   </div>
                 </Dialog.Panel>
               </Transition.Child>
@@ -206,29 +209,30 @@ export default function SidebarLayout({ children }: SidebarLayoutProps) {
             <div className='flex h-16 shrink-0 items-center'>
               <Logo className='h-10 w-auto invert mix-blend-luminosity' />
             </div>
-            <nav className='flex flex-1 flex-col'>
-              <ul role='list' className='flex flex-1 flex-col gap-y-7'>
-                <li>
-                  <ul role='list' className='-mx-2 mt-2 space-y-3'>
-                    <li>
-                      <a
-                        href='/chat.html'
-                        className='button inline-flex items-center gap-x-1.5 rounded-md  px-2.5 py-1.5 text-sm text-white border-1 ring-1 ring-inset ring-indigo-200 shadow-sm hover:bg-white/20'>
-                        <PlusSmallIcon className='-ml-0.5 h-5 w-5' aria-hidden='true' />
-                        Nouveau fil
-                      </a>
-                    </li>
-                    <li>
-                      <InlinePhotoUpload>
-                        <span className='button inline-flex items-center gap-x-1.5 rounded-md  px-2.5 py-1.5 text-sm text-white border-1 ring-1 ring-inset ring-indigo-200 shadow-sm hover:bg-white/20'>
+            {!hideNavBarItems ? (
+              <nav className='flex flex-1 flex-col'>
+                <ul role='list' className='flex flex-1 flex-col gap-y-7'>
+                  <li>
+                    <ul role='list' className='-mx-2 mt-2 space-y-3'>
+                      <li>
+                        <a
+                          href='/chat.html'
+                          className='button inline-flex items-center gap-x-1.5 rounded-md  px-2.5 py-1.5 text-sm text-white border-1 ring-1 ring-inset ring-indigo-200 shadow-sm hover:bg-white/20'>
                           <PlusSmallIcon className='-ml-0.5 h-5 w-5' aria-hidden='true' />
-                          Nouvelle photo
-                        </span>
-                      </InlinePhotoUpload>
-                    </li>
-                  </ul>
-                </li>
-                {/* <li>
+                          Nouveau fil
+                        </a>
+                      </li>
+                      <li>
+                        <InlinePhotoUpload>
+                          <span className='button inline-flex items-center gap-x-1.5 rounded-md  px-2.5 py-1.5 text-sm text-white border-1 ring-1 ring-inset ring-indigo-200 shadow-sm hover:bg-white/20'>
+                            <PlusSmallIcon className='-ml-0.5 h-5 w-5' aria-hidden='true' />
+                            Nouvelle photo
+                          </span>
+                        </InlinePhotoUpload>
+                      </li>
+                    </ul>
+                  </li>
+                  {/* <li>
                   <div className='text-xs font-semibold leading-6 text-indigo-200'>Vos fils récents</div>
                   <ul role='list' className='-mx-2 mt-2 space-y-1'>
                     {teams.map((team) => (
@@ -248,35 +252,35 @@ export default function SidebarLayout({ children }: SidebarLayoutProps) {
                     ))}
                   </ul>
                 </li> */}
-                <li>
-                  <div className='text-xs font-semibold leading-6 text-indigo-200'>Par type</div>
-                  <ul role='list' className='-mx-2 space-y-1'>
-                    {navigation.map((item) => {
-                      const isCurrent = url.startsWith(item.href)
-                      return (
-                        <li key={item.name}>
-                          <a
-                            href={item.href}
-                            className={classNames(
-                              isCurrent ? 'bg-indigo-700 text-white' : 'text-indigo-200 hover:text-white hover:bg-indigo-700',
-                              'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold'
-                            )}>
-                            <item.icon
+                  <li>
+                    <div className='text-xs font-semibold leading-6 text-indigo-200'>Par type</div>
+                    <ul role='list' className='-mx-2 space-y-1'>
+                      {navigation.map((item) => {
+                        const isCurrent = url.startsWith(item.href)
+                        return (
+                          <li key={item.name}>
+                            <a
+                              href={item.href}
                               className={classNames(
-                                isCurrent ? 'text-white' : 'text-indigo-200 group-hover:text-white',
-                                'h-6 w-6 shrink-0'
-                              )}
-                              aria-hidden='true'
-                            />
-                            {item.name}
-                          </a>
-                        </li>
-                      )
-                    })}
-                  </ul>
-                </li>
+                                isCurrent ? 'bg-indigo-700 text-white' : 'text-indigo-200 hover:text-white hover:bg-indigo-700',
+                                'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold'
+                              )}>
+                              <item.icon
+                                className={classNames(
+                                  isCurrent ? 'text-white' : 'text-indigo-200 group-hover:text-white',
+                                  'h-6 w-6 shrink-0'
+                                )}
+                                aria-hidden='true'
+                              />
+                              {item.name}
+                            </a>
+                          </li>
+                        )
+                      })}
+                    </ul>
+                  </li>
 
-                {/* <li className='mt-auto'>
+                  {/* <li className='mt-auto'>
                   <a
                     href='#'
                     className='group -mx-2 flex gap-x-3 rounded-md p-2 text-sm font-semibold leading-6 text-indigo-200 hover:bg-indigo-700 hover:text-white'>
@@ -284,8 +288,9 @@ export default function SidebarLayout({ children }: SidebarLayoutProps) {
                     Settings
                   </a>
                 </li> */}
-              </ul>
-            </nav>
+                </ul>
+              </nav>
+            ) : null}
           </div>
         </div>
 
