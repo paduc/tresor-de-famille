@@ -17,5 +17,7 @@ export const REGISTRATION_CODE = throwIfUndefined('REGISTRATION_CODE', process.e
 export const ADMIN_USERID = throwIfUndefined('ADMIN_USERID', process.env.NODE_ENV === 'production')!
 
 export const SESSION_SECRET = throwIfUndefined('SESSION_SECRET', true)!
+export const OPENAI_API_KEY = throwIfUndefined('OPENAI_API_KEY', true)!
+export const OPENAI_ORG = throwIfUndefined('OPENAI_ORG', true)!
 
 export const SEED = process.env.SEED === '1'

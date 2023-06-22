@@ -1,6 +1,7 @@
 import { postgres } from '../dependencies/database'
 import { UUID } from '../domain'
 import { GedcomImported } from '../events'
+import { UserPresentedThemselfUsingOpenAI } from './bienvenue/step1-userTellsAboutThemselves/UserPresentedThemselfUsingOpenAI'
 import { OpenAIMadeDeductions } from './chat/sendToOpenAIForDeductions/OpenAIMadeDeductions'
 import { PhotoAnnotatedUsingOpenAI } from './photo/annotatePhotoUsingOpenAI/PhotoAnnotatedUsingOpenAI'
 
@@ -49,6 +50,17 @@ export const getPersonById = async (personId: UUID): Promise<PersonById | null> 
 
     for (const { personId, name } of personsFromDeductions) {
       addOrMerge(personId, { name })
+    }
+  }
+
+  const { rows: onboardedPersons } = await postgres.query<UserPresentedThemselfUsingOpenAI>(
+    "SELECT * FROM history WHERE type = 'UserPresentedThemselfUsingOpenAI'"
+  )
+
+  if (onboardedPersons.length) {
+    for (const onboardedPerson of onboardedPersons) {
+      const person = onboardedPerson.payload
+      addOrMerge(person.personId, { name: person.name })
     }
   }
 
