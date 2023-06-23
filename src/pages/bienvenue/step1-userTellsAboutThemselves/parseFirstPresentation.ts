@@ -1,5 +1,6 @@
 import { openai } from '../../../dependencies/LLM'
 import { addToHistory } from '../../../dependencies/addToHistory'
+import { searchClient } from '../../../dependencies/search'
 import { UUID } from '../../../domain'
 import { getUuid } from '../../../libs/getUuid'
 import { BienvenuePageProps } from '../BienvenuePage'
@@ -89,7 +90,19 @@ export const parseFirstPresentation = async ({
 
         if (!name) throw new Error('Name passed to function_call was empty')
 
-        await addToHistory(UserPresentedThemselfUsingOpenAI({ userId, personId: getUuid(), name }))
+        const personId = getUuid()
+        await addToHistory(UserPresentedThemselfUsingOpenAI({ userId, personId, name }))
+
+        const index = searchClient.initIndex('persons')
+        try {
+          await index.saveObject({
+            objectID: personId,
+            id: personId,
+            name,
+          })
+        } catch (error) {
+          console.error('Could not add new person to algolia index', error)
+        }
 
         return null // signal mission accomplished
       } catch (error) {
