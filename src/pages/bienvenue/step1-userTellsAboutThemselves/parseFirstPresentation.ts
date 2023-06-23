@@ -99,6 +99,7 @@ export const parseFirstPresentation = async ({
             objectID: personId,
             id: personId,
             name,
+            visible_by: [`person/${personId}`, `user/${userId}`],
           })
         } catch (error) {
           console.error('Could not add new person to algolia index', error)

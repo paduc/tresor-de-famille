@@ -44,6 +44,7 @@ export const confirmOpenAIPhotoAnnotation = async ({ photoId, deductionId, confi
         objectID: personId,
         id: personId,
         name: deduction.name,
+        visible_by: [`person/${personId}`, `user/${confirmedBy}`],
       })
     } catch (error) {
       console.error('Could not add new person to algolia index', error)

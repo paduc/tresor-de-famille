@@ -3,6 +3,7 @@ import { postgres } from '../dependencies/database'
 import { GedcomImported } from '../events'
 import { searchClient } from '../dependencies/search'
 import { requireAuth } from '../dependencies/authn'
+import { REGISTRATION_CODE } from '../dependencies/env'
 
 actionsRouter.get('/indexPersonsOnAlgolia', requireAuth(), async (request, response) => {
   const { rows } = await postgres.query("SELECT * FROM history where type = 'GedcomImported'")
@@ -41,6 +42,7 @@ actionsRouter.get('/indexPersonsOnAlgolia', requireAuth(), async (request, respo
     objectID: person.id,
     parents: Array.from(relationshipsById[person.id]?.parents || []).map((personId) => personById[personId]?.name),
     children: Array.from(relationshipsById[person.id]?.children || []).map((personId) => personById[personId]?.name),
+    visible_by: [`person/${person.id}`, `user/${gedcom.payload.importedBy}`, `family/${REGISTRATION_CODE}`],
   }))
 
   // console.log(JSON.stringify(personsForIndex.slice(0, 10), null, 2))
