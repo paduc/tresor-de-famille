@@ -50,11 +50,11 @@ const browserCode = <ComponentType extends FunctionComponent>(Component: Compone
     const props = (window as any).__INITIAL_PROPS__
     const session = (window as any).__SESSION__
     const url = (window as any).__URL__
-    const algolia = (window as any).__ALGOLIA__ as { appId: string; searchKey: string } | null
+    const algolia = (window as any).__ALGOLIA__ as { appId: string; searchKey: string | undefined } | null
 
     let index: SearchIndex | null = null
 
-    if (algolia) {
+    if (algolia && algolia.searchKey) {
       const { appId, searchKey } = algolia
 
       const searchClient = algoliasearch(appId, searchKey)

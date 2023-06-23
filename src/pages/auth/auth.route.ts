@@ -7,10 +7,11 @@ import { ConnexionPage } from './ConnexionPage'
 import { makeLogin } from './login'
 import { makeRegister } from './register'
 import { addToHistory } from '../../dependencies/addToHistory'
-import { PASSWORD_SALT, REGISTRATION_CODE } from '../../dependencies/env'
+import { ALGOLIA_SEARCHKEY, PASSWORD_SALT, REGISTRATION_CODE } from '../../dependencies/env'
 import { parseZodErrors } from '../../libs/parseZodErrors'
 import { getPersonByIdOrThrow } from '../_getPersonById'
 import { getPersonIdForUserId } from '../_getPersonIdForUserId.query'
+import { searchClient } from '../../dependencies/search'
 
 const login = makeLogin(bcrypt.compare)
 const register = makeRegister({
@@ -62,6 +63,11 @@ pageRouter
         const userId = await register(email, password, code)
 
         request.session.user = { id: userId, name: email }
+
+        request.session.searchKey = searchClient.generateSecuredApiKey(ALGOLIA_SEARCHKEY, {
+          filters: `visible_by:user/${userId}`,
+        })
+
         return response.redirect(redirectTo || '/')
       }
 
@@ -71,7 +77,13 @@ pageRouter
         const personId = await getPersonIdForUserId(userId)
         const person = await getPersonByIdOrThrow(personId)
         request.session.user = { id: userId, name: person.name }
+        request.session.searchKey = searchClient.generateSecuredApiKey(ALGOLIA_SEARCHKEY, {
+          filters: `visible_by:user/${userId} OR person/${personId}`,
+        })
       } catch (error) {
+        request.session.searchKey = searchClient.generateSecuredApiKey(ALGOLIA_SEARCHKEY, {
+          filters: `visible_by:user/${userId}`,
+        })
         request.session.user = { id: userId, name: email }
       }
 

@@ -8,6 +8,7 @@ export type Session =
       isLoggedIn: true
       userName: string
       isAdmin: boolean
+      searchKey: string | undefined
     }
 
 export const SessionContext = React.createContext<Session>({ isLoggedIn: false })
