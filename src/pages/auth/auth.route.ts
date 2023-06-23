@@ -78,7 +78,7 @@ pageRouter
         const person = await getPersonByIdOrThrow(personId)
         request.session.user = { id: userId, name: person.name }
         request.session.searchKey = searchClient.generateSecuredApiKey(ALGOLIA_SEARCHKEY, {
-          filters: `visible_by:user/${userId} OR person/${personId}`,
+          filters: `visible_by:user/${userId} OR visible_by:person/${personId}`,
         })
       } catch (error) {
         request.session.searchKey = searchClient.generateSecuredApiKey(ALGOLIA_SEARCHKEY, {

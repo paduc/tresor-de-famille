@@ -1,6 +1,6 @@
 import { openai } from '../../../dependencies/LLM'
 import { addToHistory } from '../../../dependencies/addToHistory'
-import { searchClient } from '../../../dependencies/search'
+import { personsIndex, searchClient } from '../../../dependencies/search'
 import { UUID } from '../../../domain'
 import { getUuid } from '../../../libs/getUuid'
 import { BienvenuePageProps } from '../BienvenuePage'
@@ -93,11 +93,10 @@ export const parseFirstPresentation = async ({
         const personId = getUuid()
         await addToHistory(UserPresentedThemselfUsingOpenAI({ userId, personId, name }))
 
-        const index = searchClient.initIndex('persons')
         try {
-          await index.saveObject({
+          await personsIndex.saveObject({
             objectID: personId,
-            id: personId,
+            personId,
             name,
             visible_by: [`person/${personId}`, `user/${userId}`],
           })

@@ -5,7 +5,7 @@ import { UUID } from '../../../domain'
 import { PhotoAnnotationConfirmed } from './PhotoAnnotationConfirmed'
 import { PhotoAnnotatedUsingOpenAI } from '../annotatePhotoUsingOpenAI/PhotoAnnotatedUsingOpenAI'
 import { AWSDetectedFacesInPhoto } from '../recognizeFacesInChatPhoto/AWSDetectedFacesInPhoto'
-import { searchClient } from '../../../dependencies/search'
+import { personsIndex, searchClient } from '../../../dependencies/search'
 
 type ConfirmOpenAIPhotoAnnotationArgs = {
   photoId: UUID
@@ -38,11 +38,10 @@ export const confirmOpenAIPhotoAnnotation = async ({ photoId, deductionId, confi
   )
 
   if (deduction.type === 'face-is-new-person') {
-    const index = searchClient.initIndex('persons')
     try {
-      await index.saveObject({
+      await personsIndex.saveObject({
         objectID: personId,
-        id: personId,
+        personId,
         name: deduction.name,
         visible_by: [`person/${personId}`, `user/${confirmedBy}`],
       })
