@@ -8,3 +8,10 @@ if (!ALGOLIA_APPID || !ALGOLIA_APPKEY) {
 }
 
 export const searchClient = algoliasearch(ALGOLIA_APPID, ALGOLIA_APPKEY)
+
+export const personsIndex = searchClient.initIndex('persons')
+
+personsIndex.setSettings({
+  attributesForFaceting: ['filterOnly(visible_by)'],
+  unretrievableAttributes: ['visible_by'],
+})
