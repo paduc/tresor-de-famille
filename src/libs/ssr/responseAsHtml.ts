@@ -28,7 +28,9 @@ export function responseAsHtml(
 
   const session = getSession(request)
 
-  const { ALGOLIA_APPID, ALGOLIA_SEARCHKEY } = process.env
+  const searchKey = request.session.searchKey
+
+  const { ALGOLIA_APPID } = process.env
 
   response.send(
     html`
@@ -59,9 +61,7 @@ export function responseAsHtml(
                 <script>
                   window.__INITIAL_PROPS__ = ${JSON.stringify(bundle.props || {})};
                   window.__SESSION__ = ${JSON.stringify(session || {})};
-                  window.__ALGOLIA__ = ${JSON.stringify(
-                  { appId: ALGOLIA_APPID!, searchKey: session.isLoggedIn ? session.searchKey! : 'undefined' } || {}
-                )};
+                  window.__ALGOLIA__ = ${JSON.stringify({ appId: ALGOLIA_APPID!, searchKey } || {})};
                   window.__URL__ = '${request.url}';
                 </script>
               `
@@ -78,7 +78,6 @@ function getSession(request: Request): Session {
       isLoggedIn: true,
       userName: request.session.user.name,
       isAdmin: request.session.user.id === ADMIN_USERID,
-      searchKey: request.session.searchKey,
     }
   }
 
