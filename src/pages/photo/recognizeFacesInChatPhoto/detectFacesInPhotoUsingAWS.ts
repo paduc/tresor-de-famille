@@ -7,6 +7,7 @@ import { getUuid } from '../../../libs/getUuid'
 import { AWSDetectedFacesInPhoto } from './AWSDetectedFacesInPhoto'
 import { getAWSDetectedFacesInPhoto } from './getAWSDetectedFacesInPhoto'
 import { getAwsRekognitionCollectionId } from '../../../dependencies/face-recognition'
+import { UserUploadedPhotoToChat } from '../../chat/uploadPhotoToChat/UserUploadedPhotoToChat'
 
 type DetectFacesInChatPhotoArgs = {
   file: Express.Multer.File
@@ -23,10 +24,16 @@ export async function detectFacesInPhotoUsingAWS({ file, photoId }: DetectFacesI
     collectionId: getAwsRekognitionCollectionId(),
   })
 
+  const ownerUserId = await getOwnerUserIdForPhotoId(photoId)
+  if (!ownerUserId) {
+    console.error('detectFacesInPhotoUsingAWS for a photoId without owner')
+    return
+  }
+
   if (awsDetectedFaces.length) {
     const faces: AWSDetectedFacesInPhoto['payload']['faces'] = []
     for (const awsFace of awsDetectedFaces) {
-      const faceId = (await getFaceIdForAWSFaceId(awsFace.awsFaceId)) || getUuid()
+      const faceId = (await getFaceIdForAWSFaceId(awsFace.awsFaceId, ownerUserId)) || getUuid()
       faces.push({
         ...awsFace,
         faceId,
@@ -41,17 +48,31 @@ export async function detectFacesInPhotoUsingAWS({ file, photoId }: DetectFacesI
   }
 }
 
-async function getFaceIdForAWSFaceId(awsFaceId: string): Promise<UUID | undefined> {
+async function getFaceIdForAWSFaceId(awsFaceId: string, userId: UUID): Promise<UUID | undefined> {
   const { rows } = await postgres.query<AWSDetectedFacesInPhoto>("SELECT * FROM history WHERE type='AWSDetectedFacesInPhoto'")
 
-  // Create a AWSFaceId - faceId index
+  // Create a AWSFaceId - faceId index for the given userId
   const awsFaceIdIndex = new Map<string, UUID>()
   for (const row of rows) {
-    for (const face of row.payload.faces) {
-      awsFaceIdIndex.set(face.awsFaceId, face.faceId)
+    const photoUserId = await getOwnerUserIdForPhotoId(row.payload.photoId)
+    if (photoUserId && photoUserId === userId) {
+      for (const face of row.payload.faces) {
+        awsFaceIdIndex.set(face.awsFaceId, face.faceId)
+      }
     }
   }
 
   // If we cant find it in the index, create a new one
   return awsFaceIdIndex.get(awsFaceId)
+}
+
+async function getOwnerUserIdForPhotoId(photoId: UUID): Promise<UUID | undefined> {
+  const { rows } = await postgres.query<UserUploadedPhotoToChat>(
+    "SELECT * FROM history WHERE type='UserUploadedPhotoToChat' AND payload->>'photoId'=$1 ORDER BY \"occurredAt\" DESC LIMIT 1",
+    [photoId]
+  )
+
+  if (!rows.length) return
+
+  return rows[0].payload.uploadedBy
 }
