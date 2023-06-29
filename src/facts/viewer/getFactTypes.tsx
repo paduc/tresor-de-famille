@@ -1,5 +1,4 @@
-import { DomainEvent } from '../dependencies/DomainEvent'
-import { postgres } from '../dependencies/database'
+import { postgres } from '../../dependencies/database'
 
 export const getFactTypes = async (): Promise<string[]> => {
   const { rows } = await postgres.query<{ type: string }>('SELECT DISTINCT(type) FROM history ORDER BY type ASC')

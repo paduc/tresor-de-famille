@@ -1,5 +1,5 @@
 import React from 'react'
-import { DomainEvent } from '../dependencies/DomainEvent'
+import { DomainEvent } from '../../dependencies/DomainEvent'
 
 type FactViewerPageProps = {
   facts: DomainEvent[]
@@ -11,6 +11,7 @@ export const FactViewerPage = ({ facts, factTypes }: FactViewerPageProps) => {
     <div style={{ padding: 30 }}>
       <div style={{ backgroundColor: 'rgba(0,0,50,0.1)', padding: '20px 30px' }}>
         <div style={{ fontSize: 32 }}>Fact Viewer 2000</div>
+        <a href='./factDiagram.html'>Diagram</a>
       </div>
       <div style={{ backgroundColor: 'rgba(0,0,50,0.05)', padding: '10px 30px', marginBottom: 20 }}>
         <details>

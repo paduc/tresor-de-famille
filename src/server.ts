@@ -9,7 +9,8 @@ import { sessionStore } from './dependencies/session'
 import { pageRouter } from './pages'
 import { createHistoryTable } from './dependencies/addToHistory'
 import { postgres } from './dependencies/database'
-import { factViewerRouter } from './factViewer/factViewer.route'
+import { factViewerRouter } from './facts/viewer/factViewer.route'
+// import { factDiagramRouter } from './facts/diagram/factDiagram.route'
 
 const PORT: number = parseInt(process.env.PORT ?? '3000')
 
@@ -41,6 +42,7 @@ app.use(
 app.use(pageRouter)
 app.use(actionsRouter)
 
+// app.use(factDiagramRouter)
 app.use(factViewerRouter)
 
 app.use(express.static(path.join(__dirname, 'assets')))

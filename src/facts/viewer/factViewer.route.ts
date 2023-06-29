@@ -1,7 +1,7 @@
 import express from 'express'
 
 import { FactViewerPage } from './FactViewerPage'
-import { requireAuth } from '../dependencies/authn'
+import { requireAuth } from '../../dependencies/authn'
 import ReactDOMServer from 'react-dom/server'
 import { getFacts } from './getFacts'
 import { z } from 'zod'
