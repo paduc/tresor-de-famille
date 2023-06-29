@@ -118,6 +118,19 @@ export const BienvenuePage = withBrowserBundle(({ userId, steps }: BienvenuePage
                     </div>
                   </div>
                 )
+              } else {
+                const { photoId, photoUrl } = step
+                return (
+                  <div className='pb-5' key={`step_${goal}_${stepIndex}`}>
+                    <div className='py-3 px-4'>
+                      <p className={`mt-3 text-xl text-gray-500`}>Je te propose d'envoyer une photo de toi !</p>
+
+                      <div className='grid grid-cols-1 w-full mt-3'>
+                        <img src={photoUrl} className='max-w-full max-h-[50vh]' />
+                      </div>
+                    </div>
+                  </div>
+                )
               }
             }
           })}

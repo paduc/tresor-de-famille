@@ -4,7 +4,7 @@ import { responseAsHtml } from '../../libs/ssr/responseAsHtml'
 import { pageRouter } from '../pageRouter'
 import { BienvenuePage } from './BienvenuePage'
 import { parseFirstPresentation } from './step1-userTellsAboutThemselves/parseFirstPresentation'
-import { getPreviousMessages } from './step1-userTellsAboutThemselves/getPreviousMessages'
+import { getPreviousMessages } from './getPreviousMessages'
 import { onboardingUrl } from './onboardingUrl'
 
 pageRouter

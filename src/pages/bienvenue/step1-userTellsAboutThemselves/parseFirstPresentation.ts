@@ -6,7 +6,7 @@ import { getUuid } from '../../../libs/getUuid'
 import { BienvenuePageProps } from '../BienvenuePage'
 import { UserProgressedUsingOpenAIToPresentThemself } from './UserProgressedUsingOpenAIToPresentThemself'
 import { UserPresentedThemselfUsingOpenAI } from './UserPresentedThemselfUsingOpenAI'
-import { getPreviousMessages } from './getPreviousMessages'
+import { getPreviousMessages } from '../getPreviousMessages'
 
 type ParseFirstPresentationArgs = {
   userId: UUID
