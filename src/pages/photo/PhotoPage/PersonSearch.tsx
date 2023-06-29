@@ -15,6 +15,7 @@ type PersonSearchProps = {
   onPersonSelected: (personId: UUID) => unknown
   open: boolean
   setOpen: (isOpen: boolean) => unknown
+  personFaceUrl?: string
 }
 
 const people = [
@@ -27,7 +28,7 @@ function classNames(...classes) {
   return classes.filter(Boolean).join(' ')
 }
 
-export const PersonSearch = ({ onPersonSelected, open, setOpen }: PersonSearchProps) => {
+export const PersonSearch = ({ onPersonSelected, open, setOpen, personFaceUrl }: PersonSearchProps) => {
   const [query, setQuery] = useState('')
 
   const index = usePersonSearch()
@@ -77,12 +78,17 @@ export const PersonSearch = ({ onPersonSelected, open, setOpen }: PersonSearchPr
               <Dialog.Panel className='mx-auto max-w-xl transform divide-y divide-gray-100 overflow-hidden rounded-xl bg-white shadow-2xl ring-1 ring-black ring-opacity-5 transition-all'>
                 <Combobox onChange={(person: any) => onPersonSelected(person.objectID)}>
                   <div className='relative'>
+                    {personFaceUrl ? <img src={personFaceUrl} className='h-12 w-12 absolute left-0 top-0' /> : null}
                     <MagnifyingGlassIcon
-                      className='pointer-events-none absolute left-4 top-3.5 h-5 w-5 text-gray-400'
+                      className={`pointer-events-none absolute ${
+                        personFaceUrl ? 'left-16' : 'left-4'
+                      } top-3.5 h-5 w-5 text-gray-400 right-`}
                       aria-hidden='true'
                     />
                     <Combobox.Input
-                      className='h-12 w-full border-0 bg-transparent pl-11 pr-4 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm'
+                      className={`h-12 w-full border-0 bg-transparent ${
+                        personFaceUrl ? 'pl-24' : 'pl-11'
+                      } pr-4 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm`}
                       placeholder='Search...'
                       onChange={(event) => setQuery(event.target.value)}
                     />

@@ -497,7 +497,12 @@ function SearchPersonForFaceButton(props: { photoId: UUID; faceId: UUID }) {
 
   return (
     <ClientOnly>
-      <PersonSearch onPersonSelected={handlePersonSelected} open={open} setOpen={setOpen} />
+      <PersonSearch
+        onPersonSelected={handlePersonSelected}
+        open={open}
+        setOpen={setOpen}
+        personFaceUrl={`/photo/${photoId}/face/${faceId}`}
+      />
       <a
         onClick={() => setOpen(true)}
         className='button inline-flex items-center py-1 px-2 pl-7 rounded-full bg-yellow-50 text-sm relative hover:font-semibold text-yellow-600 shadow-sm ring-1 hover:ring-2 ring-yellow-600 ring-inset cursor-pointer'>
