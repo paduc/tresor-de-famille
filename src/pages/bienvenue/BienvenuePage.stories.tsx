@@ -149,6 +149,7 @@ export const Step2Done = () => (
           photoId: getUuid(),
           photoUrl:
             'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=2560&h=2560&q=80',
+          faces: [{ faceId: getUuid() }, { faceId: getUuid() }, { faceId: getUuid() }],
         },
       ]}
     />

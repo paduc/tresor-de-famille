@@ -26,7 +26,17 @@ type OnboardingStep =
       goal: 'get-user-name'
       messages: OpenAIMessage[]
     } & ({ stage: 'in-progress' } | { stage: 'done'; result: { name: string; personId: UUID } }))
-  | ({ goal: 'upload-first-photo' } & ({ stage: 'waiting-upload' } | { stage: 'done'; photoId: UUID; photoUrl: string }))
+  | ({ goal: 'upload-first-photo' } & (
+      | { stage: 'waiting-upload' }
+      | {
+          stage: 'done'
+          photoId: UUID
+          photoUrl: string
+          faces: {
+            faceId: UUID
+          }[]
+        }
+    ))
 
 export type BienvenuePageProps = {
   userId: UUID
@@ -119,7 +129,7 @@ export const BienvenuePage = withBrowserBundle(({ userId, steps }: BienvenuePage
                   </div>
                 )
               } else {
-                const { photoId, photoUrl } = step
+                const { photoId, photoUrl, faces } = step
                 return (
                   <div className='pb-5' key={`step_${goal}_${stepIndex}`}>
                     <div className='py-3 px-4'>
@@ -127,6 +137,11 @@ export const BienvenuePage = withBrowserBundle(({ userId, steps }: BienvenuePage
 
                       <div className='grid grid-cols-1 w-full mt-3'>
                         <img src={photoUrl} className='max-w-full max-h-[50vh]' />
+                      </div>
+                      <div className='mx-auto'>
+                        {faces.map((face) => (
+                          <PhotoBadge photoId={photoId} faceId={face.faceId} className='m-2' />
+                        ))}
                       </div>
                     </div>
                   </div>
@@ -139,3 +154,19 @@ export const BienvenuePage = withBrowserBundle(({ userId, steps }: BienvenuePage
     </AppLayout>
   )
 })
+
+type PhotoBadgeProps = {
+  photoId: UUID
+  faceId: UUID
+  className?: string
+}
+const PhotoBadge = ({ photoId, className, faceId }: PhotoBadgeProps) => {
+  return (
+    <img
+      src='https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=100&h=100&q=80'
+      // src={`/photo/${photoId}/face/${faceId}`}
+      className={`inline-block cursor-pointer rounded-full h-14 w-14 bg-white ring-2 ring-white'
+      } ${className || ''}`}
+    />
+  )
+}

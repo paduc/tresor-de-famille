@@ -66,6 +66,7 @@ export async function getPreviousMessages(userId: UUID): Promise<BienvenuePagePr
         stage: 'done',
         photoId,
         photoUrl: getPhotoUrlFromId(photoId),
+        faces: [],
       })
     } else {
       props.steps.push({
