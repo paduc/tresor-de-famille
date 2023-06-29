@@ -2,6 +2,7 @@ import { postgres } from '../../dependencies/database'
 import { getPhotoUrlFromId } from '../../dependencies/photo-storage'
 import { UUID } from '../../domain'
 import { UserUploadedPhotoToChat } from '../chat/uploadPhotoToChat/UserUploadedPhotoToChat'
+import { AWSDetectedFacesInPhoto } from '../photo/recognizeFacesInChatPhoto/AWSDetectedFacesInPhoto'
 import { BienvenuePageProps } from './BienvenuePage'
 import { UserPresentedThemselfUsingOpenAI } from './step1-userTellsAboutThemselves/UserPresentedThemselfUsingOpenAI'
 import { UserProgressedUsingOpenAIToPresentThemself } from './step1-userTellsAboutThemselves/UserProgressedUsingOpenAIToPresentThemself'
@@ -55,18 +56,29 @@ export async function getPreviousMessages(userId: UUID): Promise<BienvenuePagePr
   if (props.steps.at(-1)?.stage === 'done') {
     // Onboarding is a special chat thread with chatId = userId
     const { rows: userUploadedPhoto } = await postgres.query<UserUploadedPhotoToChat>(
-      "SELECT * FROM history WHERE type='UserUploadedPhotoToChat' AND payload->>'userId'=$1 AND payload->>'chatId'=$2 ORDER BY \"occurredAt\" DESC LIMIT 1",
+      "SELECT * FROM history WHERE type='UserUploadedPhotoToChat' AND payload->>'uploadedBy'=$1 AND payload->>'chatId'=$2 ORDER BY \"occurredAt\" DESC LIMIT 1",
       [userId, userId]
     )
 
     if (userUploadedPhoto.length) {
       const { photoId } = userUploadedPhoto[0].payload
+
+      // Do we have faces ?
+      const { rows: facesDetected } = await postgres.query<AWSDetectedFacesInPhoto>(
+        "SELECT * FROM history WHERE type='AWSDetectedFacesInPhoto' AND payload->>'photoId'=$1 ORDER BY \"occurredAt\" DESC LIMIT 1",
+        [photoId]
+      )
+
+      const faces = facesDetected[0]?.payload.faces.map(({ faceId }) => ({ faceId }))
+
+      // Has the user confirmed their face ?
+
       props.steps.push({
         goal: 'upload-first-photo',
-        stage: 'done',
+        stage: 'photo-uploaded',
         photoId,
         photoUrl: getPhotoUrlFromId(photoId),
-        faces: [],
+        faces,
       })
     } else {
       props.steps.push({

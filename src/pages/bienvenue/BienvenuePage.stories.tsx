@@ -120,7 +120,43 @@ export const Step2Start = () => (
   </SessionContext.Provider>
 )
 
-export const Step2Done = () => (
+export const Step2Done1Face = () => (
+  <SessionContext.Provider value={{ isLoggedIn: true, userName: '', isAdmin: false }}>
+    <BienvenuePage
+      userId={getUuid()}
+      steps={[
+        {
+          goal: 'get-user-name',
+          stage: 'done',
+          result: {
+            name: 'Pierre-Antoine',
+            personId: getUuid(),
+          },
+          messages: [
+            {
+              role: 'assistant',
+              content: "Faisons connaissance ! Pour commencer, comment t'appelles-tu ?",
+            },
+            {
+              role: 'user',
+              content: 'Pierre-Antoine.',
+            },
+          ],
+        },
+        {
+          goal: 'upload-first-photo',
+          stage: 'done',
+          photoId: getUuid(),
+          photoUrl:
+            'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=2560&h=2560&q=80',
+          faces: [{ faceId: getUuid() }],
+        },
+      ]}
+    />
+  </SessionContext.Provider>
+)
+
+export const Step2DoneMultipleFaces = () => (
   <SessionContext.Provider value={{ isLoggedIn: true, userName: '', isAdmin: false }}>
     <BienvenuePage
       userId={getUuid()}

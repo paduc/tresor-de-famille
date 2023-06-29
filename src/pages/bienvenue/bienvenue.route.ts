@@ -6,6 +6,9 @@ import { BienvenuePage } from './BienvenuePage'
 import { parseFirstPresentation } from './step1-userTellsAboutThemselves/parseFirstPresentation'
 import { getPreviousMessages } from './getPreviousMessages'
 import { onboardingUrl } from './onboardingUrl'
+import { zIsUUID } from '../../domain'
+import { addToHistory } from '../../dependencies/addToHistory'
+import { UserConfirmedHisFaceDuringOnboarding } from './step2-userUploadsPhoto/UserConfirmedHisFaceDuringOnboarding'
 
 pageRouter
   .route(onboardingUrl)
@@ -20,11 +23,28 @@ pageRouter
     )
   })
   .post(requireAuth(), async (request, response) => {
-    const { presentation } = z.object({ presentation: z.string() }).parse(request.body)
+    const { action, presentation, faceId, photoId } = z
+      .object({
+        action: z.string(),
+        presentation: z.string().optional(),
+        faceId: zIsUUID.optional(),
+        photoId: zIsUUID.optional(),
+      })
+      .parse(request.body)
 
     const userId = request.session.user!.id
 
-    await parseFirstPresentation({ userAnswer: presentation, userId })
+    if (action === 'submitPresentation' && presentation) {
+      await parseFirstPresentation({ userAnswer: presentation, userId })
+    } else if (action === 'confirmFaceIsUser' && faceId && photoId) {
+      await addToHistory(
+        UserConfirmedHisFaceDuringOnboarding({
+          userId,
+          photoId,
+          faceId,
+        })
+      )
+    }
 
     const props = await getPreviousMessages(request.session.user!.id)
 

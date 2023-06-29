@@ -6,6 +6,7 @@ import { AppLayout } from '../_components/layout/AppLayout'
 import { SendIcon } from '../chat/ChatPage/SendIcon'
 import { PhotoIcon } from '@heroicons/react/24/outline'
 import { InlinePhotoUpload } from '../_components/InlinePhotoUpload'
+import { CheckIcon } from '@heroicons/react/20/solid'
 
 // @ts-ignore
 function classNames(...classes) {
@@ -29,7 +30,7 @@ type OnboardingStep =
   | ({ goal: 'upload-first-photo' } & (
       | { stage: 'waiting-upload' }
       | {
-          stage: 'done'
+          stage: 'photo-uploaded'
           photoId: UUID
           photoUrl: string
           faces: {
@@ -70,8 +71,13 @@ export const BienvenuePage = withBrowserBundle(({ userId, steps }: BienvenuePage
                         )
                       })}
                   </div>
-                  {stage !== 'done' ? (
+                  {stage === 'done' ? (
+                    <div className='px-4 text-xl text-gray-500'>
+                      Bienvenue {step.result.name} ! Je suis ravi de faire ta connaissance.
+                    </div>
+                  ) : (
                     <form method='POST' className='relative mt-2'>
+                      <input type='hidden' name='action' value='submitPresentation' />
                       <div className='overflow-hidden border border-gray-200 shadow-sm focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500'>
                         <label htmlFor='presentation' className='sr-only'>
                           Je m'appelle...
@@ -82,6 +88,12 @@ export const BienvenuePage = withBrowserBundle(({ userId, steps }: BienvenuePage
                           id='presentation'
                           className='block w-full resize-none border-0 py-3 px-4 focus:ring-0 text-xl'
                           placeholder="Je m'appelle ..."
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              // @ts-ignore
+                              e.target.form.submit()
+                            }
+                          }}
                         />
 
                         {/* Spacer element to match the height of the toolbar */}
@@ -104,10 +116,6 @@ export const BienvenuePage = withBrowserBundle(({ userId, steps }: BienvenuePage
                         </div>
                       </div>
                     </form>
-                  ) : (
-                    <div className='px-4 text-xl text-gray-500'>
-                      Bienvenue {step.result.name} ! Je suis ravi de faire ta connaissance.
-                    </div>
                   )}
                 </div>
               )
@@ -128,8 +136,38 @@ export const BienvenuePage = withBrowserBundle(({ userId, steps }: BienvenuePage
                     </div>
                   </div>
                 )
-              } else {
+              } else if (stage === 'photo-uploaded') {
                 const { photoId, photoUrl, faces } = step
+
+                // Case: single face
+                if (faces.length === 1) {
+                  return (
+                    <div className='pb-5' key={`step_${goal}_${stepIndex}`}>
+                      <div className='py-3 px-4'>
+                        <p className={`mt-3 text-xl text-gray-500`}>Je te propose d'envoyer une photo de toi !</p>
+
+                        <div className='grid grid-cols-1 w-full mt-3'>
+                          <img src={photoUrl} className='max-w-full max-h-[50vh]' />
+                        </div>
+                        <div className=''>
+                          <PhotoBadge photoId={photoId} faceId={faces[0].faceId} className='m-2' />
+                          <form method='POST' className='inline-block ml-2'>
+                            <input type='hidden' name='action' value='confirmFaceIsUser' />
+                            <input type='hidden' name='photoId' value={photoId} />
+                            <input type='hidden' name='faceId' value={faces[0].faceId} />
+                            <button
+                              type='submit'
+                              className='inline-flex items-center py-1 px-2 pl-7 rounded-full bg-white text-sm relative hover:font-semibold text-green-600 shadow-sm ring-1 hover:ring-2 ring-green-600 ring-inset'>
+                              <CheckIcon className='absolute left-2 h-4 w-4' aria-hidden='true' />
+                              C'est bien moi !
+                            </button>
+                          </form>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                }
+
                 return (
                   <div className='pb-5' key={`step_${goal}_${stepIndex}`}>
                     <div className='py-3 px-4'>
@@ -138,9 +176,23 @@ export const BienvenuePage = withBrowserBundle(({ userId, steps }: BienvenuePage
                       <div className='grid grid-cols-1 w-full mt-3'>
                         <img src={photoUrl} className='max-w-full max-h-[50vh]' />
                       </div>
+                      <div className='text-gray-500 text-lg py-3 pb-2'>
+                        Plusieurs visages ont été détectés sur cette photo, quel est le tien ?
+                      </div>
                       <div className='mx-auto'>
                         {faces.map((face) => (
-                          <PhotoBadge photoId={photoId} faceId={face.faceId} className='m-2' />
+                          <form method='POST' key={`confirmFace${face.faceId}`} className='inline-block ml-2'>
+                            <input type='hidden' name='action' value='confirmFaceIsUser' />
+                            <input type='hidden' name='photoId' value={photoId} />
+                            <input type='hidden' name='faceId' value={faces[0].faceId} />
+                            <button type='submit' className=''>
+                              <PhotoBadge
+                                photoId={photoId}
+                                faceId={face.faceId}
+                                className='m-2 hover:ring-4 hover:ring-green-500'
+                              />
+                            </button>
+                          </form>
                         ))}
                       </div>
                     </div>
@@ -163,8 +215,8 @@ type PhotoBadgeProps = {
 const PhotoBadge = ({ photoId, className, faceId }: PhotoBadgeProps) => {
   return (
     <img
-      src='https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=100&h=100&q=80'
-      // src={`/photo/${photoId}/face/${faceId}`}
+      // src='https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=100&h=100&q=80'
+      src={`/photo/${photoId}/face/${faceId}`}
       className={`inline-block cursor-pointer rounded-full h-14 w-14 bg-white ring-2 ring-white'
       } ${className || ''}`}
     />

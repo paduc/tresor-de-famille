@@ -92,7 +92,7 @@ pageRouter
 pageRouter.route('/add-photo.html').post(requireAuth(), upload.single('photo'), async (request, response) => {
   try {
     const { chatId: chatIdFromForm, isOnboarding } = zod
-      .object({ chatId: zIsUUID.optional(), isOnboarding: zod.boolean().optional() })
+      .object({ chatId: zIsUUID.optional(), isOnboarding: zod.string().optional() })
       .parse(request.body)
 
     const chatId = chatIdFromForm || getUuid()
@@ -108,7 +108,7 @@ pageRouter.route('/add-photo.html').post(requireAuth(), upload.single('photo'), 
 
     await detectFacesInPhotoUsingAWS({ file, chatId, photoId })
 
-    if (isOnboarding) {
+    if (isOnboarding && isOnboarding === 'yes') {
       return response.redirect(onboardingUrl)
     }
 
