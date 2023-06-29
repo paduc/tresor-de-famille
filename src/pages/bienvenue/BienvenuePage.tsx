@@ -1,14 +1,11 @@
 import * as React from 'react'
-import { Combobox } from '@headlessui/react'
 
-import { withBrowserBundle } from '../../libs/ssr/withBrowserBundle'
-import { useSearchClient } from '../_components/useSearchClient'
-import { AppLayout } from '../_components/layout/AppLayout'
-import { useState } from 'react'
-import { CheckIcon } from '@heroicons/react/20/solid'
-import { SuccessError } from '../_components/SuccessError'
-import { SendIcon } from '../chat/ChatPage/SendIcon'
 import { UUID } from '../../domain'
+import { withBrowserBundle } from '../../libs/ssr/withBrowserBundle'
+import { AppLayout } from '../_components/layout/AppLayout'
+import { SendIcon } from '../chat/ChatPage/SendIcon'
+import { PhotoIcon } from '@heroicons/react/24/outline'
+import { InlinePhotoUpload } from '../_components/InlinePhotoUpload'
 
 // @ts-ignore
 function classNames(...classes) {
@@ -32,10 +29,11 @@ type OnboardingStep =
   | ({ goal: 'upload-first-photo' } & ({ stage: 'waiting-upload' } | { stage: 'done'; photoId: UUID; photoUrl: string }))
 
 export type BienvenuePageProps = {
+  userId: UUID
   steps: OnboardingStep[]
 }
 
-export const BienvenuePage = withBrowserBundle(({ steps }: BienvenuePageProps) => {
+export const BienvenuePage = withBrowserBundle(({ userId, steps }: BienvenuePageProps) => {
   return (
     <AppLayout hideNavBarItems={true}>
       <div className='bg-white '>
@@ -103,6 +101,24 @@ export const BienvenuePage = withBrowserBundle(({ steps }: BienvenuePageProps) =
                   )}
                 </div>
               )
+            }
+
+            if (goal === 'upload-first-photo') {
+              if (stage === 'waiting-upload') {
+                return (
+                  <div className='pb-5' key={`step_${goal}_${stepIndex}`}>
+                    <div className='py-3 px-4'>
+                      <p className={`mt-3 text-xl text-gray-500`}>Je te propose d'envoyer une photo de toi !</p>
+                      <InlinePhotoUpload chatId={userId} isOnboarding={true}>
+                        <span className='inline-flex items-center mt-3 px-3 py-1.5 border border-transparent text-md font-medium rounded-full shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
+                          <PhotoIcon className='-ml-0.5 mr-2 h-6 w-6' aria-hidden='true' />
+                          Choisir la photo
+                        </span>
+                      </InlinePhotoUpload>
+                    </div>
+                  </div>
+                )
+              }
             }
           })}
         </div>

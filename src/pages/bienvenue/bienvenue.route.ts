@@ -5,9 +5,10 @@ import { pageRouter } from '../pageRouter'
 import { BienvenuePage } from './BienvenuePage'
 import { parseFirstPresentation } from './step1-userTellsAboutThemselves/parseFirstPresentation'
 import { getPreviousMessages } from './step1-userTellsAboutThemselves/getPreviousMessages'
+import { onboardingUrl } from './onboardingUrl'
 
 pageRouter
-  .route('/bienvenue.html')
+  .route(onboardingUrl)
   .get(requireAuth(), async (request, response) => {
     const props = await getPreviousMessages(request.session.user!.id)
     responseAsHtml(

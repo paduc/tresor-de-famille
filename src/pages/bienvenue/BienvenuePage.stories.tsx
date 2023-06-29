@@ -8,6 +8,7 @@ export default { title: 'Onboarding', component: BienvenuePage }
 export const Step1Start = () => (
   <SessionContext.Provider value={{ isLoggedIn: true, userName: '', isAdmin: false }}>
     <BienvenuePage
+      userId={getUuid()}
       steps={[
         {
           goal: 'get-user-name',
@@ -26,6 +27,7 @@ export const Step1Start = () => (
 export const Step1InProgress = () => (
   <SessionContext.Provider value={{ isLoggedIn: true, userName: '', isAdmin: false }}>
     <BienvenuePage
+      userId={getUuid()}
       steps={[
         {
           goal: 'get-user-name',
@@ -53,6 +55,7 @@ export const Step1InProgress = () => (
 export const Step1Done = () => (
   <SessionContext.Provider value={{ isLoggedIn: true, userName: '', isAdmin: false }}>
     <BienvenuePage
+      userId={getUuid()}
       steps={[
         {
           goal: 'get-user-name',
@@ -79,6 +82,38 @@ export const Step1Done = () => (
               content: 'Pierre-Antoine.',
             },
           ],
+        },
+      ]}
+    />
+  </SessionContext.Provider>
+)
+
+export const Step2Start = () => (
+  <SessionContext.Provider value={{ isLoggedIn: true, userName: '', isAdmin: false }}>
+    <BienvenuePage
+      userId={getUuid()}
+      steps={[
+        {
+          goal: 'get-user-name',
+          stage: 'done',
+          result: {
+            name: 'Pierre-Antoine',
+            personId: getUuid(),
+          },
+          messages: [
+            {
+              role: 'assistant',
+              content: "Faisons connaissance ! Pour commencer, comment t'appelles-tu ?",
+            },
+            {
+              role: 'user',
+              content: 'Pierre-Antoine.',
+            },
+          ],
+        },
+        {
+          goal: 'upload-first-photo',
+          stage: 'waiting-upload',
         },
       ]}
     />

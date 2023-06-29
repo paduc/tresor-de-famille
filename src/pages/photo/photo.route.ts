@@ -15,6 +15,7 @@ import { getPhoto } from './getPhoto.query'
 import { detectFacesInPhotoUsingAWS } from './recognizeFacesInChatPhoto/detectFacesInPhotoUsingAWS'
 import { confirmAWSPhotoAnnotation } from './confirmPhotoAnnotation/confirmAWSPhotoAnnotation'
 import { annotateManually } from './annotateManually/annotateManually'
+import { onboardingUrl } from '../bienvenue/onboardingUrl'
 
 const FILE_SIZE_LIMIT_MB = 50
 const upload = multer({
@@ -90,7 +91,9 @@ pageRouter
 
 pageRouter.route('/add-photo.html').post(requireAuth(), upload.single('photo'), async (request, response) => {
   try {
-    const { chatId: chatIdFromForm } = zod.object({ chatId: zIsUUID.optional() }).parse(request.body)
+    const { chatId: chatIdFromForm, isOnboarding } = zod
+      .object({ chatId: zIsUUID.optional(), isOnboarding: zod.boolean().optional() })
+      .parse(request.body)
 
     const chatId = chatIdFromForm || getUuid()
 
@@ -104,6 +107,10 @@ pageRouter.route('/add-photo.html').post(requireAuth(), upload.single('photo'), 
     await uploadPhotoToChat({ file, photoId, chatId, userId })
 
     await detectFacesInPhotoUsingAWS({ file, chatId, photoId })
+
+    if (isOnboarding) {
+      return response.redirect(onboardingUrl)
+    }
 
     if (chatIdFromForm) {
       return response.redirect(`/chat/${chatIdFromForm}/chat.html`)

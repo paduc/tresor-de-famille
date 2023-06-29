@@ -3,9 +3,10 @@ import React, { useRef } from 'react'
 type InlinePhotoUploadProps = {
   children: React.ReactNode
   chatId?: string
+  isOnboarding?: boolean
 }
 
-export const InlinePhotoUpload = ({ children, chatId }: InlinePhotoUploadProps) => {
+export const InlinePhotoUpload = ({ children, chatId, isOnboarding }: InlinePhotoUploadProps) => {
   const photoUploadForm = useRef<HTMLFormElement>(null)
 
   const photoUploadFileSelected = (e: any) => {
@@ -15,6 +16,9 @@ export const InlinePhotoUpload = ({ children, chatId }: InlinePhotoUploadProps) 
   return (
     <form ref={photoUploadForm} method='post' action='/add-photo.html' encType='multipart/form-data'>
       {chatId ? <input type='hidden' id='chatId' name='chatId' value={chatId} /> : null}
+      {isOnboarding ? (
+        <input type='hidden' id='isOnboarding' name='isOnboarding' value={isOnboarding ? 'true' : 'false'} />
+      ) : null}
       <input
         type='file'
         id={`file-input${chatId || ''}`}
