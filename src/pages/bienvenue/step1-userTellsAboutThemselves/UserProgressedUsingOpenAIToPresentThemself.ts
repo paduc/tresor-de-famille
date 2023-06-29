@@ -1,8 +1,8 @@
 import { DomainEvent, makeDomainEvent } from '../../../dependencies/DomainEvent'
 import { UUID } from '../../../domain/UUID'
 
-export type OnboardingUsingOpenAIProgressed = DomainEvent<
-  'OnboardingUsingOpenAIProgressed',
+export type UserProgressedUsingOpenAIToPresentThemself = DomainEvent<
+  'UserProgressedUsingOpenAIToPresentThemself',
   {
     userId: UUID
     messages: {
@@ -13,6 +13,6 @@ export type OnboardingUsingOpenAIProgressed = DomainEvent<
   }
 >
 
-export const OnboardingUsingOpenAIProgressed = makeDomainEvent<OnboardingUsingOpenAIProgressed>(
-  'OnboardingUsingOpenAIProgressed'
+export const UserProgressedUsingOpenAIToPresentThemself = makeDomainEvent<UserProgressedUsingOpenAIToPresentThemself>(
+  'UserProgressedUsingOpenAIToPresentThemself'
 )

@@ -7,6 +7,11 @@ export type UserPresentedThemselfUsingOpenAI = DomainEvent<
     userId: UUID
     personId: UUID // new person
     name: string
+    messages: {
+      role: 'assistant' | 'user' | 'system'
+      content: string | null
+      function_call?: { name: string; arguments: string }
+    }[]
   }
 >
 

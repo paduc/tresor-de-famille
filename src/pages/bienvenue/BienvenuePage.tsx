@@ -8,6 +8,7 @@ import { useState } from 'react'
 import { CheckIcon } from '@heroicons/react/20/solid'
 import { SuccessError } from '../_components/SuccessError'
 import { SendIcon } from '../chat/ChatPage/SendIcon'
+import { UUID } from '../../domain'
 
 // @ts-ignore
 function classNames(...classes) {
@@ -23,11 +24,18 @@ type OpenAIMessage = {
   }
 }
 
+type OnboardingStep =
+  | ({
+      goal: 'get-user-name'
+      messages: OpenAIMessage[]
+    } & ({ stage: 'in-progress' } | { stage: 'done'; result: { name: string; personId: UUID } }))
+  | ({ goal: 'upload-first-photo' } & ({ stage: 'waiting-upload' } | { stage: 'done'; photoId: UUID; photoUrl: string }))
+
 export type BienvenuePageProps = {
-  messages: OpenAIMessage[]
+  steps: OnboardingStep[]
 }
 
-export const BienvenuePage = withBrowserBundle(({ messages }: BienvenuePageProps) => {
+export const BienvenuePage = withBrowserBundle(({ steps }: BienvenuePageProps) => {
   return (
     <AppLayout hideNavBarItems={true}>
       <div className='bg-white '>
@@ -36,52 +44,68 @@ export const BienvenuePage = withBrowserBundle(({ messages }: BienvenuePageProps
             <p className='mt-1 text-4xl font-extrabold text-gray-900 sm:text-5xl sm:tracking-tight lg:text-6xl'>Bienvenue!</p>
           </div>
         </div>
-        <div className='py-3 px-4'>
-          {messages
-            .filter(({ role, function_call }) => role !== 'system' && !function_call)
-            .map(({ role, content }, index) => {
+        <div className='divide-y divide-dashed divide-gray-400'>
+          {steps?.map((step, stepIndex) => {
+            const { goal, stage } = step
+            if (goal === 'get-user-name') {
+              const { messages } = step
               return (
-                <p key={`message${index}`} className={`mt-3 text-xl ${role === 'assistant' ? 'text-gray-500' : ''}`}>
-                  {content}
-                </p>
-              )
-            })}
-        </div>
-        {messages.every(({ function_call }) => !function_call) ? (
-          <form method='POST' className='relative mt-2'>
-            <div className='overflow-hidden border border-gray-200 shadow-sm focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500'>
-              <label htmlFor='presentation' className='sr-only'>
-                Je m'appelle...
-              </label>
-              <textarea
-                rows={3}
-                name='presentation'
-                id='presentation'
-                className='block w-full resize-none border-0 py-3 px-4 focus:ring-0 text-xl'
-                placeholder="Je m'appelle ..."
-              />
+                <div className='pb-5' key={`step_${goal}_${stepIndex}`}>
+                  <div className='py-3 px-4'>
+                    {messages
+                      .filter(({ role, function_call }) => role !== 'system' && !function_call)
+                      .map(({ role, content }, index) => {
+                        return (
+                          <p key={`message${index}`} className={`mt-3 text-xl ${role === 'assistant' ? 'text-gray-500' : ''}`}>
+                            {content}
+                          </p>
+                        )
+                      })}
+                  </div>
+                  {stage !== 'done' ? (
+                    <form method='POST' className='relative mt-2'>
+                      <div className='overflow-hidden border border-gray-200 shadow-sm focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500'>
+                        <label htmlFor='presentation' className='sr-only'>
+                          Je m'appelle...
+                        </label>
+                        <textarea
+                          rows={3}
+                          name='presentation'
+                          id='presentation'
+                          className='block w-full resize-none border-0 py-3 px-4 focus:ring-0 text-xl'
+                          placeholder="Je m'appelle ..."
+                        />
 
-              {/* Spacer element to match the height of the toolbar */}
-              <div className='py-2' aria-hidden='true'>
-                {/* Matches height of button in toolbar (1px border + 36px content height) */}
-                <div className='py-px'>
-                  <div className='h-9' />
+                        {/* Spacer element to match the height of the toolbar */}
+                        <div className='py-2' aria-hidden='true'>
+                          {/* Matches height of button in toolbar (1px border + 36px content height) */}
+                          <div className='py-px'>
+                            <div className='h-9' />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className='absolute inset-x-0 bottom-0 flex justify-between py-2 pl-3 pr-2'>
+                        <div className='flex-shrink-0'>
+                          <button
+                            type='submit'
+                            className='inline-flex items-center mt-3 px-3 py-1.5 border border-transparent sm:sm:text-xs font-medium rounded-full shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
+                            <SendIcon className='-ml-0.5 mr-2 h-4 w-4' aria-hidden='true' />
+                            Envoyer
+                          </button>
+                        </div>
+                      </div>
+                    </form>
+                  ) : (
+                    <div className='px-4 text-xl text-gray-500'>
+                      Bienvenue {step.result.name} ! Je suis ravi de faire ta connaissance.
+                    </div>
+                  )}
                 </div>
-              </div>
-            </div>
-
-            <div className='absolute inset-x-0 bottom-0 flex justify-between py-2 pl-3 pr-2'>
-              <div className='flex-shrink-0'>
-                <button
-                  type='submit'
-                  className='inline-flex items-center mt-3 px-3 py-1.5 border border-transparent sm:sm:text-xs font-medium rounded-full shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
-                  <SendIcon className='-ml-0.5 mr-2 h-4 w-4' aria-hidden='true' />
-                  Envoyer
-                </button>
-              </div>
-            </div>
-          </form>
-        ) : null}
+              )
+            }
+          })}
+        </div>
       </div>
     </AppLayout>
   )

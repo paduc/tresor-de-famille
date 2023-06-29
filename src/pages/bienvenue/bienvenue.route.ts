@@ -9,12 +9,12 @@ import { getPreviousMessages } from './step1-userTellsAboutThemselves/getPreviou
 pageRouter
   .route('/bienvenue.html')
   .get(requireAuth(), async (request, response) => {
-    const messages = await getPreviousMessages(request.session.user!.id)
+    const props = await getPreviousMessages(request.session.user!.id)
     responseAsHtml(
       request,
       response,
       BienvenuePage({
-        messages,
+        ...props,
       })
     )
   })
@@ -23,11 +23,9 @@ pageRouter
 
     const userId = request.session.user!.id
 
-    const props = await parseFirstPresentation({ userAnswer: presentation, userId })
+    await parseFirstPresentation({ userAnswer: presentation, userId })
 
-    if (props === null) {
-      return response.redirect('/')
-    }
+    const props = await getPreviousMessages(request.session.user!.id)
 
     return responseAsHtml(
       request,

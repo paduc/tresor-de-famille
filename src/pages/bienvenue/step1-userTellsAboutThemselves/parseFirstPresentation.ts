@@ -4,7 +4,7 @@ import { personsIndex, searchClient } from '../../../dependencies/search'
 import { UUID } from '../../../domain'
 import { getUuid } from '../../../libs/getUuid'
 import { BienvenuePageProps } from '../BienvenuePage'
-import { OnboardingUsingOpenAIProgressed } from './OnboardingUsingOpenAIProgressed'
+import { UserProgressedUsingOpenAIToPresentThemself } from './UserProgressedUsingOpenAIToPresentThemself'
 import { UserPresentedThemselfUsingOpenAI } from './UserPresentedThemselfUsingOpenAI'
 import { getPreviousMessages } from './getPreviousMessages'
 
@@ -34,14 +34,16 @@ export type OpenAIMessage = {
 }
 const model = 'gpt-3.5-turbo-0613'
 
-export const parseFirstPresentation = async ({
-  userId,
-  userAnswer,
-}: ParseFirstPresentationArgs): Promise<BienvenuePageProps | null> => {
+export const parseFirstPresentation = async ({ userId, userAnswer }: ParseFirstPresentationArgs) => {
   // TODO: build prompt for an assistant parsing the presentation for a name, dob, ...
 
   // get previous messages
-  let messages: OpenAIMessage[] = await getPreviousMessages(userId)
+  const { steps } = await getPreviousMessages(userId)
+
+  type OnboardingStep = BienvenuePageProps['steps'][number]
+  const getNameStep = steps.find((step): step is OnboardingStep & { goal: 'get-user-name' } => step.goal === 'get-user-name')
+
+  let messages: OpenAIMessage[] = getNameStep?.messages!
 
   if (messages.length && messages.some(({ function_call }) => !!function_call)) {
     return null
@@ -74,24 +76,20 @@ export const parseFirstPresentation = async ({
     })
 
     const result = response.data.choices[0]
+    // @ts-ignore
+    messages = [...messages, result.message]
     if (result.finish_reason === 'stop') {
       // append it to messages and return the list
       // @ts-ignore
-      messages = [...messages, result.message]
-      await addToHistory(OnboardingUsingOpenAIProgressed({ userId, messages }))
+      await addToHistory(UserProgressedUsingOpenAIToPresentThemself({ userId, messages }))
     } else if (result.finish_reason === 'function_call') {
-      // append it to messages and return the list
-      // @ts-ignore
-      messages = [...messages, result.message]
-      await addToHistory(OnboardingUsingOpenAIProgressed({ userId, messages }))
-
       try {
         const { name } = JSON.parse(result.message!.function_call!.arguments!)
 
         if (!name) throw new Error('Name passed to function_call was empty')
 
         const personId = getUuid()
-        await addToHistory(UserPresentedThemselfUsingOpenAI({ userId, personId, name }))
+        await addToHistory(UserPresentedThemselfUsingOpenAI({ userId, personId, name, messages }))
 
         try {
           await personsIndex.saveObject({
@@ -107,14 +105,13 @@ export const parseFirstPresentation = async ({
         return null // signal mission accomplished
       } catch (error) {
         console.error('Could not parse function_call arguments', error)
+        await addToHistory(UserProgressedUsingOpenAIToPresentThemself({ userId, messages }))
       }
     } else {
       console.error(`Another finish_reason invoked ${result.finish_reason}`)
+      await addToHistory(UserProgressedUsingOpenAIToPresentThemself({ userId, messages }))
     }
-
-    return { messages }
   } catch (error) {
     console.error(error)
-    return { messages: [...messages, { role: 'assistant', content: "Oops, je n'ai pas eu ton dernier message !" }] }
   }
 }
