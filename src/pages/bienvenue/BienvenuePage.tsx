@@ -37,6 +37,15 @@ type OnboardingStep =
             faceId: UUID
           }[]
         }
+      | {
+          stage: 'face-confirmed'
+          photoId: UUID
+          photoUrl: string
+          confirmedFaceId: UUID
+          faces: {
+            faceId: UUID
+          }[]
+        }
     ))
 
 export type BienvenuePageProps = {
@@ -136,7 +145,7 @@ export const BienvenuePage = withBrowserBundle(({ userId, steps }: BienvenuePage
                     </div>
                   </div>
                 )
-              } else if (stage === 'photo-uploaded') {
+              } else if (stage === 'photo-uploaded' || stage === 'face-confirmed') {
                 const { photoId, photoUrl, faces } = step
 
                 // Case: single face
@@ -151,18 +160,30 @@ export const BienvenuePage = withBrowserBundle(({ userId, steps }: BienvenuePage
                         </div>
                         <div className=''>
                           <PhotoBadge photoId={photoId} faceId={faces[0].faceId} className='m-2' />
-                          <form method='POST' className='inline-block ml-2'>
-                            <input type='hidden' name='action' value='confirmFaceIsUser' />
-                            <input type='hidden' name='photoId' value={photoId} />
-                            <input type='hidden' name='faceId' value={faces[0].faceId} />
-                            <button
-                              type='submit'
-                              className='inline-flex items-center py-1 px-2 pl-7 rounded-full bg-white text-sm relative hover:font-semibold text-green-600 shadow-sm ring-1 hover:ring-2 ring-green-600 ring-inset'>
+                          {stage === 'face-confirmed' ? (
+                            <div className='inline-flex items-center py-1 px-2 pl-7 rounded-full bg-white text-sm relative font-semibold text-green-600 shadow-sm ring-2 ring-green-600 ring-inset'>
                               <CheckIcon className='absolute left-2 h-4 w-4' aria-hidden='true' />
                               C'est bien moi !
-                            </button>
-                          </form>
+                            </div>
+                          ) : (
+                            <form method='POST' className='inline-block ml-2'>
+                              <input type='hidden' name='action' value='confirmFaceIsUser' />
+                              <input type='hidden' name='photoId' value={photoId} />
+                              <input type='hidden' name='faceId' value={faces[0].faceId} />
+                              <button
+                                type='submit'
+                                className='inline-flex items-center py-1 px-2 pl-7 rounded-full bg-white text-sm relative hover:font-semibold text-green-600 shadow-sm ring-1 hover:ring-2 ring-green-600 ring-inset'>
+                                <CheckIcon className='absolute left-2 h-4 w-4' aria-hidden='true' />
+                                C'est bien moi !
+                              </button>
+                            </form>
+                          )}
                         </div>
+                        {stage === 'face-confirmed' ? (
+                          <div className='text-gray-500 text-lg py-3 pb-2'>
+                            Heureux de pouvoir mettre un visage sur un nom !
+                          </div>
+                        ) : null}
                       </div>
                     </div>
                   )
@@ -180,21 +201,35 @@ export const BienvenuePage = withBrowserBundle(({ userId, steps }: BienvenuePage
                         Plusieurs visages ont été détectés sur cette photo, quel est le tien ?
                       </div>
                       <div className='mx-auto'>
-                        {faces.map((face) => (
-                          <form method='POST' key={`confirmFace${face.faceId}`} className='inline-block ml-2'>
-                            <input type='hidden' name='action' value='confirmFaceIsUser' />
-                            <input type='hidden' name='photoId' value={photoId} />
-                            <input type='hidden' name='faceId' value={faces[0].faceId} />
-                            <button type='submit' className=''>
+                        {stage === 'face-confirmed'
+                          ? faces.map((face) => (
                               <PhotoBadge
+                                key={`confirmedFaces${face.faceId}`}
                                 photoId={photoId}
                                 faceId={face.faceId}
-                                className='m-2 hover:ring-4 hover:ring-green-500'
+                                className={`m-2 hover:cursor-default ${
+                                  face.faceId === step.confirmedFaceId ? 'ring-4 ring-green-500' : ''
+                                }`}
                               />
-                            </button>
-                          </form>
-                        ))}
+                            ))
+                          : faces.map((face) => (
+                              <form method='POST' key={`confirmFace${face.faceId}`} className='inline-block ml-2'>
+                                <input type='hidden' name='action' value='confirmFaceIsUser' />
+                                <input type='hidden' name='photoId' value={photoId} />
+                                <input type='hidden' name='faceId' value={faces[0].faceId} />
+                                <button type='submit' className=''>
+                                  <PhotoBadge
+                                    photoId={photoId}
+                                    faceId={face.faceId}
+                                    className='m-2 hover:ring-4 hover:ring-green-500'
+                                  />
+                                </button>
+                              </form>
+                            ))}
                       </div>
+                      {stage === 'face-confirmed' ? (
+                        <div className='text-gray-500 text-lg py-3 pb-2'>Heureux de pouvoir mettre un visage sur un nom !</div>
+                      ) : null}
                     </div>
                   </div>
                 )

@@ -7,6 +7,7 @@ import { BienvenuePageProps } from './BienvenuePage'
 import { UserPresentedThemselfUsingOpenAI } from './step1-userTellsAboutThemselves/UserPresentedThemselfUsingOpenAI'
 import { UserProgressedUsingOpenAIToPresentThemself } from './step1-userTellsAboutThemselves/UserProgressedUsingOpenAIToPresentThemself'
 import { initialMessages } from './step1-userTellsAboutThemselves/parseFirstPresentation'
+import { UserConfirmedHisFaceDuringOnboarding } from './step2-userUploadsPhoto/UserConfirmedHisFaceDuringOnboarding'
 
 export async function getPreviousMessages(userId: UUID): Promise<BienvenuePageProps> {
   const props: BienvenuePageProps = {
@@ -72,14 +73,29 @@ export async function getPreviousMessages(userId: UUID): Promise<BienvenuePagePr
       const faces = facesDetected[0]?.payload.faces.map(({ faceId }) => ({ faceId }))
 
       // Has the user confirmed their face ?
+      const { rows: userConfirmedFace } = await postgres.query<UserConfirmedHisFaceDuringOnboarding>(
+        "SELECT * FROM history WHERE type='UserConfirmedHisFaceDuringOnboarding' AND payload->>'userId'=$1 ORDER BY \"occurredAt\" DESC LIMIT 1",
+        [userId]
+      )
 
-      props.steps.push({
-        goal: 'upload-first-photo',
-        stage: 'photo-uploaded',
-        photoId,
-        photoUrl: getPhotoUrlFromId(photoId),
-        faces,
-      })
+      if (userConfirmedFace.length) {
+        props.steps.push({
+          goal: 'upload-first-photo',
+          stage: 'face-confirmed',
+          photoId,
+          photoUrl: getPhotoUrlFromId(photoId),
+          faces,
+          confirmedFaceId: userConfirmedFace[0].payload.faceId,
+        })
+      } else {
+        props.steps.push({
+          goal: 'upload-first-photo',
+          stage: 'photo-uploaded',
+          photoId,
+          photoUrl: getPhotoUrlFromId(photoId),
+          faces,
+        })
+      }
     } else {
       props.steps.push({
         goal: 'upload-first-photo',
