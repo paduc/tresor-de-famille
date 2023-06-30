@@ -99,6 +99,7 @@ export const BienvenuePage = withBrowserBundle(({ userId, steps }: BienvenuePage
                           placeholder="Je m'appelle ..."
                           onKeyDown={(e) => {
                             if (e.key === 'Enter') {
+                              e.preventDefault()
                               // @ts-ignore
                               e.target.form.submit()
                             }
@@ -147,6 +148,30 @@ export const BienvenuePage = withBrowserBundle(({ userId, steps }: BienvenuePage
                 )
               } else if (stage === 'photo-uploaded' || stage === 'face-confirmed') {
                 const { photoId, photoUrl, faces } = step
+
+                if (!faces || faces.length === 0) {
+                  return (
+                    <div className='pb-5' key={`step_${goal}_${stepIndex}`}>
+                      <div className='py-3 px-4'>
+                        <p className={`mt-3 text-xl text-gray-500`}>Je te propose d'envoyer une photo de toi !</p>
+
+                        <div className='grid grid-cols-1 w-full mt-3'>
+                          <img src={photoUrl} className='max-w-full max-h-[50vh]' />
+                        </div>
+
+                        <p className={`mt-3 text-xl text-gray-500`}>
+                          Aucun visage n'a été détecté sur cette photo. Merci d'en choisir une autre.
+                        </p>
+                        <InlinePhotoUpload chatId={userId} isOnboarding={true}>
+                          <span className='inline-flex items-center mt-3 px-3 py-1.5 border border-transparent text-md font-medium rounded-full shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
+                            <PhotoIcon className='-ml-0.5 mr-2 h-6 w-6' aria-hidden='true' />
+                            Choisir la photo
+                          </span>
+                        </InlinePhotoUpload>
+                      </div>
+                    </div>
+                  )
+                }
 
                 // Case: single face
                 if (faces.length === 1) {
