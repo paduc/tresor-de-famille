@@ -104,5 +104,14 @@ export async function getPreviousMessages(userId: UUID): Promise<BienvenuePagePr
     }
   }
 
+  // Step 3 : User Uploads family photo
+
+  if (props.steps.at(-1)?.stage === 'face-confirmed') {
+    props.steps.push({
+      goal: 'upload-family-photo',
+      stage: 'awaiting-upload',
+    })
+  }
+
   return props
 }
