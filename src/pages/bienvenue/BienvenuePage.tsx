@@ -47,6 +47,10 @@ type OnboardingStep =
           }[]
         }
     ))
+  | {
+      goal: 'upload-family-photo'
+      stage: 'awaiting-upload'
+    }
 
 export type BienvenuePageProps = {
   userId: UUID
@@ -138,7 +142,7 @@ export const BienvenuePage = withBrowserBundle(({ userId, steps }: BienvenuePage
                     <div className='py-3 px-4'>
                       <p className={`mt-3 text-xl text-gray-500`}>Je te propose d'envoyer une photo de toi !</p>
                       <InlinePhotoUpload chatId={userId} isOnboarding={true}>
-                        <span className='inline-flex items-center mt-3 px-3 py-1.5 border border-transparent text-md font-medium rounded-full shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
+                        <span className='cursor-pointer inline-flex items-center mt-3 px-3 py-1.5 border border-transparent text-md font-medium rounded-full shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
                           <PhotoIcon className='-ml-0.5 mr-2 h-6 w-6' aria-hidden='true' />
                           Choisir la photo
                         </span>
@@ -255,6 +259,26 @@ export const BienvenuePage = withBrowserBundle(({ userId, steps }: BienvenuePage
                       {stage === 'face-confirmed' ? (
                         <div className='text-gray-500 text-lg py-3 pb-2'>Heureux de pouvoir mettre un visage sur un nom !</div>
                       ) : null}
+                    </div>
+                  </div>
+                )
+              }
+            }
+
+            if (goal === 'upload-family-photo') {
+              if (stage === 'awaiting-upload') {
+                return (
+                  <div className='pb-5' key={`step_${goal}_${stepIndex}`}>
+                    <div className='py-3 px-4'>
+                      <p className={`mt-3 text-xl text-gray-500`}>
+                        Maintenant, je te propose de présenter ta famille, à travers une ou plusieurs photo.
+                      </p>
+                      <InlinePhotoUpload chatId={userId} isOnboarding={true}>
+                        <span className='cursor-pointer inline-flex items-center mt-5 px-3 py-1.5 border border-transparent text-md font-medium rounded-full shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
+                          <PhotoIcon className='-ml-0.5 mr-2 h-6 w-6' aria-hidden='true' />
+                          Choisir une photo avec des membres de ma famille
+                        </span>
+                      </InlinePhotoUpload>
                     </div>
                   </div>
                 )
