@@ -47,10 +47,17 @@ type OnboardingStep =
           }[]
         }
     ))
-  | {
-      goal: 'upload-family-photo'
-      stage: 'awaiting-upload'
-    }
+  | ({ goal: 'upload-family-photo' } & (
+      | { stage: 'awaiting-upload' }
+      | {
+          stage: 'annotating-photo'
+          photoId: UUID
+          photoUrl: string
+          faces: {
+            faceId: UUID
+          }[]
+        }
+    ))
 
 export type BienvenuePageProps = {
   userId: UUID
@@ -283,6 +290,31 @@ export const BienvenuePage = withBrowserBundle(({ userId, steps }: BienvenuePage
                   </div>
                 )
               }
+
+              if (stage === 'annotating-photo') {
+                return (
+                  <div className='pb-5' key={`step_${goal}_${stepIndex}`}>
+                    <div className='py-3 px-4'>
+                      <p className={`mt-3 text-xl text-gray-500`}>
+                        Maintenant, je te propose de présenter ta famille, à travers une ou plusieurs photo.
+                      </p>
+                      <div className='grid grid-cols-1 w-full mt-3'>
+                        <img src={step.photoUrl} className='max-w-full max-h-[50vh]' />
+                      </div>
+                      <div className='mx-auto'>
+                        {step.faces.map((face) => (
+                          <PhotoBadge
+                            key={`annotatingFamilyFaces${face.faceId}`}
+                            photoId={step.photoId}
+                            faceId={face.faceId}
+                            className={`m-2`}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )
+              }
             }
           })}
         </div>
@@ -299,8 +331,8 @@ type PhotoBadgeProps = {
 const PhotoBadge = ({ photoId, className, faceId }: PhotoBadgeProps) => {
   return (
     <img
-      // src='https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=100&h=100&q=80'
-      src={`/photo/${photoId}/face/${faceId}`}
+      src='https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=100&h=100&q=80'
+      // src={`/photo/${photoId}/face/${faceId}`}
       className={`inline-block cursor-pointer rounded-full h-14 w-14 bg-white ring-2 ring-white'
       } ${className || ''}`}
     />
