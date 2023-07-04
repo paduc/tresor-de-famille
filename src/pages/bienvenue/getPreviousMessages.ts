@@ -10,6 +10,7 @@ import { UserProgressedUsingOpenAIToPresentThemself } from './step1-userTellsAbo
 import { initialMessages } from './step1-userTellsAboutThemselves/parseFirstPresentation'
 import { OnboardingUserUploadedPhotoOfFamily } from './step2-userUploadsPhoto/OnboardingUserUploadedPhotoOfFamily'
 import { UserConfirmedHisFaceDuringOnboarding } from './step2-userUploadsPhoto/UserConfirmedHisFaceDuringOnboarding'
+import { OnboardingUserNamedPersonInFamilyPhoto } from './step3-learnAboutUsersFamily/OnboardingUserNamedPersonInFamilyPhoto'
 
 export async function getPreviousMessages(userId: UUID): Promise<BienvenuePageProps> {
   const props: BienvenuePageProps = {
@@ -138,17 +139,42 @@ export async function getPreviousMessages(userId: UUID): Promise<BienvenuePagePr
     const { photoId } = latestUserUploadedPhoto[0].payload
 
     if (latestUserUploadedPhoto.length) {
-      // Has the user annotated a face ?
       const { rows: facesDetected } = await postgres.query<AWSDetectedFacesInPhoto>(
         "SELECT * FROM history WHERE type='AWSDetectedFacesInPhoto' AND payload->>'photoId'=$1 ORDER BY \"occurredAt\" DESC LIMIT 1",
         [photoId]
       )
 
       // Get facesDetected
-      const faces = facesDetected.map(({ payload }) => payload.faces).shift()
+      const detectedFaces = facesDetected.map(({ payload }) => payload.faces).shift()
 
-      if (faces) {
-        for (const face of faces) {
+      const faces: FamilyMemberPhotoFace[] = []
+      if (detectedFaces) {
+        for (const detectedFace of detectedFaces) {
+          // Has a name been given for this family member ?
+          const { rows: personNamedRows } = await postgres.query<OnboardingUserNamedPersonInFamilyPhoto>(
+            "SELECT * FROM history WHERE type='OnboardingUserNamedPersonInFamilyPhoto' AND payload->>'faceId'=$1 AND payload->>'photoId'=$2 AND payload->>'userId'=$3 ORDER BY \"occurredAt\" DESC LIMIT 1",
+            [detectedFace.faceId, photoId, userId]
+          )
+
+          const personNamed = personNamedRows[0]?.payload
+
+          if (personNamed) {
+            faces.push({
+              faceId: detectedFace.faceId,
+              stage: 'done',
+              result: {
+                personId: personNamed.personId,
+                name: personNamed.name,
+              },
+              messages: [],
+            })
+          } else {
+            faces.push({
+              faceId: detectedFace.faceId,
+              stage: 'awaiting-name',
+            })
+          }
+
           //             | {
           //       stage: 'awaiting-name'
           //     }
@@ -176,7 +202,7 @@ export async function getPreviousMessages(userId: UUID): Promise<BienvenuePagePr
         stage: 'annotating-photo',
         photoId,
         photoUrl: getPhotoUrlFromId(photoId),
-        faces: [],
+        faces,
       })
     } else {
       // No the user has not uploaded another photo for his family
@@ -189,3 +215,7 @@ export async function getPreviousMessages(userId: UUID): Promise<BienvenuePagePr
 
   return props
 }
+
+type FamilyMemberPhotoFace = (BienvenuePageProps['steps'][number] & {
+  goal: 'upload-family-photo'
+} & { stage: 'annotating-photo' })['faces'][number]

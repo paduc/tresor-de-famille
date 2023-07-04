@@ -314,6 +314,33 @@ export const BienvenuePage = withBrowserBundle(({ userId, steps }: BienvenuePage
               }
 
               if (stage === 'annotating-photo') {
+                const { faces, photoUrl } = step
+                if (!faces || faces.length === 0) {
+                  return (
+                    <div className='pb-5' key={`step_${goal}_${stepIndex}`}>
+                      <div className='py-3 px-4'>
+                        <p className={`mt-3 text-xl text-gray-500`}>
+                          Maintenant, je te propose de présenter ta famille, à travers une ou plusieurs photo.
+                        </p>
+
+                        <div className='grid grid-cols-1 w-full mt-3'>
+                          <img src={photoUrl} className='max-w-full max-h-[50vh]' />
+                        </div>
+
+                        <p className={`mt-3 text-xl text-gray-500`}>
+                          Aucun visage n'a été détecté sur cette photo. Merci d'en choisir une autre.
+                        </p>
+                        <InlinePhotoUploadBtn hiddenFields={{ action: 'userSendsPhotoOfFamily' }}>
+                          <span className='cursor-pointer inline-flex items-center mt-3 px-3 py-1.5 border border-transparent text-md font-medium rounded-full shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
+                            <PhotoIcon className='-ml-0.5 mr-2 h-6 w-6' aria-hidden='true' />
+                            Choisir une photo avec des membres de ma famille
+                          </span>
+                        </InlinePhotoUploadBtn>
+                      </div>
+                    </div>
+                  )
+                }
+
                 const faceInProgress = step.faces.find(
                   (face): face is FamilyMemberPhotoFace & { stage: 'awaiting-name' } => face.stage === 'awaiting-name'
                 )
@@ -378,6 +405,7 @@ export const BienvenuePage = withBrowserBundle(({ userId, steps }: BienvenuePage
                               <form method='POST' className='relative mt-2'>
                                 <input type='hidden' name='action' value='submitFamilyMemberName' />
                                 <input type='hidden' name='faceId' value={faceInProgress.faceId} />
+                                <input type='hidden' name='photoId' value={step.photoId} />
                                 <div className='overflow-hidden border border-gray-200 shadow-sm focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500'>
                                   <label htmlFor='familyMemberName' className='sr-only'>
                                     Nom complet

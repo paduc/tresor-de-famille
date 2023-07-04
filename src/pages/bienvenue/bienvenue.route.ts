@@ -12,6 +12,8 @@ import { parseFirstPresentation } from './step1-userTellsAboutThemselves/parseFi
 import { uploadUserPhotoOfThemself } from './step1-userTellsAboutThemselves/uploadUserPhotoOfThemself'
 import { UserConfirmedHisFaceDuringOnboarding } from './step2-userUploadsPhoto/UserConfirmedHisFaceDuringOnboarding'
 import { uploadUserPhotoOfFamily } from './step2-userUploadsPhoto/uploadUserPhotoOfFamily'
+import { OnboardingUserNamedPersonInFamilyPhoto } from './step3-learnAboutUsersFamily/OnboardingUserNamedPersonInFamilyPhoto'
+import { getUuid } from '../../libs/getUuid'
 
 const FILE_SIZE_LIMIT_MB = 50
 const upload = multer({
@@ -32,10 +34,11 @@ pageRouter
     )
   })
   .post(requireAuth(), upload.single('photo'), async (request, response) => {
-    const { action, presentation, faceId, photoId } = z
+    const { action, presentation, faceId, photoId, familyMemberName } = z
       .object({
         action: z.string(),
         presentation: z.string().optional(),
+        familyMemberName: z.string().optional(),
         faceId: zIsUUID.optional(),
         photoId: zIsUUID.optional(),
       })
@@ -63,6 +66,16 @@ pageRouter
           userId,
           photoId,
           faceId,
+        })
+      )
+    } else if (action === 'submitFamilyMemberName' && faceId && photoId && familyMemberName) {
+      await addToHistory(
+        OnboardingUserNamedPersonInFamilyPhoto({
+          userId,
+          photoId,
+          faceId,
+          personId: getUuid(),
+          name: familyMemberName,
         })
       )
     }
