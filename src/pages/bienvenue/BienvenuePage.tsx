@@ -357,6 +357,7 @@ export const BienvenuePage = withBrowserBundle(({ userId, steps }: BienvenuePage
                       <div className='grid grid-cols-1 w-full mt-3'>
                         <img src={step.photoUrl} className='max-w-full max-h-[50vh]' />
                       </div>
+
                       <div className='grid grid-cols-8 auto-cols-auto justify-items-stretch'>
                         <div className='col-span-8'>
                           {step.faces
@@ -467,6 +468,11 @@ export const BienvenuePage = withBrowserBundle(({ userId, steps }: BienvenuePage
                             })}
                         </div>
                       </div>
+                      {step.faces.every((face) => face.stage === 'done' || face.stage === 'ignored') ? (
+                        <p className={`mt-3 text-xl text-gray-500`}>
+                          Top ! Est-ce que tu as d'autres photos pour présenter ta famille ?
+                        </p>
+                      ) : null}
                     </div>
                   </div>
                 )
