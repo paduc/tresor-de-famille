@@ -106,7 +106,7 @@ pageRouter.route('/add-photo.html').post(requireAuth(), upload.single('photo'), 
 
     await uploadPhotoToChat({ file, photoId, chatId, userId })
 
-    await detectFacesInPhotoUsingAWS({ file, chatId, photoId })
+    await detectFacesInPhotoUsingAWS({ file, photoId })
 
     if (isOnboarding && isOnboarding === 'yes') {
       return response.redirect(onboardingUrl)

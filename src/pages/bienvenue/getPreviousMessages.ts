@@ -4,9 +4,11 @@ import { UUID } from '../../domain'
 import { UserUploadedPhotoToChat } from '../chat/uploadPhotoToChat/UserUploadedPhotoToChat'
 import { AWSDetectedFacesInPhoto } from '../photo/recognizeFacesInChatPhoto/AWSDetectedFacesInPhoto'
 import { BienvenuePageProps } from './BienvenuePage'
+import { OnboardingUserUploadedPhotoOfThemself } from './step1-userTellsAboutThemselves/OnboardingUserUploadedPhotoOfThemself'
 import { UserPresentedThemselfUsingOpenAI } from './step1-userTellsAboutThemselves/UserPresentedThemselfUsingOpenAI'
 import { UserProgressedUsingOpenAIToPresentThemself } from './step1-userTellsAboutThemselves/UserProgressedUsingOpenAIToPresentThemself'
 import { initialMessages } from './step1-userTellsAboutThemselves/parseFirstPresentation'
+import { OnboardingUserUploadedPhotoOfFamily } from './step2-userUploadsPhoto/OnboardingUserUploadedPhotoOfFamily'
 import { UserConfirmedHisFaceDuringOnboarding } from './step2-userUploadsPhoto/UserConfirmedHisFaceDuringOnboarding'
 
 export async function getPreviousMessages(userId: UUID): Promise<BienvenuePageProps> {
@@ -89,9 +91,9 @@ export async function getPreviousMessages(userId: UUID): Promise<BienvenuePagePr
     } else {
       // Has the user uploaded a photo ?
 
-      const { rows: userUploadedPhoto } = await postgres.query<UserUploadedPhotoToChat>(
-        "SELECT * FROM history WHERE type='UserUploadedPhotoToChat' AND payload->>'uploadedBy'=$1 AND payload->>'chatId'=$2 ORDER BY \"occurredAt\" DESC LIMIT 1",
-        [userId, userId]
+      const { rows: userUploadedPhoto } = await postgres.query<OnboardingUserUploadedPhotoOfThemself>(
+        "SELECT * FROM history WHERE type='OnboardingUserUploadedPhotoOfThemself' AND payload->>'uploadedBy'=$1 ORDER BY \"occurredAt\" DESC LIMIT 1",
+        [userId]
       )
 
       if (userUploadedPhoto.length) {
@@ -128,36 +130,60 @@ export async function getPreviousMessages(userId: UUID): Promise<BienvenuePagePr
   // Step 3 : User Uploads family photo
 
   if (props.steps.at(-1)?.stage === 'face-confirmed') {
-    // TODO: Guess if user has uploaded a photo for his family (is last photo of the thread the solo picture ?)
-
-    const { rows: userConfirmedFace } = await postgres.query<UserConfirmedHisFaceDuringOnboarding>(
-      "SELECT * FROM history WHERE type='UserConfirmedHisFaceDuringOnboarding' AND payload->>'userId'=$1 ORDER BY \"occurredAt\" DESC LIMIT 1",
+    const { rows: latestUserUploadedPhoto } = await postgres.query<OnboardingUserUploadedPhotoOfFamily>(
+      "SELECT * FROM history WHERE type='OnboardingUserUploadedPhotoOfFamily' AND payload->>'uploadedBy'=$1 ORDER BY \"occurredAt\" DESC LIMIT 1",
       [userId]
     )
 
-    const { photoId: photoIdFromConfirmedFace } = userConfirmedFace[0].payload
+    const { photoId } = latestUserUploadedPhoto[0].payload
 
-    const { rows: latestUserUploadedPhoto } = await postgres.query<UserUploadedPhotoToChat>(
-      "SELECT * FROM history WHERE type='UserUploadedPhotoToChat' AND payload->>'uploadedBy'=$1 AND payload->>'chatId'=$2 ORDER BY \"occurredAt\" DESC LIMIT 1",
-      [userId, userId]
-    )
+    if (latestUserUploadedPhoto.length) {
+      // Has the user annotated a face ?
+      const { rows: facesDetected } = await postgres.query<AWSDetectedFacesInPhoto>(
+        "SELECT * FROM history WHERE type='AWSDetectedFacesInPhoto' AND payload->>'photoId'=$1 ORDER BY \"occurredAt\" DESC LIMIT 1",
+        [photoId]
+      )
 
-    const { photoId: latestPhotoId } = latestUserUploadedPhoto[0].payload
+      // Get facesDetected
+      const faces = facesDetected.map(({ payload }) => payload.faces).shift()
 
-    if (photoIdFromConfirmedFace === latestPhotoId) {
+      if (faces) {
+        for (const face of faces) {
+          //             | {
+          //       stage: 'awaiting-name'
+          //     }
+          //   | { stage: 'awaiting-relationship'; name: string }
+          //   | {
+          //       stage: 'relationship-in-progress'
+          //       messages: OpenAIMessage[]
+          //       name: string
+          //     }
+          //   | {
+          //       stage: 'done'
+          //       messages: OpenAIMessage[]
+          //       result: {
+          //         personId: UUID
+          //         name: string
+          //         relationship?: {}
+          //       }
+          //     }
+          // )
+        }
+      }
+
+      props.steps.push({
+        goal: 'upload-family-photo',
+        stage: 'annotating-photo',
+        photoId,
+        photoUrl: getPhotoUrlFromId(photoId),
+        faces: [],
+      })
+    } else {
       // No the user has not uploaded another photo for his family
       props.steps.push({
         goal: 'upload-family-photo',
         stage: 'awaiting-upload',
       })
-    } else {
-      // Has the user annotated a face ?
-      const { rows: facesDetected } = await postgres.query<AWSDetectedFacesInPhoto>(
-        "SELECT * FROM history WHERE type='AWSDetectedFacesInPhoto' AND payload->>'photoId'=$1 ORDER BY \"occurredAt\" DESC LIMIT 1",
-        [latestPhotoId]
-      )
-
-      // Get facesDetected
     }
   }
 

@@ -1,14 +1,23 @@
+import multer from 'multer'
 import { z } from 'zod'
+import { addToHistory } from '../../dependencies/addToHistory'
 import { requireAuth } from '../../dependencies/authn'
+import { zIsUUID } from '../../domain'
 import { responseAsHtml } from '../../libs/ssr/responseAsHtml'
 import { pageRouter } from '../pageRouter'
 import { BienvenuePage } from './BienvenuePage'
-import { parseFirstPresentation } from './step1-userTellsAboutThemselves/parseFirstPresentation'
 import { getPreviousMessages } from './getPreviousMessages'
 import { onboardingUrl } from './onboardingUrl'
-import { zIsUUID } from '../../domain'
-import { addToHistory } from '../../dependencies/addToHistory'
+import { parseFirstPresentation } from './step1-userTellsAboutThemselves/parseFirstPresentation'
+import { uploadUserPhotoOfThemself } from './step1-userTellsAboutThemselves/uploadUserPhotoOfThemself'
 import { UserConfirmedHisFaceDuringOnboarding } from './step2-userUploadsPhoto/UserConfirmedHisFaceDuringOnboarding'
+import { uploadUserPhotoOfFamily } from './step2-userUploadsPhoto/uploadUserPhotoOfFamily'
+
+const FILE_SIZE_LIMIT_MB = 50
+const upload = multer({
+  dest: 'temp/photos',
+  limits: { fileSize: FILE_SIZE_LIMIT_MB * 1024 * 1024 /* MB */ },
+})
 
 pageRouter
   .route(onboardingUrl)
@@ -22,7 +31,7 @@ pageRouter
       })
     )
   })
-  .post(requireAuth(), async (request, response) => {
+  .post(requireAuth(), upload.single('photo'), async (request, response) => {
     const { action, presentation, faceId, photoId } = z
       .object({
         action: z.string(),
@@ -36,6 +45,18 @@ pageRouter
 
     if (action === 'submitPresentation' && presentation) {
       await parseFirstPresentation({ userAnswer: presentation, userId })
+    } else if (action === 'userSendsPhotoOfThemself') {
+      const { file } = request
+
+      if (!file) return new Error('We did not receive any image.')
+
+      await uploadUserPhotoOfThemself({ file, userId })
+    } else if (action === 'userSendsPhotoOfFamily') {
+      const { file } = request
+
+      if (!file) return new Error('We did not receive any image.')
+
+      await uploadUserPhotoOfFamily({ file, userId })
     } else if (action === 'confirmFaceIsUser' && faceId && photoId) {
       await addToHistory(
         UserConfirmedHisFaceDuringOnboarding({

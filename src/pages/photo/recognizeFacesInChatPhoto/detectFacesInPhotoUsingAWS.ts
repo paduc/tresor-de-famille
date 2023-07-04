@@ -9,12 +9,11 @@ import { getAWSDetectedFacesInPhoto } from './getAWSDetectedFacesInPhoto'
 import { getAwsRekognitionCollectionId } from '../../../dependencies/face-recognition'
 import { UserUploadedPhotoToChat } from '../../chat/uploadPhotoToChat/UserUploadedPhotoToChat'
 
-type DetectFacesInChatPhotoArgs = {
+type DetectFacesInPhotosUsingAWSArgs = {
   file: Express.Multer.File
-  chatId: UUID
   photoId: UUID
 }
-export async function detectFacesInPhotoUsingAWS({ file, photoId }: DetectFacesInChatPhotoArgs) {
+export async function detectFacesInPhotoUsingAWS({ file, photoId }: DetectFacesInPhotosUsingAWSArgs) {
   const { path: originalPath } = file
   const compressedFilePath = originalPath + '-compressed.jpeg'
   await sharp(originalPath).jpeg({ quality: 30 }).toFile(compressedFilePath)
