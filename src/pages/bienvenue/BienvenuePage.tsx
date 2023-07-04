@@ -27,11 +27,13 @@ type FamilyMemberPhotoFace = {
   faceId: UUID
 } & (
   | {
-      stage: 'awaiting-input'
+      stage: 'awaiting-name'
     }
+  | { stage: 'awaiting-relationship'; name: string }
   | {
-      stage: 'in-progress'
+      stage: 'relationship-in-progress'
       messages: OpenAIMessage[]
+      name: string
     }
   | {
       stage: 'done'
@@ -313,7 +315,7 @@ export const BienvenuePage = withBrowserBundle(({ userId, steps }: BienvenuePage
 
               if (stage === 'annotating-photo') {
                 const faceInProgress = step.faces.find(
-                  (face): face is FamilyMemberPhotoFace & { stage: 'in-progress' } => face.stage === 'in-progress'
+                  (face): face is FamilyMemberPhotoFace & { stage: 'awaiting-name' } => face.stage === 'awaiting-name'
                 )
 
                 return (
@@ -326,6 +328,23 @@ export const BienvenuePage = withBrowserBundle(({ userId, steps }: BienvenuePage
                         <img src={step.photoUrl} className='max-w-full max-h-[50vh]' />
                       </div>
                       <div className='grid grid-cols-8 auto-cols-auto justify-items-stretch'>
+                        <div className='col-span-8'>
+                          {step.faces
+                            .filter((face): face is FamilyMemberPhotoFace & { stage: 'done' } => face.stage === 'done')
+                            .map((face) => {
+                              return (
+                                <div>
+                                  <PhotoBadge
+                                    key={`annotatingFamilyFaces${face.faceId}`}
+                                    photoId={step.photoId}
+                                    faceId={face.faceId}
+                                    className={`m-2 hover:cursor-default mix-blend-luminosity`}
+                                  />
+                                  <span className='text-gray-500'>{face.result.name}</span>
+                                </div>
+                              )
+                            })}
+                        </div>
                         <div className='w-24'>
                           {faceInProgress ? (
                             <div className='' key={`annotatingFamilyFaces${faceInProgress.faceId}`}>
@@ -338,7 +357,7 @@ export const BienvenuePage = withBrowserBundle(({ userId, steps }: BienvenuePage
                           ) : null}
 
                           {step.faces
-                            .filter((face) => face.stage === 'awaiting-input')
+                            .filter((face) => face.stage === 'awaiting-name' && face.faceId !== faceInProgress?.faceId)
                             .map((face) => {
                               return (
                                 <div>
@@ -355,30 +374,20 @@ export const BienvenuePage = withBrowserBundle(({ userId, steps }: BienvenuePage
                         <div className='col-span-7 max-w-md'>
                           {faceInProgress ? (
                             <>
-                              {faceInProgress.messages
-                                .filter(({ role, function_call }) => role !== 'system' && !function_call)
-                                .map(({ role, content }, index) => {
-                                  return (
-                                    <p
-                                      key={`message${index}`}
-                                      className={`mt-3 text-xl ${role === 'assistant' ? 'text-gray-500' : ''}`}>
-                                      {content}
-                                    </p>
-                                  )
-                                })}
+                              <p className={`mt-3 text-xl text-gray-500`}>Quel est le nom de cette personne ?</p>
                               <form method='POST' className='relative mt-2'>
-                                <input type='hidden' name='action' value='submitFamilyMemberPresentation' />
+                                <input type='hidden' name='action' value='submitFamilyMemberName' />
                                 <input type='hidden' name='faceId' value={faceInProgress.faceId} />
                                 <div className='overflow-hidden border border-gray-200 shadow-sm focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500'>
-                                  <label htmlFor='presentation' className='sr-only'>
-                                    C'est...
+                                  <label htmlFor='familyMemberName' className='sr-only'>
+                                    Nom complet
                                   </label>
-                                  <textarea
-                                    rows={3}
-                                    name='familyMemberPresentation'
-                                    id='familyMemberPresentation'
+                                  <input
+                                    type='text'
+                                    name='familyMemberName'
+                                    id='familyMemberName'
                                     className='block w-full resize-none border-0 py-3 px-4 focus:ring-0 text-xl'
-                                    placeholder="C'est..."
+                                    placeholder='Jean Michel'
                                     onKeyDown={(e) => {
                                       if (e.key === 'Enter') {
                                         e.preventDefault()
@@ -387,26 +396,13 @@ export const BienvenuePage = withBrowserBundle(({ userId, steps }: BienvenuePage
                                       }
                                     }}
                                   />
-
-                                  {/* Spacer element to match the height of the toolbar */}
-                                  <div className='py-2' aria-hidden='true'>
-                                    {/* Matches height of button in toolbar (1px border + 36px content height) */}
-                                    <div className='py-px'>
-                                      <div className='h-9' />
-                                    </div>
-                                  </div>
                                 </div>
-
-                                <div className='absolute inset-x-0 bottom-0 flex justify-between py-2 pl-3 pr-2'>
-                                  <div className='flex-shrink-0'>
-                                    <button
-                                      type='submit'
-                                      className='inline-flex items-center mt-3 px-3 py-1.5 border border-transparent sm:sm:text-xs font-medium rounded-full shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
-                                      <SendIcon className='-ml-0.5 mr-2 h-4 w-4' aria-hidden='true' />
-                                      Envoyer
-                                    </button>
-                                  </div>
-                                </div>
+                                <button
+                                  type='submit'
+                                  className='inline-flex items-center mt-3 px-3 py-1.5 border border-transparent sm:sm:text-xs font-medium rounded-full shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
+                                  <SendIcon className='-ml-0.5 mr-2 h-4 w-4' aria-hidden='true' />
+                                  Envoyer
+                                </button>
                               </form>
                             </>
                           ) : null}
@@ -432,8 +428,8 @@ type PhotoBadgeProps = {
 const PhotoBadge = ({ photoId, className, faceId }: PhotoBadgeProps) => {
   return (
     <img
-      // src='https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=100&h=100&q=80'
-      src={`/photo/${photoId}/face/${faceId}`}
+      src='https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=100&h=100&q=80'
+      // src={`/photo/${photoId}/face/${faceId}`}
       className={`inline-block cursor-pointer rounded-full h-14 w-14 bg-white ring-2 ring-white'
       } ${className || ''}`}
     />
