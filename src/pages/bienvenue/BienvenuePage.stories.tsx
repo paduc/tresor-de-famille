@@ -392,17 +392,17 @@ export const Step3AnnotatingPhoto = () => (
             //     },
             //   ],
             // },
-            // { faceId: getUuid(), stage: 'awaiting-name' },
-            // {
-            //   faceId: getUuid(),
-            //   stage: 'done',
-            //   messages: [],
-            //   result: {
-            //     personId: getUuid(),
-            //     name: 'John Doe',
-            //   },
-            // },
-            // { faceId: getUuid(), stage: 'awaiting-name' },
+            { faceId: getUuid(), stage: 'ignored' },
+            {
+              faceId: getUuid(),
+              stage: 'done',
+              messages: [],
+              result: {
+                personId: getUuid(),
+                name: 'John Doe',
+              },
+            },
+            { faceId: getUuid(), stage: 'awaiting-name' },
           ],
         },
       ]}

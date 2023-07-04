@@ -7,7 +7,7 @@ import { SendIcon } from '../chat/ChatPage/SendIcon'
 import { PhotoIcon } from '@heroicons/react/24/outline'
 import { InlinePhotoUpload } from '../_components/InlinePhotoUpload'
 import { InlinePhotoUploadBtn } from '../_components/InlinePhotoUploadBtn'
-import { CheckIcon } from '@heroicons/react/20/solid'
+import { CheckIcon, XMarkIcon } from '@heroicons/react/20/solid'
 
 // @ts-ignore
 function classNames(...classes) {
@@ -28,6 +28,9 @@ type FamilyMemberPhotoFace = {
 } & (
   | {
       stage: 'awaiting-name'
+    }
+  | {
+      stage: 'ignored'
     }
   | { stage: 'awaiting-relationship'; name: string }
   | {
@@ -432,8 +435,36 @@ export const BienvenuePage = withBrowserBundle(({ userId, steps }: BienvenuePage
                                   Envoyer
                                 </button>
                               </form>
+                              <form method='POST' className='relative'>
+                                <input type='hidden' name='action' value='ignoreFamilyMemberFaceInPhoto' />
+                                <input type='hidden' name='faceId' value={faceInProgress.faceId} />
+                                <input type='hidden' name='photoId' value={step.photoId} />
+                                <button
+                                  type='submit'
+                                  className='inline-flex items-center mt-3 px-3 py-1.5 border border-transparent sm:sm:text-xs font-medium rounded-full shadow-sm hover:font-semibold text-red-600 ring-1 hover:ring-2 ring-red-600 ring-inset'>
+                                  <XMarkIcon className='-ml-0.5 mr-2 h-4 w-4' aria-hidden='true' />
+                                  Ignorer ce visage
+                                </button>
+                              </form>
                             </>
                           ) : null}
+                        </div>
+                        <div className='col-span-8'>
+                          {step.faces
+                            .filter((face): face is FamilyMemberPhotoFace & { stage: 'ignored' } => face.stage === 'ignored')
+                            .map((face) => {
+                              return (
+                                <div>
+                                  <PhotoBadge
+                                    key={`annotatingFamilyFaces${face.faceId}`}
+                                    photoId={step.photoId}
+                                    faceId={face.faceId}
+                                    className={`m-2 hover:cursor-default mix-blend-luminosity`}
+                                  />
+                                  <span className='text-gray-500 italic'>Visage ignoré</span>
+                                </div>
+                              )
+                            })}
                         </div>
                       </div>
                     </div>

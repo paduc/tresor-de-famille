@@ -10,6 +10,7 @@ import { UserProgressedUsingOpenAIToPresentThemself } from './step1-userTellsAbo
 import { initialMessages } from './step1-userTellsAboutThemselves/parseFirstPresentation'
 import { OnboardingUserUploadedPhotoOfFamily } from './step2-userUploadsPhoto/OnboardingUserUploadedPhotoOfFamily'
 import { UserConfirmedHisFaceDuringOnboarding } from './step2-userUploadsPhoto/UserConfirmedHisFaceDuringOnboarding'
+import { OnboardingFaceIgnoredInFamilyPhoto } from './step3-learnAboutUsersFamily/OnboardingFaceIgnoredInFamilyPhoto'
 import { OnboardingUserNamedPersonInFamilyPhoto } from './step3-learnAboutUsersFamily/OnboardingUserNamedPersonInFamilyPhoto'
 
 export async function getPreviousMessages(userId: UUID): Promise<BienvenuePageProps> {
@@ -169,10 +170,24 @@ export async function getPreviousMessages(userId: UUID): Promise<BienvenuePagePr
               messages: [],
             })
           } else {
-            faces.push({
-              faceId: detectedFace.faceId,
-              stage: 'awaiting-name',
-            })
+            // Has this face been ignored ?
+
+            const { rowCount: faceIgnored } = await postgres.query<OnboardingFaceIgnoredInFamilyPhoto>(
+              "SELECT * FROM history WHERE type='OnboardingFaceIgnoredInFamilyPhoto' AND payload->>'faceId'=$1 AND payload->>'photoId'=$2 AND payload->>'ignoredBy'=$3 ORDER BY \"occurredAt\" DESC LIMIT 1",
+              [detectedFace.faceId, photoId, userId]
+            )
+
+            if (faceIgnored) {
+              faces.push({
+                faceId: detectedFace.faceId,
+                stage: 'ignored',
+              })
+            } else {
+              faces.push({
+                faceId: detectedFace.faceId,
+                stage: 'awaiting-name',
+              })
+            }
           }
 
           //             | {

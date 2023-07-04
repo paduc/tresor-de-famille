@@ -14,6 +14,7 @@ import { UserConfirmedHisFaceDuringOnboarding } from './step2-userUploadsPhoto/U
 import { uploadUserPhotoOfFamily } from './step2-userUploadsPhoto/uploadUserPhotoOfFamily'
 import { OnboardingUserNamedPersonInFamilyPhoto } from './step3-learnAboutUsersFamily/OnboardingUserNamedPersonInFamilyPhoto'
 import { getUuid } from '../../libs/getUuid'
+import { OnboardingFaceIgnoredInFamilyPhoto } from './step3-learnAboutUsersFamily/OnboardingFaceIgnoredInFamilyPhoto'
 
 const FILE_SIZE_LIMIT_MB = 50
 const upload = multer({
@@ -76,6 +77,14 @@ pageRouter
           faceId,
           personId: getUuid(),
           name: familyMemberName,
+        })
+      )
+    } else if (action === 'ignoreFamilyMemberFaceInPhoto' && faceId && photoId) {
+      await addToHistory(
+        OnboardingFaceIgnoredInFamilyPhoto({
+          ignoredBy: userId,
+          photoId,
+          faceId,
         })
       )
     }
