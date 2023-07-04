@@ -343,7 +343,7 @@ export const Step3Start = () => (
     />
   </SessionContext.Provider>
 )
-export const Step3AnnotatingPhoto = () => (
+export const Step3AnnotatingPhotoFirstPhoto = () => (
   <SessionContext.Provider value={{ isLoggedIn: true, userName: '', isAdmin: false }}>
     <BienvenuePage
       userId={getUuid()}
@@ -378,31 +378,168 @@ export const Step3AnnotatingPhoto = () => (
         {
           goal: 'upload-family-photo',
           stage: 'annotating-photo',
+          photos: [
+            {
+              photoId: getUuid(),
+              photoUrl:
+                'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=2560&h=2560&q=80',
+              faces: [
+                { faceId: getUuid(), stage: 'ignored' },
+                {
+                  faceId: getUuid(),
+                  stage: 'done',
+                  messages: [],
+                  result: {
+                    personId: getUuid(),
+                    name: 'John Doe',
+                  },
+                },
+                // { faceId: getUuid(), stage: 'awaiting-name' },
+              ],
+            },
+          ],
+        },
+      ]}
+    />
+  </SessionContext.Provider>
+)
+export const Step3AnnotatingPhotoSecondPhoto = () => (
+  <SessionContext.Provider value={{ isLoggedIn: true, userName: '', isAdmin: false }}>
+    <BienvenuePage
+      userId={getUuid()}
+      steps={[
+        {
+          goal: 'get-user-name',
+          stage: 'done',
+          result: {
+            name: 'Pierre-Antoine',
+            personId: getUuid(),
+          },
+          messages: [
+            {
+              role: 'assistant',
+              content: "Faisons connaissance ! Pour commencer, comment t'appelles-tu ?",
+            },
+            {
+              role: 'user',
+              content: 'Pierre-Antoine.',
+            },
+          ],
+        },
+        {
+          goal: 'upload-first-photo',
+          stage: 'face-confirmed',
+          confirmedFaceId: getUuid(),
           photoId: getUuid(),
           photoUrl:
             'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=2560&h=2560&q=80',
-          faces: [
-            // {
-            //   faceId: getUuid(),
-            //   stage: 'in-progress',
-            //   messages: [
-            //     {
-            //       role: 'assistant',
-            //       content: 'Qui est cette personne ?',
-            //     },
-            //   ],
-            // },
-            { faceId: getUuid(), stage: 'ignored' },
+          faces: [{ faceId: getUuid() }],
+        },
+        {
+          goal: 'upload-family-photo',
+          stage: 'annotating-photo',
+          photos: [
             {
-              faceId: getUuid(),
-              stage: 'done',
-              messages: [],
-              result: {
-                personId: getUuid(),
-                name: 'John Doe',
-              },
+              photoId: getUuid(),
+              photoUrl:
+                'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=2560&h=2560&q=80',
+              faces: [
+                { faceId: getUuid(), stage: 'ignored' },
+                {
+                  faceId: getUuid(),
+                  stage: 'done',
+                  messages: [],
+                  result: {
+                    personId: getUuid(),
+                    name: 'John Doe',
+                  },
+                },
+              ],
             },
-            { faceId: getUuid(), stage: 'awaiting-name' },
+            {
+              photoId: getUuid(),
+              photoUrl:
+                'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=2560&h=2560&q=80',
+              faces: [
+                { faceId: getUuid(), stage: 'ignored' },
+                {
+                  faceId: getUuid(),
+                  stage: 'done',
+                  messages: [],
+                  result: {
+                    personId: getUuid(),
+                    name: 'John Doe',
+                  },
+                },
+                { faceId: getUuid(), stage: 'awaiting-name' },
+              ],
+            },
+          ],
+        },
+      ]}
+    />
+  </SessionContext.Provider>
+)
+export const Step3AnnotatingWithIgnoredPhoto = () => (
+  <SessionContext.Provider value={{ isLoggedIn: true, userName: '', isAdmin: false }}>
+    <BienvenuePage
+      userId={getUuid()}
+      steps={[
+        {
+          goal: 'get-user-name',
+          stage: 'done',
+          result: {
+            name: 'Pierre-Antoine',
+            personId: getUuid(),
+          },
+          messages: [
+            {
+              role: 'assistant',
+              content: "Faisons connaissance ! Pour commencer, comment t'appelles-tu ?",
+            },
+            {
+              role: 'user',
+              content: 'Pierre-Antoine.',
+            },
+          ],
+        },
+        {
+          goal: 'upload-first-photo',
+          stage: 'face-confirmed',
+          confirmedFaceId: getUuid(),
+          photoId: getUuid(),
+          photoUrl:
+            'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=2560&h=2560&q=80',
+          faces: [{ faceId: getUuid() }],
+        },
+        {
+          goal: 'upload-family-photo',
+          stage: 'annotating-photo',
+          photos: [
+            {
+              photoId: getUuid(),
+              photoUrl:
+                'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=2560&h=2560&q=80',
+              faces: [],
+            },
+            {
+              photoId: getUuid(),
+              photoUrl:
+                'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=2560&h=2560&q=80',
+              faces: [
+                { faceId: getUuid(), stage: 'ignored' },
+                {
+                  faceId: getUuid(),
+                  stage: 'done',
+                  messages: [],
+                  result: {
+                    personId: getUuid(),
+                    name: 'John Doe',
+                  },
+                },
+                { faceId: getUuid(), stage: 'awaiting-name' },
+              ],
+            },
           ],
         },
       ]}

@@ -132,95 +132,82 @@ export async function getPreviousMessages(userId: UUID): Promise<BienvenuePagePr
   // Step 3 : User Uploads family photo
 
   if (props.steps.at(-1)?.stage === 'face-confirmed') {
-    const { rows: latestUserUploadedPhoto } = await postgres.query<OnboardingUserUploadedPhotoOfFamily>(
-      "SELECT * FROM history WHERE type='OnboardingUserUploadedPhotoOfFamily' AND payload->>'uploadedBy'=$1 ORDER BY \"occurredAt\" DESC LIMIT 1",
+    const { rows: userUploadedPhotoRows } = await postgres.query<OnboardingUserUploadedPhotoOfFamily>(
+      "SELECT * FROM history WHERE type='OnboardingUserUploadedPhotoOfFamily' AND payload->>'uploadedBy'=$1 ORDER BY \"occurredAt\" ASC",
       [userId]
     )
 
-    const { photoId } = latestUserUploadedPhoto[0].payload
+    const userUploadedPhotos = userUploadedPhotoRows.map((row) => row.payload)
 
-    if (latestUserUploadedPhoto.length) {
-      const { rows: facesDetected } = await postgres.query<AWSDetectedFacesInPhoto>(
-        "SELECT * FROM history WHERE type='AWSDetectedFacesInPhoto' AND payload->>'photoId'=$1 ORDER BY \"occurredAt\" DESC LIMIT 1",
-        [photoId]
-      )
+    if (userUploadedPhotos.length) {
+      const photos: FamilyPhoto[] = []
+      for (const userUploadedPhoto of userUploadedPhotos) {
+        const { photoId } = userUploadedPhoto
 
-      // Get facesDetected
-      const detectedFaces = facesDetected.map(({ payload }) => payload.faces).shift()
+        const { rows: facesDetected } = await postgres.query<AWSDetectedFacesInPhoto>(
+          "SELECT * FROM history WHERE type='AWSDetectedFacesInPhoto' AND payload->>'photoId'=$1 ORDER BY \"occurredAt\" DESC LIMIT 1",
+          [photoId]
+        )
 
-      const faces: FamilyMemberPhotoFace[] = []
-      if (detectedFaces) {
-        for (const detectedFace of detectedFaces) {
-          // Has a name been given for this family member ?
-          const { rows: personNamedRows } = await postgres.query<OnboardingUserNamedPersonInFamilyPhoto>(
-            "SELECT * FROM history WHERE type='OnboardingUserNamedPersonInFamilyPhoto' AND payload->>'faceId'=$1 AND payload->>'photoId'=$2 AND payload->>'userId'=$3 ORDER BY \"occurredAt\" DESC LIMIT 1",
-            [detectedFace.faceId, photoId, userId]
-          )
+        // Get facesDetected
+        const detectedFaces = facesDetected.map(({ payload }) => payload.faces).shift()
 
-          const personNamed = personNamedRows[0]?.payload
-
-          if (personNamed) {
-            faces.push({
-              faceId: detectedFace.faceId,
-              stage: 'done',
-              result: {
-                personId: personNamed.personId,
-                name: personNamed.name,
-              },
-              messages: [],
-            })
-          } else {
-            // Has this face been ignored ?
-
-            const { rowCount: faceIgnored } = await postgres.query<OnboardingFaceIgnoredInFamilyPhoto>(
-              "SELECT * FROM history WHERE type='OnboardingFaceIgnoredInFamilyPhoto' AND payload->>'faceId'=$1 AND payload->>'photoId'=$2 AND payload->>'ignoredBy'=$3 ORDER BY \"occurredAt\" DESC LIMIT 1",
+        const faces: FamilyMemberPhotoFace[] = []
+        if (detectedFaces) {
+          for (const detectedFace of detectedFaces) {
+            // Has a name been given for this family member ?
+            const { rows: personNamedRows } = await postgres.query<OnboardingUserNamedPersonInFamilyPhoto>(
+              "SELECT * FROM history WHERE type='OnboardingUserNamedPersonInFamilyPhoto' AND payload->>'faceId'=$1 AND payload->>'photoId'=$2 AND payload->>'userId'=$3 ORDER BY \"occurredAt\" DESC LIMIT 1",
               [detectedFace.faceId, photoId, userId]
             )
 
-            if (faceIgnored) {
+            const personNamed = personNamedRows[0]?.payload
+
+            if (personNamed) {
               faces.push({
                 faceId: detectedFace.faceId,
-                stage: 'ignored',
+                stage: 'done',
+                result: {
+                  personId: personNamed.personId,
+                  name: personNamed.name,
+                },
+                messages: [],
               })
             } else {
-              faces.push({
-                faceId: detectedFace.faceId,
-                stage: 'awaiting-name',
-              })
+              // Has this face been ignored ?
+
+              const { rowCount: faceIgnored } = await postgres.query<OnboardingFaceIgnoredInFamilyPhoto>(
+                "SELECT * FROM history WHERE type='OnboardingFaceIgnoredInFamilyPhoto' AND payload->>'faceId'=$1 AND payload->>'photoId'=$2 AND payload->>'ignoredBy'=$3 ORDER BY \"occurredAt\" DESC LIMIT 1",
+                [detectedFace.faceId, photoId, userId]
+              )
+
+              if (faceIgnored) {
+                faces.push({
+                  faceId: detectedFace.faceId,
+                  stage: 'ignored',
+                })
+              } else {
+                faces.push({
+                  faceId: detectedFace.faceId,
+                  stage: 'awaiting-name',
+                })
+              }
             }
           }
-
-          //             | {
-          //       stage: 'awaiting-name'
-          //     }
-          //   | { stage: 'awaiting-relationship'; name: string }
-          //   | {
-          //       stage: 'relationship-in-progress'
-          //       messages: OpenAIMessage[]
-          //       name: string
-          //     }
-          //   | {
-          //       stage: 'done'
-          //       messages: OpenAIMessage[]
-          //       result: {
-          //         personId: UUID
-          //         name: string
-          //         relationship?: {}
-          //       }
-          //     }
-          // )
         }
-      }
 
+        photos.push({
+          photoId,
+          photoUrl: getPhotoUrlFromId(photoId),
+          faces,
+        })
+      }
       props.steps.push({
         goal: 'upload-family-photo',
         stage: 'annotating-photo',
-        photoId,
-        photoUrl: getPhotoUrlFromId(photoId),
-        faces,
+        photos,
       })
     } else {
-      // No the user has not uploaded another photo for his family
       props.steps.push({
         goal: 'upload-family-photo',
         stage: 'awaiting-upload',
@@ -231,6 +218,10 @@ export async function getPreviousMessages(userId: UUID): Promise<BienvenuePagePr
   return props
 }
 
-type FamilyMemberPhotoFace = (BienvenuePageProps['steps'][number] & {
+type FamilyPhoto = (BienvenuePageProps['steps'][number] & {
   goal: 'upload-family-photo'
-} & { stage: 'annotating-photo' })['faces'][number]
+} & {
+  stage: 'annotating-photo'
+})['photos'][number]
+
+type FamilyMemberPhotoFace = FamilyPhoto['faces'][number]

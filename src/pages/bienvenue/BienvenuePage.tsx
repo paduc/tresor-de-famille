@@ -78,9 +78,11 @@ type OnboardingStep =
       | { stage: 'awaiting-upload' }
       | {
           stage: 'annotating-photo'
-          photoId: UUID
-          photoUrl: string
-          faces: FamilyMemberPhotoFace[]
+          photos: {
+            photoId: UUID
+            photoUrl: string
+            faces: FamilyMemberPhotoFace[]
+          }[]
         }
     ))
 
@@ -317,36 +319,7 @@ export const BienvenuePage = withBrowserBundle(({ userId, steps }: BienvenuePage
               }
 
               if (stage === 'annotating-photo') {
-                const { faces, photoUrl } = step
-                if (!faces || faces.length === 0) {
-                  return (
-                    <div className='pb-5' key={`step_${goal}_${stepIndex}`}>
-                      <div className='py-3 px-4'>
-                        <p className={`mt-3 text-xl text-gray-500`}>
-                          Maintenant, je te propose de présenter ta famille, à travers une ou plusieurs photo.
-                        </p>
-
-                        <div className='grid grid-cols-1 w-full mt-3'>
-                          <img src={photoUrl} className='max-w-full max-h-[50vh]' />
-                        </div>
-
-                        <p className={`mt-3 text-xl text-gray-500`}>
-                          Aucun visage n'a été détecté sur cette photo. Merci d'en choisir une autre.
-                        </p>
-                        <InlinePhotoUploadBtn hiddenFields={{ action: 'userSendsPhotoOfFamily' }}>
-                          <span className='cursor-pointer inline-flex items-center mt-3 px-3 py-1.5 border border-transparent text-md font-medium rounded-full shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
-                            <PhotoIcon className='-ml-0.5 mr-2 h-6 w-6' aria-hidden='true' />
-                            Choisir une photo avec des membres de ma famille
-                          </span>
-                        </InlinePhotoUploadBtn>
-                      </div>
-                    </div>
-                  )
-                }
-
-                const faceInProgress = step.faces.find(
-                  (face): face is FamilyMemberPhotoFace & { stage: 'awaiting-name' } => face.stage === 'awaiting-name'
-                )
+                const { photos } = step
 
                 return (
                   <div className='pb-5' key={`step_${goal}_${stepIndex}`}>
@@ -354,126 +327,180 @@ export const BienvenuePage = withBrowserBundle(({ userId, steps }: BienvenuePage
                       <p className={`mt-3 text-xl text-gray-500`}>
                         Maintenant, je te propose de présenter ta famille, à travers une ou plusieurs photo.
                       </p>
-                      <div className='grid grid-cols-1 w-full mt-3'>
-                        <img src={step.photoUrl} className='max-w-full max-h-[50vh]' />
-                      </div>
-
-                      <div className='grid grid-cols-8 auto-cols-auto justify-items-stretch'>
-                        <div className='col-span-8'>
-                          {step.faces
-                            .filter((face): face is FamilyMemberPhotoFace & { stage: 'done' } => face.stage === 'done')
-                            .map((face) => {
-                              return (
-                                <div>
-                                  <PhotoBadge
-                                    key={`annotatingFamilyFaces${face.faceId}`}
-                                    photoId={step.photoId}
-                                    faceId={face.faceId}
-                                    className={`m-2 hover:cursor-default mix-blend-luminosity`}
-                                  />
-                                  <span className='text-gray-500'>{face.result.name}</span>
-                                </div>
-                              )
-                            })}
-                        </div>
-                        <div className='w-24'>
-                          {faceInProgress ? (
-                            <div className='' key={`annotatingFamilyFaces${faceInProgress.faceId}`}>
-                              <PhotoBadge
-                                photoId={step.photoId}
-                                faceId={faceInProgress.faceId}
-                                className={`m-2 h-[80px] w-[80px] hover:cursor-default`}
-                              />
-                            </div>
-                          ) : null}
-
-                          {step.faces
-                            .filter((face) => face.stage === 'awaiting-name' && face.faceId !== faceInProgress?.faceId)
-                            .map((face) => {
-                              return (
-                                <div>
-                                  <PhotoBadge
-                                    key={`annotatingFamilyFaces${face.faceId}`}
-                                    photoId={step.photoId}
-                                    faceId={face.faceId}
-                                    className={`m-2 hover:cursor-default mix-blend-luminosity`}
-                                  />
-                                </div>
-                              )
-                            })}
-                        </div>
-                        <div className='col-span-7 max-w-md'>
-                          {faceInProgress ? (
-                            <>
-                              <p className={`mt-3 text-xl text-gray-500`}>Quel est le nom de cette personne ?</p>
-                              <form method='POST' className='relative mt-2'>
-                                <input type='hidden' name='action' value='submitFamilyMemberName' />
-                                <input type='hidden' name='faceId' value={faceInProgress.faceId} />
-                                <input type='hidden' name='photoId' value={step.photoId} />
-                                <div className='overflow-hidden border border-gray-200 shadow-sm focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500'>
-                                  <label htmlFor='familyMemberName' className='sr-only'>
-                                    Nom complet
-                                  </label>
-                                  <input
-                                    type='text'
-                                    name='familyMemberName'
-                                    id='familyMemberName'
-                                    className='block w-full resize-none border-0 py-3 px-4 focus:ring-0 text-xl'
-                                    placeholder='Jean Michel'
-                                    onKeyDown={(e) => {
-                                      if (e.key === 'Enter') {
-                                        e.preventDefault()
-                                        // @ts-ignore
-                                        e.target.form.submit()
-                                      }
-                                    }}
-                                  />
-                                </div>
-                                <button
-                                  type='submit'
-                                  className='inline-flex items-center mt-3 px-3 py-1.5 border border-transparent sm:sm:text-xs font-medium rounded-full shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
-                                  <SendIcon className='-ml-0.5 mr-2 h-4 w-4' aria-hidden='true' />
-                                  Envoyer
-                                </button>
-                              </form>
-                              <form method='POST' className='relative'>
-                                <input type='hidden' name='action' value='ignoreFamilyMemberFaceInPhoto' />
-                                <input type='hidden' name='faceId' value={faceInProgress.faceId} />
-                                <input type='hidden' name='photoId' value={step.photoId} />
-                                <button
-                                  type='submit'
-                                  className='inline-flex items-center mt-3 px-3 py-1.5 border border-transparent sm:sm:text-xs font-medium rounded-full shadow-sm hover:font-semibold text-red-600 ring-1 hover:ring-2 ring-red-600 ring-inset'>
-                                  <XMarkIcon className='-ml-0.5 mr-2 h-4 w-4' aria-hidden='true' />
-                                  Ignorer ce visage
-                                </button>
-                              </form>
-                            </>
-                          ) : null}
-                        </div>
-                        <div className='col-span-8'>
-                          {step.faces
-                            .filter((face): face is FamilyMemberPhotoFace & { stage: 'ignored' } => face.stage === 'ignored')
-                            .map((face) => {
-                              return (
-                                <div>
-                                  <PhotoBadge
-                                    key={`annotatingFamilyFaces${face.faceId}`}
-                                    photoId={step.photoId}
-                                    faceId={face.faceId}
-                                    className={`m-2 hover:cursor-default mix-blend-luminosity`}
-                                  />
-                                  <span className='text-gray-500 italic'>Visage ignoré</span>
-                                </div>
-                              )
-                            })}
-                        </div>
-                      </div>
-                      {step.faces.every((face) => face.stage === 'done' || face.stage === 'ignored') ? (
-                        <p className={`mt-3 text-xl text-gray-500`}>
-                          Top ! Est-ce que tu as d'autres photos pour présenter ta famille ?
-                        </p>
-                      ) : null}
                     </div>
+                    {photos.map((photo, photoIndex) => {
+                      const isLastPhoto = photoIndex === photos.length - 1
+                      const { faces, photoUrl } = photo
+
+                      if (!faces || faces.length === 0) {
+                        return (
+                          <div className='pb-5' key={`step_${goal}_${stepIndex}_${photoIndex}`}>
+                            <div className='py-3 px-4'>
+                              <div className='grid grid-cols-1 w-full mt-3'>
+                                <img src={photoUrl} className='max-w-full max-h-[10vh] opacity-60' />
+                              </div>
+                              {photoIndex === photos.length - 1 ? (
+                                <>
+                                  <p className={`mt-3 text-xl text-gray-500`}>
+                                    Aucun visage n'a été détecté sur cette photo. Merci d'en choisir une autre.
+                                  </p>
+                                  <InlinePhotoUploadBtn hiddenFields={{ action: 'userSendsPhotoOfFamily' }}>
+                                    <span className='cursor-pointer inline-flex items-center mt-3 px-3 py-1.5 border border-transparent text-md font-medium rounded-full shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
+                                      <PhotoIcon className='-ml-0.5 mr-2 h-6 w-6' aria-hidden='true' />
+                                      Choisir une photo avec des membres de ma famille
+                                    </span>
+                                  </InlinePhotoUploadBtn>
+                                </>
+                              ) : (
+                                <p className={`mt-3 text-md italic text-gray-500`}>
+                                  Aucun visage n'a été détecté sur cette photo.
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        )
+                      }
+
+                      const faceInProgress = faces.find(
+                        (face): face is FamilyMemberPhotoFace & { stage: 'awaiting-name' } => face.stage === 'awaiting-name'
+                      )
+
+                      return (
+                        <div className='pb-5' key={`step_${goal}_${stepIndex}_${photoIndex}`}>
+                          <div className='py-3 px-4'>
+                            <div className='grid grid-cols-1 w-full mt-3'>
+                              <img src={photoUrl} className='max-w-full max-h-[50vh]' />
+                            </div>
+
+                            <div className='grid grid-cols-8 auto-cols-auto justify-items-stretch'>
+                              <div className='col-span-8'>
+                                {faces
+                                  .filter((face): face is FamilyMemberPhotoFace & { stage: 'done' } => face.stage === 'done')
+                                  .map((face) => {
+                                    return (
+                                      <div>
+                                        <PhotoBadge
+                                          key={`annotatingFamilyFaces${face.faceId}`}
+                                          photoId={photo.photoId}
+                                          faceId={face.faceId}
+                                          className={`m-2 hover:cursor-default mix-blend-luminosity`}
+                                        />
+                                        <span className='text-gray-500'>{face.result.name}</span>
+                                      </div>
+                                    )
+                                  })}
+                              </div>
+                              <div className='w-24'>
+                                {faceInProgress ? (
+                                  <div className='' key={`annotatingFamilyFaces${faceInProgress.faceId}`}>
+                                    <PhotoBadge
+                                      photoId={photo.photoId}
+                                      faceId={faceInProgress.faceId}
+                                      className={`m-2 h-[80px] w-[80px] hover:cursor-default`}
+                                    />
+                                  </div>
+                                ) : null}
+
+                                {faces
+                                  .filter((face) => face.stage === 'awaiting-name' && face.faceId !== faceInProgress?.faceId)
+                                  .map((face) => {
+                                    return (
+                                      <div>
+                                        <PhotoBadge
+                                          key={`annotatingFamilyFaces${face.faceId}`}
+                                          photoId={photo.photoId}
+                                          faceId={face.faceId}
+                                          className={`m-2 hover:cursor-default mix-blend-luminosity`}
+                                        />
+                                      </div>
+                                    )
+                                  })}
+                              </div>
+                              <div className='col-span-7 max-w-md'>
+                                {faceInProgress ? (
+                                  <>
+                                    <p className={`mt-3 text-xl text-gray-500`}>Quel est le nom de cette personne ?</p>
+                                    <form method='POST' className='relative mt-2'>
+                                      <input type='hidden' name='action' value='submitFamilyMemberName' />
+                                      <input type='hidden' name='faceId' value={faceInProgress.faceId} />
+                                      <input type='hidden' name='photoId' value={photo.photoId} />
+                                      <div className='overflow-hidden border border-gray-200 shadow-sm focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500'>
+                                        <label htmlFor='familyMemberName' className='sr-only'>
+                                          Nom complet
+                                        </label>
+                                        <input
+                                          type='text'
+                                          name='familyMemberName'
+                                          id='familyMemberName'
+                                          className='block w-full resize-none border-0 py-3 px-4 focus:ring-0 text-xl'
+                                          placeholder='Jean Michel'
+                                          onKeyDown={(e) => {
+                                            if (e.key === 'Enter') {
+                                              e.preventDefault()
+                                              // @ts-ignore
+                                              e.target.form.submit()
+                                            }
+                                          }}
+                                        />
+                                      </div>
+                                      <button
+                                        type='submit'
+                                        className='inline-flex items-center mt-3 px-3 py-1.5 border border-transparent sm:sm:text-xs font-medium rounded-full shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
+                                        <SendIcon className='-ml-0.5 mr-2 h-4 w-4' aria-hidden='true' />
+                                        Envoyer
+                                      </button>
+                                    </form>
+                                    <form method='POST' className='relative'>
+                                      <input type='hidden' name='action' value='ignoreFamilyMemberFaceInPhoto' />
+                                      <input type='hidden' name='faceId' value={faceInProgress.faceId} />
+                                      <input type='hidden' name='photoId' value={photo.photoId} />
+                                      <button
+                                        type='submit'
+                                        className='inline-flex items-center mt-3 px-3 py-1.5 border border-transparent sm:sm:text-xs font-medium rounded-full shadow-sm hover:font-semibold text-red-600 ring-1 hover:ring-2 ring-red-600 ring-inset'>
+                                        <XMarkIcon className='-ml-0.5 mr-2 h-4 w-4' aria-hidden='true' />
+                                        Ignorer ce visage
+                                      </button>
+                                    </form>
+                                  </>
+                                ) : null}
+                              </div>
+                              <div className='col-span-8'>
+                                {faces
+                                  .filter(
+                                    (face): face is FamilyMemberPhotoFace & { stage: 'ignored' } => face.stage === 'ignored'
+                                  )
+                                  .map((face) => {
+                                    return (
+                                      <div>
+                                        <PhotoBadge
+                                          key={`annotatingFamilyFaces${face.faceId}${photo.photoId}`}
+                                          photoId={photo.photoId}
+                                          faceId={face.faceId}
+                                          className={`m-2 hover:cursor-default mix-blend-luminosity`}
+                                        />
+                                        <span className='text-gray-500 italic'>Visage ignoré</span>
+                                      </div>
+                                    )
+                                  })}
+                              </div>
+                            </div>
+                            {isLastPhoto && faces.every((face) => face.stage === 'done' || face.stage === 'ignored') ? (
+                              <>
+                                <p className={`mt-3 text-xl text-gray-500`}>
+                                  Top ! Est-ce que tu as d'autres photos pour présenter ta famille ?
+                                </p>
+                                <InlinePhotoUploadBtn hiddenFields={{ action: 'userSendsPhotoOfFamily' }}>
+                                  <span className='cursor-pointer inline-flex items-center mt-3 px-3 py-1.5 border border-transparent text-md font-medium rounded-full shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
+                                    <PhotoIcon className='-ml-0.5 mr-2 h-6 w-6' aria-hidden='true' />
+                                    Choisir une autre photo
+                                  </span>
+                                </InlinePhotoUploadBtn>
+                              </>
+                            ) : null}
+                          </div>
+                        </div>
+                      )
+                    })}
                   </div>
                 )
               }
