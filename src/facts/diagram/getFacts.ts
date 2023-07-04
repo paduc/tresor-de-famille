@@ -1,11 +1,11 @@
 import { Project, ReferenceEntry, Node } from 'ts-morph'
 
 export function getFacts(project: Project) {
-  const baseDomainEvent = getDomainEvent(project)
+  const baseMakeDomainEvent = getMakeDomainEvent(project)
 
   const fileWithDomainEvent = new Set<string>()
 
-  for (const baseEventReference of findReferences(baseDomainEvent)) {
+  for (const baseEventReference of findReferences(baseMakeDomainEvent)) {
     fileWithDomainEvent.add(baseEventReference.getNode().getSourceFile().getFilePath())
   }
 
@@ -33,6 +33,17 @@ function getDomainEvent(project: Project) {
   }
 
   return baseDomainEvent
+}
+
+function getMakeDomainEvent(project: Project) {
+  const baseDomainEventFile = project.getSourceFileOrThrow('DomainEvent.ts')
+
+  const descendants = baseDomainEventFile.getDescendants()
+
+  // @ts-ignore
+  const makeDomainEventNode = descendants.find((d) => d.compilerNode.escapedText === 'makeDomainEvent')
+
+  return makeDomainEventNode
 }
 
 function findReferences(node: Node | undefined) {

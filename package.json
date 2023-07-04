@@ -21,7 +21,8 @@
     "sb": "storybook dev -p 6006",
     "build-storybook": "build-storybook",
     "psql": "psql -h localhost -p 5434 -d tdf -U admin -W",
-    "psql:prod": "scalingo -a tresor-de-famille pgsql-console"
+    "psql:prod": "scalingo -a tresor-de-famille pgsql-console",
+    "devtools": "nodemon --config nodemon.devtools.json --inspect src/facts/diagram/diagramServer.ts"
   },
   "repository": {
     "type": "git",
