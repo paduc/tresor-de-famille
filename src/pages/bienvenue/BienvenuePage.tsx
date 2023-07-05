@@ -5,7 +5,6 @@ import { withBrowserBundle } from '../../libs/ssr/withBrowserBundle'
 import { AppLayout } from '../_components/layout/AppLayout'
 import { SendIcon } from '../chat/ChatPage/SendIcon'
 import { PhotoIcon } from '@heroicons/react/24/outline'
-import { InlinePhotoUpload } from '../_components/InlinePhotoUpload'
 import { InlinePhotoUploadBtn } from '../_components/InlinePhotoUploadBtn'
 import { CheckIcon, XMarkIcon } from '@heroicons/react/20/solid'
 
@@ -92,6 +91,12 @@ export type BienvenuePageProps = {
 }
 
 export const BienvenuePage = withBrowserBundle(({ userId, steps }: BienvenuePageProps) => {
+  const bottomOfPageRef = React.useRef<HTMLDivElement>(null)
+
+  React.useEffect(() => {
+    bottomOfPageRef.current?.scrollIntoView()
+  }, [])
+
   return (
     <AppLayout hideNavBarItems={true}>
       <div className='bg-white '>
@@ -508,6 +513,7 @@ export const BienvenuePage = withBrowserBundle(({ userId, steps }: BienvenuePage
               }
             }
           })}
+          <div ref={bottomOfPageRef} />
         </div>
       </div>
     </AppLayout>
