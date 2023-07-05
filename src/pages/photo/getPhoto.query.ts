@@ -3,6 +3,9 @@ import { normalizeBBOX } from '../../dependencies/face-recognition'
 import { getPhotoUrlFromId } from '../../dependencies/photo-storage'
 import { UUID } from '../../domain'
 import { getPersonById, getPersonByIdOrThrow } from '../_getPersonById'
+import { getPersonIdsForFaceId } from '../_getPersonsIdsForFaceId'
+import { UserConfirmedHisFaceDuringOnboarding } from '../bienvenue/step2-userUploadsPhoto/UserConfirmedHisFaceDuringOnboarding'
+import { OnboardingUserNamedPersonInFamilyPhoto } from '../bienvenue/step3-learnAboutUsersFamily/OnboardingUserNamedPersonInFamilyPhoto'
 import { UserUploadedPhotoToChat } from '../chat/uploadPhotoToChat/UserUploadedPhotoToChat'
 import { PhotoFace, PhotoPageProps } from './PhotoPage/PhotoPage'
 import { UserAddedCaptionToPhoto } from './UserAddedCaptionToPhoto'
@@ -108,15 +111,6 @@ async function getCaptionForPhoto(photoId: UUID) {
   )
 
   return rows[0]?.payload.caption.body
-}
-
-const getPersonIdsForFaceId = async (faceId: UUID): Promise<UUID[]> => {
-  const { rows } = await postgres.query<PhotoAnnotationConfirmed | PhotoManuallyAnnotated>(
-    "SELECT * FROM history WHERE type IN ('PhotoAnnotationConfirmed','PhotoManuallyAnnotated') AND payload->>'faceId'=$1",
-    [faceId]
-  )
-
-  return Array.from(new Set(rows.map((row) => row.payload.personId)))
 }
 
 const getAnnotationEvents = async (photoId: UUID) => {

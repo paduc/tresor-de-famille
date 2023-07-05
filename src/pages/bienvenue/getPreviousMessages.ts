@@ -1,7 +1,11 @@
 import { postgres } from '../../dependencies/database'
 import { getPhotoUrlFromId } from '../../dependencies/photo-storage'
 import { UUID } from '../../domain'
+import { getPersonById } from '../_getPersonById'
+import { getPersonIdsForFaceId } from '../_getPersonsIdsForFaceId'
 import { UserUploadedPhotoToChat } from '../chat/uploadPhotoToChat/UserUploadedPhotoToChat'
+import { PhotoManuallyAnnotated } from '../photo/annotateManually/PhotoManuallyAnnotated'
+import { PhotoAnnotationConfirmed } from '../photo/confirmPhotoAnnotation/PhotoAnnotationConfirmed'
 import { AWSDetectedFacesInPhoto } from '../photo/recognizeFacesInChatPhoto/AWSDetectedFacesInPhoto'
 import { BienvenuePageProps } from './BienvenuePage'
 import { OnboardingUserUploadedPhotoOfThemself } from './step1-userTellsAboutThemselves/OnboardingUserUploadedPhotoOfThemself'
@@ -155,6 +159,26 @@ export async function getPreviousMessages(userId: UUID): Promise<BienvenuePagePr
         const faces: FamilyMemberPhotoFace[] = []
         if (detectedFaces) {
           for (const detectedFace of detectedFaces) {
+            // Do we recognize this face ?
+            const persons = await getPersonIdsForFaceId(detectedFace.faceId)
+            if (persons.length) {
+              const personId = persons[0]
+              const person = await getPersonById(personId)
+
+              if (person) {
+                faces.push({
+                  faceId: detectedFace.faceId,
+                  stage: 'done',
+                  result: {
+                    personId: personId,
+                    name: person.name,
+                  },
+                  messages: [],
+                })
+                continue
+              }
+            }
+
             // Has a name been given for this family member ?
             const { rows: personNamedRows } = await postgres.query<OnboardingUserNamedPersonInFamilyPhoto>(
               "SELECT * FROM history WHERE type='OnboardingUserNamedPersonInFamilyPhoto' AND payload->>'faceId'=$1 AND payload->>'photoId'=$2 AND payload->>'userId'=$3 ORDER BY \"occurredAt\" DESC LIMIT 1",

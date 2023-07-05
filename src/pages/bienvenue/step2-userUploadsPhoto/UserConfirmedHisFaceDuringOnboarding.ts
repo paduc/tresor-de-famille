@@ -7,6 +7,7 @@ export type UserConfirmedHisFaceDuringOnboarding = DomainEvent<
     userId: UUID
     faceId: UUID
     photoId: UUID
+    personId: UUID
   }
 >
 

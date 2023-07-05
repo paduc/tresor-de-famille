@@ -15,6 +15,7 @@ import { uploadUserPhotoOfFamily } from './step2-userUploadsPhoto/uploadUserPhot
 import { OnboardingUserNamedPersonInFamilyPhoto } from './step3-learnAboutUsersFamily/OnboardingUserNamedPersonInFamilyPhoto'
 import { getUuid } from '../../libs/getUuid'
 import { OnboardingFaceIgnoredInFamilyPhoto } from './step3-learnAboutUsersFamily/OnboardingFaceIgnoredInFamilyPhoto'
+import { getPersonIdForUserId } from '../_getPersonIdForUserId.query'
 
 const FILE_SIZE_LIMIT_MB = 50
 const upload = multer({
@@ -62,11 +63,13 @@ pageRouter
 
       await uploadUserPhotoOfFamily({ file, userId })
     } else if (action === 'confirmFaceIsUser' && faceId && photoId) {
+      const personId = await getPersonIdForUserId(userId)
       await addToHistory(
         UserConfirmedHisFaceDuringOnboarding({
           userId,
           photoId,
           faceId,
+          personId,
         })
       )
     } else if (action === 'submitFamilyMemberName' && faceId && photoId && familyMemberName) {
