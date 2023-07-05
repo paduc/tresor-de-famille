@@ -31,25 +31,38 @@ export async function detectFacesInPhotoUsingAWS({ file, photoId }: DetectFacesI
     return
   }
 
-  if (awsDetectedFaces.length) {
-    const faces: AWSDetectedFacesInPhoto['payload']['faces'] = []
-    for (const awsFace of awsDetectedFaces) {
-      const faceId = (await getFaceIdForAWSFaceId(awsFace.awsFaceId, ownerUserId)) || getUuid()
-      faces.push({
-        ...awsFace,
-        faceId,
-      })
-    }
-    await addToHistory(
-      AWSDetectedFacesInPhoto({
-        photoId,
-        faces,
-      })
-    )
+  if (!awsDetectedFaces.length) {
+    return
   }
+
+  const faces: AWSDetectedFacesInPhoto['payload']['faces'] = []
+
+  function findFaceInPhotoWithSameAwsFaceId(awsFaceId: string) {
+    const faceWithSameAwsFaceId = faces.find((face) => face.awsFaceId === awsFaceId)
+
+    return faceWithSameAwsFaceId?.faceId
+  }
+
+  for (const awsFace of awsDetectedFaces) {
+    const faceId =
+      findFaceInPhotoWithSameAwsFaceId(awsFace.awsFaceId) ||
+      (await getFaceIdForAWSFaceIdInOtherPhotos(awsFace.awsFaceId, ownerUserId)) ||
+      getUuid()
+
+    faces.push({
+      ...awsFace,
+      faceId,
+    })
+  }
+  await addToHistory(
+    AWSDetectedFacesInPhoto({
+      photoId,
+      faces,
+    })
+  )
 }
 
-async function getFaceIdForAWSFaceId(awsFaceId: string, userId: UUID): Promise<UUID | undefined> {
+async function getFaceIdForAWSFaceIdInOtherPhotos(awsFaceId: string, userId: UUID): Promise<UUID | undefined> {
   const { rows } = await postgres.query<AWSDetectedFacesInPhoto>("SELECT * FROM history WHERE type='AWSDetectedFacesInPhoto'")
 
   // Create a AWSFaceId - faceId index for the given userId
@@ -63,7 +76,6 @@ async function getFaceIdForAWSFaceId(awsFaceId: string, userId: UUID): Promise<U
     }
   }
 
-  // If we cant find it in the index, create a new one
   return awsFaceIdIndex.get(awsFaceId)
 }
 
