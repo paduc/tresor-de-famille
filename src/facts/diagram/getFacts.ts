@@ -1,11 +1,12 @@
-import { Project, ReferenceEntry, Node } from 'ts-morph'
+import { Project, ReferenceEntry, Node, SourceFile } from 'ts-morph'
 import { FactDiagramPageProps } from './FactDiagramPage'
 import path from 'node:path'
 
+type EventDTO = FactDiagramPageProps['events'][number]
 export function getFacts(project: Project) {
   const baseMakeDomainEvent = getMakeDomainEvent(project)
 
-  const events: FactDiagramPageProps['events'] = []
+  const events: EventDTO[] = []
 
   const references = findReferences(baseMakeDomainEvent)
 
@@ -21,10 +22,38 @@ export function getFacts(project: Project) {
 
     const relativePath = path.relative(process.cwd(), filePath)
 
-    events.push(parsePath(relativePath))
+    const event = parsePath(relativePath)
+
+    addCallsites(sourceFile, event)
+
+    events.push(event)
   }
 
   return Array.from(events.values())
+}
+
+function addCallsites(sourceFile: SourceFile, event: EventDTO) {
+  const eventConstructor = getEventConstructor(sourceFile)
+  const callsToConstructor = findReferences(eventConstructor).filter((ref) => ref.getNode().getParent()?.getKind() === 212)
+
+  event.callsites = callsToConstructor.map((c) => ({
+    filePath: path.relative(process.cwd(), c.getSourceFile().getFilePath()),
+    fileName: path.basename(c.getSourceFile().getFilePath()),
+    line: c.getNode().getStartLineNumber(),
+  }))
+}
+
+function getEventConstructor(sourceFile: SourceFile) {
+  return (
+    sourceFile
+      .getDescendants()
+      // @ts-ignore
+      .find((d) => d.compilerNode.escapedText === 'makeDomainEvent' && d.getParent()?.compilerNode.kind === 212)
+      ?.getParent()
+      ?.getParent()
+      ?.getChildrenOfKind(80)
+      .shift()
+  )
 }
 
 function parsePath(filePath: string): FactDiagramPageProps['events'][number] {
@@ -53,6 +82,7 @@ function parsePath(filePath: string): FactDiagramPageProps['events'][number] {
       page,
       subfolders,
       fullPath: filePath,
+      callsites: [],
     }
   }
 
@@ -60,6 +90,7 @@ function parsePath(filePath: string): FactDiagramPageProps['events'][number] {
     eventName,
     fullPath: filePath,
     isPage,
+    callsites: [],
   }
 }
 

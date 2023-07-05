@@ -3,6 +3,11 @@ import React from 'react'
 type EventDTO = {
   eventName: string
   fullPath: string
+  callsites: {
+    filePath: string
+    fileName: string
+    line: number
+  }[]
 } & (
   | {
       isPage: true
@@ -64,7 +69,12 @@ export const FactDiagramPage = ({ events }: FactDiagramPageProps) => {
                               .get(page)!
                               .get(subfolder)!
                               .map((event) => {
-                                return <li key={event.eventName}>{event.eventName}</li>
+                                return (
+                                  <li key={event.eventName}>
+                                    {event.eventName} (called at:{' '}
+                                    {event.callsites.map((d) => `${d.fileName}:${d.line}`).join(', ')})
+                                  </li>
+                                )
                               })}
                           </ul>
                         </li>
@@ -83,6 +93,11 @@ export const FactDiagramPage = ({ events }: FactDiagramPageProps) => {
             <li key={event.fullPath}>{event.eventName}</li>
           ))}
       </ul>
+      <details>
+        <summary>view full results</summary>
+
+        <pre>{JSON.stringify(events, null, 2)}</pre>
+      </details>
     </div>
   )
 }
