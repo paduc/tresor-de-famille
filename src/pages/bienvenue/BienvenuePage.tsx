@@ -383,7 +383,7 @@ export const BienvenuePage = withBrowserBundle(({ userId, steps }: BienvenuePage
                                           key={`annotatingFamilyFaces${face.faceId}`}
                                           photoId={photo.photoId}
                                           faceId={face.faceId}
-                                          className={`m-2 hover:cursor-default mix-blend-luminosity`}
+                                          className={`m-2 hover:cursor-default`}
                                         />
                                         <span className='text-gray-500'>{face.result.name}</span>
                                       </div>
@@ -520,8 +520,8 @@ type PhotoBadgeProps = {
 const PhotoBadge = ({ photoId, className, faceId }: PhotoBadgeProps) => {
   return (
     <img
-      src='https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=100&h=100&q=80'
-      // src={`/photo/${photoId}/face/${faceId}`}
+      // src='https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=100&h=100&q=80'
+      src={`/photo/${photoId}/face/${faceId}`}
       className={`inline-block cursor-pointer rounded-full h-14 w-14 bg-white ring-2 ring-white'
       } ${className || ''}`}
     />
