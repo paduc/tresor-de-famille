@@ -271,7 +271,9 @@ export const BienvenuePage = withBrowserBundle(({ userId, steps }: BienvenuePage
                                 photoId={photoId}
                                 faceId={face.faceId}
                                 className={`m-2 hover:cursor-default ${
-                                  face.faceId === step.confirmedFaceId ? 'ring-4 ring-green-500' : ''
+                                  face.faceId === step.confirmedFaceId
+                                    ? 'ring-4 ring-green-500 w-[80px] h-[80px]'
+                                    : 'mix-blend-luminosity'
                                 }`}
                               />
                             ))
