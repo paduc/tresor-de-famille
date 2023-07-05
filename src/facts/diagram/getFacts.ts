@@ -1,15 +1,66 @@
 import { Project, ReferenceEntry, Node } from 'ts-morph'
+import { FactDiagramPageProps } from './FactDiagramPage'
+import path from 'node:path'
 
 export function getFacts(project: Project) {
   const baseMakeDomainEvent = getMakeDomainEvent(project)
 
-  const fileWithDomainEvent = new Set<string>()
+  const events: FactDiagramPageProps['events'] = []
 
-  for (const baseEventReference of findReferences(baseMakeDomainEvent)) {
-    fileWithDomainEvent.add(baseEventReference.getNode().getSourceFile().getFilePath())
+  const references = findReferences(baseMakeDomainEvent)
+
+  const uniqueSourceFiles = new Set<string>()
+
+  for (const baseEventReference of references) {
+    const sourceFile = baseEventReference.getNode().getSourceFile()
+    const filePath = sourceFile.getFilePath()
+
+    if (uniqueSourceFiles.has(filePath)) continue
+
+    uniqueSourceFiles.add(filePath)
+
+    const relativePath = path.relative(process.cwd(), filePath)
+
+    events.push(parsePath(relativePath))
   }
 
-  return Array.from(fileWithDomainEvent)
+  return Array.from(events.values())
+}
+
+function parsePath(filePath: string): FactDiagramPageProps['events'][number] {
+  const parsed = path.parse(filePath)
+
+  // Extract the eventName, which is the base name of the file
+  const eventName = parsed.name
+
+  // Check if the path is a page path by looking for 'pages' in the path
+  const isPage = parsed.dir.includes('pages')
+
+  let page, subfolders
+  if (isPage) {
+    // The path is in the form 'src/pages/page/subfolders/file', so we split on '/'
+    const parts = parsed.dir.split('/')
+
+    // The 'page' is the third part of the path
+    page = parts[2]
+
+    // The 'subfolders' are everything after 'page', joined by '/'
+    subfolders = parts.slice(3).join('/')
+
+    return {
+      eventName,
+      isPage,
+      page,
+      subfolders,
+      fullPath: filePath,
+    }
+  }
+
+  return {
+    eventName,
+    fullPath: filePath,
+    isPage,
+  }
 }
 
 function getDomainEvent(project: Project) {

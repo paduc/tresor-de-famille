@@ -15,7 +15,7 @@ const project = new Project({
 })
 
 factDiagramRouter.route('/factDiagram.html').get(async (request, response) => {
-  const facts = await getFacts(project)
+  const facts = getFacts(project)
 
   try {
     response.send(
@@ -27,7 +27,7 @@ factDiagramRouter.route('/factDiagram.html').get(async (request, response) => {
             <link href="/style.css" rel="stylesheet" />
           </head>
           <body>
-            ${ReactDOMServer.renderToString(FactDiagramPage({ files: facts }))}
+            ${ReactDOMServer.renderToString(FactDiagramPage({ events: facts }))}
           </body>
         </html>
       `
