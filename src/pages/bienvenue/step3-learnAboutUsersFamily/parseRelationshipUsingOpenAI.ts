@@ -1,14 +1,8 @@
 import { openai } from '../../../dependencies/LLM'
 import { addToHistory } from '../../../dependencies/addToHistory'
-import { personsIndex, searchClient } from '../../../dependencies/search'
 import { UUID } from '../../../domain'
-import { getUuid } from '../../../libs/getUuid'
-import { BienvenuePageProps } from '../BienvenuePage'
-import { UserProgressedUsingOpenAIToPresentThemself } from '../step1-userTellsAboutThemselves/UserProgressedUsingOpenAIToPresentThemself'
-import { UserPresentedThemselfUsingOpenAI } from '../step1-userTellsAboutThemselves/UserPresentedThemselfUsingOpenAI'
-import { getPreviousMessages } from '../getPreviousMessages'
-import { OnboardingUserPostedPersonRelation } from './OnboardingUserPostedPersonRelation'
 import { getPersonByIdOrThrow } from '../../_getPersonById'
+import { OnboardingUserPostedPersonRelation } from './OnboardingUserPostedPersonRelation'
 
 type parseRelationshipUsingOpenAIArgs = {
   userId: UUID

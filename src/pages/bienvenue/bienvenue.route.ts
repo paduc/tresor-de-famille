@@ -2,21 +2,21 @@ import multer from 'multer'
 import { z } from 'zod'
 import { addToHistory } from '../../dependencies/addToHistory'
 import { requireAuth } from '../../dependencies/authn'
+import { personsIndex } from '../../dependencies/search'
 import { zIsUUID } from '../../domain'
+import { getUuid } from '../../libs/getUuid'
 import { responseAsHtml } from '../../libs/ssr/responseAsHtml'
+import { getPersonIdForUserId } from '../_getPersonIdForUserId.query'
 import { pageRouter } from '../pageRouter'
 import { BienvenuePage } from './BienvenuePage'
 import { getPreviousMessages } from './getPreviousMessages'
 import { onboardingUrl } from './onboardingUrl'
-import { parseFirstPresentation } from './step1-userTellsAboutThemselves/parseFirstPresentation'
+import { OnboardingUserNamedThemself } from './step1-userTellsAboutThemselves/OnboardingUserNamedThemself'
 import { uploadUserPhotoOfThemself } from './step1-userTellsAboutThemselves/uploadUserPhotoOfThemself'
-import { UserConfirmedHisFaceDuringOnboarding } from './step2-userUploadsPhoto/UserConfirmedHisFaceDuringOnboarding'
+import { OnboardingUserConfirmedHisFace } from './step2-userUploadsPhoto/OnboardingUserConfirmedHisFace'
 import { uploadUserPhotoOfFamily } from './step2-userUploadsPhoto/uploadUserPhotoOfFamily'
-import { OnboardingUserNamedPersonInFamilyPhoto } from './step3-learnAboutUsersFamily/OnboardingUserNamedPersonInFamilyPhoto'
-import { getUuid } from '../../libs/getUuid'
 import { OnboardingFaceIgnoredInFamilyPhoto } from './step3-learnAboutUsersFamily/OnboardingFaceIgnoredInFamilyPhoto'
-import { getPersonIdForUserId } from '../_getPersonIdForUserId.query'
-import { personsIndex } from '../../dependencies/search'
+import { OnboardingUserNamedPersonInFamilyPhoto } from './step3-learnAboutUsersFamily/OnboardingUserNamedPersonInFamilyPhoto'
 import { OnboardingUserRecognizedPersonInFamilyPhoto } from './step3-learnAboutUsersFamily/OnboardingUserRecognizedPersonInFamilyPhoto'
 import { parseRelationshipUsingOpenAI } from './step3-learnAboutUsersFamily/parseRelationshipUsingOpenAI'
 
@@ -55,7 +55,25 @@ pageRouter
     const userId = request.session.user!.id
 
     if (action === 'submitPresentation' && presentation) {
-      await parseFirstPresentation({ userAnswer: presentation, userId })
+      const personId = getUuid()
+      await addToHistory(
+        OnboardingUserNamedThemself({
+          userId,
+          personId,
+          name: presentation,
+        })
+      )
+
+      try {
+        await personsIndex.saveObject({
+          objectID: personId,
+          personId,
+          name: presentation,
+          visible_by: [`person/${personId}`, `user/${userId}`],
+        })
+      } catch (error) {
+        console.error('Could not add new user to algolia index', error)
+      }
     } else if (action === 'userSendsPhotoOfThemself') {
       const { file } = request
 
@@ -71,7 +89,7 @@ pageRouter
     } else if (action === 'confirmFaceIsUser' && faceId && photoId) {
       const personId = await getPersonIdForUserId(userId)
       await addToHistory(
-        UserConfirmedHisFaceDuringOnboarding({
+        OnboardingUserConfirmedHisFace({
           userId,
           photoId,
           faceId,

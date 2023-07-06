@@ -3,7 +3,8 @@ import { postgres } from '../dependencies/database'
 import { REGISTRATION_CODE } from '../dependencies/env'
 import { personsIndex } from '../dependencies/search'
 import { GedcomImported } from '../events'
-import { UserPresentedThemselfUsingOpenAI } from '../pages/bienvenue/step1-userTellsAboutThemselves/UserPresentedThemselfUsingOpenAI'
+import { OnboardingUserNamedThemself } from '../pages/bienvenue/step1-userTellsAboutThemselves/OnboardingUserNamedThemself'
+import { OnboardingUserNamedPersonInFamilyPhoto } from '../pages/bienvenue/step3-learnAboutUsersFamily/OnboardingUserNamedPersonInFamilyPhoto'
 import { PhotoAnnotatedUsingOpenAI } from '../pages/photo/annotatePhotoUsingOpenAI/PhotoAnnotatedUsingOpenAI'
 import { PhotoAnnotationConfirmed } from '../pages/photo/confirmPhotoAnnotation/PhotoAnnotationConfirmed'
 import { actionsRouter } from './actionsRouter'
@@ -39,12 +40,36 @@ actionsRouter.get('/resetAlgoliaIndex', requireAuth(), async (request, response)
     response.send(error.message).status(400)
   }
 
+  try {
+    await indexUserPresentedFamilyMember()
+  } catch (error) {
+    console.error(error)
+    // @ts-ignore
+    response.send(error.message).status(400)
+  }
+
   response.send('Everything is OK: algolia persons index has been rebuilt')
 })
 
 async function indexUserPresentedThemself() {
-  const { rows: onboardedPersons } = await postgres.query<UserPresentedThemselfUsingOpenAI>(
-    "SELECT * FROM history WHERE type = 'UserPresentedThemselfUsingOpenAI'"
+  const { rows: onboardedPersons } = await postgres.query<OnboardingUserNamedThemself>(
+    "SELECT * FROM history WHERE type = 'OnboardingUserNamedThemself'"
+  )
+
+  for (const onboardedPerson of onboardedPersons) {
+    const { personId, name } = onboardedPerson.payload
+    await personsIndex.saveObject({
+      objectID: personId,
+      id: personId,
+      name,
+      visible_by: [`person/${personId}`, `user/${onboardedPerson.payload.userId}`],
+    })
+  }
+}
+
+async function indexUserPresentedFamilyMember() {
+  const { rows: onboardedPersons } = await postgres.query<OnboardingUserNamedPersonInFamilyPhoto>(
+    "SELECT * FROM history WHERE type = 'OnboardingUserNamedPersonInFamilyPhoto'"
   )
 
   for (const onboardedPerson of onboardedPersons) {

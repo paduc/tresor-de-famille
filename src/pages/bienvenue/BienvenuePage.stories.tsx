@@ -37,38 +37,7 @@ export const Step1Start = () => (
     steps={[
       {
         goal: 'get-user-name',
-        stage: 'in-progress',
-        messages: [
-          {
-            role: 'assistant',
-            content: "Faisons connaissance ! Pour commencer, comment t'appelles-tu ?",
-          },
-        ],
-      },
-    ]}
-  />
-)
-export const Step1InProgress = () => (
-  <BienvenuePage
-    userId={getUuid()}
-    steps={[
-      {
-        goal: 'get-user-name',
-        stage: 'in-progress',
-        messages: [
-          {
-            role: 'assistant',
-            content: "Faisons connaissance ! Pour commencer, comment t'appelles-tu ?",
-          },
-          {
-            role: 'user',
-            content: 'Bonjour, je suis un homme de 37ans.',
-          },
-          {
-            role: 'assistant',
-            content: "Bonjour ! Je suis ravi de te rencontrer. Pourriez-vous me dire votre prénom s'il vous plaît ?",
-          },
-        ],
+        stage: 'awaiting-name',
       },
     ]}
   />
@@ -81,28 +50,8 @@ export const Step1Done = () => (
       {
         goal: 'get-user-name',
         stage: 'done',
-        result: {
-          name: 'Pierre-Antoine',
-          personId: getUuid(),
-        },
-        messages: [
-          {
-            role: 'assistant',
-            content: "Faisons connaissance ! Pour commencer, comment t'appelles-tu ?",
-          },
-          {
-            role: 'user',
-            content: 'Bonjour, je suis un homme de 37ans.',
-          },
-          {
-            role: 'assistant',
-            content: "Bonjour ! Je suis ravi de te rencontrer. Pourriez-vous me dire votre prénom s'il vous plaît ?",
-          },
-          {
-            role: 'user',
-            content: 'Pierre-Antoine.',
-          },
-        ],
+        name: 'Pierre-Antoine',
+        personId: getUuid(),
       },
     ]}
   />
@@ -115,20 +64,9 @@ export const Step2Start = () => (
       {
         goal: 'get-user-name',
         stage: 'done',
-        result: {
-          name: 'Pierre-Antoine',
-          personId: getUuid(),
-        },
-        messages: [
-          {
-            role: 'assistant',
-            content: "Faisons connaissance ! Pour commencer, comment t'appelles-tu ?",
-          },
-          {
-            role: 'user',
-            content: 'Pierre-Antoine.',
-          },
-        ],
+
+        name: 'Pierre-Antoine',
+        personId: getUuid(),
       },
       {
         goal: 'upload-first-photo',
@@ -145,20 +83,9 @@ export const Step2PhotoWithNoFaces = () => (
       {
         goal: 'get-user-name',
         stage: 'done',
-        result: {
-          name: 'Pierre-Antoine',
-          personId: getUuid(),
-        },
-        messages: [
-          {
-            role: 'assistant',
-            content: "Faisons connaissance ! Pour commencer, comment t'appelles-tu ?",
-          },
-          {
-            role: 'user',
-            content: 'Pierre-Antoine.',
-          },
-        ],
+
+        name: 'Pierre-Antoine',
+        personId: getUuid(),
       },
       {
         goal: 'upload-first-photo',
@@ -179,20 +106,9 @@ export const Step2PhotoWith1Face = () => (
       {
         goal: 'get-user-name',
         stage: 'done',
-        result: {
-          name: 'Pierre-Antoine',
-          personId: getUuid(),
-        },
-        messages: [
-          {
-            role: 'assistant',
-            content: "Faisons connaissance ! Pour commencer, comment t'appelles-tu ?",
-          },
-          {
-            role: 'user',
-            content: 'Pierre-Antoine.',
-          },
-        ],
+
+        name: 'Pierre-Antoine',
+        personId: getUuid(),
       },
       {
         goal: 'upload-first-photo',
@@ -213,20 +129,9 @@ export const Step2PhotoWith1FaceConfirmed = () => (
       {
         goal: 'get-user-name',
         stage: 'done',
-        result: {
-          name: 'Pierre-Antoine',
-          personId: getUuid(),
-        },
-        messages: [
-          {
-            role: 'assistant',
-            content: "Faisons connaissance ! Pour commencer, comment t'appelles-tu ?",
-          },
-          {
-            role: 'user',
-            content: 'Pierre-Antoine.',
-          },
-        ],
+
+        name: 'Pierre-Antoine',
+        personId: getUuid(),
       },
       {
         goal: 'upload-first-photo',
@@ -248,20 +153,9 @@ export const Step2PhotoWithMultipleFaces = () => (
       {
         goal: 'get-user-name',
         stage: 'done',
-        result: {
-          name: 'Pierre-Antoine',
-          personId: getUuid(),
-        },
-        messages: [
-          {
-            role: 'assistant',
-            content: "Faisons connaissance ! Pour commencer, comment t'appelles-tu ?",
-          },
-          {
-            role: 'user',
-            content: 'Pierre-Antoine.',
-          },
-        ],
+
+        name: 'Pierre-Antoine',
+        personId: getUuid(),
       },
       {
         goal: 'upload-first-photo',
@@ -283,20 +177,9 @@ export const Step2PhotoWithMultipleFacesConfirmed = () => (
       {
         goal: 'get-user-name',
         stage: 'done',
-        result: {
-          name: 'Pierre-Antoine',
-          personId: getUuid(),
-        },
-        messages: [
-          {
-            role: 'assistant',
-            content: "Faisons connaissance ! Pour commencer, comment t'appelles-tu ?",
-          },
-          {
-            role: 'user',
-            content: 'Pierre-Antoine.',
-          },
-        ],
+
+        name: 'Pierre-Antoine',
+        personId: getUuid(),
       },
       {
         goal: 'upload-first-photo',
@@ -318,20 +201,9 @@ export const Step3Start = () => (
       {
         goal: 'get-user-name',
         stage: 'done',
-        result: {
-          name: 'Pierre-Antoine',
-          personId: getUuid(),
-        },
-        messages: [
-          {
-            role: 'assistant',
-            content: "Faisons connaissance ! Pour commencer, comment t'appelles-tu ?",
-          },
-          {
-            role: 'user',
-            content: 'Pierre-Antoine.',
-          },
-        ],
+
+        name: 'Pierre-Antoine',
+        personId: getUuid(),
       },
       {
         goal: 'upload-first-photo',
@@ -356,20 +228,8 @@ export const Step3AnnotatingPhotoFirstPhoto = () => (
       {
         goal: 'get-user-name',
         stage: 'done',
-        result: {
-          name: 'Pierre-Antoine',
-          personId: getUuid(),
-        },
-        messages: [
-          {
-            role: 'assistant',
-            content: "Faisons connaissance ! Pour commencer, comment t'appelles-tu ?",
-          },
-          {
-            role: 'user',
-            content: 'Pierre-Antoine.',
-          },
-        ],
+        name: 'Pierre-Antoine',
+        personId: getUuid(),
       },
       {
         goal: 'upload-first-photo',
@@ -415,20 +275,9 @@ export const Step3AnnotatingPhotoSecondPhoto = () => (
       {
         goal: 'get-user-name',
         stage: 'done',
-        result: {
-          name: 'Pierre-Antoine',
-          personId: getUuid(),
-        },
-        messages: [
-          {
-            role: 'assistant',
-            content: "Faisons connaissance ! Pour commencer, comment t'appelles-tu ?",
-          },
-          {
-            role: 'user',
-            content: 'Pierre-Antoine.',
-          },
-        ],
+
+        name: 'Pierre-Antoine',
+        personId: getUuid(),
       },
       {
         goal: 'upload-first-photo',
@@ -490,20 +339,9 @@ export const Step3AnnotatingWithIgnoredPhoto = () => (
       {
         goal: 'get-user-name',
         stage: 'done',
-        result: {
-          name: 'Pierre-Antoine',
-          personId: getUuid(),
-        },
-        messages: [
-          {
-            role: 'assistant',
-            content: "Faisons connaissance ! Pour commencer, comment t'appelles-tu ?",
-          },
-          {
-            role: 'user',
-            content: 'Pierre-Antoine.',
-          },
-        ],
+
+        name: 'Pierre-Antoine',
+        personId: getUuid(),
       },
       {
         goal: 'upload-first-photo',

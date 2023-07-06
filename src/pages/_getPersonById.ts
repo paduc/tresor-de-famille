@@ -1,7 +1,7 @@
 import { postgres } from '../dependencies/database'
 import { UUID } from '../domain'
 import { GedcomImported } from '../events'
-import { UserPresentedThemselfUsingOpenAI } from './bienvenue/step1-userTellsAboutThemselves/UserPresentedThemselfUsingOpenAI'
+import { OnboardingUserNamedThemself } from './bienvenue/step1-userTellsAboutThemselves/OnboardingUserNamedThemself'
 import { OnboardingUserNamedPersonInFamilyPhoto } from './bienvenue/step3-learnAboutUsersFamily/OnboardingUserNamedPersonInFamilyPhoto'
 import { OpenAIMadeDeductions } from './chat/sendToOpenAIForDeductions/OpenAIMadeDeductions'
 import { PhotoAnnotatedUsingOpenAI } from './photo/annotatePhotoUsingOpenAI/PhotoAnnotatedUsingOpenAI'
@@ -54,8 +54,8 @@ export const getPersonById = async (personId: UUID): Promise<PersonById | null> 
     }
   }
 
-  const { rows: onboardedPersons } = await postgres.query<UserPresentedThemselfUsingOpenAI>(
-    "SELECT * FROM history WHERE type = 'UserPresentedThemselfUsingOpenAI'"
+  const { rows: onboardedPersons } = await postgres.query<OnboardingUserNamedThemself>(
+    "SELECT * FROM history WHERE type = 'OnboardingUserNamedThemself'"
   )
 
   if (onboardedPersons.length) {

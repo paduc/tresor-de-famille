@@ -52,8 +52,7 @@ type FamilyMemberPhotoFace = {
 type OnboardingStep =
   | ({
       goal: 'get-user-name'
-      messages: OpenAIMessage[]
-    } & ({ stage: 'in-progress' } | { stage: 'done'; result: { name: string; personId: UUID } }))
+    } & ({ stage: 'awaiting-name' } | { stage: 'done'; name: string; personId: UUID }))
   | ({ goal: 'upload-first-photo' } & (
       | { stage: 'waiting-upload' }
       | {
@@ -110,66 +109,45 @@ export const BienvenuePage = withBrowserBundle(({ userId, steps }: BienvenuePage
           {steps?.map((step, stepIndex) => {
             const { goal, stage } = step
             if (goal === 'get-user-name') {
-              const { messages } = step
               return (
                 <div className='pb-5' key={`step_${goal}_${stepIndex}`}>
-                  <div className='py-3 px-4'>
-                    {messages
-                      .filter(({ role, function_call }) => role !== 'system' && !function_call)
-                      .map(({ role, content }, index) => {
-                        return (
-                          <p key={`message${index}`} className={`mt-3 text-xl ${role === 'assistant' ? 'text-gray-500' : ''}`}>
-                            {content}
-                          </p>
-                        )
-                      })}
+                  <div className='text-xl px-4 pt-3 text-gray-500'>
+                    Faisons connaissance ! Pour commencer, comment t'appelles-tu ?
                   </div>
                   {stage === 'done' ? (
-                    <div className='px-4 text-xl text-gray-500'>
-                      Bienvenue {step.result.name} ! Je suis ravi de faire ta connaissance.
+                    <div className='px-4 pt-3 text-xl text-gray-500'>
+                      Bienvenue <span className='text-black'>{step.name}</span> ! Je suis ravi de faire ta connaissance.
                     </div>
                   ) : (
-                    <form method='POST' className='relative mt-2'>
-                      <input type='hidden' name='action' value='submitPresentation' />
-                      <div className='overflow-hidden border border-gray-200 shadow-sm focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500'>
-                        <label htmlFor='presentation' className='sr-only'>
-                          Je m'appelle...
-                        </label>
-                        <textarea
-                          rows={3}
-                          name='presentation'
-                          id='presentation'
-                          className='block w-full resize-none border-0 py-3 px-4 focus:ring-0 text-xl'
-                          placeholder="Je m'appelle ..."
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                              e.preventDefault()
-                              // @ts-ignore
-                              e.target.form.submit()
-                            }
-                          }}
-                        />
-
-                        {/* Spacer element to match the height of the toolbar */}
-                        <div className='py-2' aria-hidden='true'>
-                          {/* Matches height of button in toolbar (1px border + 36px content height) */}
-                          <div className='py-px'>
-                            <div className='h-9' />
-                          </div>
+                    <div className='px-4 pt-2'>
+                      <form method='POST' className='relative'>
+                        <input type='hidden' name='action' value='submitPresentation' />
+                        <div className='overflow-hidden -ml-4 border border-gray-200 shadow-sm sm:max-w-sm focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500'>
+                          <label htmlFor='presentation' className='sr-only'>
+                            Nom complet
+                          </label>
+                          <input
+                            type='text'
+                            name='presentation'
+                            className='block w-full resize-none border-0 py-3 px-4 focus:ring-0 text-xl'
+                            placeholder="Je m'appelle ..."
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault()
+                                // @ts-ignore
+                                e.target.form.submit()
+                              }
+                            }}
+                          />
                         </div>
-                      </div>
-
-                      <div className='absolute inset-x-0 bottom-0 flex justify-between py-2 pl-3 pr-2'>
-                        <div className='flex-shrink-0'>
-                          <button
-                            type='submit'
-                            className='inline-flex items-center mt-3 px-3 py-1.5 border border-transparent sm:sm:text-xs font-medium rounded-full shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
-                            <SendIcon className='-ml-0.5 mr-2 h-4 w-4' aria-hidden='true' />
-                            Envoyer
-                          </button>
-                        </div>
-                      </div>
-                    </form>
+                        <button
+                          type='submit'
+                          className='inline-flex items-center mt-3 px-3 py-1.5 border border-transparent sm:sm:text-xs font-medium rounded-full shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
+                          <SendIcon className='-ml-0.5 mr-2 h-4 w-4' aria-hidden='true' />
+                          Envoyer
+                        </button>
+                      </form>
+                    </div>
                   )}
                 </div>
               )
@@ -249,7 +227,7 @@ export const BienvenuePage = withBrowserBundle(({ userId, steps }: BienvenuePage
                           )}
                         </div>
                         {stage === 'face-confirmed' ? (
-                          <div className='text-gray-500 text-lg py-3 pb-2'>
+                          <div className='text-gray-500 text-xl py-3 pb-2'>
                             Heureux de pouvoir mettre un visage sur un nom !
                           </div>
                         ) : null}

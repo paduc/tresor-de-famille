@@ -3,17 +3,12 @@ import { getPhotoUrlFromId } from '../../dependencies/photo-storage'
 import { UUID } from '../../domain'
 import { getPersonById, getPersonByIdOrThrow } from '../_getPersonById'
 import { getPersonIdsForFaceId } from '../_getPersonsIdsForFaceId'
-import { UserUploadedPhotoToChat } from '../chat/uploadPhotoToChat/UserUploadedPhotoToChat'
-import { PhotoManuallyAnnotated } from '../photo/annotateManually/PhotoManuallyAnnotated'
-import { PhotoAnnotationConfirmed } from '../photo/confirmPhotoAnnotation/PhotoAnnotationConfirmed'
 import { AWSDetectedFacesInPhoto } from '../photo/recognizeFacesInChatPhoto/AWSDetectedFacesInPhoto'
 import { BienvenuePageProps } from './BienvenuePage'
+import { OnboardingUserNamedThemself } from './step1-userTellsAboutThemselves/OnboardingUserNamedThemself'
 import { OnboardingUserUploadedPhotoOfThemself } from './step1-userTellsAboutThemselves/OnboardingUserUploadedPhotoOfThemself'
-import { UserPresentedThemselfUsingOpenAI } from './step1-userTellsAboutThemselves/UserPresentedThemselfUsingOpenAI'
-import { UserProgressedUsingOpenAIToPresentThemself } from './step1-userTellsAboutThemselves/UserProgressedUsingOpenAIToPresentThemself'
-import { initialMessages } from './step1-userTellsAboutThemselves/parseFirstPresentation'
 import { OnboardingUserUploadedPhotoOfFamily } from './step2-userUploadsPhoto/OnboardingUserUploadedPhotoOfFamily'
-import { UserConfirmedHisFaceDuringOnboarding } from './step2-userUploadsPhoto/UserConfirmedHisFaceDuringOnboarding'
+import { OnboardingUserConfirmedHisFace } from './step2-userUploadsPhoto/OnboardingUserConfirmedHisFace'
 import { OnboardingFaceIgnoredInFamilyPhoto } from './step3-learnAboutUsersFamily/OnboardingFaceIgnoredInFamilyPhoto'
 import { OnboardingUserNamedPersonInFamilyPhoto } from './step3-learnAboutUsersFamily/OnboardingUserNamedPersonInFamilyPhoto'
 import { OnboardingUserPostedPersonRelation } from './step3-learnAboutUsersFamily/OnboardingUserPostedPersonRelation'
@@ -27,38 +22,25 @@ export async function getPreviousMessages(userId: UUID): Promise<BienvenuePagePr
 
   // Step 1 : User present themself
 
-  // Get UserPresentedThemselfUsingOpenAI to have access to personId and name
-  const { rows: userPresentRows } = await postgres.query<UserPresentedThemselfUsingOpenAI>(
-    "SELECT * FROM history WHERE type='UserPresentedThemselfUsingOpenAI' AND payload->>'userId'=$1 ORDER BY \"occurredAt\" DESC LIMIT 1",
+  // Get OnboardingUserNamedThemself to have access to personId and name
+  const { rows: userNamedRows } = await postgres.query<OnboardingUserNamedThemself>(
+    "SELECT * FROM history WHERE type='OnboardingUserNamedThemself' AND payload->>'userId'=$1 ORDER BY \"occurredAt\" DESC LIMIT 1",
     [userId]
   )
 
-  if (userPresentRows.length) {
-    const { personId, name, messages } = userPresentRows[0].payload
+  if (userNamedRows.length) {
+    const { personId, name } = userNamedRows[0].payload
 
     props.steps.push({
       goal: 'get-user-name',
       stage: 'done',
-      messages,
-      result: {
-        personId,
-        name,
-      },
+      personId,
+      name,
     })
   } else {
-    // Get the latest onboarding progress event
-    const { rows: messageRow } = await postgres.query<UserProgressedUsingOpenAIToPresentThemself>(
-      "SELECT * FROM history WHERE type='UserProgressedUsingOpenAIToPresentThemself' AND payload->>'userId'=$1 ORDER BY \"occurredAt\" DESC LIMIT 1",
-      [userId]
-    )
-
-    // Revert to initialMessages if no progress event
-    const messages = messageRow.length ? messageRow[0].payload.messages : [...initialMessages]
-
     props.steps.push({
       goal: 'get-user-name',
-      stage: 'in-progress',
-      messages,
+      stage: 'awaiting-name',
     })
   }
 
@@ -72,8 +54,8 @@ export async function getPreviousMessages(userId: UUID): Promise<BienvenuePagePr
     // 3) Do we have faces ?
 
     // Has the user confirmed their face ?
-    const { rows: userConfirmedFace } = await postgres.query<UserConfirmedHisFaceDuringOnboarding>(
-      "SELECT * FROM history WHERE type='UserConfirmedHisFaceDuringOnboarding' AND payload->>'userId'=$1 ORDER BY \"occurredAt\" DESC LIMIT 1",
+    const { rows: userConfirmedFace } = await postgres.query<OnboardingUserConfirmedHisFace>(
+      "SELECT * FROM history WHERE type='OnboardingUserConfirmedHisFace' AND payload->>'userId'=$1 ORDER BY \"occurredAt\" DESC LIMIT 1",
       [userId]
     )
 

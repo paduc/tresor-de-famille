@@ -1,11 +1,11 @@
 import { postgres } from '../dependencies/database'
 import { UUID } from '../domain'
 import { UserHasDesignatedThemselfAsPerson } from '../events/UserHasDesignatedThemselfAsPerson'
-import { UserPresentedThemselfUsingOpenAI } from './bienvenue/step1-userTellsAboutThemselves/UserPresentedThemselfUsingOpenAI'
+import { OnboardingUserNamedThemself } from './bienvenue/step1-userTellsAboutThemselves/OnboardingUserNamedThemself'
 
 export const getPersonIdForUserId = async (userId: UUID): Promise<UUID> => {
-  const { rows } = await postgres.query<UserHasDesignatedThemselfAsPerson | UserPresentedThemselfUsingOpenAI>(
-    "SELECT * FROM history WHERE type IN ('UserHasDesignatedThemselfAsPerson','UserPresentedThemselfUsingOpenAI') AND payload->>'userId'=$1 LIMIT 1",
+  const { rows } = await postgres.query<UserHasDesignatedThemselfAsPerson | OnboardingUserNamedThemself>(
+    "SELECT * FROM history WHERE type IN ('UserHasDesignatedThemselfAsPerson','OnboardingUserNamedThemself') AND payload->>'userId'=$1 LIMIT 1",
     [userId]
   )
 
