@@ -41,8 +41,21 @@ actionsRouter.route('/photo/:photoId/face/:faceId').get(requireAuth(), async (re
   const longestSide = Math.max(boxWidth, boxHeight)
 
   // Calculate the square coordinates
-  const squareTop = Math.round(boxTop + (boxHeight - longestSide) / 2)
-  const squareLeft = Math.round(boxLeft + (boxWidth - longestSide) / 2)
+  let squareTop = Math.round(boxTop + (boxHeight - longestSide) / 2)
+  let squareLeft = Math.round(boxLeft + (boxWidth - longestSide) / 2)
+
+  // Ensure the extracted area does not exceed the image boundaries
+  if (squareTop < 0) {
+    squareTop = 0
+  } else if (squareTop + longestSide > imageMetadata.height!) {
+    squareTop = imageMetadata.height! - longestSide
+  }
+
+  if (squareLeft < 0) {
+    squareLeft = 0
+  } else if (squareLeft + longestSide > imageMetadata.width!) {
+    squareLeft = imageMetadata.width! - longestSide
+  }
 
   // Extract the square portion of the image using the bounding box
   const extractedImage = pipeline.extract({ width: longestSide, height: longestSide, top: squareTop, left: squareLeft })
