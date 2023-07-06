@@ -430,7 +430,7 @@ export const BienvenuePage = withBrowserBundle(({ userId, steps }: BienvenuePage
                                   faceInProgress.stage === 'awaiting-name' ? (
                                     <FamilyMemberNameForm faceId={faceInProgress.faceId} photoId={photo.photoId} />
                                   ) : (
-                                    <FamilyMemberRelationshipForm face={faceInProgress} />
+                                    <FamilyMemberRelationshipForm face={faceInProgress} photoId={photo.photoId} />
                                   )
                                 ) : null}
                               </div>
@@ -562,10 +562,11 @@ const FamilyMemberNameForm = ({ faceId, photoId }: FamilyMemberNameFormProps) =>
 
 type FamilyMemberRelationshipFormProps = {
   face: FamilyMemberPhotoFace & { stage: 'relationship-in-progress' }
+  photoId: UUID
 }
 
-const FamilyMemberRelationshipForm = ({ face }: FamilyMemberRelationshipFormProps) => {
-  const { personId, name, messages } = face
+const FamilyMemberRelationshipForm = ({ face, photoId }: FamilyMemberRelationshipFormProps) => {
+  const { personId, faceId, name, messages } = face
   return (
     <div className='text-xl'>
       <p className={`mt-3 text-gray-500 mb-2`}>
@@ -573,7 +574,7 @@ const FamilyMemberRelationshipForm = ({ face }: FamilyMemberRelationshipFormProp
       </p>
       <div className='px-3'>
         {messages
-          .filter(({ role, function_call }) => role !== 'system')
+          .filter(({ role, function_call }) => role === 'user' || (role === 'assistant' && !!function_call))
           .map(({ role, content, function_call }, index) => {
             return (
               <p
@@ -586,15 +587,17 @@ const FamilyMemberRelationshipForm = ({ face }: FamilyMemberRelationshipFormProp
       </div>
       <form method='POST' className='relative -ml-3'>
         <input type='hidden' name='action' value='submitRelationship' />
+        <input type='hidden' name='faceId' value={faceId} />
         <input type='hidden' name='personId' value={personId} />
+        <input type='hidden' name='photoId' value={photoId} />
         <div className='overflow-hidden border border-gray-200 shadow-sm focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500'>
-          <label htmlFor='relationship' className='sr-only'>
+          <label htmlFor='userAnswer' className='sr-only'>
             Par exemple: mon père, l'épouse de...
           </label>
           <textarea
             rows={2}
-            name='relationship'
-            id='relationship'
+            name='userAnswer'
+            id='userAnswer'
             className='block w-full resize-none border-0 py-3 px-4 focus:ring-0 text-xl'
             placeholder="Par exemple: mon père, l'épouse de..."
             onKeyDown={(e) => {

@@ -16,6 +16,7 @@ import { OnboardingUserUploadedPhotoOfFamily } from './step2-userUploadsPhoto/On
 import { UserConfirmedHisFaceDuringOnboarding } from './step2-userUploadsPhoto/UserConfirmedHisFaceDuringOnboarding'
 import { OnboardingFaceIgnoredInFamilyPhoto } from './step3-learnAboutUsersFamily/OnboardingFaceIgnoredInFamilyPhoto'
 import { OnboardingUserNamedPersonInFamilyPhoto } from './step3-learnAboutUsersFamily/OnboardingUserNamedPersonInFamilyPhoto'
+import { OnboardingUserPostedPersonRelation } from './step3-learnAboutUsersFamily/OnboardingUserPostedPersonRelation'
 import { OnboardingUserRecognizedPersonInFamilyPhoto } from './step3-learnAboutUsersFamily/OnboardingUserRecognizedPersonInFamilyPhoto'
 
 export async function getPreviousMessages(userId: UUID): Promise<BienvenuePageProps> {
@@ -160,26 +161,6 @@ export async function getPreviousMessages(userId: UUID): Promise<BienvenuePagePr
         const faces: FamilyMemberPhotoFace[] = []
         if (detectedFaces) {
           for (const detectedFace of detectedFaces) {
-            // Do we recognize this face ?
-            const persons = await getPersonIdsForFaceId(detectedFace.faceId)
-            if (persons.length) {
-              const personId = persons[0]
-              const person = await getPersonById(personId)
-
-              if (person) {
-                faces.push({
-                  faceId: detectedFace.faceId,
-                  stage: 'done',
-                  result: {
-                    personId: personId,
-                    name: person.name,
-                  },
-                  messages: [],
-                })
-                continue
-              }
-            }
-
             // Has a this family member been named ?
             const { rows: personNamedRows } = await postgres.query<
               OnboardingUserNamedPersonInFamilyPhoto | OnboardingUserRecognizedPersonInFamilyPhoto
@@ -199,14 +180,19 @@ export async function getPreviousMessages(userId: UUID): Promise<BienvenuePagePr
                 name = (await getPersonByIdOrThrow(personId)).name
               }
 
+              // Has there been relationship input ?
+
+              const { rows: relationships } = await postgres.query<OnboardingUserPostedPersonRelation>(
+                "SELECT * FROM history WHERE type='OnboardingUserPostedPersonRelation' AND payload->>'photoId'=$1 AND payload->>'faceId'=$2 AND payload->>'personId'=$3 ORDER BY \"occurredAt\" DESC LIMIT 1",
+                [photoId, detectedFace.faceId, personId]
+              )
+
               faces.push({
                 faceId: detectedFace.faceId,
-                stage: 'done',
-                result: {
-                  personId,
-                  name,
-                },
-                messages: [],
+                stage: 'relationship-in-progress',
+                name,
+                personId,
+                messages: relationships[0]?.payload.messages || [],
               })
             } else {
               // Has this face been ignored ?
@@ -222,6 +208,26 @@ export async function getPreviousMessages(userId: UUID): Promise<BienvenuePagePr
                   stage: 'ignored',
                 })
               } else {
+                // Do we recognize this face ?
+                const persons = await getPersonIdsForFaceId(detectedFace.faceId)
+                if (persons.length) {
+                  const personId = persons[0]
+                  const person = await getPersonById(personId)
+
+                  if (person) {
+                    faces.push({
+                      faceId: detectedFace.faceId,
+                      stage: 'done',
+                      result: {
+                        personId: personId,
+                        name: person.name,
+                      },
+                      messages: [],
+                    })
+                    continue
+                  }
+                }
+
                 faces.push({
                   faceId: detectedFace.faceId,
                   stage: 'awaiting-name',

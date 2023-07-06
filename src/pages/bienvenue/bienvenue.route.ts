@@ -18,6 +18,7 @@ import { OnboardingFaceIgnoredInFamilyPhoto } from './step3-learnAboutUsersFamil
 import { getPersonIdForUserId } from '../_getPersonIdForUserId.query'
 import { personsIndex } from '../../dependencies/search'
 import { OnboardingUserRecognizedPersonInFamilyPhoto } from './step3-learnAboutUsersFamily/OnboardingUserRecognizedPersonInFamilyPhoto'
+import { parseRelationshipUsingOpenAI } from './step3-learnAboutUsersFamily/parseRelationshipUsingOpenAI'
 
 const FILE_SIZE_LIMIT_MB = 50
 const upload = multer({
@@ -38,13 +39,16 @@ pageRouter
     )
   })
   .post(requireAuth(), upload.single('photo'), async (request, response) => {
-    const { action, presentation, faceId, photoId, newFamilyMemberName } = z
+    // TODO: parse only the action and then for each action, the required args
+    const { action, presentation, faceId, photoId, newFamilyMemberName, personId, userAnswer } = z
       .object({
         action: z.string(),
         presentation: z.string().optional(),
         faceId: zIsUUID.optional(),
         photoId: zIsUUID.optional(),
+        personId: zIsUUID.optional(),
         newFamilyMemberName: z.string().optional(),
+        userAnswer: z.string().optional(),
       })
       .parse(request.body)
 
@@ -120,6 +124,14 @@ pageRouter
           faceId,
         })
       )
+    } else if (action === 'submitRelationship' && faceId && personId && photoId && userAnswer) {
+      await parseRelationshipUsingOpenAI({
+        userId,
+        faceId,
+        personId,
+        photoId,
+        userAnswer,
+      })
     }
 
     const props = await getPreviousMessages(request.session.user!.id)
