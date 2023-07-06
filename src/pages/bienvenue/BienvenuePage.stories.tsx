@@ -390,16 +390,17 @@ export const Step3AnnotatingPhotoFirstPhoto = () => (
               'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=2560&h=2560&q=80',
             faces: [
               { faceId: getUuid(), stage: 'ignored' },
-              {
-                faceId: getUuid(),
-                stage: 'done',
-                messages: [],
-                result: {
-                  personId: getUuid(),
-                  name: 'John Doe',
-                },
-              },
+              // {
+              //   faceId: getUuid(),
+              //   stage: 'done',
+              //   messages: [],
+              //   result: {
+              //     personId: getUuid(),
+              //     name: 'John Doe',
+              //   },
+              // },
               // { faceId: getUuid(), stage: 'awaiting-name' },
+              { faceId: getUuid(), stage: 'relationship-in-progress', name: 'John Doe', personId: getUuid(), messages: [] },
             ],
           },
         ],

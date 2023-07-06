@@ -32,11 +32,11 @@ type FamilyMemberPhotoFace = {
   | {
       stage: 'ignored'
     }
-  | { stage: 'awaiting-relationship'; name: string }
   | {
       stage: 'relationship-in-progress'
       messages: OpenAIMessage[]
       name: string
+      personId: UUID
     }
   | {
       stage: 'done'
@@ -370,7 +370,8 @@ export const BienvenuePage = withBrowserBundle(({ userId, steps }: BienvenuePage
                       }
 
                       const faceInProgress = faces.find(
-                        (face): face is FamilyMemberPhotoFace & { stage: 'awaiting-name' } => face.stage === 'awaiting-name'
+                        (face): face is FamilyMemberPhotoFace & { stage: 'awaiting-name' | 'relationship-in-progress' } =>
+                          face.stage === 'awaiting-name' || face.stage === 'relationship-in-progress'
                       )
 
                       return (
@@ -426,7 +427,11 @@ export const BienvenuePage = withBrowserBundle(({ userId, steps }: BienvenuePage
                               </div>
                               <div className='col-span-7 max-w-md'>
                                 {faceInProgress ? (
-                                  <FamilyMemberNameForm faceId={faceInProgress.faceId} photoId={photo.photoId} />
+                                  faceInProgress.stage === 'awaiting-name' ? (
+                                    <FamilyMemberNameForm faceId={faceInProgress.faceId} photoId={photo.photoId} />
+                                  ) : (
+                                    <FamilyMemberRelationshipForm face={faceInProgress} />
+                                  )
                                 ) : null}
                               </div>
                               <div className='col-span-8'>
@@ -552,5 +557,75 @@ const FamilyMemberNameForm = ({ faceId, photoId }: FamilyMemberNameFormProps) =>
         </button>
       </form>
     </>
+  )
+}
+
+type FamilyMemberRelationshipFormProps = {
+  face: FamilyMemberPhotoFace & { stage: 'relationship-in-progress' }
+}
+
+const FamilyMemberRelationshipForm = ({ face }: FamilyMemberRelationshipFormProps) => {
+  const { personId, name, messages } = face
+  return (
+    <div className='text-xl'>
+      <p className={`mt-3 text-gray-500 mb-2`}>
+        Qui est <span className='text-black'>{name}</span> ?
+      </p>
+      <div className='px-3'>
+        {messages
+          .filter(({ role, function_call }) => role !== 'system')
+          .map(({ role, content, function_call }, index) => {
+            return (
+              <p
+                key={`family_relation_message${face.faceId}${index}`}
+                className={`mt-3 ${role === 'assistant' ? 'text-gray-500' : ''}`}>
+                {content || <pre>{JSON.stringify(function_call, null, 2)}</pre>}
+              </p>
+            )
+          })}
+      </div>
+      <form method='POST' className='relative -ml-3'>
+        <input type='hidden' name='action' value='submitRelationship' />
+        <input type='hidden' name='personId' value={personId} />
+        <div className='overflow-hidden border border-gray-200 shadow-sm focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500'>
+          <label htmlFor='relationship' className='sr-only'>
+            Par exemple: mon père, l'épouse de...
+          </label>
+          <textarea
+            rows={2}
+            name='relationship'
+            id='relationship'
+            className='block w-full resize-none border-0 py-3 px-4 focus:ring-0 text-xl'
+            placeholder="Par exemple: mon père, l'épouse de..."
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault()
+                // @ts-ignore
+                e.target.form.submit()
+              }
+            }}
+          />
+
+          {/* Spacer element to match the height of the toolbar */}
+          <div className='py-2' aria-hidden='true'>
+            {/* Matches height of button in toolbar (1px border + 36px content height) */}
+            <div className='py-px'>
+              <div className='h-9' />
+            </div>
+          </div>
+        </div>
+
+        <div className='absolute inset-x-0 bottom-0 flex justify-between py-2 pl-3 pr-2'>
+          <div className='flex-shrink-0'>
+            <button
+              type='submit'
+              className='inline-flex items-center mt-3 px-3 py-1.5 border border-transparent sm:sm:text-xs font-medium rounded-full shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
+              <SendIcon className='-ml-0.5 mr-2 h-4 w-4' aria-hidden='true' />
+              Envoyer
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
   )
 }
