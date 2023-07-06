@@ -7,6 +7,7 @@ import { SendIcon } from '../chat/ChatPage/SendIcon'
 import { PhotoIcon } from '@heroicons/react/24/outline'
 import { InlinePhotoUploadBtn } from '../_components/InlinePhotoUploadBtn'
 import { CheckIcon, XMarkIcon } from '@heroicons/react/20/solid'
+import { PersonAutocomplete } from './step3-learnAboutUsersFamily/PersonAutocomplete'
 
 // @ts-ignore
 function classNames(...classes) {
@@ -286,7 +287,7 @@ export const BienvenuePage = withBrowserBundle(({ userId, steps }: BienvenuePage
                               <form method='POST' key={`confirmFace${face.faceId}`} className='inline-block ml-2'>
                                 <input type='hidden' name='action' value='confirmFaceIsUser' />
                                 <input type='hidden' name='photoId' value={photoId} />
-                                <input type='hidden' name='faceId' value={faces[0].faceId} />
+                                <input type='hidden' name='faceId' value={face.faceId} />
                                 <button type='submit' className=''>
                                   <PhotoBadge
                                     photoId={photoId}
@@ -385,7 +386,7 @@ export const BienvenuePage = withBrowserBundle(({ userId, steps }: BienvenuePage
                                   .filter((face): face is FamilyMemberPhotoFace & { stage: 'done' } => face.stage === 'done')
                                   .map((face) => {
                                     return (
-                                      <div>
+                                      <div key={`done_face_${face.faceId}`}>
                                         <PhotoBadge
                                           key={`annotatingFamilyFaces${face.faceId}`}
                                           photoId={photo.photoId}
@@ -412,7 +413,7 @@ export const BienvenuePage = withBrowserBundle(({ userId, steps }: BienvenuePage
                                   .filter((face) => face.stage === 'awaiting-name' && face.faceId !== faceInProgress?.faceId)
                                   .map((face) => {
                                     return (
-                                      <div>
+                                      <div key={`awaiting_face_${face.faceId}`}>
                                         <PhotoBadge
                                           key={`annotatingFamilyFaces${face.faceId}`}
                                           photoId={photo.photoId}
@@ -425,50 +426,7 @@ export const BienvenuePage = withBrowserBundle(({ userId, steps }: BienvenuePage
                               </div>
                               <div className='col-span-7 max-w-md'>
                                 {faceInProgress ? (
-                                  <>
-                                    <p className={`mt-3 text-xl text-gray-500`}>Quel est le nom de cette personne ?</p>
-                                    <form method='POST' className='relative mt-2'>
-                                      <input type='hidden' name='action' value='submitFamilyMemberName' />
-                                      <input type='hidden' name='faceId' value={faceInProgress.faceId} />
-                                      <input type='hidden' name='photoId' value={photo.photoId} />
-                                      <div className='overflow-hidden border border-gray-200 shadow-sm focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500'>
-                                        <label htmlFor='familyMemberName' className='sr-only'>
-                                          Nom complet
-                                        </label>
-                                        <input
-                                          type='text'
-                                          name='familyMemberName'
-                                          id='familyMemberName'
-                                          className='block w-full resize-none border-0 py-3 px-4 focus:ring-0 text-xl'
-                                          placeholder='Jean Michel'
-                                          onKeyDown={(e) => {
-                                            if (e.key === 'Enter') {
-                                              e.preventDefault()
-                                              // @ts-ignore
-                                              e.target.form.submit()
-                                            }
-                                          }}
-                                        />
-                                      </div>
-                                      <button
-                                        type='submit'
-                                        className='inline-flex items-center mt-3 px-3 py-1.5 border border-transparent sm:sm:text-xs font-medium rounded-full shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
-                                        <SendIcon className='-ml-0.5 mr-2 h-4 w-4' aria-hidden='true' />
-                                        Envoyer
-                                      </button>
-                                    </form>
-                                    <form method='POST' className='relative'>
-                                      <input type='hidden' name='action' value='ignoreFamilyMemberFaceInPhoto' />
-                                      <input type='hidden' name='faceId' value={faceInProgress.faceId} />
-                                      <input type='hidden' name='photoId' value={photo.photoId} />
-                                      <button
-                                        type='submit'
-                                        className='inline-flex items-center mt-3 px-3 py-1.5 border border-transparent sm:sm:text-xs font-medium rounded-full shadow-sm hover:font-semibold text-red-600 ring-1 hover:ring-2 ring-red-600 ring-inset'>
-                                        <XMarkIcon className='-ml-0.5 mr-2 h-4 w-4' aria-hidden='true' />
-                                        Ignorer ce visage
-                                      </button>
-                                    </form>
-                                  </>
+                                  <FamilyMemberNameForm faceId={faceInProgress.faceId} photoId={photo.photoId} />
                                 ) : null}
                               </div>
                               <div className='col-span-8'>
@@ -478,7 +436,7 @@ export const BienvenuePage = withBrowserBundle(({ userId, steps }: BienvenuePage
                                   )
                                   .map((face) => {
                                     return (
-                                      <div>
+                                      <div key={`ignored_face_${face.faceId}`}>
                                         <PhotoBadge
                                           key={`annotatingFamilyFaces${face.faceId}${photo.photoId}`}
                                           photoId={photo.photoId}
@@ -533,5 +491,66 @@ const PhotoBadge = ({ photoId, className, faceId }: PhotoBadgeProps) => {
       className={`inline-block cursor-pointer rounded-full h-14 w-14 bg-white ring-2 ring-white'
       } ${className || ''}`}
     />
+  )
+}
+
+type FamilyMemberNameFormProps = {
+  faceId: UUID
+  photoId: UUID
+}
+
+const FamilyMemberNameForm = ({ faceId, photoId }: FamilyMemberNameFormProps) => {
+  const formRef = React.useRef<HTMLFormElement>(null)
+
+  const handlePersonSelected = (selection: { type: 'known'; personId: UUID } | { type: 'unknown'; name: string }) => {
+    const { type } = selection
+    if (formRef.current !== null) {
+      if (type === 'unknown') {
+        const element = formRef.current.elements.namedItem('newFamilyMemberName') as HTMLInputElement
+
+        if (element !== null) {
+          element.value = selection.name
+        }
+      } else {
+        const element = formRef.current.elements.namedItem('existingFamilyMemberId') as HTMLInputElement
+
+        if (element !== null) {
+          element.value = selection.personId
+        }
+      }
+      formRef.current.submit()
+    }
+  }
+
+  return (
+    <>
+      <p className={`mt-3 text-xl text-gray-500 mb-2`}>Quel est le nom de cette personne ?</p>
+      <PersonAutocomplete onPersonSelected={handlePersonSelected} />
+      <form method='POST' ref={formRef}>
+        <input type='hidden' name='action' value='submitFamilyMemberName' />
+        <input type='hidden' name='faceId' value={faceId} />
+        <input type='hidden' name='photoId' value={photoId} />
+        <input type='hidden' name='newFamilyMemberName' value='' />
+        <input type='hidden' name='existingFamilyMemberId' value='' />
+
+        <button
+          type='submit'
+          className='inline-flex items-center mt-3 px-3 py-1.5 border border-transparent sm:sm:text-xs font-medium rounded-full shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
+          <SendIcon className='-ml-0.5 mr-2 h-4 w-4' aria-hidden='true' />
+          Envoyer
+        </button>
+      </form>
+      <form method='POST' className='relative'>
+        <input type='hidden' name='action' value='ignoreFamilyMemberFaceInPhoto' />
+        <input type='hidden' name='faceId' value={faceId} />
+        <input type='hidden' name='photoId' value={photoId} />
+        <button
+          type='submit'
+          className='inline-flex items-center px-3 py-1.5 border border-transparent sm:sm:text-xs font-medium rounded-full shadow-sm hover:font-semibold text-red-600 ring-1 hover:ring-2 ring-red-600 ring-inset'>
+          <XMarkIcon className='-ml-0.5 mr-2 h-4 w-4' aria-hidden='true' />
+          Ignorer ce visage
+        </button>
+      </form>
+    </>
   )
 }

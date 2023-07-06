@@ -1,7 +1,7 @@
 import { postgres } from '../../dependencies/database'
 import { getPhotoUrlFromId } from '../../dependencies/photo-storage'
 import { UUID } from '../../domain'
-import { getPersonById } from '../_getPersonById'
+import { getPersonById, getPersonByIdOrThrow } from '../_getPersonById'
 import { getPersonIdsForFaceId } from '../_getPersonsIdsForFaceId'
 import { UserUploadedPhotoToChat } from '../chat/uploadPhotoToChat/UserUploadedPhotoToChat'
 import { PhotoManuallyAnnotated } from '../photo/annotateManually/PhotoManuallyAnnotated'
@@ -16,6 +16,7 @@ import { OnboardingUserUploadedPhotoOfFamily } from './step2-userUploadsPhoto/On
 import { UserConfirmedHisFaceDuringOnboarding } from './step2-userUploadsPhoto/UserConfirmedHisFaceDuringOnboarding'
 import { OnboardingFaceIgnoredInFamilyPhoto } from './step3-learnAboutUsersFamily/OnboardingFaceIgnoredInFamilyPhoto'
 import { OnboardingUserNamedPersonInFamilyPhoto } from './step3-learnAboutUsersFamily/OnboardingUserNamedPersonInFamilyPhoto'
+import { OnboardingUserRecognizedPersonInFamilyPhoto } from './step3-learnAboutUsersFamily/OnboardingUserRecognizedPersonInFamilyPhoto'
 
 export async function getPreviousMessages(userId: UUID): Promise<BienvenuePageProps> {
   const props: BienvenuePageProps = {
@@ -179,21 +180,31 @@ export async function getPreviousMessages(userId: UUID): Promise<BienvenuePagePr
               }
             }
 
-            // Has a name been given for this family member ?
-            const { rows: personNamedRows } = await postgres.query<OnboardingUserNamedPersonInFamilyPhoto>(
-              "SELECT * FROM history WHERE type='OnboardingUserNamedPersonInFamilyPhoto' AND payload->>'faceId'=$1 AND payload->>'photoId'=$2 AND payload->>'userId'=$3 ORDER BY \"occurredAt\" DESC LIMIT 1",
+            // Has a this family member been named ?
+            const { rows: personNamedRows } = await postgres.query<
+              OnboardingUserNamedPersonInFamilyPhoto | OnboardingUserRecognizedPersonInFamilyPhoto
+            >(
+              "SELECT * FROM history WHERE type IN ('OnboardingUserNamedPersonInFamilyPhoto', 'OnboardingUserRecognizedPersonInFamilyPhoto') AND payload->>'faceId'=$1 AND payload->>'photoId'=$2 AND payload->>'userId'=$3 ORDER BY \"occurredAt\" DESC LIMIT 1",
               [detectedFace.faceId, photoId, userId]
             )
 
-            const personNamed = personNamedRows[0]?.payload
+            if (personNamedRows.length) {
+              const { type, payload } = personNamedRows[0]
+              const { personId } = payload
 
-            if (personNamed) {
+              let name: string
+              if (type === 'OnboardingUserNamedPersonInFamilyPhoto') {
+                name = payload.name
+              } else {
+                name = (await getPersonByIdOrThrow(personId)).name
+              }
+
               faces.push({
                 faceId: detectedFace.faceId,
                 stage: 'done',
                 result: {
-                  personId: personNamed.personId,
-                  name: personNamed.name,
+                  personId,
+                  name,
                 },
                 messages: [],
               })

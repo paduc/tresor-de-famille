@@ -1,0 +1,130 @@
+import { Combobox, Dialog, Transition } from '@headlessui/react'
+import { CheckIcon, MagnifyingGlassIcon } from '@heroicons/react/20/solid'
+import React, { Fragment, useState } from 'react'
+import { UUID } from '../../../domain/UUID'
+import { usePersonSearch } from '../../_components/usePersonSearch'
+
+type SearchPersonHitDTO = {
+  objectID: string
+  name: string
+  bornOn?: string
+  sex?: 'M' | 'F'
+}
+
+type PersonAutocompleteProps = {
+  onPersonSelected: (person: { type: 'known'; personId: UUID } | { type: 'unknown'; name: string }) => unknown
+}
+
+// @ts-ignore
+function classNames(...classes) {
+  return classes.filter(Boolean).join(' ')
+}
+
+export const PersonAutocomplete = ({ onPersonSelected }: PersonAutocompleteProps) => {
+  const [query, setQuery] = useState('')
+
+  const index = usePersonSearch()
+  if (index === null) return null
+
+  const [hits, setHits] = React.useState<SearchPersonHitDTO[]>([])
+
+  React.useEffect(() => {
+    if (!index) return
+
+    const fetchResults = async () => {
+      if (query === '') {
+        setHits([])
+        return
+      }
+      const { hits } = await index.search(query)
+      setHits(hits as SearchPersonHitDTO[])
+    }
+
+    fetchResults()
+  }, [index, setHits, query])
+
+  return (
+    <Combobox onChange={(person: any) => onPersonSelected(person)}>
+      <div className='relative'>
+        <div className='overflow-hidden shadow-sm border border-gray-200 focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500'>
+          <label htmlFor='familyMemberName' className='sr-only'>
+            Nom complet
+          </label>
+          <Combobox.Input
+            className='block w-full resize-none border-0 py-3 px-4 focus:ring-0 text-xl'
+            placeholder='...'
+            onChange={(event) => setQuery(event.target.value)}
+          />
+        </div>
+
+        <Combobox.Options className='max-h-72 w-full shadow-sm border border-gray-200 border-t-none bg-white absolute top-full z-10 scroll-py-2 overflow-y-auto text-xl text-gray-800 divide-y divide-gray-100'>
+          {query.length > 0 ? (
+            <Combobox.Option
+              key={`hit_new_object`}
+              value={{ type: 'unknown', objectID: 'new', name: query }}
+              className={({ active }) =>
+                classNames('cursor-default select-none text-base py-2 px-4', active && 'bg-indigo-600 text-white')
+              }>
+              {({ active, selected }) => (
+                <>
+                  <div className='sm:flex'>
+                    <div className={classNames('truncate italic', selected && 'font-semibold')}>Nouvelle personne: {query}</div>
+                  </div>
+
+                  {selected && (
+                    <span
+                      className={classNames(
+                        'absolute inset-y-0 right-0 flex items-center pr-4',
+                        active ? 'text-white' : 'text-indigo-600'
+                      )}>
+                      <CheckIcon className='h-5 w-5' aria-hidden='true' />
+                    </span>
+                  )}
+                </>
+              )}
+            </Combobox.Option>
+          ) : null}
+          {hits.map((hit) => (
+            <Combobox.Option
+              key={`hit_${hit.objectID}`}
+              value={{ ...hit, type: 'known' }}
+              className={({ active }) =>
+                classNames('cursor-default select-none py-3 px-4', active && 'bg-indigo-600 text-white')
+              }>
+              {({ active, selected }) => (
+                <>
+                  <div className='sm:flex'>
+                    <div className={classNames('truncate', selected && 'font-semibold')}>{hit.name}</div>
+                    {hit.bornOn ? (
+                      <div
+                        className={classNames('sm:ml-2 truncate text-gray-500', active ? 'text-indigo-200' : 'text-gray-500')}>
+                        {hit.sex === 'M' ? 'né le ' : 'née le '}
+                        {hit.bornOn}
+                      </div>
+                    ) : (
+                      ''
+                    )}
+                  </div>
+
+                  {selected && (
+                    <span
+                      className={classNames(
+                        'absolute inset-y-0 right-0 flex items-center pr-4',
+                        active ? 'text-white' : 'text-indigo-600'
+                      )}>
+                      <CheckIcon className='h-5 w-5' aria-hidden='true' />
+                    </span>
+                  )}
+                </>
+              )}
+            </Combobox.Option>
+          ))}
+        </Combobox.Options>
+      </div>
+
+      {query !== '' && hits.length === 0 && (
+        <p className='p-4 text-sm text-gray-500'>Cette personne n'est pas encore connu ?!</p>
+      )}
+    </Combobox>
+  )
+}
