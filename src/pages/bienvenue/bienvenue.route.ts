@@ -16,6 +16,7 @@ import { OnboardingUserNamedPersonInFamilyPhoto } from './step3-learnAboutUsersF
 import { getUuid } from '../../libs/getUuid'
 import { OnboardingFaceIgnoredInFamilyPhoto } from './step3-learnAboutUsersFamily/OnboardingFaceIgnoredInFamilyPhoto'
 import { getPersonIdForUserId } from '../_getPersonIdForUserId.query'
+import { personsIndex } from '../../dependencies/search'
 
 const FILE_SIZE_LIMIT_MB = 50
 const upload = multer({
@@ -73,15 +74,27 @@ pageRouter
         })
       )
     } else if (action === 'submitFamilyMemberName' && faceId && photoId && familyMemberName) {
+      const personId = getUuid()
       await addToHistory(
         OnboardingUserNamedPersonInFamilyPhoto({
           userId,
           photoId,
           faceId,
-          personId: getUuid(),
+          personId,
           name: familyMemberName,
         })
       )
+
+      try {
+        await personsIndex.saveObject({
+          objectID: personId,
+          personId,
+          name: familyMemberName,
+          visible_by: [`person/${personId}`, `user/${userId}`],
+        })
+      } catch (error) {
+        console.error('Could not add new family member to algolia index', error)
+      }
     } else if (action === 'ignoreFamilyMemberFaceInPhoto' && faceId && photoId) {
       await addToHistory(
         OnboardingFaceIgnoredInFamilyPhoto({
