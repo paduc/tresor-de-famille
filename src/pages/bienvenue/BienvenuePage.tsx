@@ -8,6 +8,11 @@ import { PhotoIcon } from '@heroicons/react/24/outline'
 import { InlinePhotoUploadBtn } from '../_components/InlinePhotoUploadBtn'
 import { CheckIcon, XMarkIcon } from '@heroicons/react/20/solid'
 import { PersonAutocomplete } from './step3-learnAboutUsersFamily/PersonAutocomplete'
+import {
+  FamilyMemberRelationship,
+  isRelationWithSide,
+  traduireRelation,
+} from './step3-learnAboutUsersFamily/FamilyMemberRelationship'
 
 // @ts-ignore
 function classNames(...classes) {
@@ -33,19 +38,23 @@ type FamilyMemberPhotoFace = {
       stage: 'ignored'
     }
   | {
-      stage: 'relationship-in-progress'
-      messages: OpenAIMessage[]
+      stage: 'awaiting-relationship'
       name: string
       personId: UUID
     }
   | {
-      stage: 'done'
+      stage: 'awaiting-relationship-confirmation'
+      name: string
+      personId: UUID
       messages: OpenAIMessage[]
-      result: {
-        personId: UUID
-        name: string
-        relationship?: {}
-      }
+      userAnswer: string
+      relationship: FamilyMemberRelationship
+    }
+  | {
+      stage: 'done'
+      personId: UUID
+      name: string
+      relationship?: FamilyMemberRelationship
     }
 )
 
@@ -342,8 +351,14 @@ export const BienvenuePage = withBrowserBundle(({ userId, steps }: BienvenuePage
                       }
 
                       const faceInProgress = faces.find(
-                        (face): face is FamilyMemberPhotoFace & { stage: 'awaiting-name' | 'relationship-in-progress' } =>
-                          face.stage === 'awaiting-name' || face.stage === 'relationship-in-progress'
+                        (
+                          face
+                        ): face is FamilyMemberPhotoFace & {
+                          stage: 'awaiting-name' | 'awaiting-relationship' | 'awaiting-relationship-confirmation'
+                        } =>
+                          face.stage === 'awaiting-name' ||
+                          face.stage === 'awaiting-relationship' ||
+                          face.stage === 'awaiting-relationship-confirmation'
                       )
 
                       return (
@@ -366,7 +381,7 @@ export const BienvenuePage = withBrowserBundle(({ userId, steps }: BienvenuePage
                                           faceId={face.faceId}
                                           className={`m-2 hover:cursor-default`}
                                         />
-                                        <span className='text-gray-500'>{face.result.name}</span>
+                                        <span className='text-gray-500'>{face.name}</span>
                                       </div>
                                     )
                                   })}
@@ -381,7 +396,17 @@ export const BienvenuePage = withBrowserBundle(({ userId, steps }: BienvenuePage
                                     />
                                   </div>
                                 ) : null}
-
+                              </div>
+                              <div className='col-span-8 sm:col-span-7 max-w-md pb-4'>
+                                {faceInProgress ? (
+                                  faceInProgress.stage === 'awaiting-name' ? (
+                                    <FamilyMemberNameForm faceId={faceInProgress.faceId} photoId={photo.photoId} />
+                                  ) : (
+                                    <FamilyMemberRelationshipForm face={faceInProgress} photoId={photo.photoId} />
+                                  )
+                                ) : null}
+                              </div>
+                              <div className='col-span-8'>
                                 {faces
                                   .filter((face) => face.stage === 'awaiting-name' && face.faceId !== faceInProgress?.faceId)
                                   .map((face) => {
@@ -396,15 +421,6 @@ export const BienvenuePage = withBrowserBundle(({ userId, steps }: BienvenuePage
                                       </div>
                                     )
                                   })}
-                              </div>
-                              <div className='col-span-8 sm:col-span-7 max-w-md pb-4'>
-                                {faceInProgress ? (
-                                  faceInProgress.stage === 'awaiting-name' ? (
-                                    <FamilyMemberNameForm faceId={faceInProgress.faceId} photoId={photo.photoId} />
-                                  ) : (
-                                    <FamilyMemberRelationshipForm face={faceInProgress} photoId={photo.photoId} />
-                                  )
-                                ) : null}
                               </div>
                               <div className='col-span-8'>
                                 {faces
@@ -533,61 +549,76 @@ const FamilyMemberNameForm = ({ faceId, photoId }: FamilyMemberNameFormProps) =>
 }
 
 type FamilyMemberRelationshipFormProps = {
-  face: FamilyMemberPhotoFace & { stage: 'relationship-in-progress' }
+  face: FamilyMemberPhotoFace & { stage: 'awaiting-relationship-confirmation' | 'awaiting-relationship' }
   photoId: UUID
 }
 
 const FamilyMemberRelationshipForm = ({ face, photoId }: FamilyMemberRelationshipFormProps) => {
-  const { personId, faceId, name, messages } = face
+  const { personId, faceId, name, stage } = face
+
+  const [confirmBoxIsDisplayed, toggleConfirmBox] = React.useState(stage === 'awaiting-relationship-confirmation')
+
   return (
     <div className='text-xl'>
       <p className={`mt-3 text-gray-500 mb-2`}>
         Qui est <span className='text-black'>{name}</span> ?
       </p>
-      <div className='px-3'>
-        {messages
-          .filter(({ role, function_call }) => role === 'user' || (role === 'assistant' && !!function_call))
-          .map(({ role, content, function_call }, index) => {
-            return (
-              <p
-                key={`family_relation_message${face.faceId}${index}`}
-                className={`mt-3 ${role === 'assistant' ? 'text-gray-500' : ''}`}>
-                {content || <pre>{JSON.stringify(function_call, null, 2)}</pre>}
-              </p>
-            )
-          })}
-      </div>
-      <form method='POST' className='relative'>
-        <input type='hidden' name='action' value='submitRelationship' />
-        <input type='hidden' name='faceId' value={faceId} />
-        <input type='hidden' name='personId' value={personId} />
-        <input type='hidden' name='photoId' value={photoId} />
+      {confirmBoxIsDisplayed && stage === 'awaiting-relationship-confirmation' ? (
+        <>
+          <p className='text-black mb-2'>{face.userAnswer}</p>
+          <p className='text-gray-500 mb-2'>
+            Si j'ai bien compris, {name} serait {traduireRelation(face.relationship)}.
+          </p>
+          <form method='POST' className='inline-block'>
+            <input type='hidden' name='action' value='confirmOpenAIRelationship' />
+            <input type='hidden' name='personId' value={personId} />
+            <input type='hidden' name='stringifiedRelationship' value={JSON.stringify(face.relationship)} />
+            <button
+              type='submit'
+              className='inline-flex items-center py-1 px-2 pl-7 rounded-full bg-white text-sm relative hover:font-semibold  shadow-sm ring-1 hover:ring-2 ring-inset text-green-600 ring-green-600'>
+              <CheckIcon className='absolute left-2 h-4 w-4' aria-hidden='true' />
+              C'est bien ça
+            </button>
+          </form>
 
-        <div className='overflow-hidden -ml-4 sm:ml-0 -mr-4 border border-gray-200 shadow-sm sm:max-w-sm focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500'>
-          <label htmlFor='userAnswer' className='sr-only'>
-            Par exemple: mon père, l'épouse de...
-          </label>
-          <input
-            type='text'
-            name='userAnswer'
-            className='block w-full resize-none border-0 py-3 px-4 focus:ring-0 text-xl'
-            placeholder="Par exemple: mon père, l'épouse de..."
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault()
-                // @ts-ignore
-                e.target.form.submit()
-              }
-            }}
-          />
-        </div>
-        <button
-          type='submit'
-          className='inline-flex items-center mt-3 px-3 py-1.5 border border-transparent text-base sm:text-xs font-medium rounded-full shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
-          <SendIcon className='-ml-0.5 mr-2 h-4 w-4' aria-hidden='true' />
-          Envoyer
-        </button>
-      </form>
+          <button
+            className='ml-2 inline-flex items-center py-1 px-2 pl-7 rounded-full bg-white text-sm relative hover:font-semibold  shadow-sm ring-1 hover:ring-2 ring-inset text-red-600 ring-red-600'
+            onClick={() => toggleConfirmBox(false)}>
+            <XMarkIcon className='absolute left-2 h-4 w-4' aria-hidden='true' />
+            Non, pas tout à fait...
+          </button>
+        </>
+      ) : (
+        <form method='POST' className='relative'>
+          <input type='hidden' name='action' value='submitRelationship' />
+          <input type='hidden' name='personId' value={personId} />
+
+          <div className='overflow-hidden -ml-4 sm:ml-0 -mr-4 border border-gray-200 shadow-sm sm:max-w-sm focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500'>
+            <label htmlFor='userAnswer' className='sr-only'>
+              Par exemple: mon père, l'épouse de...
+            </label>
+            <input
+              type='text'
+              name='userAnswer'
+              className='block w-full resize-none border-0 py-3 px-4 focus:ring-0 text-xl'
+              placeholder="Par exemple: mon père, l'épouse de..."
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault()
+                  // @ts-ignore
+                  e.target.form.submit()
+                }
+              }}
+            />
+          </div>
+          <button
+            type='submit'
+            className='inline-flex items-center mt-3 px-3 py-1.5 border border-transparent text-base sm:text-xs font-medium rounded-full shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
+            <SendIcon className='-ml-0.5 mr-2 h-4 w-4' aria-hidden='true' />
+            Envoyer
+          </button>
+        </form>
+      )}
     </div>
   )
 }

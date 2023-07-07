@@ -2,12 +2,11 @@ import { openai } from '../../../dependencies/LLM'
 import { addToHistory } from '../../../dependencies/addToHistory'
 import { UUID } from '../../../domain'
 import { getPersonByIdOrThrow } from '../../_getPersonById'
-import { OnboardingUserPostedPersonRelation } from './OnboardingUserPostedPersonRelation'
+import { FamilyMemberRelationship, isRelationWithSide, isRelationWithoutSide } from './FamilyMemberRelationship'
+import { OnboardingUserPostedRelationUsingOpenAI } from './OnboardingUserPostedRelationUsingOpenAI'
 
 type parseRelationshipUsingOpenAIArgs = {
   userId: UUID
-  faceId: UUID
-  photoId: UUID
   personId: UUID
   userAnswer: string
 }
@@ -29,13 +28,7 @@ export type OpenAIMessage = {
 }
 const model = 'gpt-3.5-turbo-0613'
 
-export const parseRelationshipUsingOpenAI = async ({
-  userId,
-  faceId,
-  photoId,
-  personId,
-  userAnswer,
-}: parseRelationshipUsingOpenAIArgs) => {
+export const parseRelationshipUsingOpenAI = async ({ userId, personId, userAnswer }: parseRelationshipUsingOpenAIArgs) => {
   const { name } = await getPersonByIdOrThrow(personId)
 
   let messages: OpenAIMessage[] = [
@@ -72,13 +65,9 @@ export const parseRelationshipUsingOpenAI = async ({
                   'friend',
                   'coworker',
                   'grandfather',
-                  'great-grandfather',
                   'grandmother',
-                  'great-grandmother',
                   'uncle',
-                  'granduncle',
                   'aunt',
-                  'grandaunt',
                   'wife',
                   'husband',
                 ],
@@ -104,7 +93,27 @@ export const parseRelationshipUsingOpenAI = async ({
     // @ts-ignore
     messages = [...messages, result.message]
 
-    await addToHistory(OnboardingUserPostedPersonRelation({ userId, faceId, photoId, personId, messages }))
+    const { relationship, side, rawText } = JSON.parse(response.data.choices[0].message!.function_call!.arguments!)
+
+    if (!relationship) throw new Error('function_call did not return a relationship')
+
+    console.log(JSON.stringify({ relationship, side, rawText }, null, 2))
+
+    let parsedRelationship: FamilyMemberRelationship
+
+    if (isRelationWithoutSide(relationship)) {
+      parsedRelationship = { relationship }
+    } else if (isRelationWithSide(relationship)) {
+      // TODO: maybe validate side
+      parsedRelationship = { relationship, side }
+    } else {
+      // TODO: maybe validate relationship
+      parsedRelationship = { relationship, precision: rawText !== userAnswer && rawText }
+    }
+
+    await addToHistory(
+      OnboardingUserPostedRelationUsingOpenAI({ userId, personId, userAnswer, messages, relationship: parsedRelationship })
+    )
   } catch (error) {
     console.error(error)
   }

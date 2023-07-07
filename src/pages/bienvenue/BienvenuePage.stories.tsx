@@ -261,7 +261,7 @@ export const Step3AnnotatingPhotoFirstPhoto = () => (
               //   },
               // },
               // { faceId: getUuid(), stage: 'awaiting-name' },
-              { faceId: getUuid(), stage: 'relationship-in-progress', name: 'John Doe', personId: getUuid(), messages: [] },
+              { faceId: getUuid(), stage: 'awaiting-relationship', name: 'John Doe', personId: getUuid() },
             ],
           },
         ],
@@ -302,11 +302,8 @@ export const Step3AnnotatingPhotoSecondPhoto = () => (
               {
                 faceId: getUuid(),
                 stage: 'done',
-                messages: [],
-                result: {
-                  personId: getUuid(),
-                  name: 'John Doe',
-                },
+                personId: getUuid(),
+                name: 'John Doe',
               },
             ],
           },
@@ -319,11 +316,8 @@ export const Step3AnnotatingPhotoSecondPhoto = () => (
               {
                 faceId: getUuid(),
                 stage: 'done',
-                messages: [],
-                result: {
-                  personId: getUuid(),
-                  name: 'John Doe',
-                },
+                personId: getUuid(),
+                name: 'John Doe',
               },
               { faceId: getUuid(), stage: 'awaiting-name' },
             ],
@@ -333,7 +327,7 @@ export const Step3AnnotatingPhotoSecondPhoto = () => (
     ]}
   />
 )
-export const Step3AnnotatingWithIgnoredPhoto = () => (
+export const Step3AwaitingRelationship = () => (
   <BienvenuePage
     userId={getUuid()}
     steps={[
@@ -371,13 +365,81 @@ export const Step3AnnotatingWithIgnoredPhoto = () => (
               { faceId: getUuid(), stage: 'ignored' },
               {
                 faceId: getUuid(),
-                stage: 'done',
-                messages: [],
-                result: {
-                  personId: getUuid(),
-                  name: 'John Doe',
+                stage: 'awaiting-relationship',
+                personId: getUuid(),
+                name: 'John Doe',
+              },
+              { faceId: getUuid(), stage: 'done', name: 'fart', personId: getUuid() },
+              { faceId: getUuid(), stage: 'awaiting-name' },
+            ],
+          },
+        ],
+      },
+    ]}
+  />
+)
+export const Step3RelationshipInProgress = () => (
+  <BienvenuePage
+    userId={getUuid()}
+    steps={[
+      {
+        goal: 'get-user-name',
+        stage: 'done',
+
+        name: 'Pierre-Antoine',
+        personId: getUuid(),
+      },
+      {
+        goal: 'upload-first-photo',
+        stage: 'face-confirmed',
+        confirmedFaceId: getUuid(),
+        photoId: getUuid(),
+        photoUrl:
+          'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=2560&h=2560&q=80',
+        faces: [{ faceId: getUuid() }],
+      },
+      {
+        goal: 'upload-family-photo',
+        stage: 'annotating-photo',
+        photos: [
+          {
+            photoId: getUuid(),
+            photoUrl:
+              'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=2560&h=2560&q=80',
+            faces: [],
+          },
+          {
+            photoId: getUuid(),
+            photoUrl:
+              'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=2560&h=2560&q=80',
+            faces: [
+              { faceId: getUuid(), stage: 'ignored' },
+              {
+                faceId: getUuid(),
+                stage: 'awaiting-relationship-confirmation',
+                messages: [
+                  {
+                    role: 'user',
+                    content: 'mon frère',
+                  },
+                  {
+                    role: 'assistant',
+                    content: null,
+                    function_call: {
+                      name: 'save_relationship',
+                      arguments: '{  "relationship": "brother" }',
+                    },
+                  },
+                ],
+                personId: getUuid(),
+                name: 'John Doe',
+                userAnswer: 'mon frère',
+                relationship: {
+                  relationship: 'coworker',
+                  precision: 'chez Foncia',
                 },
               },
+              { faceId: getUuid(), stage: 'done', name: 'fart', personId: getUuid() },
               { faceId: getUuid(), stage: 'awaiting-name' },
             ],
           },

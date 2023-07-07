@@ -19,6 +19,8 @@ import { OnboardingFaceIgnoredInFamilyPhoto } from './step3-learnAboutUsersFamil
 import { OnboardingUserNamedPersonInFamilyPhoto } from './step3-learnAboutUsersFamily/OnboardingUserNamedPersonInFamilyPhoto'
 import { OnboardingUserRecognizedPersonInFamilyPhoto } from './step3-learnAboutUsersFamily/OnboardingUserRecognizedPersonInFamilyPhoto'
 import { parseRelationshipUsingOpenAI } from './step3-learnAboutUsersFamily/parseRelationshipUsingOpenAI'
+import { OnboardingUserConfirmedRelationUsingOpenAI } from './step3-learnAboutUsersFamily/OnboardingUserConfirmedRelationUsingOpenAI'
+import { isValidFamilyMemberRelationship } from './step3-learnAboutUsersFamily/FamilyMemberRelationship'
 
 const FILE_SIZE_LIMIT_MB = 50
 const upload = multer({
@@ -40,7 +42,7 @@ pageRouter
   })
   .post(requireAuth(), upload.single('photo'), async (request, response) => {
     // TODO: parse only the action and then for each action, the required args
-    const { action, presentation, faceId, photoId, newFamilyMemberName, personId, userAnswer } = z
+    const { action, presentation, faceId, photoId, newFamilyMemberName, personId, userAnswer, stringifiedRelationship } = z
       .object({
         action: z.string(),
         presentation: z.string().optional(),
@@ -49,6 +51,7 @@ pageRouter
         personId: zIsUUID.optional(),
         newFamilyMemberName: z.string().optional(),
         userAnswer: z.string().optional(),
+        stringifiedRelationship: z.string().optional(),
       })
       .parse(request.body)
 
@@ -142,14 +145,33 @@ pageRouter
           faceId,
         })
       )
-    } else if (action === 'submitRelationship' && faceId && personId && photoId && userAnswer) {
+    } else if (action === 'submitRelationship' && personId && userAnswer) {
       await parseRelationshipUsingOpenAI({
         userId,
-        faceId,
         personId,
-        photoId,
         userAnswer,
       })
+    } else if (action === 'confirmOpenAIRelationship' && personId && stringifiedRelationship) {
+      try {
+        const parsedRelation = JSON.parse(stringifiedRelationship)
+
+        const { relationship, side, precision } = parsedRelation
+        const reducedRelation = { relationship, side, precision }
+
+        if (isValidFamilyMemberRelationship(reducedRelation)) {
+          await addToHistory(
+            OnboardingUserConfirmedRelationUsingOpenAI({
+              personId,
+              relationship: reducedRelation,
+              userId,
+            })
+          )
+        } else {
+          throw new Error('confirmOpenAIRelationship found invalid relationship')
+        }
+      } catch (error) {
+        throw new Error('confirmOpenAIRelationship could not parse stringifiedRelationship')
+      }
     }
 
     const props = await getPreviousMessages(request.session.user!.id)

@@ -11,8 +11,9 @@ import { OnboardingUserUploadedPhotoOfFamily } from './step2-userUploadsPhoto/On
 import { OnboardingUserConfirmedHisFace } from './step2-userUploadsPhoto/OnboardingUserConfirmedHisFace'
 import { OnboardingFaceIgnoredInFamilyPhoto } from './step3-learnAboutUsersFamily/OnboardingFaceIgnoredInFamilyPhoto'
 import { OnboardingUserNamedPersonInFamilyPhoto } from './step3-learnAboutUsersFamily/OnboardingUserNamedPersonInFamilyPhoto'
-import { OnboardingUserPostedPersonRelation } from './step3-learnAboutUsersFamily/OnboardingUserPostedPersonRelation'
+import { OnboardingUserPostedRelationUsingOpenAI } from './step3-learnAboutUsersFamily/OnboardingUserPostedRelationUsingOpenAI'
 import { OnboardingUserRecognizedPersonInFamilyPhoto } from './step3-learnAboutUsersFamily/OnboardingUserRecognizedPersonInFamilyPhoto'
+import { OnboardingUserConfirmedRelationUsingOpenAI } from './step3-learnAboutUsersFamily/OnboardingUserConfirmedRelationUsingOpenAI'
 
 export async function getPreviousMessages(userId: UUID): Promise<BienvenuePageProps> {
   const props: BienvenuePageProps = {
@@ -143,7 +144,24 @@ export async function getPreviousMessages(userId: UUID): Promise<BienvenuePagePr
         const faces: FamilyMemberPhotoFace[] = []
         if (detectedFaces) {
           for (const detectedFace of detectedFaces) {
-            // Has a this family member been named ?
+            // Do we recognize this face ?
+            const persons = await getPersonIdsForFaceId(detectedFace.faceId)
+            if (persons.length) {
+              const personId = persons[0]
+              const person = await getPersonById(personId)
+
+              if (person) {
+                faces.push({
+                  faceId: detectedFace.faceId,
+                  stage: 'done',
+                  personId,
+                  name: person.name,
+                })
+                continue
+              }
+            }
+
+            // Has a this face been named or recognized ?
             const { rows: personNamedRows } = await postgres.query<
               OnboardingUserNamedPersonInFamilyPhoto | OnboardingUserRecognizedPersonInFamilyPhoto
             >(
@@ -152,6 +170,7 @@ export async function getPreviousMessages(userId: UUID): Promise<BienvenuePagePr
             )
 
             if (personNamedRows.length) {
+              // Yes, the face was named or recognized
               const { type, payload } = personNamedRows[0]
               const { personId } = payload
 
@@ -162,20 +181,57 @@ export async function getPreviousMessages(userId: UUID): Promise<BienvenuePagePr
                 name = (await getPersonByIdOrThrow(personId)).name
               }
 
-              // Has there been relationship input ?
-
-              const { rows: relationships } = await postgres.query<OnboardingUserPostedPersonRelation>(
-                "SELECT * FROM history WHERE type='OnboardingUserPostedPersonRelation' AND payload->>'photoId'=$1 AND payload->>'faceId'=$2 AND payload->>'personId'=$3 ORDER BY \"occurredAt\" DESC LIMIT 1",
-                [photoId, detectedFace.faceId, personId]
+              // Has a relationship been confirmed for this person ?
+              const { rows: confirmedRelationships } = await postgres.query<OnboardingUserConfirmedRelationUsingOpenAI>(
+                "SELECT * FROM history WHERE type='OnboardingUserConfirmedRelationUsingOpenAI' AND payload->>'personId'=$1 ORDER BY \"occurredAt\" DESC LIMIT 1",
+                [personId]
               )
 
-              faces.push({
-                faceId: detectedFace.faceId,
-                stage: 'relationship-in-progress',
-                name,
-                personId,
-                messages: relationships[0]?.payload.messages || [],
-              })
+              if (confirmedRelationships.length) {
+                // Yes a relationship has been confirmed for this person
+
+                const latestConfirmedRelationship = confirmedRelationships[0].payload
+
+                faces.push({
+                  stage: 'done',
+                  faceId: detectedFace.faceId,
+                  personId,
+                  name,
+                  relationship: latestConfirmedRelationship.relationship,
+                })
+              } else {
+                // No confirmation
+
+                // Has there been relationship posted by user ?
+                const { rows: relationships } = await postgres.query<OnboardingUserPostedRelationUsingOpenAI>(
+                  "SELECT * FROM history WHERE type='OnboardingUserPostedRelationUsingOpenAI' AND payload->>'photoId'=$1 AND payload->>'faceId'=$2 AND payload->>'personId'=$3 ORDER BY \"occurredAt\" DESC LIMIT 1",
+                  [photoId, detectedFace.faceId, personId]
+                )
+
+                const latestPostedRelationship = relationships[0]?.payload
+
+                if (latestPostedRelationship) {
+                  // Yes, a relationship has been posted
+                  const { relationship, messages, userAnswer } = latestPostedRelationship
+                  faces.push({
+                    faceId: detectedFace.faceId,
+                    stage: 'awaiting-relationship-confirmation',
+                    name,
+                    personId,
+                    messages: messages || [],
+                    relationship,
+                    userAnswer,
+                  })
+                } else {
+                  // No relationship by user
+                  faces.push({
+                    faceId: detectedFace.faceId,
+                    stage: 'awaiting-relationship',
+                    name,
+                    personId,
+                  })
+                }
+              }
             } else {
               // Has this face been ignored ?
 
@@ -190,26 +246,6 @@ export async function getPreviousMessages(userId: UUID): Promise<BienvenuePagePr
                   stage: 'ignored',
                 })
               } else {
-                // Do we recognize this face ?
-                const persons = await getPersonIdsForFaceId(detectedFace.faceId)
-                if (persons.length) {
-                  const personId = persons[0]
-                  const person = await getPersonById(personId)
-
-                  if (person) {
-                    faces.push({
-                      faceId: detectedFace.faceId,
-                      stage: 'done',
-                      result: {
-                        personId: personId,
-                        name: person.name,
-                      },
-                      messages: [],
-                    })
-                    continue
-                  }
-                }
-
                 faces.push({
                   faceId: detectedFace.faceId,
                   stage: 'awaiting-name',
