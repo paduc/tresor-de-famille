@@ -45,19 +45,19 @@ export const PersonAutocomplete = ({ onPersonSelected }: PersonAutocompleteProps
 
   return (
     <Combobox onChange={(person: any) => onPersonSelected(person)}>
-      <div className='relative'>
+      <div className='relative -ml-4 sm:ml-0 -mr-4'>
         <div className='overflow-hidden shadow-sm border border-gray-200 focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500'>
           <label htmlFor='familyMemberName' className='sr-only'>
             Nom complet
           </label>
           <Combobox.Input
-            className='block w-full resize-none border-0 py-3 px-4 focus:ring-0 text-xl'
+            className='block w-full resize-none border-0 py-3 px-4 focus:ring-0 text-lg'
             placeholder='...'
             onChange={(event) => setQuery(event.target.value)}
           />
         </div>
 
-        <Combobox.Options className='max-h-72 w-full shadow-sm border border-gray-200 border-t-none bg-white absolute top-full z-10 scroll-py-2 overflow-y-auto text-xl text-gray-800 divide-y divide-gray-100'>
+        <Combobox.Options className='max-h-72 w-full shadow-sm border border-gray-200 border-t-none bg-white absolute top-full z-10 scroll-py-2 overflow-y-auto text-lg text-gray-800 divide-y divide-gray-100'>
           {query.length > 0 ? (
             <Combobox.Option
               key={`hit_new_object`}

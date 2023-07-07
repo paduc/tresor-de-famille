@@ -18,6 +18,7 @@ const fakePersonSearch = async (query: string) => {
 export default {
   title: 'Onboarding',
   component: BienvenuePage,
+  parameters: { layout: 'fullscreen' },
   decorators: [
     (Story) => {
       return (

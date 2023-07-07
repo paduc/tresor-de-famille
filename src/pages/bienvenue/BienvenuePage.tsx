@@ -122,7 +122,7 @@ export const BienvenuePage = withBrowserBundle(({ userId, steps }: BienvenuePage
                     <div className='px-4 pt-2'>
                       <form method='POST' className='relative'>
                         <input type='hidden' name='action' value='submitPresentation' />
-                        <div className='overflow-hidden -ml-4 border border-gray-200 shadow-sm sm:max-w-sm focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500'>
+                        <div className='overflow-hidden -ml-4 sm:ml-0 -mr-4 border border-gray-200 shadow-sm sm:max-w-sm focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500'>
                           <label htmlFor='presentation' className='sr-only'>
                             Nom complet
                           </label>
@@ -142,7 +142,7 @@ export const BienvenuePage = withBrowserBundle(({ userId, steps }: BienvenuePage
                         </div>
                         <button
                           type='submit'
-                          className='inline-flex items-center mt-3 px-3 py-1.5 border border-transparent sm:sm:text-xs font-medium rounded-full shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
+                          className='inline-flex items-center mt-3 px-3 py-1.5 border border-transparent sm:text-xs font-medium rounded-full shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
                           <SendIcon className='-ml-0.5 mr-2 h-4 w-4' aria-hidden='true' />
                           Envoyer
                         </button>
@@ -244,7 +244,7 @@ export const BienvenuePage = withBrowserBundle(({ userId, steps }: BienvenuePage
                       <div className='grid grid-cols-1 w-full mt-3'>
                         <img src={photoUrl} className='max-w-full max-h-[50vh]' />
                       </div>
-                      <div className='text-gray-500 text-lg py-3 pb-2'>
+                      <div className='text-gray-500 text-xl py-3 pb-2'>
                         Plusieurs visages ont été détectés sur cette photo, quel est le tien ?
                       </div>
                       <div className='mx-auto'>
@@ -277,7 +277,7 @@ export const BienvenuePage = withBrowserBundle(({ userId, steps }: BienvenuePage
                             ))}
                       </div>
                       {stage === 'face-confirmed' ? (
-                        <div className='text-gray-500 text-lg py-3 pb-2'>Heureux de pouvoir mettre un visage sur un nom !</div>
+                        <div className='text-gray-500 text-xl py-3 pb-2'>Heureux de pouvoir mettre un visage sur un nom !</div>
                       ) : null}
                     </div>
                   </div>
@@ -325,23 +325,17 @@ export const BienvenuePage = withBrowserBundle(({ userId, steps }: BienvenuePage
                               <div className='grid grid-cols-1 w-full mt-3'>
                                 <img src={photoUrl} className='max-w-full max-h-[10vh] opacity-60' />
                               </div>
-                              {photoIndex === photos.length - 1 ? (
-                                <>
-                                  <p className={`mt-3 text-xl text-gray-500`}>
-                                    Aucun visage n'a été détecté sur cette photo. Merci d'en choisir une autre.
-                                  </p>
-                                  <InlinePhotoUploadBtn hiddenFields={{ action: 'userSendsPhotoOfFamily' }}>
-                                    <span className='cursor-pointer inline-flex items-center mt-3 px-3 py-1.5 border border-transparent text-md font-medium rounded-full shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
-                                      <PhotoIcon className='-ml-0.5 mr-2 h-6 w-6' aria-hidden='true' />
-                                      Choisir une photo avec des membres de ma famille
-                                    </span>
-                                  </InlinePhotoUploadBtn>
-                                </>
-                              ) : (
-                                <p className={`mt-3 text-md italic text-gray-500`}>
-                                  Aucun visage n'a été détecté sur cette photo.
-                                </p>
-                              )}
+                              <p className={`mt-3 text-xl text-gray-500`}>
+                                Aucun visage n'a été détecté sur cette photo. Merci d'en choisir une autre.
+                              </p>
+                              {isLastPhoto ? (
+                                <InlinePhotoUploadBtn hiddenFields={{ action: 'userSendsPhotoOfFamily' }}>
+                                  <span className='cursor-pointer inline-flex items-center mt-3 px-3 py-1.5 border border-transparent text-md font-medium rounded-full shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
+                                    <PhotoIcon className='-ml-0.5 mr-2 h-6 w-6' aria-hidden='true' />
+                                    Choisir une photo avec des membres de ma famille
+                                  </span>
+                                </InlinePhotoUploadBtn>
+                              ) : null}
                             </div>
                           </div>
                         )
@@ -403,7 +397,7 @@ export const BienvenuePage = withBrowserBundle(({ userId, steps }: BienvenuePage
                                     )
                                   })}
                               </div>
-                              <div className='col-span-7 max-w-md'>
+                              <div className='col-span-8 sm:col-span-7 max-w-md pb-4'>
                                 {faceInProgress ? (
                                   faceInProgress.stage === 'awaiting-name' ? (
                                     <FamilyMemberNameForm faceId={faceInProgress.faceId} photoId={photo.photoId} />
@@ -518,18 +512,18 @@ const FamilyMemberNameForm = ({ faceId, photoId }: FamilyMemberNameFormProps) =>
 
         <button
           type='submit'
-          className='inline-flex items-center mt-3 px-3 py-1.5 border border-transparent sm:sm:text-xs font-medium rounded-full shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
+          className='inline-flex items-center mt-3 px-3 py-1.5 border border-transparent sm:text-xs font-medium rounded-full shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
           <SendIcon className='-ml-0.5 mr-2 h-4 w-4' aria-hidden='true' />
           Envoyer
         </button>
       </form>
-      <form method='POST' className='relative'>
+      <form method='POST' className='relative mt-2'>
         <input type='hidden' name='action' value='ignoreFamilyMemberFaceInPhoto' />
         <input type='hidden' name='faceId' value={faceId} />
         <input type='hidden' name='photoId' value={photoId} />
         <button
           type='submit'
-          className='inline-flex items-center px-3 py-1.5 border border-transparent sm:sm:text-xs font-medium rounded-full shadow-sm hover:font-semibold text-red-600 ring-1 hover:ring-2 ring-red-600 ring-inset'>
+          className='inline-flex items-center px-3 py-1.5 border border-transparent sm:text-xs font-medium rounded-full shadow-sm hover:font-semibold text-red-600 ring-1 hover:ring-2 ring-red-600 ring-inset'>
           <XMarkIcon className='-ml-0.5 mr-2 h-4 w-4' aria-hidden='true' />
           Ignorer ce visage
         </button>
@@ -563,19 +557,19 @@ const FamilyMemberRelationshipForm = ({ face, photoId }: FamilyMemberRelationshi
             )
           })}
       </div>
-      <form method='POST' className='relative -ml-3'>
+      <form method='POST' className='relative'>
         <input type='hidden' name='action' value='submitRelationship' />
         <input type='hidden' name='faceId' value={faceId} />
         <input type='hidden' name='personId' value={personId} />
         <input type='hidden' name='photoId' value={photoId} />
-        <div className='overflow-hidden border border-gray-200 shadow-sm focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500'>
+
+        <div className='overflow-hidden -ml-4 sm:ml-0 -mr-4 border border-gray-200 shadow-sm sm:max-w-sm focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500'>
           <label htmlFor='userAnswer' className='sr-only'>
             Par exemple: mon père, l'épouse de...
           </label>
-          <textarea
-            rows={2}
+          <input
+            type='text'
             name='userAnswer'
-            id='userAnswer'
             className='block w-full resize-none border-0 py-3 px-4 focus:ring-0 text-xl'
             placeholder="Par exemple: mon père, l'épouse de..."
             onKeyDown={(e) => {
@@ -586,26 +580,13 @@ const FamilyMemberRelationshipForm = ({ face, photoId }: FamilyMemberRelationshi
               }
             }}
           />
-
-          {/* Spacer element to match the height of the toolbar */}
-          <div className='py-2' aria-hidden='true'>
-            {/* Matches height of button in toolbar (1px border + 36px content height) */}
-            <div className='py-px'>
-              <div className='h-9' />
-            </div>
-          </div>
         </div>
-
-        <div className='absolute inset-x-0 bottom-0 flex justify-between py-2 pl-3 pr-2'>
-          <div className='flex-shrink-0'>
-            <button
-              type='submit'
-              className='inline-flex items-center mt-3 px-3 py-1.5 border border-transparent sm:sm:text-xs font-medium rounded-full shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
-              <SendIcon className='-ml-0.5 mr-2 h-4 w-4' aria-hidden='true' />
-              Envoyer
-            </button>
-          </div>
-        </div>
+        <button
+          type='submit'
+          className='inline-flex items-center mt-3 px-3 py-1.5 border border-transparent text-base sm:text-xs font-medium rounded-full shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
+          <SendIcon className='-ml-0.5 mr-2 h-4 w-4' aria-hidden='true' />
+          Envoyer
+        </button>
       </form>
     </div>
   )
