@@ -32,10 +32,12 @@ export const parseRelationshipUsingOpenAI = async ({ userId, personId, userAnswe
   const { name } = await getPersonByIdOrThrow(personId)
 
   let messages: OpenAIMessage[] = [
-    ...initialMessages,
     {
-      role: 'assistant',
-      content: `Qui est ${name}?`,
+      role: 'system',
+      content: `Your mission is to parse a relationship that can be freely input by a human user.
+      
+      Who is ${name} ?
+      `,
     },
     {
       role: 'user',
@@ -62,14 +64,14 @@ export const parseRelationshipUsingOpenAI = async ({ userId, personId, userAnswe
                   'daughter',
                   'brother',
                   'sister',
-                  'friend',
-                  'coworker',
                   'grandfather',
                   'grandmother',
                   'uncle',
                   'aunt',
                   'wife',
                   'husband',
+                  'coworker',
+                  'friend',
                 ],
               },
               side: {
@@ -108,7 +110,7 @@ export const parseRelationshipUsingOpenAI = async ({ userId, personId, userAnswe
       parsedRelationship = { relationship, side }
     } else {
       // TODO: maybe validate relationship
-      parsedRelationship = { relationship, precision: rawText !== userAnswer && rawText }
+      parsedRelationship = { relationship, precision: rawText !== userAnswer ? rawText : '' }
     }
 
     await addToHistory(

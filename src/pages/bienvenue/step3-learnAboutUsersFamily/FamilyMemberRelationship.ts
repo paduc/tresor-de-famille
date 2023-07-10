@@ -30,6 +30,12 @@ export type FamilyMemberRelationship =
       relationship: 'sister'
     }
   | {
+      relationship: 'husband'
+    }
+  | {
+      relationship: 'wife'
+    }
+  | {
       relationship: 'grandfather'
       side?: 'paternal' | 'maternal'
     }
@@ -72,6 +78,10 @@ export const traduireRelation = (relation: FamilyMemberRelationship): string => 
       return 'ta soeur'
     case 'daughter':
       return 'ta fille'
+    case 'wife':
+      return 'ta femme'
+    case 'husband':
+      return 'ton mari'
     case 'grandfather':
       return `ton grand-père${relation.side ? (relation.side === 'maternal' ? ' maternel' : ' paternel') : ''}`
     case 'grandmother':

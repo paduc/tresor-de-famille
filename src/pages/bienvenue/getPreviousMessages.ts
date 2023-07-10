@@ -144,23 +144,6 @@ export async function getPreviousMessages(userId: UUID): Promise<BienvenuePagePr
         const faces: FamilyMemberPhotoFace[] = []
         if (detectedFaces) {
           for (const detectedFace of detectedFaces) {
-            // Do we recognize this face ?
-            const persons = await getPersonIdsForFaceId(detectedFace.faceId)
-            if (persons.length) {
-              const personId = persons[0]
-              const person = await getPersonById(personId)
-
-              if (person) {
-                faces.push({
-                  faceId: detectedFace.faceId,
-                  stage: 'done',
-                  personId,
-                  name: person.name,
-                })
-                continue
-              }
-            }
-
             // Has a this face been named or recognized ?
             const { rows: personNamedRows } = await postgres.query<
               OnboardingUserNamedPersonInFamilyPhoto | OnboardingUserRecognizedPersonInFamilyPhoto
@@ -204,8 +187,8 @@ export async function getPreviousMessages(userId: UUID): Promise<BienvenuePagePr
 
                 // Has there been relationship posted by user ?
                 const { rows: relationships } = await postgres.query<OnboardingUserPostedRelationUsingOpenAI>(
-                  "SELECT * FROM history WHERE type='OnboardingUserPostedRelationUsingOpenAI' AND payload->>'photoId'=$1 AND payload->>'faceId'=$2 AND payload->>'personId'=$3 ORDER BY \"occurredAt\" DESC LIMIT 1",
-                  [photoId, detectedFace.faceId, personId]
+                  "SELECT * FROM history WHERE type='OnboardingUserPostedRelationUsingOpenAI' AND payload->>'personId'=$1 ORDER BY \"occurredAt\" DESC LIMIT 1",
+                  [personId]
                 )
 
                 const latestPostedRelationship = relationships[0]?.payload
@@ -246,6 +229,23 @@ export async function getPreviousMessages(userId: UUID): Promise<BienvenuePagePr
                   stage: 'ignored',
                 })
               } else {
+                // Do we recognize this face from elsewhere ?
+                const persons = await getPersonIdsForFaceId(detectedFace.faceId)
+                if (persons.length) {
+                  const personId = persons[0]
+                  const person = await getPersonById(personId)
+
+                  if (person) {
+                    faces.push({
+                      faceId: detectedFace.faceId,
+                      stage: 'done',
+                      personId,
+                      name: person.name,
+                    })
+                    continue
+                  }
+                }
+
                 faces.push({
                   faceId: detectedFace.faceId,
                   stage: 'awaiting-name',
