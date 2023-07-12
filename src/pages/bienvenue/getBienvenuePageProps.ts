@@ -14,6 +14,7 @@ import { OnboardingUserNamedPersonInFamilyPhoto } from './step3-learnAboutUsersF
 import { OnboardingUserPostedRelationUsingOpenAI } from './step3-learnAboutUsersFamily/OnboardingUserPostedRelationUsingOpenAI'
 import { OnboardingUserRecognizedPersonInFamilyPhoto } from './step3-learnAboutUsersFamily/OnboardingUserRecognizedPersonInFamilyPhoto'
 import { OnboardingUserConfirmedRelationUsingOpenAI } from './step3-learnAboutUsersFamily/OnboardingUserConfirmedRelationUsingOpenAI'
+import { getSingleEvent } from '../../dependencies/getSingleEvent'
 
 export async function getBienvenuePageProps(userId: UUID): Promise<BienvenuePageProps> {
   const props: BienvenuePageProps = {
@@ -184,16 +185,17 @@ async function getFamilyDetectedFace(args: {
   const { detectedFace, photoId, userId } = args
 
   // Has a this face been named or recognized ?
-  const { rows: personNamedRows } = await postgres.query<
+  const personNamedOrRecognized = await getSingleEvent<
     OnboardingUserNamedPersonInFamilyPhoto | OnboardingUserRecognizedPersonInFamilyPhoto
-  >(
-    "SELECT * FROM history WHERE type IN ('OnboardingUserNamedPersonInFamilyPhoto', 'OnboardingUserRecognizedPersonInFamilyPhoto') AND payload->>'faceId'=$1 AND payload->>'photoId'=$2 AND payload->>'userId'=$3 ORDER BY \"occurredAt\" DESC LIMIT 1",
-    [detectedFace.faceId, photoId, userId]
-  )
+  >(['OnboardingUserNamedPersonInFamilyPhoto', 'OnboardingUserRecognizedPersonInFamilyPhoto'], {
+    faceId: detectedFace.faceId,
+    photoId,
+    userId,
+  })
 
-  if (personNamedRows.length) {
+  if (personNamedOrRecognized) {
     // Yes, the face was named or recognized
-    const { type, payload } = personNamedRows[0]
+    const { type, payload } = personNamedOrRecognized
     const { personId } = payload
 
     let name: string

@@ -114,15 +114,15 @@ export const BienvenuePage = withBrowserBundle(({ userId, steps }: BienvenuePage
           {steps?.map((step, stepIndex) => {
             const { goal } = step
             if (goal === 'get-user-name') {
-              return <GetUserName step={step} stepIndex={stepIndex} />
+              return <GetUserName step={step} stepIndex={stepIndex} key={`step${goal}${stepIndex}`} />
             }
 
             if (goal === 'upload-first-photo') {
-              return <UploadFirstPhoto step={step} stepIndex={stepIndex} />
+              return <UploadFirstPhoto step={step} stepIndex={stepIndex} key={`step${goal}${stepIndex}`} />
             }
 
             if (goal === 'upload-family-photo') {
-              return <UploadFamilyPhoto step={step} stepIndex={stepIndex} />
+              return <UploadFamilyPhoto step={step} stepIndex={stepIndex} key={`step${goal}${stepIndex}`} />
             }
           })}
           <div ref={bottomOfPageRef} />
