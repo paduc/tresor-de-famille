@@ -9,7 +9,7 @@ import { responseAsHtml } from '../../libs/ssr/responseAsHtml'
 import { getPersonIdForUserId } from '../_getPersonIdForUserId.query'
 import { pageRouter } from '../pageRouter'
 import { BienvenuePage } from './BienvenuePage'
-import { getPreviousMessages } from './getPreviousMessages'
+import { getBienvenuePageProps } from './getBienvenuePageProps'
 import { onboardingUrl } from './onboardingUrl'
 import { OnboardingUserNamedThemself } from './step1-userTellsAboutThemselves/OnboardingUserNamedThemself'
 import { uploadUserPhotoOfThemself } from './step1-userTellsAboutThemselves/uploadUserPhotoOfThemself'
@@ -31,7 +31,7 @@ const upload = multer({
 pageRouter
   .route(onboardingUrl)
   .get(requireAuth(), async (request, response) => {
-    const props = await getPreviousMessages(request.session.user!.id)
+    const props = await getBienvenuePageProps(request.session.user!.id)
     responseAsHtml(
       request,
       response,
@@ -174,7 +174,7 @@ pageRouter
       }
     }
 
-    const props = await getPreviousMessages(request.session.user!.id)
+    const props = await getBienvenuePageProps(request.session.user!.id)
 
     return responseAsHtml(
       request,
