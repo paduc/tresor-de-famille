@@ -5,6 +5,28 @@ import { getPersonByIdOrThrow } from '../../_getPersonById'
 import { FamilyMemberRelationship, isRelationWithSide, isRelationWithoutSide } from './FamilyMemberRelationship'
 import { OnboardingUserPostedRelationUsingOpenAI } from './OnboardingUserPostedRelationUsingOpenAI'
 
+const relationships = [
+  'father',
+  'mother',
+  'parent',
+  'son',
+  'daughter',
+  'brother',
+  'sister',
+  'sibling',
+  'grandfather',
+  'grandmother',
+  'grandparent',
+  'uncle',
+  'aunt',
+  'wife',
+  'husband',
+  'spouse',
+  'friend',
+  'coworker',
+  'other',
+] as const
+
 type parseRelationshipUsingOpenAIArgs = {
   userId: UUID
   personId: UUID
@@ -34,7 +56,7 @@ export const parseRelationshipUsingOpenAI = async ({ userId, personId, userAnswe
   let messages: OpenAIMessage[] = [
     {
       role: 'system',
-      content: `Your mission is to parse a relationship that can be freely input by a human user.
+      content: `Your mission is to parse a relationship that can be freely input by a human user. If there is any doubt, use relationship='other' and enter what you understood in the 'precision' field.
       
       Who is ${name} ?
       `,
@@ -46,6 +68,59 @@ export const parseRelationshipUsingOpenAI = async ({ userId, personId, userAnswe
   ]
 
   try {
+    let { relationship, side, precision } = await askGPT()
+
+    // console.log(JSON.stringify({ relationship, side, precision, userText: userAnswer }, null, 2))
+
+    if (!isRelationshipValid(relationship)) {
+      // illegal relationship
+      console.log('OpenAI returned wrong relationship.')
+
+      // OpenAI, try again
+
+      // @ts-ignore
+      messages = [
+        ...messages,
+        {
+          role: 'system',
+          content: `As an assistant, you cannot call save_relationship with a type of relationship outside of the schema. Reminder: the valid relationships are ${relationships.join(
+            ', '
+          )}. If you do not see a perfect match, set relationship to 'other'.
+          Concentrate and answer again:`,
+        },
+      ]
+
+      const secondTry = await askGPT()
+
+      // console.log('Second try:', JSON.stringify({ ...secondTry, userText: userAnswer }, null, 2))
+
+      // TODO: validate again and if invalid response, force to other
+      if (!isRelationshipValid(secondTry)) {
+        // Still invalid response
+        relationship = 'other'
+      }
+    }
+
+    let parsedRelationship: FamilyMemberRelationship
+
+    if (isRelationWithoutSide(relationship)) {
+      parsedRelationship = { relationship }
+    } else if (isRelationWithSide(relationship)) {
+      // TODO: maybe validate side
+      parsedRelationship = { relationship, side }
+    } else {
+      // TODO: maybe validate relationship
+      parsedRelationship = { relationship, precision }
+    }
+
+    await addToHistory(
+      OnboardingUserPostedRelationUsingOpenAI({ userId, personId, userAnswer, messages, relationship: parsedRelationship })
+    )
+  } catch (error) {
+    console.error(error)
+  }
+
+  async function askGPT() {
     const response = await openai.createChatCompletion({
       model,
       functions: [
@@ -57,28 +132,13 @@ export const parseRelationshipUsingOpenAI = async ({ userId, personId, userAnswe
             properties: {
               relationship: {
                 type: 'string',
-                enum: [
-                  'father',
-                  'mother',
-                  'son',
-                  'daughter',
-                  'brother',
-                  'sister',
-                  'grandfather',
-                  'grandmother',
-                  'uncle',
-                  'aunt',
-                  'wife',
-                  'husband',
-                  'coworker',
-                  'friend',
-                ],
+                enum: relationships,
               },
               side: {
                 type: 'string',
                 enum: ['paternal', 'maternal'],
               },
-              rawText: {
+              precision: {
                 type: 'string',
               },
             },
@@ -95,28 +155,17 @@ export const parseRelationshipUsingOpenAI = async ({ userId, personId, userAnswe
     // @ts-ignore
     messages = [...messages, result.message]
 
-    const { relationship, side, rawText } = JSON.parse(response.data.choices[0].message!.function_call!.arguments!)
+    try {
+      const { relationship, side, precision } = JSON.parse(result.message!.function_call!.arguments!)
+      return { relationship, side, precision }
+    } catch (error) {
+      const errorMsg = 'Could not parse the response arguments coming from OpenAI'
+      console.error(errorMsg, error)
 
-    if (!relationship) throw new Error('function_call did not return a relationship')
-
-    console.log(JSON.stringify({ relationship, side, rawText }, null, 2))
-
-    let parsedRelationship: FamilyMemberRelationship
-
-    if (isRelationWithoutSide(relationship)) {
-      parsedRelationship = { relationship }
-    } else if (isRelationWithSide(relationship)) {
-      // TODO: maybe validate side
-      parsedRelationship = { relationship, side }
-    } else {
-      // TODO: maybe validate relationship
-      parsedRelationship = { relationship, precision: rawText !== userAnswer ? rawText : '' }
+      throw new Error(errorMsg)
     }
-
-    await addToHistory(
-      OnboardingUserPostedRelationUsingOpenAI({ userId, personId, userAnswer, messages, relationship: parsedRelationship })
-    )
-  } catch (error) {
-    console.error(error)
   }
+}
+function isRelationshipValid(relationship: any) {
+  return relationships.includes(relationship)
 }
