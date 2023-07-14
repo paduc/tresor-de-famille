@@ -16,6 +16,7 @@ import { OnboardingUserRecognizedPersonInFamilyPhoto } from './step3-learnAboutU
 import { OnboardingUserConfirmedRelationUsingOpenAI } from './step3-learnAboutUsersFamily/OnboardingUserConfirmedRelationUsingOpenAI'
 import { getSingleEvent } from '../../dependencies/getSingleEvent'
 import { OnboardingUserIgnoredRelationship } from './step3-learnAboutUsersFamily/OnboardingUserIgnoredRelationship'
+import { OnboardingUserStartedFirstThread } from './step4-start-thread/OnboardingUserStartedFirstThread'
 
 export async function getBienvenuePageProps(userId: UUID): Promise<BienvenuePageProps> {
   const props: BienvenuePageProps = {
@@ -36,6 +37,10 @@ export async function getBienvenuePageProps(userId: UUID): Promise<BienvenuePage
   if (props.steps.at(-1)?.stage === 'face-confirmed') {
     props.steps.push(await getUserUploadsFamilyPhotoStep(userId))
   }
+
+  // Step 4 : User write first thread
+  const userCreatedFirstThread = await getUserCreatedFirstThreadStep(userId)
+  if (userCreatedFirstThread) props.steps.push(userCreatedFirstThread)
 
   return props
 }
@@ -298,5 +303,24 @@ async function getFamilyDetectedFace(args: {
   return {
     faceId: detectedFace.faceId,
     stage: 'awaiting-name',
+  }
+}
+
+async function getUserCreatedFirstThreadStep(
+  userId: UUID
+): Promise<(OnboardingStep & { goal: 'create-first-thread' }) | undefined> {
+  const firstThreadCreated = await getSingleEvent<OnboardingUserStartedFirstThread>('OnboardingUserStartedFirstThread', {
+    userId,
+  })
+
+  if (!firstThreadCreated) return
+
+  const { threadId, message } = firstThreadCreated.payload
+
+  return {
+    goal: 'create-first-thread',
+    stage: 'done',
+    threadId,
+    message,
   }
 }

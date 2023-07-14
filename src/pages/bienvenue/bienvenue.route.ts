@@ -22,6 +22,7 @@ import { parseRelationshipUsingOpenAI } from './step3-learnAboutUsersFamily/pars
 import { OnboardingUserConfirmedRelationUsingOpenAI } from './step3-learnAboutUsersFamily/OnboardingUserConfirmedRelationUsingOpenAI'
 import { isValidFamilyMemberRelationship } from './step3-learnAboutUsersFamily/FamilyMemberRelationship'
 import { OnboardingUserIgnoredRelationship } from './step3-learnAboutUsersFamily/OnboardingUserIgnoredRelationship'
+import { OnboardingUserStartedFirstThread } from './step4-start-thread/OnboardingUserStartedFirstThread'
 
 const FILE_SIZE_LIMIT_MB = 50
 const upload = multer({
@@ -43,7 +44,17 @@ pageRouter
   })
   .post(requireAuth(), upload.single('photo'), async (request, response) => {
     // TODO: parse only the action and then for each action, the required args
-    const { action, presentation, faceId, photoId, newFamilyMemberName, personId, userAnswer, stringifiedRelationship } = z
+    const {
+      action,
+      presentation,
+      faceId,
+      photoId,
+      newFamilyMemberName,
+      personId,
+      userAnswer,
+      stringifiedRelationship,
+      message,
+    } = z
       .object({
         action: z.string(),
         presentation: z.string().optional(),
@@ -53,6 +64,7 @@ pageRouter
         newFamilyMemberName: z.string().optional(),
         userAnswer: z.string().optional(),
         stringifiedRelationship: z.string().optional(),
+        message: z.string().optional(),
       })
       .parse(request.body)
 
@@ -154,6 +166,15 @@ pageRouter
       })
     } else if (action === 'ignoreRelationship' && personId) {
       await addToHistory(OnboardingUserIgnoredRelationship({ personId, userId }))
+    } else if (action === 'startFirstThread' && message) {
+      const threadId = getUuid()
+      await addToHistory(
+        OnboardingUserStartedFirstThread({
+          message,
+          userId,
+          threadId,
+        })
+      )
     } else if (action === 'confirmOpenAIRelationship' && personId && stringifiedRelationship) {
       try {
         const parsedRelation = JSON.parse(stringifiedRelationship)

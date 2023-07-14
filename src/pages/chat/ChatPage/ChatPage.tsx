@@ -1,12 +1,10 @@
-import React, { FunctionComponent } from 'react'
+import React from 'react'
 import { UUID } from '../../../domain'
 
 import { withBrowserBundle } from '../../../libs/ssr/withBrowserBundle'
 import { AppLayout } from '../../_components/layout/AppLayout'
 import { SuccessError } from '../../_components/SuccessError'
 import { AddPhotoOrMessageItem } from './AddPhotoOrMessageItem'
-import { ChatBubbleLeftEllipsisIcon } from './ChatBubbleLeftEllipsisIcon'
-import { HoverContext, HoverProvider } from './HoverProvider'
 import { MessageItem, MessageItemProps } from './MessageItem'
 import { PhotoItem, PhotoItemProps } from './PhotoItem'
 

@@ -1,6 +1,6 @@
 import * as React from 'react'
 
-import { CheckIcon, XMarkIcon } from '@heroicons/react/20/solid'
+import { ArrowRightCircleIcon, ArrowRightIcon, CheckIcon, XMarkIcon } from '@heroicons/react/20/solid'
 import { PhotoIcon } from '@heroicons/react/24/outline'
 import { UUID } from '../../domain'
 import { withBrowserBundle } from '../../libs/ssr/withBrowserBundle'
@@ -89,6 +89,14 @@ type OnboardingStep =
           }[]
         }
     ))
+  | ({ goal: 'create-first-thread' } & (
+      | { stage: 'awaiting-input' }
+      | {
+          stage: 'done'
+          threadId: UUID
+          message: string
+        }
+    ))
 
 export type BienvenuePageProps = {
   userId: UUID
@@ -123,6 +131,10 @@ export const BienvenuePage = withBrowserBundle(({ userId, steps }: BienvenuePage
 
             if (goal === 'upload-family-photo') {
               return <UploadFamilyPhoto step={step} stepIndex={stepIndex} key={`step${goal}${stepIndex}`} />
+            }
+
+            if (goal === 'create-first-thread') {
+              return <div key={`step${goal}${stepIndex}`}>Step 4 activated</div>
             }
           })}
           <div ref={bottomOfPageRef} />
@@ -631,14 +643,15 @@ export const UploadFamilyPhoto = ({ step, stepIndex }: UploadFamilyPhotoProps) =
                   {isLastPhoto && faces.every((face) => face.stage === 'done' || face.stage === 'ignored') ? (
                     <>
                       <p className={`mt-3 text-xl text-gray-500`}>
-                        Top ! Est-ce que tu as d'autres photos pour présenter ta famille ?
+                        Top ! Est-ce que tu veux en ajouter d'autres ou passer à la suite ?
                       </p>
                       <InlinePhotoUploadBtn hiddenFields={{ action: 'userSendsPhotoOfFamily' }}>
-                        <span className='cursor-pointer inline-flex items-center mt-3 px-3 py-1.5 border border-transparent text-md font-medium rounded-full shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
+                        <span className='cursor-pointer inline-flex items-center mt-3 px-3 py-1.5 border border-transparent text-md font-medium rounded-full shadow-sm text-indigo-600 bg-white hover:bg-indigo-500 hover:text-white ring-2 ring-indigo-600'>
                           <PhotoIcon className='-ml-0.5 mr-2 h-6 w-6' aria-hidden='true' />
                           Choisir une autre photo
                         </span>
                       </InlinePhotoUploadBtn>
+                      <ThreadBox />
                     </>
                   ) : null}
                 </div>
@@ -649,4 +662,114 @@ export const UploadFamilyPhoto = ({ step, stepIndex }: UploadFamilyPhotoProps) =
       )
     }
   }
+}
+
+type ThreadBoxProps = {}
+
+export const ThreadBox = ({}: ThreadBoxProps) => {
+  const [isOpen, toggle] = React.useState(false)
+  return (
+    <div
+      className='
+-mx-3 mt-3'>
+      {isOpen ? (
+        <div className={`divide-y divide divide-dashed divide-gray-400`}>
+          <div className='pt-3' /> {/* To force a divider */}
+          <div>
+            <div className={`px-3 py-2 text-xl text-gray-500`}>
+              <p className='py-1'>
+                Dans trésor de famille, il est également possible de transmettre des souvenirs sous forme écrite.
+              </p>
+              <p className='py-1'>
+                Il peuvent être très courts (une phrase ?) ou le début d'une histoire familiale plus fournie.
+              </p>
+              <p className='py-1'>Je te propose d'écrire ici ton premier fil de souvenir.</p>
+              <ul className='text-base list-inside list-disc'>
+                Exemples:
+                <li>Plus ancien souvenir avec...</li>
+                <li>Le sport que j'ai pratiqué</li>
+                <li>Mon livre préféré</li>
+              </ul>
+            </div>
+            <div className='px-3'>
+              <form method='POST' className='relative sm:max-w-lg'>
+                <input type='hidden' name='action' defaultValue='startFirstThread' />
+                <div className='pt-2 overflow-hidden rounded-lg border border-gray-300 shadow-sm focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500'>
+                  {/* <label htmlFor='title' className='sr-only'>
+                  Title
+                </label>
+                <input
+                  type='text'
+                  name='title'
+                  id='title'
+                  className='block w-full border-0 pt-2.5 text-lg font-medium placeholder:text-gray-400 focus:ring-0'
+                  placeholder='Title'
+                /> */}
+                  <label htmlFor='message' className='sr-only'>
+                    Je me souviens...
+                  </label>
+                  <textarea
+                    rows={4}
+                    name='message'
+                    id='message'
+                    className='block w-full resize-none border-0 py-0 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6'
+                    placeholder='Je me souviens...'
+                    defaultValue={''}
+                  />
+
+                  {/* Spacer element to match the height of the toolbar */}
+                  <div aria-hidden='true'>
+                    {/* <div className='py-2'>
+                      <div className='h-9' />
+                    </div> */}
+                    <div className='h-px' />
+                    <div className='py-2'>
+                      <div className='py-px'>
+                        <div className='h-9' />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className='absolute inset-x-px bottom-0'>
+                  <div className='flex items-center justify-between space-x-3 border-t border-gray-200 px-2 py-2 sm:px-3'>
+                    <div className='flex'>
+                      {/* <button
+                        type='button'
+                        className='group -my-2 -ml-2 inline-flex items-center rounded-full px-3 py-2 text-left text-gray-400'>
+                        <PhotoIcon className='-ml-1 mr-2 h-5 w-5 group-hover:text-gray-500' aria-hidden='true' />
+                        <span className='text-sm italic text-gray-500 group-hover:text-gray-600'>Ajouter une photo</span>
+                      </button> */}
+                    </div>
+                    <div className='flex-shrink-0'>
+                      <button
+                        type='submit'
+                        className='inline-flex items-center rounded-full bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600'>
+                        Envoyer
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className='px-3'>
+          <button
+            onClick={() => {
+              // TODO: display step 4 : write a memory
+              // Easiest would be to display a thread box using state
+              // Move the button into a new ThreadBox component, that has an open/closed state
+              // Click on this button to toggle open/close
+              // ThreadBox contains everything necessary to start a thread (textarea...)
+              toggle(true)
+            }}
+            className='cursor-pointer inline-flex items-center mt-3 px-3 py-1.5 border border-transparent text-md font-medium rounded-full shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
+            <ArrowRightIcon className='-ml-0.5 mr-2 h-6 w-6' aria-hidden='true' />
+            Passer à la suite
+          </button>
+        </div>
+      )}
+    </div>
+  )
 }

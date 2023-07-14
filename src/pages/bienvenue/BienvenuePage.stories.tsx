@@ -448,3 +448,117 @@ export const Step3RelationshipInProgress = () => (
     ]}
   />
 )
+
+export const Step3Done = () => (
+  <BienvenuePage
+    userId={getUuid()}
+    steps={[
+      {
+        goal: 'get-user-name',
+        stage: 'done',
+
+        name: 'Pierre-Antoine',
+        personId: getUuid(),
+      },
+      {
+        goal: 'upload-first-photo',
+        stage: 'face-confirmed',
+        confirmedFaceId: getUuid(),
+        photoId: getUuid(),
+        photoUrl:
+          'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=2560&h=2560&q=80',
+        faces: [{ faceId: getUuid() }],
+      },
+      {
+        goal: 'upload-family-photo',
+        stage: 'annotating-photo',
+        photos: [
+          {
+            photoId: getUuid(),
+            photoUrl:
+              'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=2560&h=2560&q=80',
+            faces: [],
+          },
+          {
+            photoId: getUuid(),
+            photoUrl:
+              'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=2560&h=2560&q=80',
+            faces: [
+              { faceId: getUuid(), stage: 'ignored' },
+              {
+                faceId: getUuid(),
+                stage: 'done',
+                personId: getUuid(),
+                name: 'John Doe',
+                relationship: {
+                  relationship: 'coworker',
+                  precision: 'chez Foncia',
+                },
+              },
+            ],
+          },
+        ],
+      },
+    ]}
+  />
+)
+
+export const Step4Done = () => (
+  <BienvenuePage
+    userId={getUuid()}
+    steps={[
+      {
+        goal: 'get-user-name',
+        stage: 'done',
+
+        name: 'Pierre-Antoine',
+        personId: getUuid(),
+      },
+      {
+        goal: 'upload-first-photo',
+        stage: 'face-confirmed',
+        confirmedFaceId: getUuid(),
+        photoId: getUuid(),
+        photoUrl:
+          'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=2560&h=2560&q=80',
+        faces: [{ faceId: getUuid() }],
+      },
+      {
+        goal: 'upload-family-photo',
+        stage: 'annotating-photo',
+        photos: [
+          {
+            photoId: getUuid(),
+            photoUrl:
+              'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=2560&h=2560&q=80',
+            faces: [],
+          },
+          {
+            photoId: getUuid(),
+            photoUrl:
+              'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=2560&h=2560&q=80',
+            faces: [
+              { faceId: getUuid(), stage: 'ignored' },
+              {
+                faceId: getUuid(),
+                stage: 'done',
+                personId: getUuid(),
+                name: 'John Doe',
+                relationship: {
+                  relationship: 'coworker',
+                  precision: 'chez Foncia',
+                },
+              },
+            ],
+          },
+        ],
+      },
+      {
+        goal: 'create-first-thread',
+        stage: 'done',
+        message: `Je me souviens parfaitement ne jamais avoir fait de sport. Je n'étais pas sportif, je n'avais qu'une passion pour la lecture. Et jouer au ballon prisonnier la tête plongée dans un roman, ce n'est pas possible. C'est comme ça que j'ai cassé mes premières lunettes.`,
+        threadId: getUuid(),
+      },
+    ]}
+  />
+)
