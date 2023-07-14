@@ -250,35 +250,47 @@ const FamilyMemberRelationshipForm = ({ face, photoId }: FamilyMemberRelationshi
           </button>
         </>
       ) : (
-        <form method='POST' className='relative'>
-          <input type='hidden' name='action' value='submitRelationship' />
-          <input type='hidden' name='personId' value={personId} />
+        <>
+          <form method='POST' className='relative'>
+            <input type='hidden' name='action' value='submitRelationship' />
+            <input type='hidden' name='personId' value={personId} />
 
-          <div className='overflow-hidden -ml-4 sm:ml-0 -mr-4 border border-gray-200 shadow-sm sm:max-w-sm focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500'>
-            <label htmlFor='userAnswer' className='sr-only'>
-              Par exemple: mon père, l'épouse de...
-            </label>
-            <input
-              type='text'
-              name='userAnswer'
-              className='block w-full resize-none border-0 py-3 px-4 focus:ring-0 text-xl'
-              placeholder="Par exemple: mon père, l'épouse de..."
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault()
-                  // @ts-ignore
-                  e.target.form.submit()
-                }
-              }}
-            />
-          </div>
-          <button
-            type='submit'
-            className='inline-flex items-center mt-3 px-3 py-1.5 border border-transparent text-base sm:text-xs font-medium rounded-full shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
-            <SendIcon className='-ml-0.5 mr-2 h-4 w-4' aria-hidden='true' />
-            Envoyer
-          </button>
-        </form>
+            <div className='overflow-hidden -ml-4 sm:ml-0 -mr-4 border border-gray-200 shadow-sm sm:max-w-sm focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500'>
+              <label htmlFor='userAnswer' className='sr-only'>
+                Par exemple: mon père, l'épouse de...
+              </label>
+              <input
+                type='text'
+                name='userAnswer'
+                className='block w-full resize-none border-0 py-3 px-4 focus:ring-0 text-xl'
+                placeholder="Par exemple: mon père, l'épouse de..."
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault()
+                    // @ts-ignore
+                    e.target.form.submit()
+                  }
+                }}
+              />
+            </div>
+            <button
+              type='submit'
+              className='inline-flex items-center mt-3 px-3 py-1.5 border border-transparent text-base sm:text-xs font-medium rounded-full shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
+              <SendIcon className='-ml-0.5 mr-2 h-4 w-4' aria-hidden='true' />
+              Envoyer
+            </button>
+          </form>
+          <form method='POST' className='relative mt-2'>
+            <input type='hidden' name='action' value='ignoreRelationship' />
+            <input type='hidden' name='personId' value={personId} />
+            <button
+              type='submit'
+              className='inline-flex items-center px-3 py-1.5 border border-transparent sm:text-xs font-medium rounded-full shadow-sm hover:font-semibold text-red-600 ring-1 hover:ring-2 ring-red-600 ring-inset'>
+              <XMarkIcon className='-ml-0.5 mr-2 h-4 w-4' aria-hidden='true' />
+              Passer
+            </button>
+          </form>
+        </>
       )}
     </div>
   )
@@ -532,10 +544,7 @@ export const UploadFamilyPhoto = ({ step, stepIndex }: UploadFamilyPhotoProps) =
                 face
               ): face is FamilyMemberPhotoFace & {
                 stage: 'awaiting-name' | 'awaiting-relationship' | 'awaiting-relationship-confirmation'
-              } =>
-                face.stage === 'awaiting-name' ||
-                face.stage === 'awaiting-relationship' ||
-                face.stage === 'awaiting-relationship-confirmation'
+              } => ['awaiting-name', 'awaiting-relationship', 'awaiting-relationship-confirmation'].includes(face.stage)
             )
 
             return (

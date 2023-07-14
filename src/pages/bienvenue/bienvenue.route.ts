@@ -21,6 +21,7 @@ import { OnboardingUserRecognizedPersonInFamilyPhoto } from './step3-learnAboutU
 import { parseRelationshipUsingOpenAI } from './step3-learnAboutUsersFamily/parseRelationshipUsingOpenAI'
 import { OnboardingUserConfirmedRelationUsingOpenAI } from './step3-learnAboutUsersFamily/OnboardingUserConfirmedRelationUsingOpenAI'
 import { isValidFamilyMemberRelationship } from './step3-learnAboutUsersFamily/FamilyMemberRelationship'
+import { OnboardingUserIgnoredRelationship } from './step3-learnAboutUsersFamily/OnboardingUserIgnoredRelationship'
 
 const FILE_SIZE_LIMIT_MB = 50
 const upload = multer({
@@ -151,6 +152,8 @@ pageRouter
         personId,
         userAnswer,
       })
+    } else if (action === 'ignoreRelationship' && personId) {
+      await addToHistory(OnboardingUserIgnoredRelationship({ personId, userId }))
     } else if (action === 'confirmOpenAIRelationship' && personId && stringifiedRelationship) {
       try {
         const parsedRelation = JSON.parse(stringifiedRelationship)

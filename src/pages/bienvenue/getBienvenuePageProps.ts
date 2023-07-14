@@ -15,6 +15,7 @@ import { OnboardingUserPostedRelationUsingOpenAI } from './step3-learnAboutUsers
 import { OnboardingUserRecognizedPersonInFamilyPhoto } from './step3-learnAboutUsersFamily/OnboardingUserRecognizedPersonInFamilyPhoto'
 import { OnboardingUserConfirmedRelationUsingOpenAI } from './step3-learnAboutUsersFamily/OnboardingUserConfirmedRelationUsingOpenAI'
 import { getSingleEvent } from '../../dependencies/getSingleEvent'
+import { OnboardingUserIgnoredRelationship } from './step3-learnAboutUsersFamily/OnboardingUserIgnoredRelationship'
 
 export async function getBienvenuePageProps(userId: UUID): Promise<BienvenuePageProps> {
   const props: BienvenuePageProps = {
@@ -203,6 +204,17 @@ async function getFamilyDetectedFace(args: {
       name = payload.name
     } else {
       name = (await getPersonByIdOrThrow(personId)).name
+    }
+
+    // Did the user pass on naming this relationship ?
+    const ignoredRelationship = await getSingleEvent<OnboardingUserIgnoredRelationship>('OnboardingUserIgnoredRelationship')
+    if (ignoredRelationship) {
+      return {
+        stage: 'done',
+        faceId: detectedFace.faceId,
+        personId,
+        name,
+      }
     }
 
     // Has a relationship been confirmed for this person ?
