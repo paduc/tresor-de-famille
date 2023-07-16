@@ -36,6 +36,9 @@ export type FamilyMemberRelationship =
       relationship: 'wife'
     }
   | {
+      relationship: 'cousin'
+    }
+  | {
       relationship: 'grandfather'
       side?: 'paternal' | 'maternal'
     }
@@ -58,6 +61,10 @@ export type FamilyMemberRelationship =
   | {
       relationship: 'coworker'
       precision?: string
+    }
+  | {
+      relationship: 'other'
+      precision: string
     }
 
 export const isValidFamilyMemberRelationship = (relation: any): relation is FamilyMemberRelationship => {
@@ -82,6 +89,8 @@ export const traduireRelation = (relation: FamilyMemberRelationship): string => 
       return 'ta femme'
     case 'husband':
       return 'ton mari'
+    case 'cousin':
+      return 'ton/ta cousin(e)'
     case 'grandfather':
       return `ton grand-père${relation.side ? (relation.side === 'maternal' ? ' maternel' : ' paternel') : ''}`
     case 'grandmother':
@@ -94,5 +103,7 @@ export const traduireRelation = (relation: FamilyMemberRelationship): string => 
       return `un collègue${relation.precision ? ` (${relation.precision})` : ''}`
     case 'friend':
       return `un ami${relation.precision ? ` (${relation.precision})` : ''}`
+    case 'other':
+      return relation.precision
   }
 }

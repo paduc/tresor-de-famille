@@ -212,7 +212,9 @@ async function getFamilyDetectedFace(args: {
     }
 
     // Did the user pass on naming this relationship ?
-    const ignoredRelationship = await getSingleEvent<OnboardingUserIgnoredRelationship>('OnboardingUserIgnoredRelationship')
+    const ignoredRelationship = await getSingleEvent<OnboardingUserIgnoredRelationship>('OnboardingUserIgnoredRelationship', {
+      faceId: detectedFace.faceId,
+    })
     if (ignoredRelationship) {
       return {
         stage: 'done',

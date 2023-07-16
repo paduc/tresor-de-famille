@@ -21,6 +21,7 @@ const relationships = [
   'aunt',
   'wife',
   'husband',
+  'cousin',
   'spouse',
   'friend',
   'coworker',
@@ -74,7 +75,7 @@ export const parseRelationshipUsingOpenAI = async ({ userId, personId, userAnswe
 
     if (!isRelationshipValid(relationship)) {
       // illegal relationship
-      console.log('OpenAI returned wrong relationship.')
+      // console.log('OpenAI returned wrong relationship.')
 
       // OpenAI, try again
 
@@ -98,6 +99,7 @@ export const parseRelationshipUsingOpenAI = async ({ userId, personId, userAnswe
       if (!isRelationshipValid(secondTry)) {
         // Still invalid response
         relationship = 'other'
+        precision = userAnswer
       }
     }
 

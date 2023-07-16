@@ -43,34 +43,22 @@ pageRouter
     )
   })
   .post(requireAuth(), upload.single('photo'), async (request, response) => {
-    // TODO: parse only the action and then for each action, the required args
-    const {
-      action,
-      presentation,
-      faceId,
-      photoId,
-      newFamilyMemberName,
-      personId,
-      userAnswer,
-      stringifiedRelationship,
-      message,
-    } = z
+    const { action } = z
       .object({
+        // TODO: check if valid action .oneOf()
         action: z.string(),
-        presentation: z.string().optional(),
-        faceId: zIsUUID.optional(),
-        photoId: zIsUUID.optional(),
-        personId: zIsUUID.optional(),
-        newFamilyMemberName: z.string().optional(),
-        userAnswer: z.string().optional(),
-        stringifiedRelationship: z.string().optional(),
-        message: z.string().optional(),
       })
       .parse(request.body)
 
     const userId = request.session.user!.id
 
-    if (action === 'submitPresentation' && presentation) {
+    if (action === 'submitPresentation') {
+      const { presentation } = z
+        .object({
+          presentation: z.string(),
+        })
+        .parse(request.body)
+
       const personId = getUuid()
       await addToHistory(
         OnboardingUserNamedThemself({
@@ -102,7 +90,14 @@ pageRouter
       if (!file) return new Error('We did not receive any image.')
 
       await uploadUserPhotoOfFamily({ file, userId })
-    } else if (action === 'confirmFaceIsUser' && faceId && photoId) {
+    } else if (action === 'confirmFaceIsUser') {
+      const { faceId, photoId } = z
+        .object({
+          faceId: zIsUUID,
+          photoId: zIsUUID,
+        })
+        .parse(request.body)
+
       const personId = await getPersonIdForUserId(userId)
       await addToHistory(
         OnboardingUserConfirmedHisFace({
@@ -112,7 +107,15 @@ pageRouter
           personId,
         })
       )
-    } else if (action === 'submitFamilyMemberName' && faceId && photoId && typeof newFamilyMemberName === 'string') {
+    } else if (action === 'submitFamilyMemberName') {
+      const { faceId, photoId, newFamilyMemberName } = z
+        .object({
+          faceId: zIsUUID,
+          photoId: zIsUUID,
+          newFamilyMemberName: z.string(),
+        })
+        .parse(request.body)
+
       if (newFamilyMemberName.length > 0) {
         const personId = getUuid()
         await addToHistory(
@@ -150,7 +153,13 @@ pageRouter
           })
         )
       }
-    } else if (action === 'ignoreFamilyMemberFaceInPhoto' && faceId && photoId) {
+    } else if (action === 'ignoreFamilyMemberFaceInPhoto') {
+      const { faceId, photoId } = z
+        .object({
+          faceId: zIsUUID,
+          photoId: zIsUUID,
+        })
+        .parse(request.body)
       await addToHistory(
         OnboardingFaceIgnoredInFamilyPhoto({
           ignoredBy: userId,
@@ -158,15 +167,31 @@ pageRouter
           faceId,
         })
       )
-    } else if (action === 'submitRelationship' && personId && userAnswer) {
+    } else if (action === 'submitRelationship') {
+      const { personId, userAnswer } = z
+        .object({
+          personId: zIsUUID,
+          userAnswer: z.string(),
+        })
+        .parse(request.body)
       await parseRelationshipUsingOpenAI({
         userId,
         personId,
         userAnswer,
       })
-    } else if (action === 'ignoreRelationship' && personId) {
+    } else if (action === 'ignoreRelationship') {
+      const { personId } = z
+        .object({
+          personId: zIsUUID,
+        })
+        .parse(request.body)
       await addToHistory(OnboardingUserIgnoredRelationship({ personId, userId }))
-    } else if (action === 'startFirstThread' && message) {
+    } else if (action === 'startFirstThread') {
+      const { message } = z
+        .object({
+          message: z.string(),
+        })
+        .parse(request.body)
       const threadId = getUuid()
       await addToHistory(
         OnboardingUserStartedFirstThread({
@@ -175,9 +200,18 @@ pageRouter
           threadId,
         })
       )
-    } else if (action === 'confirmOpenAIRelationship' && personId && stringifiedRelationship) {
+    } else if (action === 'confirmOpenAIRelationship') {
       try {
-        const parsedRelation = JSON.parse(stringifiedRelationship)
+        const { stringifiedRelationship: parsedRelation, personId } = z
+          .object({
+            personId: zIsUUID,
+            stringifiedRelationship: z.object({
+              relationship: z.string(),
+              side: z.string().optional(),
+              precision: z.string().optional(),
+            }),
+          })
+          .parse(request.body)
 
         const { relationship, side, precision } = parsedRelation
         const reducedRelation = { relationship, side, precision }
