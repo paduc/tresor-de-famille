@@ -84,7 +84,7 @@ export const PersonSearch = ({ onPersonSelected, open, setOpen, personFaceUrl }:
                       personFaceUrl ? 'pl-24' : 'pl-11'
                     } pr-4 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm`}
                     placeholder='Search...'
-                    onChange={(event) => setQuery(event.target.value)}
+                    onChange={(event) => setQuery(event.target.value.trim())}
                   />
                 </div>
 

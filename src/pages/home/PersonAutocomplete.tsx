@@ -1,8 +1,8 @@
-import { Combobox, Dialog, Transition } from '@headlessui/react'
-import { CheckIcon, MagnifyingGlassIcon } from '@heroicons/react/20/solid'
-import React, { Fragment, useState } from 'react'
-import { UUID } from '../../../domain/UUID'
-import { usePersonSearch } from '../../_components/usePersonSearch'
+import { Combobox } from '@headlessui/react'
+import { CheckIcon } from '@heroicons/react/20/solid'
+import React, { useState } from 'react'
+import { UUID } from '../../domain/UUID'
+import { usePersonSearch } from '../_components/usePersonSearch'
 
 type SearchPersonHitDTO = {
   objectID: string
@@ -13,6 +13,7 @@ type SearchPersonHitDTO = {
 
 type PersonAutocompleteProps = {
   onPersonSelected: (person: { type: 'known'; personId: UUID } | { type: 'unknown'; name: string }) => unknown
+  className?: string
 }
 
 // @ts-ignore
@@ -20,7 +21,7 @@ function classNames(...classes) {
   return classes.filter(Boolean).join(' ')
 }
 
-export const PersonAutocomplete = ({ onPersonSelected }: PersonAutocompleteProps) => {
+export const PersonAutocomplete = ({ onPersonSelected, className }: PersonAutocompleteProps) => {
   const [query, setQuery] = useState('')
 
   const index = usePersonSearch()
@@ -45,7 +46,7 @@ export const PersonAutocomplete = ({ onPersonSelected }: PersonAutocompleteProps
 
   return (
     <Combobox onChange={(person: any) => onPersonSelected(person)}>
-      <div className='relative -ml-4 sm:ml-0 -mr-4'>
+      <div className={`relative sm:ml-0 ${className || ''}`}>
         <div className='overflow-hidden shadow-sm border border-gray-200 focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500'>
           <label htmlFor='familyMemberName' className='sr-only'>
             Nom complet
