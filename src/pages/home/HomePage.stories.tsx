@@ -41,6 +41,7 @@ export const WaitingForName = () => (
       'upload-first-photo': 'pending',
       'upload-family-photo': 'awaiting-upload',
       'create-first-thread': 'awaiting-input',
+      'chose-beneficiaries': 'awaiting-input',
     }}
   />
 )
@@ -54,6 +55,7 @@ export const WaitingForPhoto = () => (
       'upload-first-photo': 'pending',
       'upload-family-photo': 'awaiting-upload',
       'create-first-thread': 'awaiting-input',
+      'chose-beneficiaries': 'awaiting-input',
     }}
   />
 )
@@ -70,6 +72,7 @@ export const PhotoUploadedNoFaces = () => (
       faces: [],
       'upload-family-photo': 'awaiting-upload',
       'create-first-thread': 'awaiting-input',
+      'chose-beneficiaries': 'awaiting-input',
     }}
   />
 )
@@ -87,6 +90,7 @@ export const PhotoUploadedSingleFace = () => (
       faces: [{ faceId: getUuid() }],
       'upload-family-photo': 'awaiting-upload',
       'create-first-thread': 'awaiting-input',
+      'chose-beneficiaries': 'awaiting-input',
     }}
   />
 )
@@ -104,6 +108,7 @@ export const PhotoUploadedMultipleFaces = () => (
       faces: [{ faceId: getUuid() }, { faceId: getUuid() }, { faceId: getUuid() }],
       'upload-family-photo': 'awaiting-upload',
       'create-first-thread': 'awaiting-input',
+      'chose-beneficiaries': 'awaiting-input',
     }}
   />
 )
@@ -121,6 +126,7 @@ export const WaitingForFamilyPhoto = () => (
       faceId: getUuid(),
       'upload-family-photo': 'awaiting-upload',
       'create-first-thread': 'awaiting-input',
+      'chose-beneficiaries': 'awaiting-input',
     }}
   />
 )
@@ -146,6 +152,7 @@ export const AnnotatingFamilyPhotoNoFaces = () => (
         },
       ],
       'create-first-thread': 'awaiting-input',
+      'chose-beneficiaries': 'awaiting-input',
     }}
   />
 )
@@ -179,6 +186,7 @@ export const AnnotatingFamilyFaceWithName = () => (
         },
       ],
       'create-first-thread': 'awaiting-input',
+      'chose-beneficiaries': 'awaiting-input',
     }}
   />
 )
@@ -204,6 +212,7 @@ export const AnnotatingFamilyFaceWithRelation = () => (
         },
       ],
       'create-first-thread': 'awaiting-input',
+      'chose-beneficiaries': 'awaiting-input',
     }}
   />
 )
@@ -238,6 +247,7 @@ export const ConfirmingFamilyRelation = () => (
         },
       ],
       'create-first-thread': 'awaiting-input',
+      'chose-beneficiaries': 'awaiting-input',
     }}
   />
 )
@@ -330,6 +340,7 @@ export const AnnotatingMultipleFamilyPhotos = () => (
         },
       ],
       'create-first-thread': 'awaiting-input',
+      'chose-beneficiaries': 'awaiting-input',
     }}
   />
 )
@@ -375,6 +386,7 @@ export const MultipleFamilyPhotosAllDone = () => (
         },
       ],
       'create-first-thread': 'awaiting-input',
+      'chose-beneficiaries': 'awaiting-input',
     }}
   />
 )
@@ -408,11 +420,48 @@ export const WaitingForFirstThread = () => (
         },
       ],
       'create-first-thread': 'awaiting-input',
+      'chose-beneficiaries': 'awaiting-input',
     }}
   />
 )
 
-export const FirstThreadDone = () => (
+export const FirstThreadWritten = () => (
+  <HomePage
+    steps={{
+      'get-user-name': 'done',
+      name: 'John Doe',
+      personId: getUuid(),
+      'upload-first-photo': 'user-face-confirmed',
+      photoId: getUuid(),
+      photoUrl:
+        'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=3000&h=2000&q=80',
+      faceId: getUuid(),
+      'upload-family-photo': 'done',
+      photos: [
+        {
+          photoId: getUuid(),
+          photoUrl:
+            'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=3000&h=2000&q=80',
+          faces: [
+            {
+              faceId: getUuid(),
+              stage: 'done',
+              name: 'Johnny',
+              personId: getUuid(),
+              relationship: { relationship: 'mother' },
+            },
+          ],
+        },
+      ],
+      'create-first-thread': 'thread-written',
+      threadId: getUuid(),
+      message: `Je me souviens parfaitement ne jamais avoir fait de sport. Je n'étais pas sportif, je n'avais qu'une passion pour la lecture. Et jouer au ballon prisonnier la tête plongée dans un roman, ce n'est pas possible. C'est comme ça que j'ai cassé mes premières lunettes.`,
+      'chose-beneficiaries': 'awaiting-input',
+    }}
+  />
+)
+
+export const ChosingBeneficiaries = () => (
   <HomePage
     steps={{
       'get-user-name': 'done',
@@ -443,6 +492,7 @@ export const FirstThreadDone = () => (
       'create-first-thread': 'done',
       threadId: getUuid(),
       message: `Je me souviens parfaitement ne jamais avoir fait de sport. Je n'étais pas sportif, je n'avais qu'une passion pour la lecture. Et jouer au ballon prisonnier la tête plongée dans un roman, ce n'est pas possible. C'est comme ça que j'ai cassé mes premières lunettes.`,
+      'chose-beneficiaries': 'awaiting-input',
     }}
   />
 )

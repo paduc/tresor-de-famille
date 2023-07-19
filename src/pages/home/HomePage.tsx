@@ -4,7 +4,7 @@ import AdaptiveLayout from '../_components/layout/AdaptiveLayout'
 import { UUID } from '../../domain'
 import { SendIcon } from '../chat/ChatPage/SendIcon'
 import { PhotoIcon, CheckIcon, XMarkIcon } from '@heroicons/react/24/outline'
-import { ArrowRightIcon } from '@heroicons/react/20/solid'
+import { ArrowRightIcon, PlusIcon } from '@heroicons/react/20/solid'
 import { InlinePhotoUploadBtn } from '../_components/InlinePhotoUploadBtn'
 import { FamilyMemberRelationship, traduireRelation } from '../bienvenue/step3-learnAboutUsersFamily/FamilyMemberRelationship'
 import {
@@ -16,9 +16,12 @@ import {
   secondaryRedButtonStyles,
 } from '../_components/Button'
 import { PersonAutocomplete } from './PersonAutocomplete'
+import { ThreadTextarea } from '../_components/ThreadTextarea'
+import { RadioGroup } from '@headlessui/react'
+import classNames from 'classnames'
 
 export type HomePageProps = {
-  steps: GetUserName & UploadFirstPhoto & UploadFamilyPhoto & CreateFirstThread
+  steps: GetUserName & UploadFirstPhoto & UploadFamilyPhoto & CreateFirstThread & ChoseBeneficiaries
 }
 
 export const HomePage = withBrowserBundle(({ steps }: HomePageProps) => {
@@ -96,10 +99,18 @@ export const HomePage = withBrowserBundle(({ steps }: HomePageProps) => {
     )
   }
 
-  if (steps['create-first-thread'] === 'done') {
+  if (steps['create-first-thread'] === 'thread-written') {
     return (
       <Wrapper steps={steps}>
         <FirstThreadStep step={steps} />
+      </Wrapper>
+    )
+  }
+
+  if (steps['chose-beneficiaries'] === 'awaiting-input') {
+    return (
+      <Wrapper steps={steps}>
+        <ChoseBeneficiariesStep step={steps} />{' '}
       </Wrapper>
     )
   }
@@ -196,9 +207,22 @@ export type CreateFirstThread =
       'create-first-thread': 'awaiting-input'
     }
   | {
+      'create-first-thread': 'thread-written'
+      threadId: UUID
+      message: string
+    }
+  | {
       'create-first-thread': 'done'
       threadId: UUID
       message: string
+    }
+
+export type ChoseBeneficiaries =
+  | {
+      'chose-beneficiaries': 'awaiting-input'
+    }
+  | {
+      'chose-beneficiaries': 'done'
     }
 
 function GetUserName() {
@@ -788,79 +812,259 @@ export const CreateFirstThread = ({}: CreateFirstThreadProps) => {
 }
 
 type FirstThreadStepProps = {
-  step: CreateFirstThread & { 'create-first-thread': 'done' }
+  step: CreateFirstThread & { 'create-first-thread': 'thread-written' }
 }
 export const FirstThreadStep = ({ step }: FirstThreadStepProps) => {
   const { message } = step
 
   return (
     <div className=''>
+      <ThreadTextarea message={message} />
       <Paragraph className={``}>
         Bravo! Maintenant que vous avez lancé le fil de souvenir, vous pouvez le compléter avec un titre, des propos
         supplémentaires, des photos, etc.
       </Paragraph>
-      <form method='POST' className='relative sm:max-w-lg'>
-        <input type='hidden' name='action' defaultValue='startFirstThread' />
-        <div className='pt-2 overflow-hidden rounded-lg border border-gray-300 shadow-sm focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500'>
-          <label htmlFor='title' className='sr-only'>
-            Titre
-          </label>
-          <input
-            type='text'
-            name='title'
-            id='title'
-            className='block w-full border-0 pt-2.5 text-xl sm:text-lg font-medium placeholder:text-gray-400 focus:ring-0'
-            placeholder='Titre'
-          />
-          <div className='divide divide-y divide-solid'>
-            <p className='text-gray-900 text-lg sm:text-base sm:leading-6 px-3 py-2'>{message}</p>
-            <div className='h-2' />
-          </div>
-          <label htmlFor='message' className='sr-only'>
-            ...
-          </label>
-          <textarea
-            rows={2}
-            name='message'
-            id='message'
-            className='block w-full resize-none border-0 py-0 text-gray-900 placeholder:text-gray-400 focus:ring-0 text-lg sm:text-base sm:leading-6'
-            placeholder='...'
-            defaultValue={''}
-          />
+      <Paragraph>
+        Des photos de votre famille, des visages et des relations, un premier souvenir... vous avez déjà un{' '}
+        <span className='text-black'>trésor</span> !
+      </Paragraph>
+      <Paragraph>
+        Un trésor, fait pour être <span className='text-black'>transmis</span>. Mais à qui ?
+      </Paragraph>
+      <form method='POST' className='relative mt-3'>
+        <input type='hidden' name='action' value='gotoBeneficiaries' />
+        <button type='submit' className={`${primaryButtonStyles}`}>
+          <ArrowRightIcon className={`${buttonIconStyles}`} aria-hidden='true' />
+          Passer au choix des destinataires
+        </button>
+      </form>
+    </div>
+  )
+}
 
-          {/* Spacer element to match the height of the toolbar */}
-          <div aria-hidden='true'>
-            {/* <div className='py-2'>
-                      <div className='h-9' />
-                    </div> */}
-            <div className='h-px' />
-            <div className='py-2'>
-              <div className='py-px'>
-                <div className='h-9' />
+type ChoseBeneficiariesStepProps = {
+  step: ChoseBeneficiaries & { 'chose-beneficiaries': 'awaiting-input' }
+}
+type TriggerMode = {
+  mode: 'automatic' | 'manual'
+  name: string
+  description: JSX.Element
+}
+
+const triggerModes: TriggerMode[] = [
+  {
+    mode: 'automatic',
+    name: 'Automatique',
+    description: (
+      <div className='space-y-3'>
+        <div>
+          Si Trésor de famille détecte une inactivité de votre part, nous vous contactons pour nous assurer que tout va bien.
+        </div>
+        <div>
+          En l'absence de réponse, nous déclenchons la procédure de transmission, en prenant contact avec vos bénéficiaires.
+        </div>
+      </div>
+    ),
+  },
+  {
+    mode: 'manual',
+    name: 'Manuel',
+    description: (
+      <div className='space-y-3'>
+        <div>Vous imprimez et distribuez des QR code spécialement conçus à vos bénéficiaires.</div>
+        <div>Le moment venu, vos bénéficiaires pourront flasher le QR code et obtenir l'accès à votre trésor.</div>
+      </div>
+    ),
+  },
+]
+
+export const ChoseBeneficiariesStep = ({ step }: ChoseBeneficiariesStepProps) => {
+  const [selectedMode, setSelectedMode] = React.useState<TriggerMode>(triggerModes[0])
+
+  const [beneficiaryCount, setBeneficiaryCount] = React.useState<number>(1)
+
+  return (
+    <div className=''>
+      <Paragraph>
+        Voici comment votre <span className='text-indigo-600'>trésor</span> sera transmis à la postérité.
+      </Paragraph>
+      <form method='POST' className='relative mt-3'>
+        <input type='hidden' name='action' value='choseBeneficiaries' />
+        <div className='space-y-6'>
+          <div className='space-y-6'>
+            <div>
+              <h2 className='text-xl font-semibold leading-7 text-gray-900'>Déclenchement</h2>
+              <p className='mt-1 max-w-2xl text-base leading-6 text-gray-600'>
+                Vous avez le choix entre deux modes de transmission.
+              </p>
+              <div className='mt-4'>
+                <RadioGroup value={selectedMode} onChange={setSelectedMode}>
+                  <RadioGroup.Label className='sr-only'>Déclencheur</RadioGroup.Label>
+                  <div className='-space-y-px rounded-md bg-white'>
+                    {triggerModes.map((setting, settingIdx) => (
+                      <RadioGroup.Option
+                        key={setting.name}
+                        value={setting}
+                        className={({ checked }) =>
+                          classNames(
+                            settingIdx === 0 ? 'rounded-tl-md rounded-tr-md' : '',
+                            settingIdx === triggerModes.length - 1 ? 'rounded-bl-md rounded-br-md' : '',
+                            checked ? 'z-10 border-indigo-200 bg-indigo-50' : 'border-gray-200',
+                            'relative flex cursor-pointer border p-4 focus:outline-none'
+                          )
+                        }>
+                        {({ active, checked }) => (
+                          <>
+                            <span
+                              className={classNames(
+                                checked ? 'bg-indigo-600 border-transparent' : 'bg-white border-gray-300',
+                                active ? 'ring-2 ring-offset-2 ring-indigo-600' : '',
+                                'mt-0.5 h-4 w-4 shrink-0 cursor-pointer rounded-full border flex items-center justify-center'
+                              )}
+                              aria-hidden='true'>
+                              <span className='rounded-full bg-white w-1.5 h-1.5' />
+                            </span>
+                            <span className='ml-3 flex flex-col'>
+                              <RadioGroup.Label
+                                as='span'
+                                className={classNames(
+                                  checked ? 'text-indigo-900' : 'text-gray-900',
+                                  'block text-sm font-medium'
+                                )}>
+                                {setting.name}
+                              </RadioGroup.Label>
+                              <RadioGroup.Description
+                                as='span'
+                                className={classNames(checked ? 'text-indigo-700' : 'text-gray-500', 'block text-sm mt-2')}>
+                                {setting.description}
+                              </RadioGroup.Description>
+                            </span>
+                          </>
+                        )}
+                      </RadioGroup.Option>
+                    ))}
+                  </div>
+                </RadioGroup>
               </div>
             </div>
           </div>
+          {selectedMode.mode === 'automatic' ? (
+            <div className='space-y-6'>
+              <div>
+                <h2 className='text-xl font-semibold leading-7 text-gray-900'>Bénéficiaires</h2>
+                <p className='mt-1 max-w-2xl text-base leading-6 text-gray-600'>
+                  La ou les personne(s) que nous allons contacter pour recevoir les accès à votre trésor. Il nous faut au
+                  minimum une, et si possible plusieurs, manières de les contacter.
+                </p>
+              </div>
+
+              <ul className='space-y-6'>
+                {Array(beneficiaryCount)
+                  .fill(0)
+                  .map((_, index) => (
+                    <Beneficiary index={index} key={`beneficiaryBox${index}`} />
+                  ))}
+              </ul>
+              <button
+                className={`${secondaryButtonStyles}`}
+                onClick={(e) => {
+                  e.preventDefault()
+                  setBeneficiaryCount(beneficiaryCount + 1)
+                }}>
+                <PlusIcon className={`${buttonIconStyles}`} />
+                Ajouter un bénéficiaire
+              </button>
+            </div>
+          ) : (
+            <div>
+              <div className='text-lg'>
+                <a href='#' className='text-indigo-600 font-semibold border-b border-b-indigo-600'>
+                  Cliquez ici
+                </a>{' '}
+                pour télécharger le QR Code de transmission.
+              </div>
+              <p className='mt-1 max-w-2xl text-base leading-6 text-gray-600'>
+                N'hésitez pas à l'imprimer en plusieurs exemplaires et à le placer à des endroits sur (chez le notaire, dans un
+                dossier 'en cas de décès', chez des proches...).
+              </p>
+            </div>
+          )}
         </div>
-        <div className='absolute inset-x-px bottom-0'>
-          <div className='flex items-center justify-between space-x-3 border-t border-gray-200 px-2 py-2 sm:px-3'>
-            <div className='flex'>
-              <button
-                type='button'
-                className='group -my-2 -ml-2 inline-flex items-center rounded-full px-3 py-2 text-left text-gray-400'>
-                <PhotoIcon className='-ml-1 mr-2 h-5 w-5 group-hover:text-gray-500' aria-hidden='true' />
-                <span className='text-sm italic text-gray-500 group-hover:text-gray-600'>Ajouter une photo</span>
-              </button>
-            </div>
-            <div className='flex-shrink-0'>
-              <button
-                type='submit'
-                className='inline-flex items-center rounded-full bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600'>
-                Envoyer
-              </button>
-            </div>
-          </div>
+        <div>
+          <button type='submit' className={`${primaryButtonStyles} mt-6`}>
+            <CheckIcon className={`${buttonIconStyles}`} aria-hidden='true' />
+            Valider
+          </button>
+          <Paragraph>Quoi qu'il en soit, vous pourrez modifier ces choix plus tard.</Paragraph>
         </div>
       </form>
     </div>
+  )
+}
+
+type BeneficiaryProps = {
+  index: number
+}
+
+function Beneficiary({ index }: BeneficiaryProps) {
+  return (
+    <li>
+      <div>
+        <div className='text-lg font-semibold leading-7'>Bénéficiaire {index + 1}</div>
+      </div>
+      <div className='grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6'>
+        <div className='sm:col-span-4'>
+          <label htmlFor='beneficiaryName' className='block text-base font-medium leading-6 text-gray-700'>
+            Nom complet du bénéficiaire
+          </label>
+          <div className='mt-2'>
+            <div className='flex shadow-sm ring-1 ring-inset ring-gray-300  focus-within:ring-inset sm:max-w-md border border-gray-200  focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500'>
+              <input
+                type='text'
+                name='beneficiaryName'
+                id='beneficiaryName'
+                autoComplete='beneficiaryName'
+                className='block w-full resize-none border-0 py-3  focus:ring-0 text-xl'
+                placeholder='ex: Valentin Cognito'
+              />
+            </div>
+          </div>
+        </div>
+        <div className='sm:col-span-4'>
+          <label htmlFor='beneficiaryEmail' className='block text-base font-medium leading-6 text-gray-700'>
+            Courrier électronique
+          </label>
+          <div className='mt-2'>
+            <div className='flex shadow-sm ring-1 ring-inset ring-gray-300  focus-within:ring-inset sm:max-w-md border border-gray-200  focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500'>
+              <input
+                type='text'
+                name='beneficiaryEmail'
+                id='beneficiaryEmail'
+                autoComplete='beneficiaryEmail'
+                className='block w-full resize-none border-0 py-3  focus:ring-0 text-xl'
+                placeholder='ex: valentin@exemple.com'
+              />
+            </div>
+          </div>
+        </div>
+        <div className='sm:col-span-4'>
+          <label htmlFor='beneficiaryFullPostalAddress' className='block text-base font-medium leading-6 text-gray-700'>
+            Adresse postale
+          </label>
+          <div className='mt-2'>
+            <div className='flex shadow-sm ring-1 ring-inset ring-gray-300  focus-within:ring-inset sm:max-w-md border border-gray-200  focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500'>
+              <textarea
+                rows={3}
+                name='beneficiaryFullPostalAddress'
+                id='beneficiaryFullPostalAddress'
+                autoComplete='beneficiaryFullPostalAddress'
+                className='block w-full resize-none border-0 py-3  focus:ring-0 text-xl'
+                placeholder={`3 rue des Suisses 75014 Paris France`}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </li>
   )
 }
