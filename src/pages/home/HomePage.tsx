@@ -370,8 +370,8 @@ type PhotoBadgeProps = {
 const PhotoBadge = ({ photoId, className, faceId }: PhotoBadgeProps) => {
   return (
     <img
-      src='https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=100&h=100&q=80'
-      // src={`/photo/${photoId}/face/${faceId}`}
+      // src='https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=100&h=100&q=80'
+      src={`/photo/${photoId}/face/${faceId}`}
       className={`inline-block cursor-pointer rounded-full h-14 w-14 bg-white ring-2 ring-white'
       } ${className || ''}`}
     />
@@ -841,7 +841,7 @@ export const FirstThreadStep = ({ step }: FirstThreadStepProps) => {
           Un trésor, fait pour être <span className='text-black'>transmis</span>. Mais à qui ?
         </Paragraph>
         <form method='POST' className='relative mt-3'>
-          <input type='hidden' name='action' value='gotoBeneficiaries' />
+          <input type='hidden' name='action' value='gotoTransmission' />
           <button type='submit' className={`${primaryButtonStyles}`}>
             <ArrowRightIcon className={`${buttonIconStyles}`} aria-hidden='true' />
             Choisir le mode de transmission
@@ -856,14 +856,14 @@ type ChoseBeneficiariesStepProps = {
   step: ChoseBeneficiaries & { 'chose-beneficiaries': 'awaiting-input' }
 }
 type TriggerMode = {
-  mode: 'automatic' | 'manual'
+  mode: 'tdf-detection-contacts-beneficiaries' | 'user-distributes-codes'
   name: string
   description: JSX.Element
 }
 
 const triggerModes: TriggerMode[] = [
   {
-    mode: 'automatic',
+    mode: 'tdf-detection-contacts-beneficiaries',
     name: 'Automatique',
     description: (
       <div className='space-y-3'>
@@ -877,7 +877,7 @@ const triggerModes: TriggerMode[] = [
     ),
   },
   {
-    mode: 'manual',
+    mode: 'user-distributes-codes',
     name: 'Manuel',
     description: (
       <div className='space-y-3'>
@@ -899,7 +899,7 @@ export const ChoseBeneficiariesStep = ({ step }: ChoseBeneficiariesStepProps) =>
         Voici comment votre <span className='text-indigo-600'>trésor</span> sera transmis à la postérité.
       </Paragraph>
       <form method='POST' className='relative mt-3'>
-        <input type='hidden' name='action' value='choseBeneficiaries' />
+        <input type='hidden' name='action' value='choseTransmissionMode' />
         <div className='space-y-6'>
           <div className='space-y-6'>
             <div>
@@ -958,7 +958,7 @@ export const ChoseBeneficiariesStep = ({ step }: ChoseBeneficiariesStepProps) =>
               </div>
             </div>
           </div>
-          {selectedMode.mode === 'automatic' ? (
+          {selectedMode.mode === 'tdf-detection-contacts-beneficiaries' ? (
             <div className='space-y-6'>
               <div>
                 <h2 className='text-xl font-semibold leading-7 text-gray-900'>Bénéficiaires</h2>
@@ -988,7 +988,13 @@ export const ChoseBeneficiariesStep = ({ step }: ChoseBeneficiariesStepProps) =>
           ) : (
             <div className='py-3'>
               <div className='text-lg'>
-                <a href='#' className='text-indigo-600 font-semibold border-b border-b-indigo-600'>
+                <a
+                  href='#'
+                  className='text-indigo-600 font-semibold border-b border-b-indigo-600'
+                  onClick={(e) => {
+                    e.preventDefault()
+                    alert(`Cette option n'est pas encore disponible.`)
+                  }}>
                   Cliquez ici
                 </a>{' '}
                 pour télécharger le QR Code de transmission.
@@ -1009,6 +1015,7 @@ export const ChoseBeneficiariesStep = ({ step }: ChoseBeneficiariesStepProps) =>
             Quoi qu'il en soit, vous pourrez modifier ces choix plus tard.
           </p>
         </div>
+        <input type='hidden' name='mode' value={selectedMode.mode} />
       </form>
     </div>
   )
@@ -1033,9 +1040,8 @@ function Beneficiary({ index }: BeneficiaryProps) {
             <div className='flex shadow-sm ring-1 ring-inset ring-gray-300  focus-within:ring-inset sm:max-w-md border border-gray-200  focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500'>
               <input
                 type='text'
-                name='beneficiaryName'
+                name='beneficiaryName[]'
                 id='beneficiaryName'
-                autoComplete='beneficiaryName'
                 className='block w-full resize-none border-0 py-3  focus:ring-0 text-xl'
                 placeholder='ex: Valentin Cognito'
               />
@@ -1049,10 +1055,9 @@ function Beneficiary({ index }: BeneficiaryProps) {
           <div className='mt-2'>
             <div className='flex shadow-sm ring-1 ring-inset ring-gray-300  focus-within:ring-inset sm:max-w-md border border-gray-200  focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500'>
               <input
-                type='text'
-                name='beneficiaryEmail'
+                type='email'
+                name='beneficiaryEmail[]'
                 id='beneficiaryEmail'
-                autoComplete='beneficiaryEmail'
                 className='block w-full resize-none border-0 py-3  focus:ring-0 text-xl'
                 placeholder='ex: valentin@exemple.com'
               />
@@ -1060,16 +1065,16 @@ function Beneficiary({ index }: BeneficiaryProps) {
           </div>
         </div>
         <div className='sm:col-span-4'>
-          <label htmlFor='beneficiaryFullPostalAddress' className='block text-base font-medium leading-6 text-gray-700'>
+          <label htmlFor='beneficiaryAddress' className='block text-base font-medium leading-6 text-gray-700'>
             Adresse postale
           </label>
           <div className='mt-2'>
             <div className='flex shadow-sm ring-1 ring-inset ring-gray-300  focus-within:ring-inset sm:max-w-md border border-gray-200  focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500'>
               <textarea
                 rows={3}
-                name='beneficiaryFullPostalAddress'
-                id='beneficiaryFullPostalAddress'
-                autoComplete='beneficiaryFullPostalAddress'
+                name='beneficiaryAddress[]'
+                id='beneficiaryAddress'
+                autoComplete='beneficiaryAddress'
                 className='block w-full resize-none border-0 py-3  focus:ring-0 text-xl'
                 placeholder={`3 rue des Suisses 75014 Paris France`}
               />

@@ -1,7 +1,14 @@
 import { getSingleEvent } from '../../dependencies/getSingleEvent'
 import { UUID } from '../../domain'
 import { OnboardingUserNamedThemself } from '../bienvenue/step1-userTellsAboutThemselves/OnboardingUserNamedThemself'
-import { GetUserName, HomePageProps, UploadFamilyPhoto, UploadFirstPhoto } from './HomePage'
+import {
+  ChoseBeneficiaries,
+  CreateFirstThread,
+  GetUserName,
+  HomePageProps,
+  UploadFamilyPhoto,
+  UploadFirstPhoto,
+} from './HomePage'
 
 export const getHomePageProps = async (userId: UUID): Promise<HomePageProps> => {
   let step1: GetUserName = { 'get-user-name': 'pending' }
@@ -21,6 +28,8 @@ export const getHomePageProps = async (userId: UUID): Promise<HomePageProps> => 
   let step2: UploadFirstPhoto = { 'upload-first-photo': 'pending' }
 
   let step3: UploadFamilyPhoto = { 'upload-family-photo': 'awaiting-upload' }
+  let step4: CreateFirstThread = { 'create-first-thread': 'awaiting-input' }
+  let step5: ChoseBeneficiaries = { 'chose-beneficiaries': 'awaiting-input' }
 
-  return { steps: { ...step1, ...step2, ...step3 } }
+  return { steps: { ...step1, ...step2, ...step3, ...step4, ...step5 } }
 }
