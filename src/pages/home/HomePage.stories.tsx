@@ -24,7 +24,7 @@ export default {
   decorators: [
     (Story) => {
       return (
-        <SessionContext.Provider value={{ isLoggedIn: true, userName: '', isAdmin: false }}>
+        <SessionContext.Provider value={{ isLoggedIn: true, userName: '', isAdmin: false, isOnboarding: true }}>
           <PersonSearchContext.Provider value={{ search: fakePersonSearch } as unknown as SearchIndex}>
             <Story />
           </PersonSearchContext.Provider>

@@ -72,12 +72,13 @@ export const HomePage = withBrowserBundle(({ steps }: HomePageProps) => {
 
     return (
       <Wrapper steps={steps}>
+        <AnnotateFamilyPhoto step={steps} />
         {faces.length ? (
           <>
             <div className='text-lg leading-5 mt-3 text-gray-500'>
               Grace à vos annotations, voici déjà un aperçu de votre famille:{' '}
             </div>
-            <ul className='flex gap-2 mt-3'>
+            <ul className='flex gap-2 mt-3 pt-3'>
               {faces.map((face) => (
                 <li key={`doneface${face.faceId}`} className='text-gray-500 mr-2 mb-2 flex flex-col items-center'>
                   <PhotoBadge faceId={face.faceId} photoId={face.photoId} className='' />
@@ -87,7 +88,6 @@ export const HomePage = withBrowserBundle(({ steps }: HomePageProps) => {
             </ul>
           </>
         ) : null}
-        <AnnotateFamilyPhoto step={steps} />
       </Wrapper>
     )
   }
@@ -127,7 +127,7 @@ function Wrapper({ steps, children }: HomePageProps & React.PropsWithChildren) {
     )
 
   return (
-    <AdaptiveLayout sidebarAccessible={false}>
+    <AdaptiveLayout step={steps}>
       <div className='px-4 py-6 md:px-8 md:py-12'>
         <h2 className='text-3xl font-bold tracking-tight text-gray-900 md:text-4xl'>
           <span className='block'>Bienvenu sur Trésor de famille</span>
@@ -135,8 +135,8 @@ function Wrapper({ steps, children }: HomePageProps & React.PropsWithChildren) {
             {steps['upload-first-photo'] === 'user-face-confirmed' ? (
               <div className='mt-2 inline-flex items-center'>
                 <img
-                  src='https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=100&h=100&q=80'
-                  // src={`/photo/${steps.photoId}/face/${steps.faceId}`}
+                  // src='https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=100&h=100&q=80'
+                  src={`/photo/${steps.photoId}/face/${steps.faceId}`}
                   className={`inline-block cursor-pointer rounded-full h-16 w-16 bg-white ring-2 ring-white mr-2`}
                 />
                 <UserName />
@@ -228,11 +228,11 @@ export type ChoseBeneficiaries =
 function GetUserName() {
   return (
     <div className='pb-5'>
-      <div className='text-xl  pt-3 text-gray-500'>Faisons connaissance ! Pour commencer, comment t'appelles-tu ?</div>
-      <div className=' pt-2'>
-        <form method='POST' className='relative'>
+      <div className='text-xl pt-6 text-gray-500'>Faisons connaissance ! Pour commencer, comment vous appelez-vous ?</div>
+      <div className=''>
+        <form method='POST' className='relative space-y-6'>
           <input type='hidden' name='action' value='submitPresentation' />
-          <div className='overflow-hidden -ml-4 sm:ml-0 -mr-4 border border-gray-200 shadow-sm sm:max-w-sm focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500'>
+          <div className='overflow-hidden border border-gray-200 shadow-sm sm:max-w-sm focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500'>
             <label htmlFor='presentation' className='sr-only'>
               Nom complet
             </label>
@@ -266,9 +266,9 @@ export const UploadPhotoOfThemself = () => {
   return (
     <div className='pb-5'>
       <div className='py-3'>
-        <p className={`mt-3 text-xl text-gray-500`}>Je te propose d'envoyer une photo de toi !</p>
+        <p className={`mt-3 text-xl text-gray-500`}>Je vous propose d'envoyer une photo de vous !</p>
         <InlinePhotoUploadBtn hiddenFields={{ action: 'userSendsPhotoOfThemself' }}>
-          <span className='cursor-pointer inline-flex items-center mt-3 px-3 py-1.5 border border-transparent text-md font-medium rounded-full shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
+          <span className='cursor-pointer inline-flex items-center mt-6 px-3 py-1.5 border border-transparent text-md font-medium rounded-full shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
             <PhotoIcon className={`${buttonIconStyles}`} aria-hidden='true' />
             Choisir la photo
           </span>
@@ -308,7 +308,7 @@ export const ChoseOwnFaceInPhoto = ({ step }: ChoseOwnFaceInPhotoProps) => {
   // Case: single face
   if (faces.length === 1) {
     return (
-      <div className='pb-5 py-3'>
+      <div className='pb-5 space-y-4'>
         <Photo />
         <Paragraph>Ce visage a été détecté. Est-ce bien le votre ?</Paragraph>
         <div className='flex justify-start items-center my-4'>
@@ -323,14 +323,14 @@ export const ChoseOwnFaceInPhoto = ({ step }: ChoseOwnFaceInPhotoProps) => {
             </button>
           </form>
         </div>
-        <UploadAnother secondary className='mt-10' />
+        <UploadAnother secondary className='mt-2' />
       </div>
     )
   }
 
   // Case: multiple faces
   return (
-    <div className='pb-5 py-3'>
+    <div className='pb-5 space-y-4'>
       <Photo />
       <Paragraph>Plusieurs visages ont été détectés sur cette photo, quel est le votre ?</Paragraph>
       <div className='p-0 -ml-1'>
@@ -345,7 +345,7 @@ export const ChoseOwnFaceInPhoto = ({ step }: ChoseOwnFaceInPhotoProps) => {
           </form>
         ))}
       </div>
-      <UploadAnother secondary className='mt-10' />
+      <UploadAnother secondary className='mt-2' />
     </div>
   )
 
@@ -424,7 +424,7 @@ type UploadFamilyPhotoProps = {
 export const UploadFamilyPhoto = ({ step }: UploadFamilyPhotoProps) => {
   return (
     <div className='mt-5'>
-      <Paragraph>Maintenant, je te propose de présenter ta famille, à travers une ou plusieurs photo.</Paragraph>
+      <Paragraph>Maintenant, je vous propose de présenter votre famille, à travers une ou plusieurs photo.</Paragraph>
       <div className='mt-4'>
         <InlinePhotoUploadBtn hiddenFields={{ action: 'userSendsPhotoOfFamily' }}>
           <span className={`${primaryButtonStyles}`}>
@@ -465,14 +465,16 @@ export const AnnotateFamilyPhoto = ({ step }: AnnotateFamilyPhotoProps) => {
   if (photoIndex === -1) {
     return (
       <>
-        <p className={`mt-3 text-xl text-gray-500`}>Top ! Est-ce que vous voulez en ajouter d'autres ou passer à la suite ?</p>
+        <p className={`mt-3 mb-3 text-xl text-gray-500`}>
+          Top ! Est-ce que vous voulez en ajouter d'autres ou passer à la suite ?
+        </p>
         <InlinePhotoUploadBtn hiddenFields={{ action: 'userSendsPhotoOfFamily' }}>
           <span className='cursor-pointer inline-flex items-center mt-3 px-3 py-1.5 border border-transparent text-md font-medium rounded-full shadow-sm text-indigo-600 bg-white hover:bg-indigo-500 hover:text-white ring-2 ring-indigo-600'>
             <PhotoIcon className='-ml-0.5 mr-2 h-6 w-6' aria-hidden='true' />
             Choisir une autre photo
           </span>
         </InlinePhotoUploadBtn>
-        <form method='POST' className='relative mt-3'>
+        <form method='POST' className='relative mt-4 pb-6'>
           <input type='hidden' name='action' value='familyMemberAnnotationIsDone' />
           <button type='submit' className={`${primaryButtonStyles}`}>
             <ArrowRightIcon className={`${buttonIconStyles}`} aria-hidden='true' />
@@ -817,27 +819,35 @@ type FirstThreadStepProps = {
 export const FirstThreadStep = ({ step }: FirstThreadStepProps) => {
   const { message } = step
 
+  const threadUrl = `/chat/${step.threadId}/chat.html`
+
   return (
-    <div className=''>
-      <ThreadTextarea message={message} />
-      <Paragraph className={``}>
-        Bravo! Maintenant que vous avez lancé le fil de souvenir, vous pouvez le compléter avec un titre, des propos
-        supplémentaires, des photos, etc.
-      </Paragraph>
-      <Paragraph>
-        Des photos de votre famille, des visages et des relations, un premier souvenir... vous avez déjà un{' '}
-        <span className='text-black'>trésor</span> !
-      </Paragraph>
-      <Paragraph>
-        Un trésor, fait pour être <span className='text-black'>transmis</span>. Mais à qui ?
-      </Paragraph>
-      <form method='POST' className='relative mt-3'>
-        <input type='hidden' name='action' value='gotoBeneficiaries' />
-        <button type='submit' className={`${primaryButtonStyles}`}>
-          <ArrowRightIcon className={`${buttonIconStyles}`} aria-hidden='true' />
-          Passer au choix des destinataires
-        </button>
-      </form>
+    <div className='divide divide-y divide-gray-300'>
+      <div className='pb-5'>
+        <Paragraph className={``}>
+          Bravo! Maintenant que vous avez lancé le fil de souvenir, vous pouvez le compléter avec un titre, des propos
+          supplémentaires, des photos, etc.
+        </Paragraph>
+        <a className='text-indigo-600 text-lg font-semibold border-b border-b-indigo-600' href={threadUrl}>
+          Aller à mon souvenir
+        </a>
+      </div>
+      <div className='pt-5'>
+        <Paragraph>
+          Des photos de votre famille, des visages et des relations, un premier souvenir... vous avez déjà un{' '}
+          <span className='text-black'>trésor</span> !
+        </Paragraph>
+        <Paragraph>
+          Un trésor, fait pour être <span className='text-black'>transmis</span>. Mais à qui ?
+        </Paragraph>
+        <form method='POST' className='relative mt-3'>
+          <input type='hidden' name='action' value='gotoBeneficiaries' />
+          <button type='submit' className={`${primaryButtonStyles}`}>
+            <ArrowRightIcon className={`${buttonIconStyles}`} aria-hidden='true' />
+            Choisir le mode de transmission
+          </button>
+        </form>
+      </div>
     </div>
   )
 }
@@ -900,7 +910,7 @@ export const ChoseBeneficiariesStep = ({ step }: ChoseBeneficiariesStepProps) =>
               <div className='mt-4'>
                 <RadioGroup value={selectedMode} onChange={setSelectedMode}>
                   <RadioGroup.Label className='sr-only'>Déclencheur</RadioGroup.Label>
-                  <div className='-space-y-px rounded-md bg-white'>
+                  <div className='-space-y-px rounded-md bg-white md:max-w-2xl'>
                     {triggerModes.map((setting, settingIdx) => (
                       <RadioGroup.Option
                         key={setting.name}
@@ -929,13 +939,13 @@ export const ChoseBeneficiariesStep = ({ step }: ChoseBeneficiariesStepProps) =>
                                 as='span'
                                 className={classNames(
                                   checked ? 'text-indigo-900' : 'text-gray-900',
-                                  'block text-sm font-medium'
+                                  'block text-base font-medium'
                                 )}>
                                 {setting.name}
                               </RadioGroup.Label>
                               <RadioGroup.Description
                                 as='span'
-                                className={classNames(checked ? 'text-indigo-700' : 'text-gray-500', 'block text-sm mt-2')}>
+                                className={classNames(checked ? 'text-indigo-700' : 'text-gray-500', 'block text-base mt-2')}>
                                 {setting.description}
                               </RadioGroup.Description>
                             </span>
@@ -976,7 +986,7 @@ export const ChoseBeneficiariesStep = ({ step }: ChoseBeneficiariesStepProps) =>
               </button>
             </div>
           ) : (
-            <div>
+            <div className='py-3'>
               <div className='text-lg'>
                 <a href='#' className='text-indigo-600 font-semibold border-b border-b-indigo-600'>
                   Cliquez ici
@@ -995,7 +1005,9 @@ export const ChoseBeneficiariesStep = ({ step }: ChoseBeneficiariesStepProps) =>
             <CheckIcon className={`${buttonIconStyles}`} aria-hidden='true' />
             Valider
           </button>
-          <Paragraph>Quoi qu'il en soit, vous pourrez modifier ces choix plus tard.</Paragraph>
+          <p className='mt-2 max-w-2xl text-base leading-6 text-gray-600'>
+            Quoi qu'il en soit, vous pourrez modifier ces choix plus tard.
+          </p>
         </div>
       </form>
     </div>

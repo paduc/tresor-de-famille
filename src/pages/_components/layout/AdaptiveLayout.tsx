@@ -20,12 +20,8 @@ import { InlinePhotoUpload } from '../InlinePhotoUpload'
 import { LocationContext } from '../LocationContext'
 import { Logo } from '../Logo'
 import { SessionContext } from '../SessionContext'
+import { HomePageProps } from '../../home'
 
-const navigation = [
-  { name: 'Photos', href: '/photos.html', icon: PhotoIcon },
-  { name: 'Videos', href: '/videos.html', icon: VideoCameraIcon },
-  { name: 'Tous fils', href: '/threads.html', icon: BookOpenIcon, current: true },
-]
 const teams = [
   { id: 1, name: 'Heroicons', href: '#', initial: 'H', current: false },
   { id: 2, name: 'Tailwind Labs', href: '#', initial: 'T', current: false },
@@ -39,10 +35,10 @@ function classNames(...classes) {
 
 export type AdaptiveLayoutProps = {
   children: React.ReactNode
-  sidebarAccessible: boolean
+  step: HomePageProps['steps']
 }
 
-export default function AdaptiveLayout({ children, sidebarAccessible }: AdaptiveLayoutProps) {
+export default function AdaptiveLayout({ children, step }: AdaptiveLayoutProps) {
   const session = useContext(SessionContext)
   const url = useContext(LocationContext)
 
@@ -51,6 +47,37 @@ export default function AdaptiveLayout({ children, sidebarAccessible }: Adaptive
   if (!session.isLoggedIn) {
     return <p>Session not available</p>
   }
+
+  const arePhotosEnabled = step['upload-family-photo'] === 'done' || step['upload-family-photo'] === 'annotating-photo'
+  const areThreadsEnabled = step['create-first-thread'] === 'done' || step['create-first-thread'] === 'thread-written'
+
+  const userName = step['get-user-name'] === 'done' ? step.name : session.userName || ''
+
+  const profilePic = step['upload-first-photo'] === 'user-face-confirmed' ? `/photo/${step.photoId}/face/${step.faceId}` : null
+
+  const navigation: {
+    name: string
+    href: string
+    icon: any
+    current?: boolean
+    condition: (step: HomePageProps['steps']) => boolean
+  }[] = [
+    {
+      name: 'Photos',
+      href: '/photos.html',
+      icon: PhotoIcon,
+      condition: () => arePhotosEnabled,
+    },
+    // { name: 'Videos', href: '/videos.html', icon: VideoCameraIcon },
+    {
+      name: 'Fils de souvenir',
+      href: '/threads.html',
+      icon: BookOpenIcon,
+      condition: (step) => areThreadsEnabled,
+    },
+  ]
+
+  const sidebarAccessible = navigation.some((link) => link.condition(step))
 
   return (
     <>
@@ -160,25 +187,29 @@ export default function AdaptiveLayout({ children, sidebarAccessible }: Adaptive
                             {navigation.map((item) => {
                               const isCurrent = url.startsWith(item.href)
                               return (
-                                <li key={item.name}>
-                                  <a
-                                    href={item.href}
-                                    className={classNames(
-                                      isCurrent
-                                        ? 'bg-indigo-700 text-white'
-                                        : 'text-indigo-200 hover:text-white hover:bg-indigo-700',
-                                      'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold'
-                                    )}>
-                                    <item.icon
-                                      className={classNames(
-                                        isCurrent ? 'text-white' : 'text-indigo-200 group-hover:text-white',
-                                        'h-6 w-6 shrink-0'
-                                      )}
-                                      aria-hidden='true'
-                                    />
-                                    {item.name}
-                                  </a>
-                                </li>
+                                <>
+                                  {item.condition(step) ? (
+                                    <li key={item.name}>
+                                      <a
+                                        href={item.href}
+                                        className={classNames(
+                                          isCurrent
+                                            ? 'bg-indigo-700 text-white'
+                                            : 'text-indigo-200 hover:text-white hover:bg-indigo-700',
+                                          'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold'
+                                        )}>
+                                        <item.icon
+                                          className={classNames(
+                                            isCurrent ? 'text-white' : 'text-indigo-200 group-hover:text-white',
+                                            'h-6 w-6 shrink-0'
+                                          )}
+                                          aria-hidden='true'
+                                        />
+                                        {item.name}
+                                      </a>
+                                    </li>
+                                  ) : null}
+                                </>
                               )
                             })}
                           </ul>
@@ -259,23 +290,29 @@ export default function AdaptiveLayout({ children, sidebarAccessible }: Adaptive
                     {navigation.map((item) => {
                       const isCurrent = url.startsWith(item.href)
                       return (
-                        <li key={item.name}>
-                          <a
-                            href={item.href}
-                            className={classNames(
-                              isCurrent ? 'bg-indigo-700 text-white' : 'text-indigo-200 hover:text-white hover:bg-indigo-700',
-                              'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold'
-                            )}>
-                            <item.icon
-                              className={classNames(
-                                isCurrent ? 'text-white' : 'text-indigo-200 group-hover:text-white',
-                                'h-6 w-6 shrink-0'
-                              )}
-                              aria-hidden='true'
-                            />
-                            {item.name}
-                          </a>
-                        </li>
+                        <>
+                          {item.condition(step) ? (
+                            <li key={item.name}>
+                              <a
+                                href={item.href}
+                                className={classNames(
+                                  isCurrent
+                                    ? 'bg-indigo-700 text-white'
+                                    : 'text-indigo-200 hover:text-white hover:bg-indigo-700',
+                                  'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold'
+                                )}>
+                                <item.icon
+                                  className={classNames(
+                                    isCurrent ? 'text-white' : 'text-indigo-200 group-hover:text-white',
+                                    'h-6 w-6 shrink-0'
+                                  )}
+                                  aria-hidden='true'
+                                />
+                                {item.name}
+                              </a>
+                            </li>
+                          ) : null}
+                        </>
                       )
                     })}
                   </ul>
@@ -297,21 +334,23 @@ export default function AdaptiveLayout({ children, sidebarAccessible }: Adaptive
         {/* Contains the top navbar and the content */}
         <div className={`${sidebarAccessible ? 'lg:pl-72' : 'lg:pl-0'}`}>
           {/* Top navbar */}
-          <div
-            className={`sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-200 bg-white px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8 ${
-              sidebarAccessible ? '' : 'hidden'
-            }`}>
-            <button type='button' className='-m-2.5 p-2.5 text-gray-700 lg:hidden' onClick={() => setSidebarOpen(true)}>
-              <span className='sr-only'>Open sidebar</span>
-              <Bars3Icon className='h-6 w-6' aria-hidden='true' />
-            </button>
+          {userName ? (
+            <div
+              className={`sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-200 bg-white px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8`}>
+              <button
+                type='button'
+                className={`${sidebarAccessible ? '' : 'hidden'} -m-2.5 p-2.5 text-gray-700 lg:hidden `}
+                onClick={() => setSidebarOpen(true)}>
+                <span className='sr-only'>Open sidebar</span>
+                <Bars3Icon className='h-6 w-6' aria-hidden='true' />
+              </button>
 
-            {/* Separator */}
-            <div className='h-6 w-px bg-gray-900/10 lg:hidden' aria-hidden='true' />
+              {/* Separator */}
+              <div className='h-6 w-px bg-gray-900/10 lg:hidden' aria-hidden='true' />
 
-            <div className='flex flex-1 gap-x-4 self-stretch lg:gap-x-6'>
-              <form className='relative flex flex-1' action='#' method='GET'>
-                {/* <label htmlFor='search-field' className='sr-only'>
+              <div className='flex flex-1 gap-x-4 self-stretch lg:gap-x-6'>
+                <form className='relative flex flex-1' action='#' method='GET'>
+                  {/* <label htmlFor='search-field' className='sr-only'>
                   Search
                 </label>
                 <SearchIcon
@@ -325,48 +364,60 @@ export default function AdaptiveLayout({ children, sidebarAccessible }: Adaptive
                   type='search'
                   name='search'
                 /> */}
-              </form>
-              <div className='flex items-center gap-x-4 lg:gap-x-6'>
-                {/* Separator */}
-                <div className='hidden lg:block lg:h-6 lg:w-px lg:bg-gray-900/10' aria-hidden='true' />
+                </form>
+                <div className='flex items-center gap-x-4 lg:gap-x-6'>
+                  {/* Separator */}
+                  {sidebarAccessible ? (
+                    <div className='hidden lg:block lg:h-6 lg:w-px lg:bg-gray-900/10' aria-hidden='true' />
+                  ) : null}
 
-                {/* Profile dropdown */}
-                <Menu as='div' className='relative'>
-                  <div>
-                    <Menu.Button className='bg-white rounded-full flex text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
-                      <span className='sr-only'>Ouvrir le menu utilisateur</span>
-                      {session.userName}
-                    </Menu.Button>
-                  </div>
-                  <Transition
-                    as={Fragment}
-                    enter='transition ease-out duration-100'
-                    enterFrom='transform opacity-0 scale-95'
-                    enterTo='transform opacity-100 scale-100'
-                    leave='transition ease-in duration-75'
-                    leaveFrom='transform opacity-100 scale-100'
-                    leaveTo='transform opacity-0 scale-95'>
-                    <Menu.Items className='origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none'>
-                      <Menu.Item>
-                        {({ active }) => (
-                          <form action='/logout' method='post'>
-                            <button
-                              type='submit'
-                              className={classNames(
-                                active ? 'bg-gray-100' : '',
-                                'block px-4 py-2 text-sm text-gray-700 w-full text-left'
-                              )}>
-                              Se déconnecter
-                            </button>
-                          </form>
-                        )}
-                      </Menu.Item>
-                    </Menu.Items>
-                  </Transition>
-                </Menu>
+                  {/* User profile pic */}
+                  {profilePic ? (
+                    <img
+                      // src='https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=100&h=100&q=80'
+                      src={profilePic}
+                      className={`inline-block cursor-pointer rounded-full h-10 w-10 bg-white`}
+                    />
+                  ) : null}
+
+                  {/* Profile dropdown */}
+                  <Menu as='div' className='relative'>
+                    <div>
+                      <Menu.Button className='bg-white rounded-full flex text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
+                        <span className='sr-only'>Ouvrir le menu utilisateur</span>
+                        {userName}
+                      </Menu.Button>
+                    </div>
+                    <Transition
+                      as={Fragment}
+                      enter='transition ease-out duration-100'
+                      enterFrom='transform opacity-0 scale-95'
+                      enterTo='transform opacity-100 scale-100'
+                      leave='transition ease-in duration-75'
+                      leaveFrom='transform opacity-100 scale-100'
+                      leaveTo='transform opacity-0 scale-95'>
+                      <Menu.Items className='origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none'>
+                        <Menu.Item>
+                          {({ active }) => (
+                            <form action='/logout' method='post'>
+                              <button
+                                type='submit'
+                                className={classNames(
+                                  active ? 'bg-gray-100' : '',
+                                  'block px-4 py-2 text-sm text-gray-700 w-full text-left'
+                                )}>
+                                Se déconnecter
+                              </button>
+                            </form>
+                          )}
+                        </Menu.Item>
+                      </Menu.Items>
+                    </Transition>
+                  </Menu>
+                </div>
               </div>
             </div>
-          </div>
+          ) : null}
 
           {/* Content */}
           <main>{children}</main>
