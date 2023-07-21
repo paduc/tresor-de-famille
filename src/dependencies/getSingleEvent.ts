@@ -1,23 +1,27 @@
 import { DomainEvent } from './DomainEvent'
 import { postgres } from './database'
 
+export type PayloadPropertyMap<T extends DomainEvent> = Partial<{
+  [P in keyof T['payload']]: string
+}>
+
 export async function getSingleEvent<T extends DomainEvent>(
   type: T['type'],
-  payloadParams?: Record<string, string>
+  payloadParams?: PayloadPropertyMap<T>
 ): Promise<T | undefined>
 export async function getSingleEvent<T extends DomainEvent>(
   types: T['type'][],
-  payloadParams?: Record<string, string>
+  payloadParams?: PayloadPropertyMap<T>
 ): Promise<T | undefined>
 export async function getSingleEvent<T extends DomainEvent>(
   typeOrTypes: T['type'] | T['type'][],
-  payloadParams?: Record<string, string>
+  payloadParams?: PayloadPropertyMap<T>
 ): Promise<T | undefined> {
   const types = Array.isArray(typeOrTypes) ? typeOrTypes : [typeOrTypes]
 
   const otherWhereClauses = payloadParams
     ? Object.entries(payloadParams)
-        .map(([key, value]) => `payload->>${escapeLiteral(key)}=${escapeLiteral(value)}`)
+        .map(([key, value]) => `payload->>${escapeLiteral(key)}=${escapeLiteral(value!)}`)
         .join('AND ')
     : null
 
