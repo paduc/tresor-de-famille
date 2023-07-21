@@ -22,7 +22,7 @@ export default {
   component: HomePage,
   parameters: { layout: 'fullscreen' },
   decorators: [
-    (Story) => {
+    (Story: any) => {
       return (
         <SessionContext.Provider value={{ isLoggedIn: true, userName: '', isAdmin: false, isOnboarding: true }}>
           <PersonSearchContext.Provider value={{ search: fakePersonSearch } as unknown as SearchIndex}>
