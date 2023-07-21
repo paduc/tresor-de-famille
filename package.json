@@ -4,7 +4,7 @@
   "description": "trésor de famille application",
   "scripts": {
     "start": "node dist/server.js",
-    "build": "tsc && yarn build:front && yarn postcss:build && cp -r src/assets dist",
+    "build": "tsc --config=tsconfig.build.json && yarn build:front && yarn postcss:build && cp -r src/assets dist",
     "build:front": "webpack --config=webpack.config.js",
     "postcss:local": "postcss -o src/assets/style.css src/pages/style.css",
     "postcss:build": "postcss -o dist/assets/style.css src/pages/style.css",
@@ -21,6 +21,7 @@
     "sb": "storybook dev -p 6006",
     "build-storybook": "build-storybook",
     "psql": "psql -h localhost -p 5434 -d tdf -U admin -W",
+    "psql:test": "psql -h localhost -p 5435 -d tdf_test -U test -W",
     "psql:prod": "scalingo -a tresor-de-famille pgsql-console",
     "devtools": "nodemon --config nodemon.devtools.json --inspect src/facts/diagram/diagramServer.ts"
   },
