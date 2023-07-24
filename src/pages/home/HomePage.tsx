@@ -5,6 +5,7 @@ import classNames from 'classnames'
 import * as React from 'react'
 import { UUID } from '../../domain'
 import { withBrowserBundle } from '../../libs/ssr/withBrowserBundle'
+import { SessionContext } from '../_components'
 import {
   buttonIconStyles,
   primaryButtonStyles,
@@ -13,11 +14,11 @@ import {
   secondaryRedButtonStyles,
 } from '../_components/Button'
 import { InlinePhotoUploadBtn } from '../_components/InlinePhotoUploadBtn'
-import AdaptiveLayout from '../_components/layout/AdaptiveLayout'
+import { AppLayout } from '../_components/layout/AppLayout'
 import { FamilyMemberRelationship, traduireRelation } from '../bienvenue/step3-learnAboutUsersFamily/FamilyMemberRelationship'
 import { SendIcon } from '../chat/ChatPage/SendIcon'
 import { PersonAutocomplete } from './PersonAutocomplete'
-import { AppLayout } from '../_components/layout/AppLayout'
+import { ThreadTextarea } from '../_components/ThreadTextarea'
 
 type Steps = GetUserName & UploadFirstPhoto & UploadFamilyPhoto & CreateFirstThread & ChoseBeneficiaries
 
@@ -32,15 +33,44 @@ export type HomePageProps =
 
 export const HomePage = withBrowserBundle((props: HomePageProps) => {
   const { isOnboarding } = props
+
+  const session = React.useContext(SessionContext)
+
+  if (!session.isLoggedIn)
+    return (
+      <div>
+        Vous ne devriez pas être là <a href='/login.html'>Me connecter</a>
+      </div>
+    )
+
   if (!isOnboarding) {
-    return <div>Non</div>
+    return (
+      <Wrapper>
+        <Paragraph>Notez un souvenir qui vous passe par la tête:</Paragraph>
+        <div className=''>
+          <ThreadTextarea message='' />
+          <ul className='mt-2 px-1 text-gray-500 text-base list-inside list-disc'>
+            Exemples:
+            <li>Mon lieux de vacances quand j'étais enfant</li>
+            <li>Plus ancien souvenir</li>
+            <li>Le sport que j'ai pratiqué</li>
+          </ul>
+          <InlinePhotoUploadBtn formAction='/' formKey='uploadPhotoAsNewThread'>
+            <span className='cursor-pointer inline-flex items-center mt-6 px-3 py-1.5 border border-transparent text-md font-medium rounded-full shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
+              <PhotoIcon className={`${buttonIconStyles}`} aria-hidden='true' />
+              Ajouter une photo
+            </span>
+          </InlinePhotoUploadBtn>
+        </div>
+      </Wrapper>
+    )
   }
 
   const { steps } = props
 
   if (steps['get-user-name'] === 'pending') {
     return (
-      <Wrapper steps={steps}>
+      <Wrapper>
         <GetUserName />
       </Wrapper>
     )
@@ -48,7 +78,7 @@ export const HomePage = withBrowserBundle((props: HomePageProps) => {
 
   if (steps['upload-first-photo'] === 'pending') {
     return (
-      <Wrapper steps={steps}>
+      <Wrapper>
         <UploadPhotoOfThemself />
       </Wrapper>
     )
@@ -56,7 +86,7 @@ export const HomePage = withBrowserBundle((props: HomePageProps) => {
 
   if (steps['upload-first-photo'] === 'photo-uploaded') {
     return (
-      <Wrapper steps={steps}>
+      <Wrapper>
         <ChoseOwnFaceInPhoto step={steps} />
       </Wrapper>
     )
@@ -64,7 +94,7 @@ export const HomePage = withBrowserBundle((props: HomePageProps) => {
 
   if (steps['upload-family-photo'] === 'awaiting-upload') {
     return (
-      <Wrapper steps={steps}>
+      <Wrapper>
         <UploadFamilyPhoto step={steps} />
       </Wrapper>
     )
@@ -72,14 +102,14 @@ export const HomePage = withBrowserBundle((props: HomePageProps) => {
 
   if (steps['upload-family-photo'] === 'annotating-photo') {
     return (
-      <Wrapper steps={steps}>
+      <Wrapper>
         <AnnotateFamilyPhoto step={steps} />
       </Wrapper>
     )
   }
   if (steps['create-first-thread'] === 'awaiting-input') {
     return (
-      <Wrapper steps={steps}>
+      <Wrapper>
         <CreateFirstThread />
       </Wrapper>
     )
@@ -87,7 +117,7 @@ export const HomePage = withBrowserBundle((props: HomePageProps) => {
 
   if (steps['create-first-thread'] === 'thread-written') {
     return (
-      <Wrapper steps={steps}>
+      <Wrapper>
         <FirstThreadStep step={steps} />
       </Wrapper>
     )
@@ -95,19 +125,28 @@ export const HomePage = withBrowserBundle((props: HomePageProps) => {
 
   if (steps['chose-beneficiaries'] === 'awaiting-input') {
     return (
-      <Wrapper steps={steps}>
+      <Wrapper>
         <ChoseBeneficiariesStep step={steps} />{' '}
       </Wrapper>
     )
   }
 
-  return <Wrapper steps={steps} />
+  return <Wrapper />
 })
 
-function Wrapper({ steps, children }: { steps: Steps } & React.PropsWithChildren) {
+function Wrapper({ children }: React.PropsWithChildren) {
+  const session = React.useContext(SessionContext)
+
+  if (!session.isLoggedIn)
+    return (
+      <div>
+        Vous ne devriez pas être là <a href='/login.html'>Me connecter</a>
+      </div>
+    )
+
   const UserName = () =>
-    steps['get-user-name'] === 'done' ? (
-      <span className='block text-indigo-600'>{steps.name}</span>
+    session.userName ? (
+      <span className='block text-indigo-600'>{session.userName}</span>
     ) : (
       <span className='block text-indigo-600'>illustre inconnu</span>
     )
@@ -118,11 +157,10 @@ function Wrapper({ steps, children }: { steps: Steps } & React.PropsWithChildren
         <h2 className='text-3xl font-bold tracking-tight text-gray-900 md:text-4xl'>
           <span className='block'>Bienvenu sur Trésor de famille</span>
           <div>
-            {steps['upload-first-photo'] === 'user-face-confirmed' ? (
+            {session.profilePic ? (
               <div className='mt-2 inline-flex items-center'>
                 <img
-                  // src='https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=100&h=100&q=80'
-                  src={`/photo/${steps.photoId}/face/${steps.faceId}`}
+                  src={session.profilePic}
                   className={`inline-block cursor-pointer rounded-full h-16 w-16 bg-white ring-2 ring-white mr-2`}
                 />
                 <UserName />

@@ -6,7 +6,7 @@ export const ThreadTextarea = ({ message }: { message: string }) => {
   return (
     <form method='POST' className='relative sm:max-w-lg'>
       <input type='hidden' name='action' defaultValue='startFirstThread' />
-      <div className='pt-2 overflow-hidden rounded-lg border border-gray-300 shadow-sm focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500'>
+      <div className='pt-2 overflow-hidden bg-white rounded-lg border border-gray-300 shadow-sm focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500'>
         <label htmlFor='title' className='sr-only'>
           Titre
         </label>
@@ -15,7 +15,7 @@ export const ThreadTextarea = ({ message }: { message: string }) => {
           name='title'
           id='title'
           className='block w-full border-0 pt-2.5 text-xl sm:text-lg font-medium placeholder:text-gray-400 focus:ring-0'
-          placeholder='Titre'
+          placeholder='Titre (optionnel)'
         />
         <label htmlFor='message' className='sr-only'>
           Je me souviens...
@@ -24,6 +24,8 @@ export const ThreadTextarea = ({ message }: { message: string }) => {
         <TextareaAutosize
           name='message'
           id='message'
+          minRows={4}
+          autoFocus
           className='block w-full resize-none border-0 py-0 text-gray-900 placeholder:text-gray-400 focus:ring-0 text-lg sm:text-base sm:leading-6 pb-3'
           placeholder='Je me souviens...'
           defaultValue={message}
