@@ -12,6 +12,7 @@ import { OnboardingUserIgnoredRelationship } from '../bienvenue/step3-learnAbout
 import { OnboardingUserNamedPersonInFamilyPhoto } from '../bienvenue/step3-learnAboutUsersFamily/OnboardingUserNamedPersonInFamilyPhoto'
 import { OnboardingUserPostedRelationUsingOpenAI } from '../bienvenue/step3-learnAboutUsersFamily/OnboardingUserPostedRelationUsingOpenAI'
 import { OnboardingUserRecognizedPersonInFamilyPhoto } from '../bienvenue/step3-learnAboutUsersFamily/OnboardingUserRecognizedPersonInFamilyPhoto'
+import { OnboardingUserStartedFirstThread } from '../bienvenue/step4-start-thread/OnboardingUserStartedFirstThread'
 import { AWSDetectedFacesInPhoto } from '../photo/recognizeFacesInChatPhoto/AWSDetectedFacesInPhoto'
 import { getHomePageProps } from './getHomePageProps'
 
@@ -731,6 +732,39 @@ describe('getHomePageProps', () => {
             },
           ],
         })
+      })
+    })
+  })
+
+  describe('create-first-thread step', () => {
+    describe('before OnboardingUserStartedFirstThread', () => {
+      beforeAll(async () => {
+        await resetDatabase()
+      })
+
+      it('should return awaiting-input state', async () => {
+        const { steps } = await getHomePageProps(userId)
+        expect(steps['create-first-thread']).toEqual('awaiting-input')
+      })
+    })
+
+    describe('after OnboardingUserStartedFirstThread', () => {
+      const threadId = getUuid()
+      const message = 'This is my first thread'
+      beforeAll(async () => {
+        await resetDatabase()
+        await addToHistory(
+          OnboardingUserStartedFirstThread({
+            userId,
+            threadId,
+            message,
+          })
+        )
+      })
+
+      it('should return thread-written state', async () => {
+        const { steps } = await getHomePageProps(userId)
+        expect(steps).toMatchObject({ 'create-first-thread': 'thread-written', threadId, message })
       })
     })
   })

@@ -15,6 +15,7 @@ import { OnboardingUserIgnoredRelationship } from '../bienvenue/step3-learnAbout
 import { OnboardingUserNamedPersonInFamilyPhoto } from '../bienvenue/step3-learnAboutUsersFamily/OnboardingUserNamedPersonInFamilyPhoto'
 import { OnboardingUserPostedRelationUsingOpenAI } from '../bienvenue/step3-learnAboutUsersFamily/OnboardingUserPostedRelationUsingOpenAI'
 import { OnboardingUserRecognizedPersonInFamilyPhoto } from '../bienvenue/step3-learnAboutUsersFamily/OnboardingUserRecognizedPersonInFamilyPhoto'
+import { OnboardingUserStartedFirstThread } from '../bienvenue/step4-start-thread/OnboardingUserStartedFirstThread'
 import { AWSDetectedFacesInPhoto } from '../photo/recognizeFacesInChatPhoto/AWSDetectedFacesInPhoto'
 import {
   ChoseBeneficiaries,
@@ -31,11 +32,24 @@ export const getHomePageProps = async (userId: UUID): Promise<HomePageProps> => 
   const step2: UploadFirstPhoto = await getUploadFirstPhoto(userId)
 
   const step3: UploadFamilyPhoto = await getUploadFamilyPhoto(userId)
-  const step4: CreateFirstThread = { 'create-first-thread': 'awaiting-input' }
+
+  const step4: CreateFirstThread = await getCreateFirstThread(userId)
   const step5: ChoseBeneficiaries = { 'chose-beneficiaries': 'awaiting-input' }
 
   return { steps: { ...step1, ...step2, ...step3, ...step4, ...step5 } }
 }
+
+async function getCreateFirstThread(userId: UUID): Promise<CreateFirstThread> {
+  const firstThread = await getSingleEvent<OnboardingUserStartedFirstThread>('OnboardingUserStartedFirstThread', { userId })
+
+  if (firstThread) {
+    const { threadId, message } = firstThread.payload
+    return { 'create-first-thread': 'thread-written', threadId, message }
+  }
+
+  return { 'create-first-thread': 'awaiting-input' }
+}
+
 async function getUploadFamilyPhoto(userId: UUID): Promise<UploadFamilyPhoto> {
   const uploadedPhotos = await getEventList<OnboardingUserUploadedPhotoOfFamily>('OnboardingUserUploadedPhotoOfFamily', {
     uploadedBy: userId,
