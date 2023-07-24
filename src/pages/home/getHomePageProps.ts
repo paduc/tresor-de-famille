@@ -9,6 +9,7 @@ import { OnboardingUserNamedThemself } from '../bienvenue/step1-userTellsAboutTh
 import { OnboardingUserUploadedPhotoOfThemself } from '../bienvenue/step1-userTellsAboutThemselves/OnboardingUserUploadedPhotoOfThemself'
 import { OnboardingUserConfirmedHisFace } from '../bienvenue/step2-userUploadsPhoto/OnboardingUserConfirmedHisFace'
 import { OnboardingUserUploadedPhotoOfFamily } from '../bienvenue/step2-userUploadsPhoto/OnboardingUserUploadedPhotoOfFamily'
+import { OnboardingBeneficiariesChosen } from '../bienvenue/step3-learnAboutUsersFamily/OnboardingBeneficiariesChosen'
 import { OnboardingFaceIgnoredInFamilyPhoto } from '../bienvenue/step3-learnAboutUsersFamily/OnboardingFaceIgnoredInFamilyPhoto'
 import { OnboardingUserConfirmedRelationUsingOpenAI } from '../bienvenue/step3-learnAboutUsersFamily/OnboardingUserConfirmedRelationUsingOpenAI'
 import { OnboardingUserIgnoredRelationship } from '../bienvenue/step3-learnAboutUsersFamily/OnboardingUserIgnoredRelationship'
@@ -34,11 +35,20 @@ export const getHomePageProps = async (userId: UUID): Promise<HomePageProps> => 
   const step3: UploadFamilyPhoto = await getUploadFamilyPhoto(userId)
 
   const step4: CreateFirstThread = await getCreateFirstThread(userId)
-  const step5: ChoseBeneficiaries = { 'chose-beneficiaries': 'awaiting-input' }
+  const step5: ChoseBeneficiaries = await getChoseBeneficiaries(userId)
 
   return { steps: { ...step1, ...step2, ...step3, ...step4, ...step5 } }
 }
 
+async function getChoseBeneficiaries(userId: UUID): Promise<ChoseBeneficiaries> {
+  const beneficiaries = await getSingleEvent<OnboardingBeneficiariesChosen>('OnboardingBeneficiariesChosen', { userId })
+
+  if (beneficiaries) {
+    return { 'chose-beneficiaries': 'done' }
+  }
+
+  return { 'chose-beneficiaries': 'awaiting-input' }
+}
 async function getCreateFirstThread(userId: UUID): Promise<CreateFirstThread> {
   const firstThread = await getSingleEvent<OnboardingUserStartedFirstThread>('OnboardingUserStartedFirstThread', { userId })
 

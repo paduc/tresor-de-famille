@@ -6,6 +6,7 @@ import { OnboardingUserNamedThemself } from '../bienvenue/step1-userTellsAboutTh
 import { OnboardingUserUploadedPhotoOfThemself } from '../bienvenue/step1-userTellsAboutThemselves/OnboardingUserUploadedPhotoOfThemself'
 import { OnboardingUserConfirmedHisFace } from '../bienvenue/step2-userUploadsPhoto/OnboardingUserConfirmedHisFace'
 import { OnboardingUserUploadedPhotoOfFamily } from '../bienvenue/step2-userUploadsPhoto/OnboardingUserUploadedPhotoOfFamily'
+import { OnboardingBeneficiariesChosen } from '../bienvenue/step3-learnAboutUsersFamily/OnboardingBeneficiariesChosen'
 import { OnboardingFaceIgnoredInFamilyPhoto } from '../bienvenue/step3-learnAboutUsersFamily/OnboardingFaceIgnoredInFamilyPhoto'
 import { OnboardingUserConfirmedRelationUsingOpenAI } from '../bienvenue/step3-learnAboutUsersFamily/OnboardingUserConfirmedRelationUsingOpenAI'
 import { OnboardingUserIgnoredRelationship } from '../bienvenue/step3-learnAboutUsersFamily/OnboardingUserIgnoredRelationship'
@@ -765,6 +766,35 @@ describe('getHomePageProps', () => {
       it('should return thread-written state', async () => {
         const { steps } = await getHomePageProps(userId)
         expect(steps).toMatchObject({ 'create-first-thread': 'thread-written', threadId, message })
+      })
+    })
+  })
+  describe('chose-beneficiaries step', () => {
+    describe('before OnboardingBeneficiariesChosen', () => {
+      beforeAll(async () => {
+        await resetDatabase()
+      })
+
+      it('should return awaiting-input state', async () => {
+        const { steps } = await getHomePageProps(userId)
+        expect(steps['chose-beneficiaries']).toEqual('awaiting-input')
+      })
+    })
+
+    describe('after OnboardingBeneficiariesChosen', () => {
+      beforeAll(async () => {
+        await resetDatabase()
+        await addToHistory(
+          OnboardingBeneficiariesChosen({
+            userId,
+            mode: 'user-distributes-codes',
+          })
+        )
+      })
+
+      it('should return done state', async () => {
+        const { steps } = await getHomePageProps(userId)
+        expect(steps).toMatchObject({ 'chose-beneficiaries': 'done' })
       })
     })
   })
