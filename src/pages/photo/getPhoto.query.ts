@@ -1,10 +1,13 @@
 import { postgres } from '../../dependencies/database'
 import { normalizeBBOX } from '../../dependencies/face-recognition'
+import { getSingleEvent } from '../../dependencies/getSingleEvent'
 import { getPhotoUrlFromId } from '../../dependencies/photo-storage'
 import { UUID } from '../../domain'
 import { getPersonById, getPersonByIdOrThrow } from '../_getPersonById'
 import { getPersonIdsForFaceId } from '../_getPersonsIdsForFaceId'
+import { OnboardingUserUploadedPhotoOfThemself } from '../bienvenue/step1-userTellsAboutThemselves/OnboardingUserUploadedPhotoOfThemself'
 import { OnboardingUserConfirmedHisFace } from '../bienvenue/step2-userUploadsPhoto/OnboardingUserConfirmedHisFace'
+import { OnboardingUserUploadedPhotoOfFamily } from '../bienvenue/step2-userUploadsPhoto/OnboardingUserUploadedPhotoOfFamily'
 import { OnboardingUserNamedPersonInFamilyPhoto } from '../bienvenue/step3-learnAboutUsersFamily/OnboardingUserNamedPersonInFamilyPhoto'
 import { UserUploadedPhotoToChat } from '../chat/uploadPhotoToChat/UserUploadedPhotoToChat'
 import { PhotoFace, PhotoPageProps } from './PhotoPage/PhotoPage'
@@ -15,14 +18,11 @@ import { PhotoAnnotationConfirmed } from './confirmPhotoAnnotation/PhotoAnnotati
 import { AWSDetectedFacesInPhoto } from './recognizeFacesInChatPhoto/AWSDetectedFacesInPhoto'
 
 export const getPhoto = async (photoId: UUID): Promise<PhotoPageProps> => {
-  const { rows: photoRowsRes } = await postgres.query<UserUploadedPhotoToChat>(
-    "SELECT * FROM history WHERE type='UserUploadedPhotoToChat' AND payload->>'photoId'=$1 ORDER BY \"occurredAt\" DESC LIMIT 1",
-    [photoId]
-  )
+  const photo = await getSingleEvent<
+    UserUploadedPhotoToChat | OnboardingUserUploadedPhotoOfFamily | OnboardingUserUploadedPhotoOfThemself
+  >(['OnboardingUserUploadedPhotoOfFamily', 'OnboardingUserUploadedPhotoOfThemself', 'UserUploadedPhotoToChat'], { photoId })
 
-  const photoRow = photoRowsRes[0]?.payload
-
-  if (!photoRow) throw new Error('Unkown photo')
+  if (!photo) throw new Error('Unkown photo')
 
   const caption = await getCaptionForPhoto(photoId)
 

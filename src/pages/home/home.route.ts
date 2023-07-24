@@ -69,6 +69,8 @@ pageRouter
         })
       )
 
+      request.session.user!.name = presentation
+
       try {
         await personsIndex.saveObject({
           objectID: personId,

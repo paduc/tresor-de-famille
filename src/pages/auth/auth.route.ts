@@ -62,7 +62,7 @@ pageRouter
 
         const userId = await register(email, password, code)
 
-        request.session.user = { id: userId, name: email }
+        request.session.user = { id: userId, name: '' }
 
         request.session.searchKey = searchClient.generateSecuredApiKey(ALGOLIA_SEARCHKEY, {
           filters: `visible_by:user/${userId}`,
@@ -84,7 +84,7 @@ pageRouter
         request.session.searchKey = searchClient.generateSecuredApiKey(ALGOLIA_SEARCHKEY, {
           filters: `visible_by:user/${userId}`,
         })
-        request.session.user = { id: userId, name: email }
+        request.session.user = { id: userId, name: '' }
       }
 
       response.redirect(redirectTo || '/')

@@ -39,7 +39,7 @@ export const getHomePageProps = async (userId: UUID): Promise<HomePageProps> => 
   const step4: CreateFirstThread = await getCreateFirstThread(userId)
   const step5: ChoseBeneficiaries = await getChoseBeneficiaries(userId)
 
-  return { steps: { ...step1, ...step2, ...step3, ...step4, ...step5 } }
+  return { isOnboarding: true, steps: { ...step1, ...step2, ...step3, ...step4, ...step5 } }
 }
 
 async function getChoseBeneficiaries(userId: UUID): Promise<ChoseBeneficiaries> {

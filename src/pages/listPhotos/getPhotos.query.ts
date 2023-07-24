@@ -1,17 +1,19 @@
-import { postgres } from '../../dependencies/database'
+import { getEventList } from '../../dependencies/getEventList'
 import { getPhotoUrlFromId } from '../../dependencies/photo-storage'
 import { UUID } from '../../domain'
+import { OnboardingUserUploadedPhotoOfThemself } from '../bienvenue/step1-userTellsAboutThemselves/OnboardingUserUploadedPhotoOfThemself'
+import { OnboardingUserUploadedPhotoOfFamily } from '../bienvenue/step2-userUploadsPhoto/OnboardingUserUploadedPhotoOfFamily'
 import { UserUploadedPhotoToChat } from '../chat/uploadPhotoToChat/UserUploadedPhotoToChat'
 
-export const getPhotos = async (userId: UUID): Promise<{ photoId: UUID; chatId: UUID; url: string }[]> => {
-  const { rows } = await postgres.query<UserUploadedPhotoToChat>(
-    "SELECT * FROM history WHERE type = 'UserUploadedPhotoToChat' AND payload->>'uploadedBy'=$1",
-    [userId]
-  )
+export const getPhotos = async (userId: UUID): Promise<{ photoId: UUID; url: string }[]> => {
+  const photos = await getEventList<
+    UserUploadedPhotoToChat | OnboardingUserUploadedPhotoOfFamily | OnboardingUserUploadedPhotoOfThemself
+  >(['OnboardingUserUploadedPhotoOfFamily', 'OnboardingUserUploadedPhotoOfThemself', 'UserUploadedPhotoToChat'], {
+    uploadedBy: userId,
+  })
 
-  return rows.map((row) => ({
-    photoId: row.payload.photoId,
-    chatId: row.payload.chatId,
-    url: getPhotoUrlFromId(row.payload.photoId),
+  return photos.map(({ payload: { photoId } }) => ({
+    photoId,
+    url: getPhotoUrlFromId(photoId),
   }))
 }

@@ -8,6 +8,7 @@ export const requireAuth = (): RequestHandler => {
       }
       return response.redirect(`/login.html?redirectTo=${request.url}`)
     }
+
     next()
   }
 }

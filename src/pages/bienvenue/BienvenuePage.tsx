@@ -111,37 +111,35 @@ export const BienvenuePage = withBrowserBundle(({ userId, steps }: BienvenuePage
   }, [])
 
   return (
-    <AppLayout hideNavBarItems={true}>
-      <div className='bg-white pb-36'>
-        <div className='max-w-7xl'>
-          <div className='pt-10 px-4'>
-            <p className='mt-1 text-4xl font-extrabold text-gray-900 sm:text-5xl sm:tracking-tight lg:text-6xl'>Bienvenue!</p>
-          </div>
-        </div>
-        <div className='divide-y divide-dashed divide-gray-400'>
-          {steps?.map((step, stepIndex) => {
-            const { goal } = step
-            if (goal === 'get-user-name') {
-              return <GetUserName step={step} stepIndex={stepIndex} key={`step${goal}${stepIndex}`} />
-            }
-
-            if (goal === 'upload-first-photo') {
-              return <UploadFirstPhoto step={step} stepIndex={stepIndex} key={`step${goal}${stepIndex}`} />
-            }
-
-            if (goal === 'upload-family-photo') {
-              return <UploadFamilyPhoto step={step} stepIndex={stepIndex} key={`step${goal}${stepIndex}`} />
-            }
-
-            if (goal === 'create-first-thread') {
-              //TODO: create a new component that displays the message and a box with
-              return <FirstThreadStep step={step} key={`step${goal}${stepIndex}`} />
-            }
-          })}
-          <div ref={bottomOfPageRef} />
+    <div className='bg-white pb-36'>
+      <div className='max-w-7xl'>
+        <div className='pt-10 px-4'>
+          <p className='mt-1 text-4xl font-extrabold text-gray-900 sm:text-5xl sm:tracking-tight lg:text-6xl'>Bienvenue!</p>
         </div>
       </div>
-    </AppLayout>
+      <div className='divide-y divide-dashed divide-gray-400'>
+        {steps?.map((step, stepIndex) => {
+          const { goal } = step
+          if (goal === 'get-user-name') {
+            return <GetUserName step={step} stepIndex={stepIndex} key={`step${goal}${stepIndex}`} />
+          }
+
+          if (goal === 'upload-first-photo') {
+            return <UploadFirstPhoto step={step} stepIndex={stepIndex} key={`step${goal}${stepIndex}`} />
+          }
+
+          if (goal === 'upload-family-photo') {
+            return <UploadFamilyPhoto step={step} stepIndex={stepIndex} key={`step${goal}${stepIndex}`} />
+          }
+
+          if (goal === 'create-first-thread') {
+            //TODO: create a new component that displays the message and a box with
+            return <FirstThreadStep step={step} key={`step${goal}${stepIndex}`} />
+          }
+        })}
+        <div ref={bottomOfPageRef} />
+      </div>
+    </div>
   )
 })
 

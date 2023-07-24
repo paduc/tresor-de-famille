@@ -17,12 +17,12 @@ export type ListPhotosProps = {
   error?: string
   photos: {
     photoId: UUID
-    chatId: UUID
     url: string
   }[]
 }
 
 export const ListPhotosPage = withBrowserBundle(({ error, success, photos }: ListPhotosProps) => {
+  const photoPageUrl = (photo: ListPhotosProps['photos'][number]) => `/photo/${photo.photoId}/photo.html`
   return (
     <AppLayout>
       <div className='bg-white p-6'>
@@ -68,7 +68,7 @@ export const ListPhotosPage = withBrowserBundle(({ error, success, photos }: Lis
                 <li key={photo.photoId} className='relative'>
                   <div className='group aspect-h-7 aspect-w-10 block w-full overflow-hidden rounded-lg bg-gray-100 focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 focus-within:ring-offset-gray-100'>
                     <img src={photo.url} alt='' className='pointer-events-none object-cover group-hover:opacity-75' />
-                    <a href={`/photo/${photo.photoId}/photo.html`} className='absolute inset-0 focus:outline-none'>
+                    <a href={photoPageUrl(photo)} className='absolute inset-0 focus:outline-none'>
                       <span className='sr-only'>Voir la photo</span>
                     </a>
                   </div>

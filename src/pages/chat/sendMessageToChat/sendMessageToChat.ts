@@ -12,7 +12,7 @@ export async function sendMessageToChat({ messageId, chatId, userId, message }: 
   await addToHistory(
     UserSentMessageToChat({
       chatId,
-      sentBy: userId,
+      userId,
       message,
       messageId,
     })
