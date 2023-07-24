@@ -187,7 +187,7 @@ export default function AdaptiveLayout({ children, step }: AdaptiveLayoutProps) 
                             {navigation.map((item) => {
                               const isCurrent = url.startsWith(item.href)
                               return (
-                                <>
+                                <Fragment key={`typeItem${item.name}`}>
                                   {item.condition(step) ? (
                                     <li key={item.name}>
                                       <a
@@ -209,7 +209,7 @@ export default function AdaptiveLayout({ children, step }: AdaptiveLayoutProps) 
                                       </a>
                                     </li>
                                   ) : null}
-                                </>
+                                </Fragment>
                               )
                             })}
                           </ul>
@@ -290,9 +290,9 @@ export default function AdaptiveLayout({ children, step }: AdaptiveLayoutProps) 
                     {navigation.map((item) => {
                       const isCurrent = url.startsWith(item.href)
                       return (
-                        <>
+                        <Fragment key={item.name}>
                           {item.condition(step) ? (
-                            <li key={item.name}>
+                            <li>
                               <a
                                 href={item.href}
                                 className={classNames(
@@ -312,7 +312,7 @@ export default function AdaptiveLayout({ children, step }: AdaptiveLayoutProps) 
                               </a>
                             </li>
                           ) : null}
-                        </>
+                        </Fragment>
                       )
                     })}
                   </ul>

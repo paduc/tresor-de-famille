@@ -54,6 +54,7 @@ export const PersonAutocomplete = ({ onPersonSelected, className }: PersonAutoco
           <Combobox.Input
             className='block w-full resize-none border-0 py-3 px-4 focus:ring-0 text-lg'
             placeholder='...'
+            autoFocus
             onChange={(event) => setQuery(event.target.value.trim())}
           />
         </div>

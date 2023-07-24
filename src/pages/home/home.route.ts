@@ -203,18 +203,21 @@ pageRouter
       )
     } else if (action === 'confirmOpenAIRelationship') {
       try {
-        const { stringifiedRelationship: parsedRelation, personId } = z
+        const { stringifiedRelationship, personId } = z
           .object({
             personId: zIsUUID,
-            stringifiedRelationship: z.object({
-              relationship: z.string(),
-              side: z.string().optional(),
-              precision: z.string().optional(),
-            }),
+            stringifiedRelationship: z.string(),
           })
           .parse(request.body)
 
-        const { relationship, side, precision } = parsedRelation
+        const parsedRelation = JSON.parse(stringifiedRelationship)
+        const { relationship, side, precision } = z
+          .object({
+            relationship: z.string(),
+            side: z.string().optional(),
+            precision: z.string().optional(),
+          })
+          .parse(parsedRelation)
         const reducedRelation = { relationship, side, precision }
 
         if (isValidFamilyMemberRelationship(reducedRelation)) {
@@ -245,27 +248,51 @@ pageRouter
       )
     } else if (action === 'choseTransmissionMode') {
       try {
-        const { mode, beneficiaryName, beneficiaryEmail, beneficiaryAddress } = z
+        const { mode } = z
           .object({
             mode: z.enum(['tdf-detection-contacts-beneficiaries', 'user-distributes-codes']),
-            beneficiaryName: z.array(z.string()),
-            beneficiaryEmail: z.array(z.string().email()),
-            beneficiaryAddress: z.array(z.string()),
           })
           .parse(request.body)
 
         if (mode === 'tdf-detection-contacts-beneficiaries') {
+          const { beneficiaryName, beneficiaryEmail, beneficiaryAddress } = request.body
+          let index = 0
+
+          const beneficiaries = []
+          if (Array.isArray(beneficiaryName)) {
+            for (const name of beneficiaryName) {
+              const trimmedName = name?.trim()
+              if (!trimmedName || !trimmedName.length) continue
+              beneficiaries.push({
+                name: trimmedName,
+                email: beneficiaryEmail[index]?.trim(),
+                address: beneficiaryAddress[index]?.trim(),
+              })
+            }
+          } else {
+            beneficiaries.push({
+              name: beneficiaryName,
+              email: beneficiaryEmail,
+              address: beneficiaryAddress,
+            })
+          }
+
+          const safeBeneficiaries = z
+            .array(
+              z.object({
+                name: z.string(),
+                email: z.string().optional(),
+                address: z.string().optional(),
+              })
+            )
+            .parse(beneficiaries)
+
           await addToHistory(
             OnboardingBeneficiariesChosen({
               userId,
               mode,
-              beneficiaries: beneficiaryName
-                .map((name, index) => ({
-                  name,
-                  email: beneficiaryEmail[index],
-                  address: beneficiaryAddress[index],
-                }))
-                .filter(({ name }) => !name.length),
+              // @ts-ignore
+              beneficiaries: safeBeneficiaries,
             })
           )
         }

@@ -206,6 +206,7 @@ async function getFamilyDetectedFace(args: { faceId: UUID; photoId: UUID; userId
   // Has this face been ignored ?
   const faceIgnored = await getSingleEvent<OnboardingFaceIgnoredInFamilyPhoto>('OnboardingFaceIgnoredInFamilyPhoto', {
     photoId,
+    faceId,
     ignoredBy: userId,
   })
 

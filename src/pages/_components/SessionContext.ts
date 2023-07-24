@@ -8,7 +8,7 @@ export type Session =
       isLoggedIn: true
       userName: string
       isAdmin: boolean
-      isOnboarding: boolean
+      // isOnboarding: boolean
       // arePhotosEnabled: boolean
       // areThreadsEnabled: boolean
       // areVideosEnabled: boolean

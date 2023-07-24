@@ -4,23 +4,28 @@ import { getProfilePicUrlForUser } from '../../../dependencies/photo-storage'
 import { UUID } from '../../../domain'
 import { ChatEvent } from '../ChatPage/ChatPage'
 import { UserSentMessageToChat } from '../sendMessageToChat/UserSentMessageToChat'
+import { getEventList } from '../../../dependencies/getEventList'
+import { OnboardingUserStartedFirstThread } from '../../bienvenue/step4-start-thread/OnboardingUserStartedFirstThread'
 
 type ChatMessageItem = ChatEvent & {
   type: message
 }
 
 export async function retrieveMessagesForChat(chatId: UUID): Promise<ChatMessageItem[]> {
-  const { rows: messageRowsRes } = await postgres.query<UserSentMessageToChat>(
-    "SELECT * FROM history WHERE type='UserSentMessageToChat' AND payload->>'chatId'=$1",
-    [chatId]
-  )
+  const chatMessages = await getEventList<UserSentMessageToChat>('UserSentMessageToChat', { chatId })
 
-  const messageRows = messageRowsRes.map(({ occurredAt, payload: { sentBy, message } }): ChatEvent & { type: 'message' } => ({
+  const onboardingThread = await getEventList<OnboardingUserStartedFirstThread>('OnboardingUserStartedFirstThread', {
+    threadId: chatId,
+  })
+
+  const messageRows = [...chatMessages, ...onboardingThread]
+
+  const messages = messageRows.map(({ occurredAt, payload: { message } }): ChatEvent & { type: 'message' } => ({
     type: 'message',
     timestamp: occurredAt.getTime(),
     message: {
       body: message,
     },
   }))
-  return messageRows
+  return messages
 }

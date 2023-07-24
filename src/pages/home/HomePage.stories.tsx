@@ -24,7 +24,7 @@ export default {
   decorators: [
     (Story: any) => {
       return (
-        <SessionContext.Provider value={{ isLoggedIn: true, userName: '', isAdmin: false, isOnboarding: true }}>
+        <SessionContext.Provider value={{ isLoggedIn: true, userName: '', isAdmin: false }}>
           <PersonSearchContext.Provider value={{ search: fakePersonSearch } as unknown as SearchIndex}>
             <Story />
           </PersonSearchContext.Provider>
@@ -175,13 +175,13 @@ export const AnnotatingFamilyFaceWithName = () => (
           photoUrl:
             'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=3000&h=2000&q=80',
           faces: [
-            { faceId: getUuid(), stage: 'awaiting-name' },
-            { faceId: getUuid(), stage: 'awaiting-name' },
             { faceId: getUuid(), stage: 'done', name: 'Pouet', personId: getUuid() },
-            { faceId: getUuid(), stage: 'done', name: 'Ping', personId: getUuid() },
             { faceId: getUuid(), stage: 'ignored' },
-            { faceId: getUuid(), stage: 'ignored' },
-            { faceId: getUuid(), stage: 'ignored' },
+            { faceId: getUuid(), stage: 'awaiting-name' },
+            // { faceId: getUuid(), stage: 'awaiting-name' },
+            // { faceId: getUuid(), stage: 'done', name: 'Ping', personId: getUuid() },
+            // { faceId: getUuid(), stage: 'ignored' },
+            // { faceId: getUuid(), stage: 'ignored' },
           ],
         },
       ],

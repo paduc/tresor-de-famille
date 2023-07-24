@@ -1,24 +1,22 @@
-import * as React from 'react'
-import { withBrowserBundle } from '../../libs/ssr/withBrowserBundle'
-import AdaptiveLayout from '../_components/layout/AdaptiveLayout'
-import { UUID } from '../../domain'
-import { SendIcon } from '../chat/ChatPage/SendIcon'
-import { PhotoIcon, CheckIcon, XMarkIcon } from '@heroicons/react/24/outline'
+import { RadioGroup } from '@headlessui/react'
 import { ArrowRightIcon, PlusIcon } from '@heroicons/react/20/solid'
-import { InlinePhotoUploadBtn } from '../_components/InlinePhotoUploadBtn'
-import { FamilyMemberRelationship, traduireRelation } from '../bienvenue/step3-learnAboutUsersFamily/FamilyMemberRelationship'
+import { CheckIcon, PhotoIcon, XMarkIcon } from '@heroicons/react/24/outline'
+import classNames from 'classnames'
+import * as React from 'react'
+import { UUID } from '../../domain'
+import { withBrowserBundle } from '../../libs/ssr/withBrowserBundle'
 import {
   buttonIconStyles,
   primaryButtonStyles,
   primaryGreenButtonStyles,
   secondaryButtonStyles,
-  secondaryGreenButtonStyles,
   secondaryRedButtonStyles,
 } from '../_components/Button'
+import { InlinePhotoUploadBtn } from '../_components/InlinePhotoUploadBtn'
+import AdaptiveLayout from '../_components/layout/AdaptiveLayout'
+import { FamilyMemberRelationship, traduireRelation } from '../bienvenue/step3-learnAboutUsersFamily/FamilyMemberRelationship'
+import { SendIcon } from '../chat/ChatPage/SendIcon'
 import { PersonAutocomplete } from './PersonAutocomplete'
-import { ThreadTextarea } from '../_components/ThreadTextarea'
-import { RadioGroup } from '@headlessui/react'
-import classNames from 'classnames'
 
 export type HomePageProps = {
   steps: GetUserName & UploadFirstPhoto & UploadFamilyPhoto & CreateFirstThread & ChoseBeneficiaries
@@ -58,36 +56,9 @@ export const HomePage = withBrowserBundle(({ steps }: HomePageProps) => {
   }
 
   if (steps['upload-family-photo'] === 'annotating-photo') {
-    const faceMap = new Map<UUID, any>()
-
-    steps.photos.forEach(({ faces, photoId }) =>
-      faces
-        .filter(({ stage }) => stage === 'done')
-        .forEach((face) => {
-          faceMap.set(face.faceId, { ...face, photoId })
-        })
-    )
-
-    const faces = Array.from(faceMap.values())
-
     return (
       <Wrapper steps={steps}>
         <AnnotateFamilyPhoto step={steps} />
-        {faces.length ? (
-          <>
-            <div className='text-lg leading-5 mt-3 text-gray-500'>
-              Grace à vos annotations, voici déjà un aperçu de votre famille:{' '}
-            </div>
-            <ul className='flex gap-2 mt-3 pt-3'>
-              {faces.map((face) => (
-                <li key={`doneface${face.faceId}`} className='text-gray-500 mr-2 mb-2 flex flex-col items-center'>
-                  <PhotoBadge faceId={face.faceId} photoId={face.photoId} className='' />
-                  <div className='max-w-[80px] truncate'>{face.stage === 'done' ? face.name : ''}</div>
-                </li>
-              ))}
-            </ul>
-          </>
-        ) : null}
       </Wrapper>
     )
   }
@@ -233,6 +204,7 @@ function GetUserName() {
             </label>
             <input
               type='text'
+              autoFocus
               name='presentation'
               className='block w-full resize-none border-0 py-3  focus:ring-0 text-xl'
               placeholder="Je m'appelle ..."
@@ -262,7 +234,10 @@ export const UploadPhotoOfThemself = () => {
     <div className='pb-5'>
       <div className='py-3'>
         <p className={`mt-3 text-xl text-gray-500`}>Je vous propose d'envoyer une photo de vous !</p>
-        <InlinePhotoUploadBtn hiddenFields={{ action: 'userSendsPhotoOfThemself' }}>
+        <InlinePhotoUploadBtn
+          hiddenFields={{ action: 'userSendsPhotoOfThemself' }}
+          formAction='/'
+          formKey='uploadPhotoOfThemself'>
           <span className='cursor-pointer inline-flex items-center mt-6 px-3 py-1.5 border border-transparent text-md font-medium rounded-full shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
             <PhotoIcon className={`${buttonIconStyles}`} aria-hidden='true' />
             Choisir la photo
@@ -281,7 +256,10 @@ export const ChoseOwnFaceInPhoto = ({ step }: ChoseOwnFaceInPhotoProps) => {
   const { photoId, photoUrl, faces } = step
 
   const UploadAnother = ({ secondary, className }: { secondary?: true; className?: string }) => (
-    <InlinePhotoUploadBtn hiddenFields={{ action: 'userSendsPhotoOfThemself' }}>
+    <InlinePhotoUploadBtn
+      formAction='/'
+      formKey='uploadAnotherPhotoOfThemselfy'
+      hiddenFields={{ action: 'userSendsPhotoOfThemself' }}>
       <span className={`${secondary ? secondaryButtonStyles : primaryButtonStyles} ${className || ''}`}>
         <PhotoIcon className={`${buttonIconStyles}`} aria-hidden='true' />
         Choisir une autre photo
@@ -354,7 +332,7 @@ export const ChoseOwnFaceInPhoto = ({ step }: ChoseOwnFaceInPhotoProps) => {
 }
 
 function Paragraph({ children, className }: { className?: string } & React.PropsWithChildren) {
-  return <div className={`text-gray-500 text-xl py-3 pb-2 ${className}`}>{children}</div>
+  return <div className={`text-gray-500 text-xl py-3 pb-2 max-w-3xl ${className}`}>{children}</div>
 }
 
 type PhotoBadgeProps = {
@@ -421,7 +399,7 @@ export const UploadFamilyPhoto = ({ step }: UploadFamilyPhotoProps) => {
     <div className='mt-5'>
       <Paragraph>Maintenant, je vous propose de présenter votre famille, à travers une ou plusieurs photo.</Paragraph>
       <div className='mt-4'>
-        <InlinePhotoUploadBtn hiddenFields={{ action: 'userSendsPhotoOfFamily' }}>
+        <InlinePhotoUploadBtn formAction='/' formKey='uploadFamilyPhoto' hiddenFields={{ action: 'userSendsPhotoOfFamily' }}>
           <span className={`${primaryButtonStyles}`}>
             <PhotoIcon className={`${buttonIconStyles}`} aria-hidden='true' />
             Choisir une photo de ma famille
@@ -460,10 +438,14 @@ export const AnnotateFamilyPhoto = ({ step }: AnnotateFamilyPhotoProps) => {
   if (photoIndex === -1) {
     return (
       <>
-        <p className={`mt-3 mb-3 text-xl text-gray-500`}>
-          Top ! Est-ce que vous voulez en ajouter d'autres ou passer à la suite ?
-        </p>
-        <InlinePhotoUploadBtn hiddenFields={{ action: 'userSendsPhotoOfFamily' }}>
+        <Photo photoUrl={lastPhoto.photoUrl} />
+        <Paragraph className={`mt-3 mb-3`}>Annotation de cette photo terminée !</Paragraph>
+        <FamilyMemberView steps={step} />
+        <Paragraph>Voulez-vous continuer en ajoutant une autre photo ou passer à la suite ?</Paragraph>
+        <InlinePhotoUploadBtn
+          formAction='/'
+          formKey='uploadAnotherPhotoOfFamily'
+          hiddenFields={{ action: 'userSendsPhotoOfFamily' }}>
           <span className='cursor-pointer inline-flex items-center mt-3 px-3 py-1.5 border border-transparent text-md font-medium rounded-full shadow-sm text-indigo-600 bg-white hover:bg-indigo-500 hover:text-white ring-2 ring-indigo-600'>
             <PhotoIcon className='-ml-0.5 mr-2 h-6 w-6' aria-hidden='true' />
             Choisir une autre photo
@@ -569,7 +551,10 @@ export const AnnotateFamilyPhoto = ({ step }: AnnotateFamilyPhotoProps) => {
 
   function UploadAnother({ secondary, className }: { secondary?: true; className?: string }) {
     return (
-      <InlinePhotoUploadBtn hiddenFields={{ action: 'userSendsPhotoOfFamily' }}>
+      <InlinePhotoUploadBtn
+        formAction='/'
+        formKey='uploadAnotherPhotoOfFamily'
+        hiddenFields={{ action: 'userSendsPhotoOfFamily' }}>
         <span className={`${secondary ? secondaryButtonStyles : primaryButtonStyles} ${className || ''}`}>
           <PhotoIcon className={`${buttonIconStyles}`} aria-hidden='true' />
           Choisir une autre photo
@@ -666,6 +651,7 @@ const FamilyMemberRelationshipForm = ({ face }: FamilyMemberRelationshipFormProp
               </label>
               <input
                 type='text'
+                autoFocus
                 name='userAnswer'
                 className='block w-full resize-none border-0 py-3 px-4 focus:ring-0 text-xl'
                 placeholder="Ex: mon père, l'épouse de mon frère, ma petite-fille..."
@@ -724,85 +710,78 @@ export const CreateFirstThread = ({}: CreateFirstThreadProps) => {
     <div
       className='
 -mx-3 mt-3'>
-      <div className={`divide-y divide divide-dashed divide-gray-400`}>
-        <div className='pt-3' /> {/* To force a divider */}
-        <div>
-          <div className={`px-3 py-2 text-xl text-gray-500`}>
-            <p className='py-1'>
-              Dans trésor de famille, il est également possible de transmettre des souvenirs sous forme écrite.
-            </p>
-            <p className='py-1'>
-              Il peuvent être très courts (une phrase ?) ou le début d'une histoire familiale plus fournie.
-            </p>
-            <p className='py-1'>Je te propose d'écrire ici ton premier fil de souvenir.</p>
-          </div>
-          <div className='px-3'>
-            <form method='POST' className='relative sm:max-w-lg'>
-              <input type='hidden' name='action' defaultValue='startFirstThread' />
-              <div className='pt-2 overflow-hidden rounded-lg border border-gray-300 shadow-sm focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500'>
-                {/* <label htmlFor='title' className='sr-only'>
+      <div className={`px-3 py-2 text-xl text-gray-500`}>
+        <p className='py-1'>
+          Dans trésor de famille, il est également possible de transmettre des souvenirs sous forme écrite.
+        </p>
+        <p className='py-1'>Il peuvent être très courts (une phrase ?) ou le début d'une histoire familiale plus fournie.</p>
+        <p className='py-1'>Je te propose d'écrire ici ton premier fil de souvenir.</p>
+      </div>
+      <div className='px-3'>
+        <form method='POST' className='relative sm:max-w-lg'>
+          <input type='hidden' name='action' defaultValue='startFirstThread' />
+          <div className='pt-2 overflow-hidden rounded-lg border border-gray-300 shadow-sm focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500'>
+            {/* <label htmlFor='title' className='sr-only'>
                   Title
                 </label>
                 <input
-                  type='text'
+                  type='text' autoFocus
                   name='title'
                   id='title'
                   className='block w-full border-0 pt-2.5 text-lg font-medium placeholder:text-gray-400 focus:ring-0'
                   placeholder='Title'
                 /> */}
-                <label htmlFor='message' className='sr-only'>
-                  Je me souviens...
-                </label>
-                <textarea
-                  rows={4}
-                  name='message'
-                  id='message'
-                  className='block w-full resize-none border-0 py-0 text-gray-900 placeholder:text-gray-400 focus:ring-0 text-lg sm:text-base sm:leading-6'
-                  placeholder='Je me souviens...'
-                  defaultValue={''}
-                />
+            <label htmlFor='message' className='sr-only'>
+              Je me souviens...
+            </label>
+            <textarea
+              rows={4}
+              name='message'
+              id='message'
+              className='block w-full resize-none border-0 py-0 text-gray-900 placeholder:text-gray-400 focus:ring-0 text-lg sm:text-base sm:leading-6'
+              placeholder='Je me souviens...'
+              defaultValue={''}
+            />
 
-                {/* Spacer element to match the height of the toolbar */}
-                <div aria-hidden='true'>
-                  {/* <div className='py-2'>
+            {/* Spacer element to match the height of the toolbar */}
+            <div aria-hidden='true'>
+              {/* <div className='py-2'>
                       <div className='h-9' />
                     </div> */}
-                  <div className='h-px' />
-                  <div className='py-2'>
-                    <div className='py-px'>
-                      <div className='h-9' />
-                    </div>
-                  </div>
+              <div className='h-px' />
+              <div className='py-2'>
+                <div className='py-px'>
+                  <div className='h-9' />
                 </div>
               </div>
-              <div className='absolute inset-x-px bottom-0'>
-                <div className='flex items-center justify-between space-x-3 border-t border-gray-200 px-2 py-2 sm:px-3'>
-                  <div className='flex'>
-                    {/* <button
+            </div>
+          </div>
+          <div className='absolute inset-x-px bottom-0'>
+            <div className='flex items-center justify-between space-x-3 border-t border-gray-200 px-2 py-2 sm:px-3'>
+              <div className='flex'>
+                {/* <button
                         type='button'
                         className='group -my-2 -ml-2 inline-flex items-center rounded-full px-3 py-2 text-left text-gray-400'>
                         <PhotoIcon className='-ml-1 mr-2 h-5 w-5 group-hover:text-gray-500' aria-hidden='true' />
                         <span className='text-sm italic text-gray-500 group-hover:text-gray-600'>Ajouter une photo</span>
                       </button> */}
-                  </div>
-                  <div className='flex-shrink-0'>
-                    <button
-                      type='submit'
-                      className='inline-flex items-center rounded-full bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600'>
-                      Envoyer
-                    </button>
-                  </div>
-                </div>
               </div>
-            </form>
-            <ul className='mt-2 px-1 text-gray-500 text-base list-inside list-disc'>
-              Exemples:
-              <li>Mon lieux de vacances quand j'étais enfant</li>
-              <li>Plus ancien souvenir</li>
-              <li>Le sport que j'ai pratiqué</li>
-            </ul>
+              <div className='flex-shrink-0'>
+                <button
+                  type='submit'
+                  className='inline-flex items-center rounded-full bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600'>
+                  Envoyer
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
+        </form>
+        <ul className='mt-2 px-1 text-gray-500 text-base list-inside list-disc'>
+          Exemples:
+          <li>Mon lieux de vacances quand j'étais enfant</li>
+          <li>Plus ancien souvenir</li>
+          <li>Le sport que j'ai pratiqué</li>
+        </ul>
       </div>
     </div>
   )
@@ -812,8 +791,6 @@ type FirstThreadStepProps = {
   step: CreateFirstThread & { 'create-first-thread': 'thread-written' }
 }
 export const FirstThreadStep = ({ step }: FirstThreadStepProps) => {
-  const { message } = step
-
   const threadUrl = `/chat/${step.threadId}/chat.html`
 
   return (
@@ -963,7 +940,7 @@ export const ChoseBeneficiariesStep = ({ step }: ChoseBeneficiariesStepProps) =>
                 </p>
               </div>
 
-              <ul className='space-y-6'>
+              <ul className='space-y-6 divide-y divide-solid'>
                 {Array(beneficiaryCount)
                   .fill(0)
                   .map((_, index) => (
@@ -1022,7 +999,7 @@ type BeneficiaryProps = {
 
 function Beneficiary({ index }: BeneficiaryProps) {
   return (
-    <li>
+    <li className='pt-5'>
       <div>
         <div className='text-lg font-semibold leading-7'>Bénéficiaire {index + 1}</div>
       </div>
@@ -1035,7 +1012,8 @@ function Beneficiary({ index }: BeneficiaryProps) {
             <div className='flex shadow-sm ring-1 ring-inset ring-gray-300  focus-within:ring-inset sm:max-w-md border border-gray-200  focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500'>
               <input
                 type='text'
-                name='beneficiaryName[]'
+                autoFocus
+                name='beneficiaryName'
                 id='beneficiaryName'
                 className='block w-full resize-none border-0 py-3  focus:ring-0 text-xl'
                 placeholder='ex: Valentin Cognito'
@@ -1051,7 +1029,7 @@ function Beneficiary({ index }: BeneficiaryProps) {
             <div className='flex shadow-sm ring-1 ring-inset ring-gray-300  focus-within:ring-inset sm:max-w-md border border-gray-200  focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500'>
               <input
                 type='email'
-                name='beneficiaryEmail[]'
+                name='beneficiaryEmail'
                 id='beneficiaryEmail'
                 className='block w-full resize-none border-0 py-3  focus:ring-0 text-xl'
                 placeholder='ex: valentin@exemple.com'
@@ -1067,7 +1045,7 @@ function Beneficiary({ index }: BeneficiaryProps) {
             <div className='flex shadow-sm ring-1 ring-inset ring-gray-300  focus-within:ring-inset sm:max-w-md border border-gray-200  focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500'>
               <textarea
                 rows={3}
-                name='beneficiaryAddress[]'
+                name='beneficiaryAddress'
                 id='beneficiaryAddress'
                 autoComplete='beneficiaryAddress'
                 className='block w-full resize-none border-0 py-3  focus:ring-0 text-xl'
@@ -1078,5 +1056,41 @@ function Beneficiary({ index }: BeneficiaryProps) {
         </div>
       </div>
     </li>
+  )
+}
+
+type FamilyMemberViewProps = {
+  steps: UploadFamilyPhoto & { 'upload-family-photo': 'annotating-photo' }
+}
+
+function FamilyMemberView({ steps }: FamilyMemberViewProps) {
+  const faceMap = new Map<UUID, any>()
+
+  steps.photos.forEach(({ faces, photoId }) =>
+    faces
+      .filter(({ stage }) => stage === 'done')
+      .forEach((face) => {
+        faceMap.set(face.faceId, { ...face, photoId })
+      })
+  )
+
+  const faces = Array.from(faceMap.values())
+
+  if (!faces.length) return null
+
+  return (
+    <>
+      <div className='text-lg leading-5 mt-3 text-gray-500'>
+        Voici un aperçu de votre famille, à partir de vos annotations:{' '}
+      </div>
+      <ul className='flex gap-2 mt-3 pt-3'>
+        {faces.map((face) => (
+          <li key={`doneface${face.faceId}`} className='text-gray-500 mr-2 mb-2 flex flex-col items-center'>
+            <PhotoBadge faceId={face.faceId} photoId={face.photoId} className='' />
+            <div className='max-w-[80px] truncate'>{face.stage === 'done' ? face.name : ''}</div>
+          </li>
+        ))}
+      </ul>
+    </>
   )
 }
