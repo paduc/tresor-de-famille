@@ -48,7 +48,7 @@ export async function responseAsHtml(
 
   response.send(
     html`
-      <html class="h-full bg-gray-100">
+      <html>
         <head>
           <meta charset="utf-8" />
           <meta name="viewport" content="width=device-width,initial-scale=1" />
@@ -60,7 +60,7 @@ export async function responseAsHtml(
               `
             : ''}
         </head>
-        <body class="h-full">
+        <body>
           <!-- prettier-ignore -->
           <div id="root">${ReactDOMServer.renderToString(
             withContext(
@@ -91,11 +91,12 @@ async function getSession(request: Request): Promise<Session> {
   if (user) {
     const userId = user.id
 
-    const hasPhotos = await getSingleEvent<
-      UserUploadedPhotoToChat | OnboardingUserUploadedPhotoOfFamily | OnboardingUserUploadedPhotoOfThemself
-    >(['OnboardingUserUploadedPhotoOfFamily', 'OnboardingUserUploadedPhotoOfThemself', 'UserUploadedPhotoToChat'], {
-      uploadedBy: userId,
-    })
+    const hasPhotos = await getSingleEvent<UserUploadedPhotoToChat | OnboardingUserUploadedPhotoOfFamily>(
+      ['OnboardingUserUploadedPhotoOfFamily', 'UserUploadedPhotoToChat'],
+      {
+        uploadedBy: userId,
+      }
+    )
 
     const hasThreads = await getSingleEvent<UserSentMessageToChat | OnboardingUserStartedFirstThread>(
       ['UserSentMessageToChat', 'OnboardingUserStartedFirstThread'],

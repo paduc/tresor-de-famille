@@ -340,7 +340,7 @@ export const ChoseOwnFaceInPhoto = ({ step }: ChoseOwnFaceInPhotoProps) => {
   function Photo() {
     return (
       <div className='grid grid-cols-1 w-full mt-3'>
-        <img src={photoUrl} className='max-w-full max-h-[50vh]' />
+        <img src={photoUrl} className='max-w-full max-h-[50vh] border border-gray-300 shadow-sm' />
       </div>
     )
   }
@@ -360,7 +360,7 @@ const PhotoBadge = ({ photoId, className, faceId }: PhotoBadgeProps) => {
     <img
       // src='https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=100&h=100&q=80'
       src={`/photo/${photoId}/face/${faceId}`}
-      className={`inline-block cursor-pointer rounded-full h-14 w-14 bg-white ring-2 ring-white'
+      className={`inline-block cursor-pointer rounded-full h-14 w-14 bg-white ring-2 ring-white shadow-sm'
       } ${className || ''}`}
     />
   )
@@ -559,7 +559,7 @@ export const AnnotateFamilyPhoto = ({ step }: AnnotateFamilyPhotoProps) => {
   function Photo({ photoUrl }: { photoUrl: string }) {
     return (
       <div className='grid grid-cols-1 w-full mt-3'>
-        <img src={photoUrl} className='max-w-full max-h-[50vh]' />
+        <img src={photoUrl} className='max-w-full max-h-[50vh] border border-gray-300 shadow-sm' />
       </div>
     )
   }
@@ -699,7 +699,7 @@ const FamilyMemberRelationshipForm = ({ face }: FamilyMemberRelationshipFormProp
           <Paragraph className=''>
             Si j'ai bien compris, {name} serait {traduireRelation(face.relationship)}.
           </Paragraph>
-          <form method='POST' className='inline-block'>
+          <form method='POST' className='block'>
             <input type='hidden' name='action' value='confirmOpenAIRelationship' />
             <input type='hidden' name='personId' value={personId} />
             <input type='hidden' name='stringifiedRelationship' value={JSON.stringify(face.relationship)} />
@@ -709,7 +709,7 @@ const FamilyMemberRelationshipForm = ({ face }: FamilyMemberRelationshipFormProp
             </button>
           </form>
 
-          <button className={`${secondaryRedButtonStyles} mt-3`} onClick={() => toggleConfirmBox(true)}>
+          <button className={`${secondaryRedButtonStyles} mt-3 block`} onClick={() => toggleConfirmBox(true)}>
             <XMarkIcon className={`${buttonIconStyles}`} aria-hidden='true' />
             Non, pas tout à fait...
           </button>
@@ -733,9 +733,9 @@ export const CreateFirstThread = ({}: CreateFirstThreadProps) => {
         <p className='py-1'>Je te propose d'écrire ici ton premier fil de souvenir.</p>
       </div>
       <div className='px-3'>
-        <form method='POST' className='relative sm:max-w-lg'>
+        <form method='POST' className='relative sm:max-w-lg '>
           <input type='hidden' name='action' defaultValue='startFirstThread' />
-          <div className='pt-2 overflow-hidden rounded-lg border border-gray-300 shadow-sm focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500'>
+          <div className='pt-2 bg-white overflow-hidden rounded-lg border border-gray-300 shadow-sm focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500'>
             {/* <label htmlFor='title' className='sr-only'>
                   Title
                 </label>
