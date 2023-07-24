@@ -17,12 +17,27 @@ import AdaptiveLayout from '../_components/layout/AdaptiveLayout'
 import { FamilyMemberRelationship, traduireRelation } from '../bienvenue/step3-learnAboutUsersFamily/FamilyMemberRelationship'
 import { SendIcon } from '../chat/ChatPage/SendIcon'
 import { PersonAutocomplete } from './PersonAutocomplete'
+import { AppLayout } from '../_components/layout/AppLayout'
 
-export type HomePageProps = {
-  steps: GetUserName & UploadFirstPhoto & UploadFamilyPhoto & CreateFirstThread & ChoseBeneficiaries
-}
+type Steps = GetUserName & UploadFirstPhoto & UploadFamilyPhoto & CreateFirstThread & ChoseBeneficiaries
 
-export const HomePage = withBrowserBundle(({ steps }: HomePageProps) => {
+export type HomePageProps =
+  | {
+      isOnboarding: true
+      steps: Steps
+    }
+  | {
+      isOnboarding: false
+    }
+
+export const HomePage = withBrowserBundle((props: HomePageProps) => {
+  const { isOnboarding } = props
+  if (!isOnboarding) {
+    return <div>Non</div>
+  }
+
+  const { steps } = props
+
   if (steps['get-user-name'] === 'pending') {
     return (
       <Wrapper steps={steps}>
@@ -89,7 +104,7 @@ export const HomePage = withBrowserBundle(({ steps }: HomePageProps) => {
   return <Wrapper steps={steps} />
 })
 
-function Wrapper({ steps, children }: HomePageProps & React.PropsWithChildren) {
+function Wrapper({ steps, children }: { steps: Steps } & React.PropsWithChildren) {
   const UserName = () =>
     steps['get-user-name'] === 'done' ? (
       <span className='block text-indigo-600'>{steps.name}</span>
@@ -98,7 +113,7 @@ function Wrapper({ steps, children }: HomePageProps & React.PropsWithChildren) {
     )
 
   return (
-    <AdaptiveLayout step={steps}>
+    <AppLayout>
       <div className='px-4 py-6 md:px-8 md:py-12'>
         <h2 className='text-3xl font-bold tracking-tight text-gray-900 md:text-4xl'>
           <span className='block'>Bienvenu sur Trésor de famille</span>
@@ -119,7 +134,7 @@ function Wrapper({ steps, children }: HomePageProps & React.PropsWithChildren) {
         </h2>
         {children}
       </div>
-    </AdaptiveLayout>
+    </AppLayout>
   )
 }
 
@@ -249,7 +264,7 @@ export const UploadPhotoOfThemself = () => {
 }
 
 type ChoseOwnFaceInPhotoProps = {
-  step: HomePageProps['steps'] & { 'upload-first-photo': 'photo-uploaded' }
+  step: Steps & { 'upload-first-photo': 'photo-uploaded' }
 }
 
 export const ChoseOwnFaceInPhoto = ({ step }: ChoseOwnFaceInPhotoProps) => {

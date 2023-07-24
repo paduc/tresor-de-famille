@@ -1,3 +1,3 @@
-import SidebarLayout from './SidebarLayout'
+import AdaptiveLayout from './AdaptiveLayout'
 
-export const AppLayout = SidebarLayout
+export const AppLayout = AdaptiveLayout

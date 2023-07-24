@@ -7,7 +7,7 @@ export type UserSentMessageToChat = DomainEvent<
     chatId: UUID
     message: string
     messageId: UUID
-    sentBy: UUID
+    userId: UUID
   }
 >
 

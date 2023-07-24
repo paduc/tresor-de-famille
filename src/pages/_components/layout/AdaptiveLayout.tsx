@@ -13,20 +13,12 @@
   ```
 */
 import { Dialog, Menu, Transition } from '@headlessui/react'
-import { Bars3Icon, PlusSmallIcon, XMarkIcon } from '@heroicons/react/24/outline'
-import { BookOpenIcon, PhotoIcon, VideoCameraIcon } from '@heroicons/react/24/outline'
+import { Bars3Icon, BookOpenIcon, PhotoIcon, PlusSmallIcon, XMarkIcon } from '@heroicons/react/24/outline'
 import React, { Fragment, useContext, useState } from 'react'
 import { InlinePhotoUpload } from '../InlinePhotoUpload'
 import { LocationContext } from '../LocationContext'
 import { Logo } from '../Logo'
 import { SessionContext } from '../SessionContext'
-import { HomePageProps } from '../../home'
-
-const teams = [
-  { id: 1, name: 'Heroicons', href: '#', initial: 'H', current: false },
-  { id: 2, name: 'Tailwind Labs', href: '#', initial: 'T', current: false },
-  { id: 3, name: 'Workcation', href: '#', initial: 'W', current: false },
-]
 
 // @ts-ignore
 function classNames(...classes) {
@@ -35,10 +27,9 @@ function classNames(...classes) {
 
 export type AdaptiveLayoutProps = {
   children: React.ReactNode
-  step: HomePageProps['steps']
 }
 
-export default function AdaptiveLayout({ children, step }: AdaptiveLayoutProps) {
+export default function AdaptiveLayout({ children }: AdaptiveLayoutProps) {
   const session = useContext(SessionContext)
   const url = useContext(LocationContext)
 
@@ -48,19 +39,16 @@ export default function AdaptiveLayout({ children, step }: AdaptiveLayoutProps) 
     return <p>Session not available</p>
   }
 
-  const arePhotosEnabled = step['upload-family-photo'] === 'done' || step['upload-family-photo'] === 'annotating-photo'
-  const areThreadsEnabled = step['create-first-thread'] === 'done' || step['create-first-thread'] === 'thread-written'
+  const { arePhotosEnabled, areThreadsEnabled, profilePic } = session
 
-  const userName = step['get-user-name'] === 'done' ? step.name : session.userName || ''
-
-  const profilePic = step['upload-first-photo'] === 'user-face-confirmed' ? `/photo/${step.photoId}/face/${step.faceId}` : null
+  const userName = session.userName || ''
 
   const navigation: {
     name: string
     href: string
     icon: any
     current?: boolean
-    condition: (step: HomePageProps['steps']) => boolean
+    condition: () => boolean
   }[] = [
     {
       name: 'Photos',
@@ -73,11 +61,11 @@ export default function AdaptiveLayout({ children, step }: AdaptiveLayoutProps) 
       name: 'Fils de souvenir',
       href: '/threads.html',
       icon: BookOpenIcon,
-      condition: (step) => areThreadsEnabled,
+      condition: () => areThreadsEnabled,
     },
   ]
 
-  const sidebarAccessible = navigation.some((link) => link.condition(step))
+  const sidebarAccessible = navigation.some((link) => link.condition())
 
   return (
     <>
@@ -132,7 +120,9 @@ export default function AdaptiveLayout({ children, step }: AdaptiveLayoutProps) 
                   {/* Sidebar component, swap this element with another sidebar if you like */}
                   <div className='flex grow flex-col gap-y-5 overflow-y-auto bg-indigo-600 px-6 pb-4'>
                     <div className='flex h-16 shrink-0 items-center'>
-                      <Logo className='h-10 w-auto invert mix-blend-luminosity' />
+                      <a href='/'>
+                        <Logo className='h-10 w-auto cursor-pointer invert mix-blend-luminosity' />
+                      </a>
                       <span className='group ml-3 text-indigo-100 rounded-md flex items-center text-md font-md'>
                         Trésor de famille
                       </span>
@@ -141,22 +131,26 @@ export default function AdaptiveLayout({ children, step }: AdaptiveLayoutProps) 
                       <ul role='list' className='flex flex-1 flex-col gap-y-7'>
                         <li>
                           <ul role='list' className='-mx-2 mt-2 space-y-3'>
-                            <li>
-                              <a
-                                href='/chat.html'
-                                className='button inline-flex items-center gap-x-1.5 rounded-md  px-2.5 py-1.5 text-sm text-white border-1 ring-1 ring-inset ring-indigo-200 shadow-sm hover:bg-white/20'>
-                                <PlusSmallIcon className='-ml-0.5 h-5 w-5' aria-hidden='true' />
-                                Nouveau fil
-                              </a>
-                            </li>
-                            <li>
-                              <InlinePhotoUpload>
-                                <span className='button inline-flex items-center gap-x-1.5 rounded-md  px-2.5 py-1.5 text-sm text-white border-1 ring-1 ring-inset ring-indigo-200 shadow-sm hover:bg-white/20'>
+                            {areThreadsEnabled ? (
+                              <li>
+                                <a
+                                  href='/chat.html'
+                                  className='button inline-flex items-center gap-x-1.5 rounded-md  px-2.5 py-1.5 text-sm text-white border-1 ring-1 ring-inset ring-indigo-200 shadow-sm hover:bg-white/20'>
                                   <PlusSmallIcon className='-ml-0.5 h-5 w-5' aria-hidden='true' />
-                                  Nouvelle photo
-                                </span>
-                              </InlinePhotoUpload>
-                            </li>
+                                  Nouveau fil
+                                </a>
+                              </li>
+                            ) : null}
+                            {arePhotosEnabled ? (
+                              <li>
+                                <InlinePhotoUpload>
+                                  <span className='button inline-flex items-center gap-x-1.5 rounded-md  px-2.5 py-1.5 text-sm text-white border-1 ring-1 ring-inset ring-indigo-200 shadow-sm hover:bg-white/20'>
+                                    <PlusSmallIcon className='-ml-0.5 h-5 w-5' aria-hidden='true' />
+                                    Nouvelle photo
+                                  </span>
+                                </InlinePhotoUpload>
+                              </li>
+                            ) : null}
                           </ul>
                         </li>
                         {/* <li>
@@ -188,7 +182,7 @@ export default function AdaptiveLayout({ children, step }: AdaptiveLayoutProps) 
                               const isCurrent = url.startsWith(item.href)
                               return (
                                 <Fragment key={`typeItem${item.name}`}>
-                                  {item.condition(step) ? (
+                                  {item.condition() ? (
                                     <li key={item.name}>
                                       <a
                                         href={item.href}
@@ -240,28 +234,34 @@ export default function AdaptiveLayout({ children, step }: AdaptiveLayoutProps) 
           {/* Sidebar component, swap this element with another sidebar if you like */}
           <div className='flex grow flex-col gap-y-5 overflow-y-auto bg-indigo-600 px-6 pb-4'>
             <div className='flex h-16 shrink-0 items-center'>
-              <Logo className='h-10 w-auto invert mix-blend-luminosity' />
+              <a href='/'>
+                <Logo className='h-10 w-auto cursor-pointer invert mix-blend-luminosity' />
+              </a>
             </div>
             <nav className='flex flex-1 flex-col'>
               <ul role='list' className='flex flex-1 flex-col gap-y-7'>
                 <li>
                   <ul role='list' className='-mx-2 mt-2 space-y-3'>
-                    <li>
-                      <a
-                        href='/chat.html'
-                        className='button inline-flex items-center gap-x-1.5 rounded-md  px-2.5 py-1.5 text-sm text-white border-1 ring-1 ring-inset ring-indigo-200 shadow-sm hover:bg-white/20'>
-                        <PlusSmallIcon className='-ml-0.5 h-5 w-5' aria-hidden='true' />
-                        Nouveau fil
-                      </a>
-                    </li>
-                    <li>
-                      <InlinePhotoUpload>
-                        <span className='button inline-flex items-center gap-x-1.5 rounded-md  px-2.5 py-1.5 text-sm text-white border-1 ring-1 ring-inset ring-indigo-200 shadow-sm hover:bg-white/20'>
+                    {areThreadsEnabled ? (
+                      <li>
+                        <a
+                          href='/chat.html'
+                          className='button inline-flex items-center gap-x-1.5 rounded-md  px-2.5 py-1.5 text-sm text-white border-1 ring-1 ring-inset ring-indigo-200 shadow-sm hover:bg-white/20'>
                           <PlusSmallIcon className='-ml-0.5 h-5 w-5' aria-hidden='true' />
-                          Nouvelle photo
-                        </span>
-                      </InlinePhotoUpload>
-                    </li>
+                          Nouveau fil
+                        </a>
+                      </li>
+                    ) : null}
+                    {arePhotosEnabled ? (
+                      <li>
+                        <InlinePhotoUpload>
+                          <span className='button inline-flex items-center gap-x-1.5 rounded-md  px-2.5 py-1.5 text-sm text-white border-1 ring-1 ring-inset ring-indigo-200 shadow-sm hover:bg-white/20'>
+                            <PlusSmallIcon className='-ml-0.5 h-5 w-5' aria-hidden='true' />
+                            Nouvelle photo
+                          </span>
+                        </InlinePhotoUpload>
+                      </li>
+                    ) : null}
                   </ul>
                 </li>
                 {/* <li>
@@ -291,7 +291,7 @@ export default function AdaptiveLayout({ children, step }: AdaptiveLayoutProps) 
                       const isCurrent = url.startsWith(item.href)
                       return (
                         <Fragment key={item.name}>
-                          {item.condition(step) ? (
+                          {item.condition() ? (
                             <li>
                               <a
                                 href={item.href}

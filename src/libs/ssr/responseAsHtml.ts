@@ -6,6 +6,20 @@ import { LocationContext } from '../../pages/_components/LocationContext'
 import { Session, SessionContext } from '../../pages/_components/SessionContext'
 import { PersonSearchContext } from '../../pages/_components/usePersonSearch'
 import { withContext } from './withContext'
+import { getSingleEvent } from '../../dependencies/getSingleEvent'
+import { UserUploadedPhotoToChat } from '../../pages/chat/uploadPhotoToChat/UserUploadedPhotoToChat'
+import { OnboardingUserUploadedPhotoOfFamily } from '../../pages/bienvenue/step2-userUploadsPhoto/OnboardingUserUploadedPhotoOfFamily'
+import { OnboardingUserUploadedPhotoOfThemself } from '../../pages/bienvenue/step1-userTellsAboutThemselves/OnboardingUserUploadedPhotoOfThemself'
+import { UserHasDesignatedThemselfAsPerson } from '../../events/UserHasDesignatedThemselfAsPerson'
+import { OnboardingUserNamedThemself } from '../../pages/bienvenue/step1-userTellsAboutThemselves/OnboardingUserNamedThemself'
+import { UUID } from '../../domain'
+import { OnboardingUserConfirmedHisFace } from '../../pages/bienvenue/step2-userUploadsPhoto/OnboardingUserConfirmedHisFace'
+import { OnboardingUserNamedPersonInFamilyPhoto } from '../../pages/bienvenue/step3-learnAboutUsersFamily/OnboardingUserNamedPersonInFamilyPhoto'
+import { OnboardingUserRecognizedPersonInFamilyPhoto } from '../../pages/bienvenue/step3-learnAboutUsersFamily/OnboardingUserRecognizedPersonInFamilyPhoto'
+import { PhotoManuallyAnnotated } from '../../pages/photo/annotateManually/PhotoManuallyAnnotated'
+import { PhotoAnnotationConfirmed } from '../../pages/photo/confirmPhotoAnnotation/PhotoAnnotationConfirmed'
+import { UserSentMessageToChat } from '../../pages/chat/sendMessageToChat/UserSentMessageToChat'
+import { OnboardingUserStartedFirstThread } from '../../pages/bienvenue/step4-start-thread/OnboardingUserStartedFirstThread'
 
 const html = String.raw
 
@@ -15,7 +29,7 @@ const html = String.raw
  * @param response Express.Response instance
  * @param element React element to render to html
  */
-export function responseAsHtml(
+export async function responseAsHtml(
   request: Request,
   response: Response,
   element: JSX.Element & { outerProps?: any; componentName?: string }
@@ -26,7 +40,7 @@ export function responseAsHtml(
 
   const bundle = extractBundleInfo(element)
 
-  const session = getSession(request)
+  const session = await getSession(request)
 
   const searchKey = request.session.searchKey
 
@@ -72,16 +86,70 @@ export function responseAsHtml(
   )
 }
 
-function getSession(request: Request): Session {
-  if (request.session.user) {
+async function getSession(request: Request): Promise<Session> {
+  const user = request.session.user
+  if (user) {
+    const userId = user.id
+
+    const hasPhotos = await getSingleEvent<
+      UserUploadedPhotoToChat | OnboardingUserUploadedPhotoOfFamily | OnboardingUserUploadedPhotoOfThemself
+    >(['OnboardingUserUploadedPhotoOfFamily', 'OnboardingUserUploadedPhotoOfThemself', 'UserUploadedPhotoToChat'], {
+      uploadedBy: userId,
+    })
+
+    const hasThreads = await getSingleEvent<UserSentMessageToChat | OnboardingUserStartedFirstThread>(
+      ['UserSentMessageToChat', 'OnboardingUserStartedFirstThread'],
+      { userId }
+    )
+
+    const profilePic = await getProfilePicUrlForUser(userId)
+
     return {
       isLoggedIn: true,
-      userName: request.session.user.name,
-      isAdmin: request.session.user.id === ADMIN_USERID,
+      userName: user.name,
+      isAdmin: userId === ADMIN_USERID,
+      profilePic,
+      arePhotosEnabled: !!hasPhotos,
+      areThreadsEnabled: !!hasThreads,
+      areVideosEnabled: false,
     }
   }
 
   return { isLoggedIn: false }
+}
+
+const getProfilePicUrlForUser = async (userId: UUID): Promise<string | null> => {
+  const person = await getSingleEvent<UserHasDesignatedThemselfAsPerson | OnboardingUserNamedThemself>(
+    ['OnboardingUserNamedThemself', 'UserHasDesignatedThemselfAsPerson'],
+    { userId }
+  )
+
+  if (!person) return null
+
+  const { personId } = person.payload
+
+  const faceEvent = await getSingleEvent<
+    | PhotoAnnotationConfirmed
+    | PhotoManuallyAnnotated
+    | OnboardingUserConfirmedHisFace
+    | OnboardingUserNamedPersonInFamilyPhoto
+    | OnboardingUserRecognizedPersonInFamilyPhoto
+  >(
+    [
+      'OnboardingUserConfirmedHisFace',
+      'OnboardingUserNamedPersonInFamilyPhoto',
+      'OnboardingUserRecognizedPersonInFamilyPhoto',
+      'PhotoAnnotationConfirmed',
+      'PhotoManuallyAnnotated',
+    ],
+    { personId }
+  )
+
+  if (!faceEvent) return null
+
+  const { photoId, faceId } = faceEvent.payload
+
+  return `/photo/${photoId}/face/${faceId}`
 }
 
 type BundleInfo =
