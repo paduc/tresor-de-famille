@@ -8,6 +8,8 @@ import { OnboardingUserConfirmedHisFace } from '../bienvenue/step2-userUploadsPh
 import { OnboardingUserUploadedPhotoOfFamily } from '../bienvenue/step2-userUploadsPhoto/OnboardingUserUploadedPhotoOfFamily'
 import { OnboardingBeneficiariesChosen } from '../bienvenue/step3-learnAboutUsersFamily/OnboardingBeneficiariesChosen'
 import { OnboardingFaceIgnoredInFamilyPhoto } from '../bienvenue/step3-learnAboutUsersFamily/OnboardingFaceIgnoredInFamilyPhoto'
+import { OnboardingFamilyMemberAnnotationIsDone } from '../bienvenue/step3-learnAboutUsersFamily/OnboardingFamilyMemberAnnotationIsDone'
+import { OnboardingReadyForBeneficiaries } from '../bienvenue/step3-learnAboutUsersFamily/OnboardingReadyForBeneficiaries'
 import { OnboardingUserConfirmedRelationUsingOpenAI } from '../bienvenue/step3-learnAboutUsersFamily/OnboardingUserConfirmedRelationUsingOpenAI'
 import { OnboardingUserIgnoredRelationship } from '../bienvenue/step3-learnAboutUsersFamily/OnboardingUserIgnoredRelationship'
 import { OnboardingUserNamedPersonInFamilyPhoto } from '../bienvenue/step3-learnAboutUsersFamily/OnboardingUserNamedPersonInFamilyPhoto'
@@ -735,6 +737,46 @@ describe('getHomePageProps', () => {
         })
       })
     })
+
+    describe('after OnboardingFamilyMemberAnnotationIsDone', () => {
+      const photoId = getUuid()
+      const faceId = getUuid()
+      beforeAll(async () => {
+        await resetDatabase()
+        await addToHistory(
+          OnboardingUserUploadedPhotoOfFamily({
+            uploadedBy: userId,
+            photoId,
+            location: { type: 'localfile' },
+          })
+        )
+        await addToHistory(
+          AWSDetectedFacesInPhoto({
+            photoId,
+            faces: [
+              {
+                faceId,
+                awsFaceId: '',
+                confidence: 0,
+                position: {},
+              },
+            ],
+          })
+        )
+        await addToHistory(
+          OnboardingFamilyMemberAnnotationIsDone({
+            userId,
+          })
+        )
+      })
+
+      it('should return a done state', async () => {
+        const { steps } = await getHomePageProps(userId)
+        expect(steps).toMatchObject({
+          'upload-family-photo': 'done',
+        })
+      })
+    })
   })
 
   describe('create-first-thread step', () => {
@@ -766,6 +808,31 @@ describe('getHomePageProps', () => {
       it('should return thread-written state', async () => {
         const { steps } = await getHomePageProps(userId)
         expect(steps).toMatchObject({ 'create-first-thread': 'thread-written', threadId, message })
+      })
+    })
+
+    describe('after OnboardingReadyForBeneficiaries', () => {
+      const threadId = getUuid()
+      const message = 'This is my first thread'
+      beforeAll(async () => {
+        await resetDatabase()
+        await addToHistory(
+          OnboardingUserStartedFirstThread({
+            userId,
+            threadId,
+            message,
+          })
+        )
+        await addToHistory(
+          OnboardingReadyForBeneficiaries({
+            userId,
+          })
+        )
+      })
+
+      it('should return done state', async () => {
+        const { steps } = await getHomePageProps(userId)
+        expect(steps).toMatchObject({ 'create-first-thread': 'done', threadId, message })
       })
     })
   })

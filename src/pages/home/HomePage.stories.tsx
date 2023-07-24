@@ -403,22 +403,7 @@ export const WaitingForFirstThread = () => (
         'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=3000&h=2000&q=80',
       faceId: getUuid(),
       'upload-family-photo': 'done',
-      photos: [
-        {
-          photoId: getUuid(),
-          photoUrl:
-            'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=3000&h=2000&q=80',
-          faces: [
-            {
-              faceId: getUuid(),
-              stage: 'done',
-              name: 'Johnny',
-              personId: getUuid(),
-              relationship: { relationship: 'mother' },
-            },
-          ],
-        },
-      ],
+
       'create-first-thread': 'awaiting-input',
       'chose-beneficiaries': 'awaiting-input',
     }}
@@ -437,22 +422,6 @@ export const FirstThreadWritten = () => (
         'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=3000&h=2000&q=80',
       faceId: getUuid(),
       'upload-family-photo': 'done',
-      photos: [
-        {
-          photoId: getUuid(),
-          photoUrl:
-            'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=3000&h=2000&q=80',
-          faces: [
-            {
-              faceId: getUuid(),
-              stage: 'done',
-              name: 'Johnny',
-              personId: getUuid(),
-              relationship: { relationship: 'mother' },
-            },
-          ],
-        },
-      ],
       'create-first-thread': 'thread-written',
       threadId: getUuid(),
       message: `Je me souviens parfaitement ne jamais avoir fait de sport. Je n'étais pas sportif, je n'avais qu'une passion pour la lecture. Et jouer au ballon prisonnier la tête plongée dans un roman, ce n'est pas possible. C'est comme ça que j'ai cassé mes premières lunettes.`,
@@ -473,22 +442,6 @@ export const ChosingBeneficiaries = () => (
         'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=3000&h=2000&q=80',
       faceId: getUuid(),
       'upload-family-photo': 'done',
-      photos: [
-        {
-          photoId: getUuid(),
-          photoUrl:
-            'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=3000&h=2000&q=80',
-          faces: [
-            {
-              faceId: getUuid(),
-              stage: 'done',
-              name: 'Johnny',
-              personId: getUuid(),
-              relationship: { relationship: 'mother' },
-            },
-          ],
-        },
-      ],
       'create-first-thread': 'done',
       threadId: getUuid(),
       message: `Je me souviens parfaitement ne jamais avoir fait de sport. Je n'étais pas sportif, je n'avais qu'une passion pour la lecture. Et jouer au ballon prisonnier la tête plongée dans un roman, ce n'est pas possible. C'est comme ça que j'ai cassé mes premières lunettes.`,

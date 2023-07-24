@@ -11,6 +11,8 @@ import { OnboardingUserConfirmedHisFace } from '../bienvenue/step2-userUploadsPh
 import { OnboardingUserUploadedPhotoOfFamily } from '../bienvenue/step2-userUploadsPhoto/OnboardingUserUploadedPhotoOfFamily'
 import { OnboardingBeneficiariesChosen } from '../bienvenue/step3-learnAboutUsersFamily/OnboardingBeneficiariesChosen'
 import { OnboardingFaceIgnoredInFamilyPhoto } from '../bienvenue/step3-learnAboutUsersFamily/OnboardingFaceIgnoredInFamilyPhoto'
+import { OnboardingFamilyMemberAnnotationIsDone } from '../bienvenue/step3-learnAboutUsersFamily/OnboardingFamilyMemberAnnotationIsDone'
+import { OnboardingReadyForBeneficiaries } from '../bienvenue/step3-learnAboutUsersFamily/OnboardingReadyForBeneficiaries'
 import { OnboardingUserConfirmedRelationUsingOpenAI } from '../bienvenue/step3-learnAboutUsersFamily/OnboardingUserConfirmedRelationUsingOpenAI'
 import { OnboardingUserIgnoredRelationship } from '../bienvenue/step3-learnAboutUsersFamily/OnboardingUserIgnoredRelationship'
 import { OnboardingUserNamedPersonInFamilyPhoto } from '../bienvenue/step3-learnAboutUsersFamily/OnboardingUserNamedPersonInFamilyPhoto'
@@ -49,11 +51,19 @@ async function getChoseBeneficiaries(userId: UUID): Promise<ChoseBeneficiaries> 
 
   return { 'chose-beneficiaries': 'awaiting-input' }
 }
+
 async function getCreateFirstThread(userId: UUID): Promise<CreateFirstThread> {
   const firstThread = await getSingleEvent<OnboardingUserStartedFirstThread>('OnboardingUserStartedFirstThread', { userId })
 
   if (firstThread) {
     const { threadId, message } = firstThread.payload
+
+    const done = await getSingleEvent<OnboardingReadyForBeneficiaries>('OnboardingReadyForBeneficiaries', { userId })
+
+    if (done) {
+      return { 'create-first-thread': 'done', threadId, message }
+    }
+
     return { 'create-first-thread': 'thread-written', threadId, message }
   }
 
@@ -61,6 +71,15 @@ async function getCreateFirstThread(userId: UUID): Promise<CreateFirstThread> {
 }
 
 async function getUploadFamilyPhoto(userId: UUID): Promise<UploadFamilyPhoto> {
+  const isAnnotatingPhotoDone = await getSingleEvent<OnboardingFamilyMemberAnnotationIsDone>(
+    'OnboardingFamilyMemberAnnotationIsDone',
+    { userId }
+  )
+
+  if (isAnnotatingPhotoDone) {
+    return { 'upload-family-photo': 'done' }
+  }
+
   const uploadedPhotos = await getEventList<OnboardingUserUploadedPhotoOfFamily>('OnboardingUserUploadedPhotoOfFamily', {
     uploadedBy: userId,
   })

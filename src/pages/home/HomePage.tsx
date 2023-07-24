@@ -195,11 +195,6 @@ export type UploadFamilyPhoto =
     }
   | {
       'upload-family-photo': 'done'
-      photos: {
-        photoId: UUID
-        photoUrl: string
-        faces: FamilyMemberPhotoFace[]
-      }[]
     }
 
 export type CreateFirstThread =
