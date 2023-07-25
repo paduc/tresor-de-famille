@@ -1,16 +1,30 @@
 import React from 'react'
-import { UUID } from '../../../domain'
+import TextareaAutosize from 'react-textarea-autosize'
 
+import { UUID } from '../../../domain'
 import { withBrowserBundle } from '../../../libs/ssr/withBrowserBundle'
+import { buttonIconStyles, primaryButtonStyles, secondaryButtonStyles } from '../../_components/Button'
+import { InlinePhotoUploadBtn } from '../../_components/InlinePhotoUploadBtn'
 import { AppLayout } from '../../_components/layout/AppLayout'
-import { SuccessError } from '../../_components/SuccessError'
-import { InlinePhotoUpload } from '../../_components/InlinePhotoUpload'
 import { PhotoIcon } from './PhotoIcon'
-import { SendIcon } from './SendIcon'
 
 // @ts-ignore
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ')
+}
+
+export type MessageItemProps = {
+  message: {
+    body: string
+  }
+}
+
+export type PhotoItemProps = {
+  photoId: UUID
+  url: string
+  description?: string
+  personsInPhoto: string[]
+  unrecognizedFacesInPhoto: number
 }
 
 export type ChatEvent = { timestamp: number } & (
@@ -25,50 +39,28 @@ export type ChatEvent = { timestamp: number } & (
 export type ChatPageProps = {
   success?: string
   error?: string
+  title?: string
   history: ChatEvent[]
   chatId: string
 }
 
-export const ChatPage = withBrowserBundle(({ error, success, history, chatId }: ChatPageProps) => {
+export const ChatPage = withBrowserBundle(({ error, success, title, history, chatId }: ChatPageProps) => {
+  const newMessageAreaRef = React.useRef<HTMLTextAreaElement>(null)
+
   return (
     <AppLayout>
-      <div className='pt-2 overflow-hidden'>
-        <input
-          type='text'
-          className='sm:ml-6 block pl-3 text-xl text-gray-800 placeholder:text-gray-500 bg-transparent font-medium border-0 w-full max-w-2xl focus:ring-0'
-          placeholder='Titre (optionnel)'
-        />
+      <div className='pt-2 overflow-hidden pb-40'>
+        <form method='post'>
+          <input type='hidden' name='action' value='setTitle' />
+          <input
+            type='text'
+            name='title'
+            className='sm:ml-6 block pl-3 text-xl text-gray-800 placeholder:text-gray-500 placeholder:text-base placeholder:font-normal bg-transparent font-medium border-0 w-full max-w-2xl focus:ring-0'
+            placeholder='Titre (optionnel)'
+            defaultValue={title}
+          />
+        </form>
         <ul role='list' className='mt-3 grid grid-cols-1 gap-2'>
-          {history
-            ? history.map((event, index) => {
-                if (event.type === 'photo') {
-                  return (
-                    <div className='grid grid-cols-1 w-full px-10'>
-                      <img src={event.url} className='max-w-full max-h-[50vh] border border-gray-300 shadow-sm' />
-                    </div>
-                  )
-                }
-
-                if (event.type === 'message') {
-                  return (
-                    <div
-                      key={`event_${index}`}
-                      className='sm:ml-6 max-w-2xl px-4 py-4 text-gray-800 text-lg bg-white border border-gray-300 shadow-sm'>
-                      <div>{event.message.body}</div>
-                    </div>
-                  )
-                  // return <MessageItem key={`event_${index}`} {...event} />
-                }
-
-                return null
-              })
-            : null}
-        </ul>
-      </div>
-
-      {/* <div className='bg-white'>
-        <SuccessError success={success} error={error} />
-        <ul role='list' className='grid grid-cols-1 divide-y divide-gray-300'>
           {history
             ? history.map((event, index) => {
                 if (event.type === 'photo') {
@@ -76,143 +68,87 @@ export const ChatPage = withBrowserBundle(({ error, success, history, chatId }: 
                 }
 
                 if (event.type === 'message') {
-                  return <MessageItem key={`event_${index}`} {...event} />
+                  return (
+                    <div
+                      key={`event_${index}`}
+                      className='sm:ml-6 max-w-2xl px-4 py-4 text-gray-800 text-lg bg-white border  border-gray-300 border-x-white sm:border-x-gray-300 shadow-sm'>
+                      <p className='whitespace-pre-wrap'>{event.message.body}</p>
+                    </div>
+                  )
                 }
 
                 return null
               })
             : null}
-
-          <AddPhotoOrMessageItem chatId={chatId} />
+          <li>
+            <form method='POST' className='block relative'>
+              <input type='hidden' name='action' value='newMessage' />
+              <TextareaAutosize
+                ref={newMessageAreaRef}
+                name='message'
+                minRows={4}
+                autoFocus={history.every((event) => event.type !== 'message')}
+                className='px-4 py-4 block w-full sm:ml-6 max-w-2xl border-gray-300 border-x-white sm:border-x-gray-300 shadow-sm resize-none  text-gray-800 ring-0 placeholder:text-gray-400 focus:border-gray-300 focus:ring-0 text-lg focus:outline-none'
+                placeholder='...'
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && e.metaKey) {
+                    e.preventDefault()
+                    // @ts-ignore
+                    e.target.form.submit()
+                  }
+                }}
+              />
+              <div className='ml-4 sm:ml-6 mt-3'>
+                <button type='submit' className={`${primaryButtonStyles}`}>
+                  Envoyer
+                </button>
+              </div>
+            </form>
+            <div className='ml-4 sm:ml-6 mt-3'>
+              <InlinePhotoUploadBtn formAction='/add-photo.html' formKey='addNewPhotoToChat' hiddenFields={{ chatId }}>
+                <span
+                  className={`${secondaryButtonStyles}`}
+                  onClick={(e) => {
+                    if (newMessageAreaRef.current !== null && newMessageAreaRef.current.value !== '') {
+                      e.preventDefault()
+                      alert("Merci d'envoyer votre souvenir avant d'ajouter une photo.")
+                    }
+                  }}>
+                  <PhotoIcon className={`${buttonIconStyles}`} aria-hidden='true' />
+                  Ajouter une photo
+                </span>
+              </InlinePhotoUploadBtn>
+            </div>
+          </li>
         </ul>
-      </div> */}
+      </div>
     </AppLayout>
   )
 })
 
-type ChatItemProps = { children: React.ReactNode; isLastItem?: boolean }
-export const ChatItem = ({ children, isLastItem }: ChatItemProps) => {
-  return <li className=''>{children}</li>
-}
-
-type PhotoItemProps = {
-  photoId: UUID
-  url: string
-  description?: string
-  personsInPhoto: string[]
-  unrecognizedFacesInPhoto: number
-}
-
 const PhotoItem = (props: PhotoItemProps) => {
   const { description, url, personsInPhoto, unrecognizedFacesInPhoto } = props
-  let descriptionOfPeople = personsInPhoto.join(', ')
-
-  if (unrecognizedFacesInPhoto) {
-    if (descriptionOfPeople.length > 35) {
-      descriptionOfPeople = `${descriptionOfPeople.substring(0, 40)}...`
-    }
-    descriptionOfPeople += `${descriptionOfPeople ? ' et ' : ''}${unrecognizedFacesInPhoto} visage(s) inconnu(s)`
-  } else {
-    if (descriptionOfPeople.length > 70) descriptionOfPeople = `${descriptionOfPeople.substring(0, 70)}...`
-  }
+  const descriptionOfPeople = personsInPhoto.join(', ')
 
   const photoPageUrl = `/photo/${props.photoId}/photo.html`
+
   return (
-    <ChatItem>
-      <div className='bg-gray-200'>
-        <div className='grid grid-cols-1 w-full pb-2'>
-          <a href={photoPageUrl}>
-            <img src={url} className='max-w-full md:px-8' />
+    <div className='grid grid-cols-1 w-full px-4 sm:px-10 pb-2'>
+      <div className='mb-2'>
+        <a href={photoPageUrl}>
+          <img src={url} className='max-w-full max-h-[50vh] border border-gray-300 shadow-sm' />
+        </a>
+      </div>
+
+      <p className='text-md text-gray-600 mb-1'>{description}</p>
+      {descriptionOfPeople ? <p className='text-md text-gray-600 mb-1'>avec {descriptionOfPeople}</p> : null}
+      {!description && unrecognizedFacesInPhoto ? (
+        <p className='text-md text-gray-600 mb-1'>
+          <a href={photoPageUrl} className='font-medium text-indigo-600 hover:text-indigo-500'>
+            Annoter le(s) {unrecognizedFacesInPhoto} visage(s)
           </a>
-          <p className='sm:text-sm text-md px-4 sm:px-8 py-2'>{description || descriptionOfPeople}</p>
-          <p className='sm:text-sm text-md px-4 sm:px-8'>
-            <a href={photoPageUrl} className='font-medium text-indigo-600 hover:text-indigo-500'>
-              Annoter
-            </a>
-            {description || descriptionOfPeople ? (
-              <a href={photoPageUrl} className='font-medium ml-2 text-indigo-600 hover:text-indigo-500'>
-                En savoir plus...
-              </a>
-            ) : null}
-          </p>
-        </div>
-      </div>
-    </ChatItem>
-  )
-}
-
-type MessageItemProps = {
-  message: {
-    body: string
-  }
-}
-const MessageItem = ({ message }: MessageItemProps) => {
-  return (
-    <ChatItem>
-      <div className='min-w-0 flex-1 px-4 md:px-8 py-1.5 sm:py-3  max-w-lg'>
-        <div className='mt-2 sm:text-sm text-md text-gray-700'>
-          <p className='whitespace-pre-wrap'>{message.body}</p>
-        </div>
-      </div>
-    </ChatItem>
-  )
-}
-
-type AddPhotoOrMessageItemProps = { chatId: string }
-const AddPhotoOrMessageItem = ({ chatId }: AddPhotoOrMessageItemProps) => {
-  return (
-    <ChatItem isLastItem={true}>
-      <div className='min-w-0 flex-1 pb-8'>
-        <form method='POST' className='relative'>
-          <input type='hidden' name='chatId' defaultValue={chatId} />
-          <div className='overflow-hidden sm:border border-gray-300 shadow-sm focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500'>
-            <label htmlFor='message' className='sr-only'>
-              Ajouter un message...
-            </label>
-            <textarea
-              rows={3}
-              name='message'
-              id='message'
-              className='block w-full resize-none border-0 px-4 md:px-8  py-1.5 sm:py-3  max-w-lg focus:ring-0 sm:text-sm text-md text-gray-700'
-              placeholder='Ajouter un message...'
-              defaultValue={''}
-            />
-
-            {/* Spacer element to match the height of the toolbar */}
-            <div className='py-2' aria-hidden='true'>
-              {/* Matches height of button in toolbar (1px border + 36px content height) */}
-              <div className='py-px'>
-                <div className='h-9' />
-              </div>
-            </div>
-          </div>
-
-          <div className='absolute inset-x-0 bottom-0 flex justify-between py-2 sm:pl-1 pr-2'>
-            <div className='flex-shrink-0'>
-              <button
-                type='submit'
-                className='inline-flex items-center ml-6 mt-3 px-3 py-1.5 border border-transparent sm:text-xs font-medium rounded-full shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
-                <SendIcon className='-ml-0.5 mr-2 h-4 w-4' aria-hidden='true' />
-                Envoyer
-              </button>
-            </div>
-          </div>
-        </form>
-        <div className='relative mt-2'>
-          <div className='absolute inset-0 flex items-center' aria-hidden='true'>
-            <div className='w-full border-t border-gray-200' />
-          </div>
-          <div className='relative flex justify-center sm:justify-start'>
-            <span className='bg-white px-2 sm:ml-12 text-sm text-gray-500'>ou</span>
-          </div>
-        </div>
-        <InlinePhotoUpload chatId={chatId}>
-          <span className='inline-flex items-center ml-6 mt-3 px-3 py-1.5 border border-transparent sm:sm:text-xs font-medium rounded-full shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
-            <PhotoIcon className='-ml-0.5 mr-2 h-4 w-4' aria-hidden='true' />
-            Ajouter une photo
-          </span>
-        </InlinePhotoUpload>
-      </div>
-    </ChatItem>
+        </p>
+      ) : null}
+    </div>
   )
 }

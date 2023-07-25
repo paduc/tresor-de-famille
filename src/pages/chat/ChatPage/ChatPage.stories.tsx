@@ -35,6 +35,8 @@ export default {
 const t0 = Date.now()
 const HOUR = 3600 * 1000
 
+export const Empty = () => <ChatPage chatId={getUuid()} history={[]} />
+
 export const Basique = () => (
   <ChatPage
     chatId={getUuid()}
@@ -107,7 +109,9 @@ export const AvecUnMelangeDePhotoEtMessage = () => (
         timestamp: t0,
         type: 'message',
         message: {
-          body: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Tincidunt nunc ipsum tempor purus vitae id. Morbi in vestibulum nec varius. Et diam cursus quis sed purus nam. Scelerisque amet elit non sit ut tincidunt condimentum. Nisl ultrices eu venenatis diam.',
+          body: `Lorem ipsum dolor sit amet.
+          
+          Consectetur adipiscing elit. Tincidunt nunc ipsum tempor purus vitae id. Morbi in vestibulum nec varius. Et diam cursus quis sed purus nam. Scelerisque amet elit non sit ut tincidunt condimentum. Nisl ultrices eu venenatis diam.`,
         },
       },
       {
@@ -146,6 +150,7 @@ export const AvecUnMelangeDePhotoEtMessage = () => (
         type: 'photo',
         photoId: 'photo123' as UUID,
         url: 'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=2500&h=500&q=80',
+        description: 'Je ne sais plus',
         personsInPhoto: [],
         unrecognizedFacesInPhoto: 0,
       },
