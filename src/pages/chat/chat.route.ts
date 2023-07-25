@@ -4,10 +4,8 @@ import { zIsUUID } from '../../domain'
 import { getUuid } from '../../libs/getUuid'
 import { responseAsHtml } from '../../libs/ssr/responseAsHtml'
 import { pageRouter } from '../pageRouter'
-import { ChatPage, ChatPageProps } from './ChatPage/ChatPage'
+import * as ChatPage from './ChatPage/ChatPage'
 import { getChatHistory } from './getChatHistory/getChatHistory.query'
-import { sendMessageToChat } from './sendMessageToChat/sendMessageToChat'
-import { sendToOpenAIForDeductions } from './sendToOpenAIForDeductions/sendToOpenAIForDeductions'
 import { UserSentMessageToChat } from './sendMessageToChat/UserSentMessageToChat'
 import { addToHistory } from '../../dependencies/addToHistory'
 
@@ -50,12 +48,12 @@ pageRouter
   .get(requireAuth(), async (request, response) => {
     const { chatId } = zod.object({ chatId: zIsUUID }).parse(request.params)
 
-    const history: ChatPageProps['history'] = await getChatHistory(chatId)
+    const history: ChatPage.ChatPageProps['history'] = await getChatHistory(chatId)
 
     responseAsHtml(
       request,
       response,
-      ChatPage({
+      ChatPage.ChatPage({
         history,
         chatId,
       })
@@ -70,9 +68,14 @@ pageRouter
     if (message) {
       const messageId = getUuid()
 
-      await sendMessageToChat({ chatId, userId, message, messageId })
-
-      await sendToOpenAIForDeductions({ chatId, userId, message, messageId })
+      await addToHistory(
+        UserSentMessageToChat({
+          chatId,
+          userId,
+          message,
+          messageId,
+        })
+      )
     }
 
     // TODO: try catch error and send it back as HTML (or redirect if OK)
