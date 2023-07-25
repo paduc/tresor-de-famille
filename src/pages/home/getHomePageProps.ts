@@ -39,7 +39,29 @@ export const getHomePageProps = async (userId: UUID): Promise<HomePageProps> => 
   const step4: CreateFirstThread = await getCreateFirstThread(userId)
   const step5: ChoseBeneficiaries = await getChoseBeneficiaries(userId)
 
-  return { isOnboarding: true, steps: { ...step1, ...step2, ...step3, ...step4, ...step5 } }
+  const isOnboarding = step5['chose-beneficiaries'] !== 'done'
+
+  if (isOnboarding) {
+    return { isOnboarding, steps: { ...step1, ...step2, ...step3, ...step4, ...step5 } }
+  }
+
+  const finishedOnboardingDate = await getFinishedOnboardingDate(userId)
+
+  const ONE_HOUR = 3600 * 1000
+  return {
+    isOnboarding,
+    displayFinisherCongratulations: Date.now() - finishedOnboardingDate.getTime() < ONE_HOUR,
+  }
+}
+
+async function getFinishedOnboardingDate(userId: UUID): Promise<Date> {
+  const beneficiariesChosen = await getSingleEvent<OnboardingBeneficiariesChosen>('OnboardingBeneficiariesChosen', { userId })
+
+  if (beneficiariesChosen) {
+    return beneficiariesChosen.occurredAt
+  }
+
+  return new Date()
 }
 
 async function getChoseBeneficiaries(userId: UUID): Promise<ChoseBeneficiaries> {

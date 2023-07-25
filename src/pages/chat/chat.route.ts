@@ -8,15 +8,42 @@ import { ChatPage, ChatPageProps } from './ChatPage/ChatPage'
 import { getChatHistory } from './getChatHistory/getChatHistory.query'
 import { sendMessageToChat } from './sendMessageToChat/sendMessageToChat'
 import { sendToOpenAIForDeductions } from './sendToOpenAIForDeductions/sendToOpenAIForDeductions'
+import { UserSentMessageToChat } from './sendMessageToChat/UserSentMessageToChat'
+import { addToHistory } from '../../dependencies/addToHistory'
 
 const fakeProfilePicUrl =
   'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80'
 
-pageRouter.route('/chat.html').get(requireAuth(), async (request, response) => {
-  const newChatId = getUuid()
+pageRouter
+  .route('/chat.html')
+  .get(requireAuth(), async (request, response) => {
+    const newChatId = getUuid()
 
-  response.redirect(`/chat/${newChatId}/chat.html`)
-})
+    response.redirect(`/chat/${newChatId}/chat.html`)
+  })
+  .post(requireAuth(), async (request, response) => {
+    const userId = request.session.user!.id
+
+    const chatId = getUuid()
+
+    const { message } = request.body
+
+    if (message) {
+      const messageId = getUuid()
+
+      await addToHistory(
+        UserSentMessageToChat({
+          chatId,
+          userId,
+          message,
+          messageId,
+        })
+      )
+    }
+
+    // TODO: try catch error and send it back as HTML (or redirect if OK)
+    return response.redirect(`/chat/${chatId}/chat.html`)
+  })
 
 pageRouter
   .route('/chat/:chatId/chat.html')

@@ -55,7 +55,7 @@ export const AfterOnboarding = () => (
       areThreadsEnabled: true,
       areVideosEnabled: false,
     }}>
-    <HomePage isOnboarding={false} />
+    <HomePage isOnboarding={false} displayFinisherCongratulations={true} />
   </SessionContext.Provider>
 )
 

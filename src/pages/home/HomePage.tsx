@@ -29,6 +29,7 @@ export type HomePageProps =
     }
   | {
       isOnboarding: false
+      displayFinisherCongratulations: boolean
     }
 
 export const HomePage = withBrowserBundle((props: HomePageProps) => {
@@ -46,21 +47,35 @@ export const HomePage = withBrowserBundle((props: HomePageProps) => {
   if (!isOnboarding) {
     return (
       <Wrapper>
-        <Paragraph>Notez un souvenir qui vous passe par la tête:</Paragraph>
-        <div className=''>
-          <ThreadTextarea />
-          <ul className='mt-2 px-1 text-gray-500 text-base list-inside list-disc'>
-            Exemples:
-            <li>Mon lieux de vacances quand j'étais enfant</li>
-            <li>Plus ancien souvenir</li>
-            <li>Le sport que j'ai pratiqué</li>
-          </ul>
-          <InlinePhotoUploadBtn formAction='/' formKey='uploadPhotoAsNewThread'>
-            <span className='cursor-pointer inline-flex items-center mt-6 px-3 py-1.5 border border-transparent text-md font-medium rounded-full shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
-              <PhotoIcon className={`${buttonIconStyles}`} aria-hidden='true' />
-              Ajouter une photo
-            </span>
-          </InlinePhotoUploadBtn>
+        <div className='mt-8 space-y-6 divide divide-y divide-solid divide-gray-400'>
+          {props.displayFinisherCongratulations ? (
+            <div>
+              <Paragraph>
+                <div className='font-semibold text-gray-800'>Bravo !</div> Vous êtes maintenant parés.
+              </Paragraph>
+              <Paragraph>
+                Vous trouverez, ci-dessous, l'écran qui vous accueillera dorénavant. Il vous invite à enrichir votre trésor.
+              </Paragraph>
+            </div>
+          ) : null}
+          <div>
+            <Paragraph>Je note un souvenir qui me passe par la tête</Paragraph>
+            <ThreadTextarea formAction='/chat.html' />
+            <ul className='mt-2 px-1 text-gray-500 text-base list-inside list-disc'>
+              Exemples:
+              <li>Mon lieux de vacances quand j'étais enfant</li>
+              <li>Plus ancien souvenir</li>
+              <li>Le sport que j'ai pratiqué</li>
+            </ul>
+          </div>
+          <div>
+            <InlinePhotoUploadBtn formAction='/' formKey='uploadPhotoAsNewThread'>
+              <span className='cursor-pointer inline-flex items-center mt-6 px-3 py-1.5 border border-transparent text-md font-medium rounded-full shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
+                <PhotoIcon className={`${buttonIconStyles}`} aria-hidden='true' />
+                Commencer par une photo
+              </span>
+            </InlinePhotoUploadBtn>
+          </div>
         </div>
       </Wrapper>
     )
