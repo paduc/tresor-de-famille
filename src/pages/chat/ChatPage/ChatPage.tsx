@@ -46,7 +46,7 @@ export type ChatPageProps = {
 
 export const ChatPage = withBrowserBundle(({ error, success, title, history, chatId }: ChatPageProps) => {
   const newMessageAreaRef = React.useRef<HTMLTextAreaElement>(null)
-
+  const [message, setMessage] = React.useState('')
   return (
     <AppLayout>
       <div className='pt-2 overflow-hidden pb-40'>
@@ -91,15 +91,23 @@ export const ChatPage = withBrowserBundle(({ error, success, title, history, cha
                 className='px-4 py-4 block w-full sm:ml-6 max-w-2xl border-gray-300 border-x-white sm:border-x-gray-300 shadow-sm resize-none  text-gray-800 ring-0 placeholder:text-gray-400 focus:border-gray-300 focus:ring-0 text-lg focus:outline-none'
                 placeholder='...'
                 onKeyDown={(e) => {
+                  const text = e.currentTarget.value.trim()
                   if (e.key === 'Enter' && e.metaKey) {
                     e.preventDefault()
                     // @ts-ignore
-                    e.target.form.submit()
+                    if (text) e.target.form.submit()
                   }
                 }}
               />
               <div className='ml-4 sm:ml-6 mt-3'>
-                <button type='submit' className={`${primaryButtonStyles}`}>
+                <button
+                  type='submit'
+                  onClick={(e) => {
+                    if (newMessageAreaRef.current && !newMessageAreaRef.current.value.trim().length) {
+                      e.preventDefault()
+                    }
+                  }}
+                  className={`${primaryButtonStyles}`}>
                   Envoyer
                 </button>
               </div>

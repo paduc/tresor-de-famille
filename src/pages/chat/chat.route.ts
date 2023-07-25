@@ -63,14 +63,16 @@ pageRouter
       const { message } = z.object({ message: z.string() }).parse(request.body)
       const messageId = getUuid()
 
-      await addToHistory(
-        UserSentMessageToChat({
-          chatId,
-          userId,
-          message,
-          messageId,
-        })
-      )
+      if (message.trim().length) {
+        await addToHistory(
+          UserSentMessageToChat({
+            chatId,
+            userId,
+            message: message.trim(),
+            messageId,
+          })
+        )
+      }
     } else if (action === 'setTitle') {
       const { title } = z.object({ title: z.string() }).parse(request.body)
 
@@ -78,7 +80,7 @@ pageRouter
         UserSetChatTitle({
           chatId,
           userId,
-          title,
+          title: title.trim(),
         })
       )
     }

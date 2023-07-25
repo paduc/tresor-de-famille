@@ -6,27 +6,79 @@ import { withBrowserBundle } from '../../libs/ssr/withBrowserBundle'
 import { SuccessError } from '../_components/SuccessError'
 import { AppLayout } from '../_components/layout/AppLayout'
 import { ChatBubbleLeftIconOutline } from '../chat/ChatPage/ChatBubbleLeftIconOutline'
+import { primaryButtonStyles } from '../_components/Button'
 
 // @ts-ignore
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ')
 }
 
-export type ThreadListProps = {
+export type ThreadListPageProps = {
   success?: string
   error?: string
   threads: {
     chatId: UUID
     title: string
+    lastUpdatedOn: number
   }[]
 }
 
-export const ThreadListPage = withBrowserBundle(({ error, success, threads }: ThreadListProps) => {
+export const ThreadListPage = withBrowserBundle(({ error, success, threads }: ThreadListPageProps) => {
   return (
     <AppLayout>
       <div className='bg-white p-6'>
         <SuccessError success={success} error={error} />
-        {!threads.length ? (
+        {threads.length ? (
+          <>
+            <h3 className='text-lg font-medium leading-6 mb-1 text-gray-900'>Fils de souvenirs</h3>
+            <ul role='list' className='divide-y divide-gray-100'>
+              {threads.map((thread) => {
+                const chatPageUrl = '/chat/' + thread.chatId + '/chat.html'
+                return (
+                  <li
+                    key={thread.chatId}
+                    className='flex flex-wrap items-center justify-between gap-x-6 gap-y-4 py-5 sm:flex-nowrap'>
+                    <div>
+                      <p className='text-base text-gray-900'>
+                        <a href={chatPageUrl}>{thread.title}</a>
+                      </p>
+                      <div className='mt-1 flex items-center gap-x-2 text-xs leading-5 text-gray-500'>
+                        {/* <p>
+                          <a href='' className='hover:underline'>
+                            Autre ligne
+                          </a>
+                        </p>
+                        <svg viewBox='0 0 2 2' className='h-0.5 w-0.5 fill-current'>
+                          <circle cx={1} cy={1} r={1} />
+                        </svg> */}
+                        <p>
+                          Dernière mise à jour le{' '}
+                          <time dateTime={new Date(thread.lastUpdatedOn).toISOString()}>
+                            {new Intl.DateTimeFormat('fr').format(new Date(thread.lastUpdatedOn))}
+                          </time>
+                        </p>
+                      </div>
+                    </div>
+                    {/* <dl className='flex w-full flex-none justify-between gap-x-8 sm:w-auto'>
+                    <div className='flex w-16 gap-x-2.5'>
+                      <dt>
+                        <span className='sr-only'>Total comments</span>
+                        <ChatBubbleLeftIconOutline className='h-6 w-6 text-gray-400' aria-hidden='true' />
+                      </dt>
+                      <dd className='text-sm leading-6 text-gray-900'>32</dd>
+                    </div>
+                  </dl> */}
+                  </li>
+                )
+              })}
+            </ul>
+            <p className='mt-5 max-w-2xl'>
+              <a href='/chat.html' className={`${primaryButtonStyles}`}>
+                Démarrer un nouveau fil
+              </a>
+            </p>
+          </>
+        ) : (
           <div className='text-center'>
             <svg
               className='mx-auto h-12 w-12 text-gray-400'
@@ -53,53 +105,6 @@ export const ThreadListPage = withBrowserBundle(({ error, success, threads }: Th
               </a>
             </div>
           </div>
-        ) : (
-          <>
-            <h3 className='text-lg font-medium leading-6 mb-1 text-gray-900'>Fils</h3>
-            <p className='mb-5 max-w-2xl'></p>
-            <ul role='list' className='divide-y divide-gray-100'>
-              {threads.map((thread) => (
-                <li
-                  key={thread.chatId}
-                  className='flex flex-wrap items-center justify-between gap-x-6 gap-y-4 py-5 sm:flex-nowrap'>
-                  <div>
-                    <p className='text-sm font-semibold leading-6 text-gray-900'>
-                      <a href={`/chat/${thread.chatId}/chat.html`}>{thread.title}</a>
-                    </p>
-                    <div className='mt-1 flex items-center gap-x-2 text-xs leading-5 text-gray-500'>
-                      <p>
-                        <a href='' className='hover:underline'>
-                          Autre ligne
-                        </a>
-                      </p>
-                      <svg viewBox='0 0 2 2' className='h-0.5 w-0.5 fill-current'>
-                        <circle cx={1} cy={1} r={1} />
-                      </svg>
-                      <p>
-                        <time dateTime='2023-01-23T22:34Z'>il y a 2 jours</time>
-                      </p>
-                    </div>
-                  </div>
-                  <dl className='flex w-full flex-none justify-between gap-x-8 sm:w-auto'>
-                    <div className='flex w-16 gap-x-2.5'>
-                      <dt>
-                        <span className='sr-only'>Total comments</span>
-                        <ChatBubbleLeftIconOutline className='h-6 w-6 text-gray-400' aria-hidden='true' />
-                      </dt>
-                      <dd className='text-sm leading-6 text-gray-900'>32</dd>
-                    </div>
-                  </dl>
-                </li>
-              ))}
-            </ul>
-            <p className='mt-5 max-w-2xl'>
-              <a
-                href='/chat.html'
-                className='button inline-flex items-center mt-3 px-3 py-1.5 border border-transparent sm:text-sm font-medium rounded-full shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
-                Démarrer un nouveau fil
-              </a>
-            </p>
-          </>
         )}
       </div>
     </AppLayout>
