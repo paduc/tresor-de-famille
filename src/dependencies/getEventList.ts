@@ -1,10 +1,23 @@
 import { DomainEvent } from './DomainEvent'
 import { postgres } from './database'
 
-export type PayloadPropertyMap<T extends DomainEvent> = Partial<{
-  [P in keyof T['payload']]: string
-}>
+type Equals<X, Y> = (<T>() => T extends X ? 1 : 2) extends <T>() => T extends Y ? 1 : 2 ? true : false
 
+type Map<T extends DomainEvent> = {
+  [P in keyof T['payload']]: string
+}
+
+export type PayloadPropertyMap<T extends DomainEvent> = Equals<Map<T>, {}> extends false
+  ? Partial<{
+      [P in keyof T['payload']]: string
+    }>
+  : never
+
+/**
+ * Get all the events from the given types, in order of occurrence
+ * @param type a string or array of strings representing the event types
+ * @param payloadParams an optional key/value pairs of payload parameters
+ */
 export async function getEventList<T extends DomainEvent>(type: T['type'], payloadParams?: PayloadPropertyMap<T>): Promise<T[]>
 export async function getEventList<T extends DomainEvent>(
   types: T['type'][],
