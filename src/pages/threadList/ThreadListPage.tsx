@@ -17,7 +17,7 @@ export type ThreadListPageProps = {
   success?: string
   error?: string
   threads: {
-    chatId: UUID
+    threadId: UUID
     title: string
     lastUpdatedOn: number
   }[]
@@ -33,10 +33,10 @@ export const ThreadListPage = withBrowserBundle(({ error, success, threads }: Th
             <h3 className='text-lg font-medium leading-6 mb-1 text-gray-900'>Fils de souvenirs</h3>
             <ul role='list' className='divide-y divide-gray-100'>
               {threads.map((thread) => {
-                const chatPageUrl = '/chat/' + thread.chatId + '/chat.html'
+                const chatPageUrl = '/chat/' + thread.threadId + '/chat.html'
                 return (
                   <li
-                    key={thread.chatId}
+                    key={thread.threadId}
                     className='flex flex-wrap items-center justify-between gap-x-6 gap-y-4 py-5 sm:flex-nowrap'>
                     <div>
                       <p className='text-base text-gray-900'>

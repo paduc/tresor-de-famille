@@ -33,18 +33,18 @@ export const AvecFils = () => (
   <ThreadListPage
     threads={[
       {
-        chatId: getUuid(),
+        threadId: getUuid(),
         title: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
         lastUpdatedOn: Date.now(),
       },
       {
-        chatId: getUuid(),
+        threadId: getUuid(),
         title:
           'Et diam cursus quis sed purus nam. Scelerisque amet elit non sit ut tincidunt condimentum. Nisl ultrices eu venenatis diam.',
         lastUpdatedOn: Date.now(),
       },
       {
-        chatId: getUuid(),
+        threadId: getUuid(),
         title: 'Tincidunt nunc ipsum tempor purus vitae id. Morbi in vestibulum nec varius.',
         lastUpdatedOn: Date.now(),
       },
