@@ -24,6 +24,7 @@ export default {
       return (
         <SessionContext.Provider value={{ isLoggedIn: true, userName: '', isAdmin: false }}>
           <PersonSearchContext.Provider value={{ search: fakePersonSearch } as unknown as SearchIndex}>
+            <div className='text-red-600 text-xl bg-red-200 p-6'>DEPRECATED</div>
             <Story />
           </PersonSearchContext.Provider>
         </SessionContext.Provider>
