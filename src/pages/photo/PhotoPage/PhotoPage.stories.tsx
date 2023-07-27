@@ -9,7 +9,7 @@ import { PhotoAnnotatedUsingOpenAI } from '../annotatePhotoUsingOpenAI/PhotoAnno
 import type { SearchIndex } from 'algoliasearch/lite'
 import { PersonSearchContext } from '../../_components/usePersonSearch'
 
-export default { title: 'Page Photo', component: PhotoPage, parameters: { layout: 'fullscreen' } }
+export default { title: 'DEPRECATED Page Photo', component: PhotoPage, parameters: { layout: 'fullscreen' } }
 
 const t0 = Date.now()
 const HOUR = 3600 * 1000

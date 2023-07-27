@@ -8,6 +8,7 @@ import { buttonIconStyles, secondaryRedButtonStyles } from '../../_components/Bu
 import { SessionContext } from '../../_components/SessionContext'
 import { PersonAutocomplete } from '../../home/PersonAutocomplete'
 import { PhotoListPageUrl } from '../../listPhotos/PhotoListPageUrl'
+import { PersonPageURL } from '../../person/PersonPageURL'
 
 type PhotoFace = {
   faceId: UUID
@@ -118,12 +119,11 @@ export const NewPhotoPage = withBrowserBundle(({ context, caption, photoId, phot
                 ) : (
                   <ul className='flex gap-2 mt-3 pt-3'>
                     {annotatedFaces.map((face) => (
-                      <li
-                        key={`photoface${face.faceId}`}
-                        className='text-gray-300 mr-2 mb-2 flex flex-col items-center'
-                        onClick={() => setSelectedFace(face)}>
-                        <PhotoBadge faceId={face.faceId} photoId={photoId} className={``} altText={face.name || ''} />
-                        <div className='max-w-[80px] truncate'>{face.name}</div>
+                      <li key={`photoface${face.faceId}`} className='text-gray-300 mr-2 mb-2 flex flex-col items-center'>
+                        <a href={PersonPageURL(face.personId)}>
+                          <PhotoBadge faceId={face.faceId} photoId={photoId} className={``} altText={face.name || ''} />
+                          <div className='mt-1 max-w-[80px] truncate'>{face.name}</div>
+                        </a>
                       </li>
                     ))}
                     {pendingFaces.map((face) => (
@@ -159,8 +159,6 @@ export const NewPhotoPage = withBrowserBundle(({ context, caption, photoId, phot
       </div>
     </div>
   )
-
-  const faceInProgress = pendingFaces[0]
 })
 
 type PhotoBadgeProps = {
