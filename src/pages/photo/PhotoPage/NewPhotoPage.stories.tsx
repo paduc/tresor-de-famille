@@ -25,10 +25,10 @@ export default {
         <SessionContext.Provider
           value={{
             isLoggedIn: true,
-            userName: '',
-            profilePic: null,
+            userName: 'Toto',
+            profilePic: fakePhoto({ width: 100, height: 100 }),
             isAdmin: false,
-            arePhotosEnabled: false,
+            arePhotosEnabled: true,
             areThreadsEnabled: false,
             areVideosEnabled: false,
           }}>
@@ -41,4 +41,41 @@ export default {
   ],
 }
 
-export const PhotoSansAnnotation = () => <NewPhotoPage />
+const fakePhoto = ({ width, height }: { width: number; height: number }) =>
+  `https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=${width}&h=${height}&q=80`
+
+export const LittlePhoto = () => (
+  <NewPhotoPage faces={[]} photoId={getUuid()} photoUrl={fakePhoto({ width: 250, height: 250 })} />
+)
+
+export const BigPhoto = () => (
+  <NewPhotoPage faces={[]} photoId={getUuid()} photoUrl={fakePhoto({ width: 2500, height: 2500 })} />
+)
+
+export const WidePhoto = () => (
+  <NewPhotoPage faces={[]} photoId={getUuid()} photoUrl={fakePhoto({ width: 2500, height: 500 })} />
+)
+
+export const TallPhoto = () => (
+  <NewPhotoPage faces={[]} photoId={getUuid()} photoUrl={fakePhoto({ width: 500, height: 2000 })} />
+)
+
+export const PhotoWithFaces = () => (
+  <NewPhotoPage
+    faces={[
+      { faceId: getUuid(), stage: 'done', name: 'Pierre-Antoine Duchateau', personId: getUuid() },
+      { faceId: getUuid(), stage: 'ignored' },
+      { faceId: getUuid(), stage: 'awaiting-name' },
+      // { faceId: getUuid(), stage: 'awaiting-name' },
+      // { faceId: getUuid(), stage: 'done', name: 'Ping', personId: getUuid() },
+      // { faceId: getUuid(), stage: 'ignored' },
+      // { faceId: getUuid(), stage: 'ignored' },
+    ]}
+    photoId={getUuid()}
+    photoUrl={fakePhoto({ width: 1000, height: 1000 })}
+  />
+)
+
+export const PhotoWithoutFaces = () => (
+  <NewPhotoPage faces={[]} photoId={getUuid()} photoUrl={fakePhoto({ width: 1000, height: 1000 })} />
+)

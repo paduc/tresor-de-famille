@@ -38,6 +38,7 @@ export async function retrievePhotosForChat(chatId: UUID): Promise<ChatPhotoEven
       description: undefined,
       personsInPhoto,
       unrecognizedFacesInPhoto: unconfirmedFaceIds.size,
+      chatId,
     })
   }
 

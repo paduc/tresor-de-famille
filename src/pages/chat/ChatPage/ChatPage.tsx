@@ -25,6 +25,7 @@ export type PhotoItemProps = {
   description?: string
   personsInPhoto: string[]
   unrecognizedFacesInPhoto: number
+  chatId: UUID
 }
 
 export type ChatEvent = { timestamp: number } & (
@@ -41,12 +42,11 @@ export type ChatPageProps = {
   error?: string
   title?: string
   history: ChatEvent[]
-  chatId: string
+  chatId: UUID
 }
 
 export const ChatPage = withBrowserBundle(({ error, success, title, history, chatId }: ChatPageProps) => {
   const newMessageAreaRef = React.useRef<HTMLTextAreaElement>(null)
-  const [message, setMessage] = React.useState('')
   return (
     <AppLayout>
       <div className='pt-2 overflow-hidden pb-40'>
@@ -64,7 +64,7 @@ export const ChatPage = withBrowserBundle(({ error, success, title, history, cha
           {history
             ? history.map((event, index) => {
                 if (event.type === 'photo') {
-                  return <PhotoItem key={`event_${index}`} {...event} />
+                  return <PhotoItem key={`event_${index}`} {...{ ...event, chatId }} />
                 }
 
                 if (event.type === 'message') {
@@ -138,7 +138,7 @@ const PhotoItem = (props: PhotoItemProps) => {
   const { description, url, personsInPhoto, unrecognizedFacesInPhoto } = props
   const descriptionOfPeople = personsInPhoto.join(', ')
 
-  const photoPageUrl = `/photo/${props.photoId}/photo.html`
+  const photoPageUrl = `/photo/${props.photoId}/photo.html?threadId=${props.chatId}`
 
   return (
     <div className='grid grid-cols-1 w-full px-4 sm:px-10 pb-2'>

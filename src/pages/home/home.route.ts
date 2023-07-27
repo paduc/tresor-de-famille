@@ -19,12 +19,12 @@ import { FaceIgnoredInPhoto } from '../bienvenue/step3-learnAboutUsersFamily/Fac
 import { UserConfirmedRelationUsingOpenAI } from '../bienvenue/step3-learnAboutUsersFamily/UserConfirmedRelationUsingOpenAI'
 import { UserIgnoredRelationship } from '../bienvenue/step3-learnAboutUsersFamily/UserIgnoredRelationship'
 import { UserNamedPersonInPhoto } from '../bienvenue/step3-learnAboutUsersFamily/UserNamedPersonInPhoto'
-import { UserRecognizedPersonInPhoto } from '../bienvenue/step3-learnAboutUsersFamily/UserRecognizedPersonInPhoto'
 import { parseRelationshipUsingOpenAI } from '../bienvenue/step3-learnAboutUsersFamily/parseRelationshipUsingOpenAI'
 import { OnboardingUserStartedFirstThread } from '../bienvenue/step4-start-thread/OnboardingUserStartedFirstThread'
 import { OnboardingFamilyMemberAnnotationIsDone } from '../bienvenue/step3-learnAboutUsersFamily/OnboardingFamilyMemberAnnotationIsDone'
 import { OnboardingReadyForBeneficiaries } from '../bienvenue/step3-learnAboutUsersFamily/OnboardingReadyForBeneficiaries'
 import { BeneficiariesChosen } from '../bienvenue/step3-learnAboutUsersFamily/BeneficiariesChosen'
+import { UserRecognizedPersonInPhoto } from '../bienvenue/step3-learnAboutUsersFamily/UserRecognizedPersonInPhoto'
 
 const FILE_SIZE_LIMIT_MB = 50
 const upload = multer({

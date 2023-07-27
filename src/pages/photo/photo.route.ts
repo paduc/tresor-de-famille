@@ -1,5 +1,5 @@
 import multer from 'multer'
-import zod from 'zod'
+import zod, { z } from 'zod'
 import { addToHistory } from '../../dependencies/addToHistory'
 import { requireAuth } from '../../dependencies/authn'
 import { zIsUUID } from '../../domain'
@@ -16,6 +16,12 @@ import { detectFacesInPhotoUsingAWS } from './recognizeFacesInChatPhoto/detectFa
 import { confirmAWSPhotoAnnotation } from './confirmPhotoAnnotation/confirmAWSPhotoAnnotation'
 import { annotateManually } from './annotateManually/annotateManually'
 import { onboardingUrl } from '../bienvenue/onboardingUrl'
+import { personsIndex } from '../../dependencies/search'
+import { UserNamedPersonInPhoto } from '../bienvenue/step3-learnAboutUsersFamily/UserNamedPersonInPhoto'
+import { UserRecognizedPersonInPhoto } from '../bienvenue/step3-learnAboutUsersFamily/UserRecognizedPersonInPhoto'
+import { FaceIgnoredInPhoto } from '../bienvenue/step3-learnAboutUsersFamily/FaceIgnoredInPhoto'
+import { getNewPhotoPageProps } from './getNewPhotoPageProps'
+import { NewPhotoPage } from './PhotoPage/NewPhotoPage'
 
 const FILE_SIZE_LIMIT_MB = 50
 const upload = multer({
@@ -32,9 +38,21 @@ pageRouter
     try {
       const { photoId } = zod.object({ photoId: zIsUUID }).parse(request.params)
 
-      const photo = await getPhoto(photoId)
+      const { threadId, updated } = z
+        .object({ threadId: zIsUUID.optional(), updated: z.string().optional() })
+        .parse(request.query)
 
-      responseAsHtml(request, response, PhotoPage({ ...photo }))
+      const props = await getNewPhotoPageProps({ photoId, userId: request.session.user!.id })
+
+      if (threadId) {
+        props.context = { type: 'thread', threadId }
+      }
+
+      if (updated) {
+        props.updated = true
+      }
+
+      responseAsHtml(request, response, NewPhotoPage({ ...props }))
     } catch (error) {
       console.error('error', error)
       response.send(error)
@@ -44,44 +62,103 @@ pageRouter
     try {
       const userId = request.session.user!.id
 
-      const { caption, photoId, action, deductionId, personId, faceId } = zod
+      const { threadId } = z.object({ threadId: zIsUUID.optional() }).parse(request.query)
+
+      const { action } = zod
         .object({
-          caption: zod.string().optional(),
-          photoId: zIsUUID,
           action: zod.string().optional(),
-          faceId: zIsUUID.optional(),
-          personId: zIsUUID.optional(),
-          deductionId: zIsUUID.optional(),
         })
         .parse(request.body)
 
-      if (caption) {
-        const captionId = getUuid()
-
-        await addToHistory(
-          UserAddedCaptionToPhoto({
-            photoId,
-            caption: {
-              id: captionId,
-              body: caption,
-            },
-            addedBy: userId,
-          })
-        )
-      }
+      const { photoId } = zod
+        .object({
+          photoId: zIsUUID,
+        })
+        .parse(request.params)
 
       if (action) {
-        if (action === 'triggerAnnotation') {
-          await annotatePhotoUsingOpenAI({ photoId, userId, debug: false })
-        } else if (action === 'confirmOpenAIAnnotation' && deductionId) {
-          await confirmOpenAIPhotoAnnotation({ deductionId, photoId, confirmedBy: userId })
-        } else if (action === 'confirmAWSAnnotation' && personId && faceId) {
-          await confirmAWSPhotoAnnotation({ personId, faceId, photoId, confirmedBy: userId })
-        } else if (action === 'manualAnnotation' && personId && faceId) {
-          await annotateManually({ personId, faceId, photoId, annotatedBy: userId })
+        if (action === 'addCaption') {
+          const { caption } = zod
+            .object({
+              caption: zod.string(),
+            })
+            .parse(request.body)
+          const captionId = getUuid()
+
+          await addToHistory(
+            UserAddedCaptionToPhoto({
+              photoId,
+              caption: {
+                id: captionId,
+                body: caption,
+              },
+              addedBy: userId,
+            })
+          )
+        } else if (action === 'submitFamilyMemberName') {
+          const { faceId, newFamilyMemberName } = z
+            .object({
+              faceId: zIsUUID,
+              newFamilyMemberName: z.string(),
+            })
+            .parse(request.body)
+
+          if (newFamilyMemberName.length > 0) {
+            const personId = getUuid()
+            await addToHistory(
+              UserNamedPersonInPhoto({
+                userId,
+                photoId,
+                faceId,
+                personId,
+                name: newFamilyMemberName,
+              })
+            )
+
+            try {
+              await personsIndex.saveObject({
+                objectID: personId,
+                personId,
+                name: newFamilyMemberName,
+                visible_by: [`person/${personId}`, `user/${userId}`],
+              })
+            } catch (error) {
+              console.error('Could not add new family member to algolia index', error)
+            }
+          } else {
+            const { existingFamilyMemberId } = z
+              .object({
+                existingFamilyMemberId: zIsUUID,
+              })
+              .parse(request.body)
+            await addToHistory(
+              UserRecognizedPersonInPhoto({
+                userId,
+                photoId,
+                faceId,
+                personId: existingFamilyMemberId,
+              })
+            )
+          }
+        } else if (action === 'ignoreFamilyMemberFaceInPhoto') {
+          const { faceId } = z
+            .object({
+              faceId: zIsUUID,
+            })
+            .parse(request.body)
+          await addToHistory(
+            FaceIgnoredInPhoto({
+              ignoredBy: userId,
+              photoId,
+              faceId,
+            })
+          )
         }
       }
 
+      if (threadId) {
+        return response.redirect(`/photo/${photoId}/photo.html?threadId=${threadId}&updated=true`)
+      }
       return response.redirect(`/photo/${photoId}/photo.html`)
     } catch (error) {
       console.error('Error in photo route', error)
