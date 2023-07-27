@@ -29,6 +29,8 @@ import {
   UploadFirstPhoto,
 } from './HomePage'
 
+const RELATIONSHIPS_ENABLED = false
+
 export const getHomePageProps = async (userId: UUID): Promise<HomePageProps> => {
   const step1 = await getGetUserName(userId)
 
@@ -164,64 +166,73 @@ async function getFamilyDetectedFace(args: { faceId: UUID; photoId: UUID; userId
       name = (await getPersonByIdOrThrow(personId)).name
     }
 
-    // Did the user pass on naming this relationship ?
-    const ignoredRelationship = await getSingleEvent<OnboardingUserIgnoredRelationship>('OnboardingUserIgnoredRelationship', {
-      personId,
-    })
-    if (ignoredRelationship) {
+    if (RELATIONSHIPS_ENABLED) {
+      // Did the user pass on naming this relationship ?
+      const ignoredRelationship = await getSingleEvent<OnboardingUserIgnoredRelationship>('OnboardingUserIgnoredRelationship', {
+        personId,
+      })
+      if (ignoredRelationship) {
+        return {
+          faceId,
+          name,
+          personId,
+          stage: 'done',
+        }
+      }
+
+      // Has a relationship been confirmed for this person ?
+      const confirmedRelation = await getSingleEvent<OnboardingUserConfirmedRelationUsingOpenAI>(
+        'OnboardingUserConfirmedRelationUsingOpenAI',
+        { personId }
+      )
+
+      if (confirmedRelation) {
+        // Yes a relationship has been confirmed for this person
+        const latestConfirmedRelationship = confirmedRelation.payload
+
+        return {
+          stage: 'done',
+          faceId,
+          personId,
+          name,
+          relationship: latestConfirmedRelationship.relationship,
+        }
+      }
+
+      // No confirmation
+      // Has there been relationship posted by user ?
+      const userPostedRelationship = await getSingleEvent<OnboardingUserPostedRelationUsingOpenAI>(
+        'OnboardingUserPostedRelationUsingOpenAI',
+        { personId }
+      )
+
+      if (userPostedRelationship) {
+        // Yes, a relationship has been posted
+        const { relationship, messages, userAnswer } = userPostedRelationship.payload
+        return {
+          faceId,
+          stage: 'awaiting-relationship-confirmation',
+          name,
+          personId,
+          messages: messages || [],
+          relationship,
+          userAnswer,
+        }
+      }
+      // No relationship by user
       return {
         faceId,
+        stage: 'awaiting-relationship',
         name,
         personId,
+      }
+    } else {
+      return {
+        faceId,
         stage: 'done',
-      }
-    }
-
-    // Has a relationship been confirmed for this person ?
-    const confirmedRelation = await getSingleEvent<OnboardingUserConfirmedRelationUsingOpenAI>(
-      'OnboardingUserConfirmedRelationUsingOpenAI',
-      { personId }
-    )
-
-    if (confirmedRelation) {
-      // Yes a relationship has been confirmed for this person
-      const latestConfirmedRelationship = confirmedRelation.payload
-
-      return {
-        stage: 'done',
-        faceId,
-        personId,
-        name,
-        relationship: latestConfirmedRelationship.relationship,
-      }
-    }
-
-    // No confirmation
-    // Has there been relationship posted by user ?
-    const userPostedRelationship = await getSingleEvent<OnboardingUserPostedRelationUsingOpenAI>(
-      'OnboardingUserPostedRelationUsingOpenAI',
-      { personId }
-    )
-
-    if (userPostedRelationship) {
-      // Yes, a relationship has been posted
-      const { relationship, messages, userAnswer } = userPostedRelationship.payload
-      return {
-        faceId,
-        stage: 'awaiting-relationship-confirmation',
         name,
         personId,
-        messages: messages || [],
-        relationship,
-        userAnswer,
       }
-    }
-    // No relationship by user
-    return {
-      faceId,
-      stage: 'awaiting-relationship',
-      name,
-      personId,
     }
   }
 
