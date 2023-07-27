@@ -30,7 +30,7 @@ module.exports = {
   mode: process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'staging' ? 'production' : 'development',
   entry: {
     ...pageEntries,
-    shared: ['react', 'react-dom'],
+    shared: ['react', 'react-dom', '@headlessui/react'],
   },
   target: 'web',
   resolve: {

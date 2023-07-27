@@ -9,6 +9,8 @@ import { SessionContext } from '../../_components/SessionContext'
 import { PersonAutocomplete } from '../../home/PersonAutocomplete'
 import { PhotoListPageUrl } from '../../listPhotos/PhotoListPageUrl'
 import { PersonPageURL } from '../../person/PersonPageURL'
+import { Switch } from '@headlessui/react'
+import classNames from 'classnames'
 
 type PhotoFace = {
   faceId: UUID
@@ -48,6 +50,7 @@ export const NewPhotoPage = withBrowserBundle(({ context, caption, photoId, phot
   })
 
   const [selectedFace, setSelectedFace] = useState<PhotoFace | null>(null)
+  const [faceEditionMode, setFaceEditionMode] = useState<boolean>(false)
 
   if (!session.isLoggedIn)
     return (
@@ -65,7 +68,7 @@ export const NewPhotoPage = withBrowserBundle(({ context, caption, photoId, phot
       <div className='bg-black absolute overflow-y-scroll overflow-x-hidden top-0 bottom-0 left-0 right-0 w-[100hh] h-[100vh]'>
         <a
           href={`${context ? getThreadUrl(context.threadId) : PhotoListPageUrl}`}
-          className='absolute top-1 left-1 text-gray-300'>
+          className='absolute top-2 left-2 text-gray-300'>
           <XMarkIcon className='cursor-pointer h-8 w-8' />
         </a>
         <div className='grid place-items-center h-screen'>
@@ -98,7 +101,7 @@ export const NewPhotoPage = withBrowserBundle(({ context, caption, photoId, phot
               </form>
             </div>
             {faces && faces.length ? (
-              <div>
+              <div className='pt-3'>
                 {selectedFace ? (
                   <div className='mt-3'>
                     <div className='flex justify-center sm:justify-start'>
@@ -120,7 +123,14 @@ export const NewPhotoPage = withBrowserBundle(({ context, caption, photoId, phot
                   <ul className='flex gap-2 mt-3 pt-3'>
                     {annotatedFaces.map((face) => (
                       <li key={`photoface${face.faceId}`} className='text-gray-300 mr-2 mb-2 flex flex-col items-center'>
-                        <a href={PersonPageURL(face.personId)}>
+                        <a
+                          href={PersonPageURL(face.personId)}
+                          onClick={(e) => {
+                            if (faceEditionMode) {
+                              e.preventDefault()
+                              setSelectedFace(face)
+                            }
+                          }}>
                           <PhotoBadge faceId={face.faceId} photoId={photoId} className={``} altText={face.name || ''} />
                           <div className='mt-1 max-w-[80px] truncate'>{face.name}</div>
                         </a>
@@ -130,8 +140,12 @@ export const NewPhotoPage = withBrowserBundle(({ context, caption, photoId, phot
                       <li
                         key={`photoface${face.faceId}`}
                         className='text-gray-500 mr-2 mb-2 flex flex-col items-center relative'
-                        onClick={() => setSelectedFace(face)}>
-                        <PhotoBadge faceId={face.faceId} photoId={photoId} className={``} />
+                        onClick={() => (faceEditionMode ? setSelectedFace(face) : null)}>
+                        <PhotoBadge
+                          faceId={face.faceId}
+                          photoId={photoId}
+                          className={`${faceEditionMode ? 'cursor-pointer' : 'cursor-default'}`}
+                        />
                         <div className='absolute top-11 right-0 h-4 w-4 rounded-full bg-blue-600 -ring-2 ring-1  ring-white'>
                           <div className='text-white text-xs text-center'>?</div>
                         </div>
@@ -141,8 +155,12 @@ export const NewPhotoPage = withBrowserBundle(({ context, caption, photoId, phot
                       <li
                         key={`photoface${face.faceId}`}
                         className='text-gray-500 mr-2 mb-2 flex flex-col items-center relative'
-                        onClick={() => setSelectedFace(face)}>
-                        <PhotoBadge faceId={face.faceId} photoId={photoId} className={` grayscale`} />
+                        onClick={() => (faceEditionMode ? setSelectedFace(face) : null)}>
+                        <PhotoBadge
+                          faceId={face.faceId}
+                          photoId={photoId}
+                          className={`grayscale ${faceEditionMode ? 'cursor-pointer' : 'cursor-default'}`}
+                        />
                         <div className='absolute top-11 right-0 h-4 w-4 rounded-full bg-red-600 -ring-2 ring-1 ring-white'>
                           <div className='text-white text-center'>
                             <XMarkIcon className='h-[3.5] w-[3.5]' />
@@ -152,6 +170,30 @@ export const NewPhotoPage = withBrowserBundle(({ context, caption, photoId, phot
                     ))}
                   </ul>
                 )}
+                {!selectedFace ? (
+                  <Switch.Group as='div' className='flex items-center mt-4'>
+                    <Switch
+                      checked={faceEditionMode}
+                      onChange={setFaceEditionMode}
+                      className={classNames(
+                        faceEditionMode ? 'bg-indigo-600' : 'bg-gray-500',
+                        'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2'
+                      )}>
+                      <span
+                        aria-hidden='true'
+                        className={classNames(
+                          faceEditionMode ? 'translate-x-5' : 'translate-x-0',
+                          'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out'
+                        )}
+                      />
+                    </Switch>
+                    <Switch.Label as='span' className='ml-3 text-sm'>
+                      <span className='font-medium text-gray-300'>
+                        {faceEditionMode ? "Activé: choisissez un visage pour l'éditer" : 'Activer le mode édition de visages'}
+                      </span>
+                    </Switch.Label>
+                  </Switch.Group>
+                ) : null}
               </div>
             ) : null}
           </div>
@@ -172,7 +214,7 @@ const PhotoBadge = ({ photoId, className, faceId, altText }: PhotoBadgeProps) =>
     <img
       // src='https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=100&h=100&q=80'
       src={`/photo/${photoId}/face/${faceId}`}
-      className={`inline-block cursor-pointer rounded-full h-14 w-14 ring-2 ring-white shadow-sm'
+      className={`inline-block rounded-full h-14 w-14 ring-2 ring-white shadow-sm'
       } ${className || ''}`}
       alt={altText}
     />
