@@ -2,45 +2,54 @@ import { resetDatabase } from '../../dependencies/__test__/resetDatabase'
 import { addToHistory } from '../../dependencies/addToHistory'
 import { getPhotoUrlFromId } from '../../dependencies/photo-storage'
 import { getUuid } from '../../libs/getUuid'
-import { OnboardingUserNamedThemself } from '../bienvenue/step1-userTellsAboutThemselves/OnboardingUserNamedThemself'
+import { UserNamedThemself } from '../bienvenue/step1-userTellsAboutThemselves/UserNamedThemself'
 import { OnboardingUserUploadedPhotoOfThemself } from '../bienvenue/step1-userTellsAboutThemselves/OnboardingUserUploadedPhotoOfThemself'
-import { OnboardingUserConfirmedHisFace } from '../bienvenue/step2-userUploadsPhoto/OnboardingUserConfirmedHisFace'
+import { UserConfirmedHisFace } from '../bienvenue/step2-userUploadsPhoto/UserConfirmedHisFace'
 import { OnboardingUserUploadedPhotoOfFamily } from '../bienvenue/step2-userUploadsPhoto/OnboardingUserUploadedPhotoOfFamily'
-import { OnboardingBeneficiariesChosen } from '../bienvenue/step3-learnAboutUsersFamily/OnboardingBeneficiariesChosen'
-import { OnboardingFaceIgnoredInFamilyPhoto } from '../bienvenue/step3-learnAboutUsersFamily/OnboardingFaceIgnoredInFamilyPhoto'
+import { BeneficiariesChosen } from '../bienvenue/step3-learnAboutUsersFamily/BeneficiariesChosen'
+import { FaceIgnoredInPhoto } from '../bienvenue/step3-learnAboutUsersFamily/FaceIgnoredInPhoto'
 import { OnboardingFamilyMemberAnnotationIsDone } from '../bienvenue/step3-learnAboutUsersFamily/OnboardingFamilyMemberAnnotationIsDone'
 import { OnboardingReadyForBeneficiaries } from '../bienvenue/step3-learnAboutUsersFamily/OnboardingReadyForBeneficiaries'
-import { OnboardingUserConfirmedRelationUsingOpenAI } from '../bienvenue/step3-learnAboutUsersFamily/OnboardingUserConfirmedRelationUsingOpenAI'
-import { OnboardingUserIgnoredRelationship } from '../bienvenue/step3-learnAboutUsersFamily/OnboardingUserIgnoredRelationship'
-import { OnboardingUserNamedPersonInFamilyPhoto } from '../bienvenue/step3-learnAboutUsersFamily/OnboardingUserNamedPersonInFamilyPhoto'
-import { OnboardingUserPostedRelationUsingOpenAI } from '../bienvenue/step3-learnAboutUsersFamily/OnboardingUserPostedRelationUsingOpenAI'
-import { OnboardingUserRecognizedPersonInFamilyPhoto } from '../bienvenue/step3-learnAboutUsersFamily/OnboardingUserRecognizedPersonInFamilyPhoto'
+import { UserConfirmedRelationUsingOpenAI } from '../bienvenue/step3-learnAboutUsersFamily/UserConfirmedRelationUsingOpenAI'
+import { UserIgnoredRelationship } from '../bienvenue/step3-learnAboutUsersFamily/UserIgnoredRelationship'
+import { UserNamedPersonInPhoto } from '../bienvenue/step3-learnAboutUsersFamily/UserNamedPersonInPhoto'
+import { UserPostedRelationUsingOpenAI } from '../bienvenue/step3-learnAboutUsersFamily/UserPostedRelationUsingOpenAI'
 import { OnboardingUserStartedFirstThread } from '../bienvenue/step4-start-thread/OnboardingUserStartedFirstThread'
 import { AWSDetectedFacesInPhoto } from '../photo/recognizeFacesInChatPhoto/AWSDetectedFacesInPhoto'
-import { getHomePageProps } from './getHomePageProps'
+import { RELATIONSHIPS_ENABLED, getHomePageProps } from './getHomePageProps'
+import { UUID } from '../../domain'
+import { HomePageProps } from './HomePage'
+import { UserRecognizedPersonInPhoto } from '../bienvenue/step3-learnAboutUsersFamily/UserRecognizedPersonInPhoto'
+
+const getHomePagePropsOnboarding = async (userId: UUID): Promise<HomePageProps & { isOnboarding: true }> => {
+  const props = await getHomePageProps(userId)
+  if (!props.isOnboarding) throw 'onboarding only'
+
+  return props
+}
 
 describe('getHomePageProps', () => {
   const userId = getUuid()
 
   describe('get-user-name step', () => {
-    describe('before OnboardingUserNamedThemself', () => {
+    describe('before UserNamedThemself', () => {
       beforeAll(async () => {
         await resetDatabase()
       })
 
       it('should return pending state', async () => {
-        const { steps } = await getHomePageProps(userId)
+        const { steps } = await getHomePagePropsOnboarding(userId)
         expect(steps['get-user-name']).toEqual('pending')
       })
     })
 
-    describe('after OnboardingUserNamedThemself', () => {
+    describe('after UserNamedThemself', () => {
       const name = 'John Doe'
       const personId = getUuid()
       beforeAll(async () => {
         await resetDatabase()
         await addToHistory(
-          OnboardingUserNamedThemself({
+          UserNamedThemself({
             userId,
             personId,
             name,
@@ -49,7 +58,7 @@ describe('getHomePageProps', () => {
       })
 
       it('should return done state', async () => {
-        const { steps } = await getHomePageProps(userId)
+        const { steps } = await getHomePagePropsOnboarding(userId)
         expect(steps).toMatchObject({ 'get-user-name': 'done', name, personId })
       })
     })
@@ -62,7 +71,7 @@ describe('getHomePageProps', () => {
       })
 
       it('should return pending state', async () => {
-        const { steps } = await getHomePageProps(userId)
+        const { steps } = await getHomePagePropsOnboarding(userId)
         expect(steps['upload-first-photo']).toEqual('pending')
       })
     })
@@ -81,7 +90,7 @@ describe('getHomePageProps', () => {
       })
 
       it('should return photo-uploaded state', async () => {
-        const { steps } = await getHomePageProps(userId)
+        const { steps } = await getHomePagePropsOnboarding(userId)
         expect(steps).toMatchObject({
           'upload-first-photo': 'photo-uploaded',
           photoId,
@@ -119,7 +128,7 @@ describe('getHomePageProps', () => {
       })
 
       it('should return photo-uploaded state and faces', async () => {
-        const { steps } = await getHomePageProps(userId)
+        const { steps } = await getHomePagePropsOnboarding(userId)
         expect(steps).toMatchObject({
           'upload-first-photo': 'photo-uploaded',
           photoId,
@@ -129,14 +138,14 @@ describe('getHomePageProps', () => {
       })
     })
 
-    describe('after OnboardingUserConfirmedHisFace', () => {
+    describe('after UserConfirmedHisFace', () => {
       const photoId = getUuid()
       const faceId = getUuid()
       const personId = getUuid()
       beforeAll(async () => {
         await resetDatabase()
         await addToHistory(
-          OnboardingUserConfirmedHisFace({
+          UserConfirmedHisFace({
             userId,
             faceId,
             photoId,
@@ -146,7 +155,7 @@ describe('getHomePageProps', () => {
       })
 
       it('should return user-face-confirmed', async () => {
-        const { steps } = await getHomePageProps(userId)
+        const { steps } = await getHomePagePropsOnboarding(userId)
         expect(steps).toMatchObject({
           'upload-first-photo': 'user-face-confirmed',
           photoId,
@@ -164,7 +173,7 @@ describe('getHomePageProps', () => {
       })
 
       it('should return pending state', async () => {
-        const { steps } = await getHomePageProps(userId)
+        const { steps } = await getHomePagePropsOnboarding(userId)
         expect(steps['upload-family-photo']).toEqual('awaiting-upload')
       })
     })
@@ -183,7 +192,7 @@ describe('getHomePageProps', () => {
       })
 
       it('should return annotating-photo state', async () => {
-        const { steps } = await getHomePageProps(userId)
+        const { steps } = await getHomePagePropsOnboarding(userId)
         expect(steps).toMatchObject({
           'upload-family-photo': 'annotating-photo',
           photos: [{ photoId, photoUrl: getPhotoUrlFromId(photoId), faces: [] }],
@@ -219,7 +228,7 @@ describe('getHomePageProps', () => {
       })
 
       it('should return photo-uploaded state and faces', async () => {
-        const { steps } = await getHomePageProps(userId)
+        const { steps } = await getHomePagePropsOnboarding(userId)
         expect(steps).toMatchObject({
           'upload-family-photo': 'annotating-photo',
           photos: [{ photoId, photoUrl: getPhotoUrlFromId(photoId), faces: [{ faceId, stage: 'awaiting-name' }] }],
@@ -227,11 +236,9 @@ describe('getHomePageProps', () => {
       })
     })
 
-    describe('after OnboardingFaceIgnoredInFamilyPhoto', () => {
+    describe('after FaceIgnoredInPhoto', () => {
       const photoId = getUuid()
       const faceId = getUuid()
-      const personId = getUuid()
-      const name = 'Jhon'
 
       beforeAll(async () => {
         await resetDatabase()
@@ -256,7 +263,7 @@ describe('getHomePageProps', () => {
           })
         )
         await addToHistory(
-          OnboardingFaceIgnoredInFamilyPhoto({
+          FaceIgnoredInPhoto({
             photoId,
             faceId,
             ignoredBy: userId,
@@ -265,7 +272,7 @@ describe('getHomePageProps', () => {
       })
 
       it('should return face in ignored stage', async () => {
-        const { steps } = await getHomePageProps(userId)
+        const { steps } = await getHomePagePropsOnboarding(userId)
         expect(steps).toMatchObject({
           'upload-family-photo': 'annotating-photo',
           photos: [
@@ -279,7 +286,7 @@ describe('getHomePageProps', () => {
       })
     })
 
-    describe('after OnboardingUserNamedPersonInFamilyPhoto', () => {
+    describe('after UserNamedPersonInPhoto', () => {
       const photoId = getUuid()
       const faceId = getUuid()
       const personId = getUuid()
@@ -308,7 +315,7 @@ describe('getHomePageProps', () => {
           })
         )
         await addToHistory(
-          OnboardingUserNamedPersonInFamilyPhoto({
+          UserNamedPersonInPhoto({
             photoId,
             faceId,
             personId,
@@ -318,22 +325,96 @@ describe('getHomePageProps', () => {
         )
       })
 
-      it('should return face in awaiting-relationship stage and have name and personId', async () => {
-        const { steps } = await getHomePageProps(userId)
+      it('should return face in awaiting-relationship or done (depending on RELATIONSHIPS_ENABLED) stage and have name and personId', async () => {
+        const { steps } = await getHomePagePropsOnboarding(userId)
+
+        if (RELATIONSHIPS_ENABLED) {
+          expect(steps).toMatchObject({
+            'upload-family-photo': 'annotating-photo',
+            photos: [
+              {
+                photoId,
+                photoUrl: getPhotoUrlFromId(photoId),
+                faces: [{ faceId, personId, name, stage: 'awaiting-relationship' }],
+              },
+            ],
+          })
+        } else {
+          expect(steps).toMatchObject({
+            'upload-family-photo': 'annotating-photo',
+            photos: [
+              {
+                photoId,
+                photoUrl: getPhotoUrlFromId(photoId),
+                faces: [{ faceId, personId, name, stage: 'done' }],
+              },
+            ],
+          })
+        }
+      })
+    })
+
+    describe('after UserRecognizedPersonInPhoto', () => {
+      const photoId = getUuid()
+      const faceId = getUuid()
+      const personId = getUuid()
+      const name = 'Jhon'
+
+      beforeAll(async () => {
+        await resetDatabase()
+        await addToHistory(
+          OnboardingUserUploadedPhotoOfFamily({
+            uploadedBy: userId,
+            photoId,
+            location: { type: 'localfile' },
+          })
+        )
+        await addToHistory(
+          AWSDetectedFacesInPhoto({
+            photoId,
+            faces: [
+              {
+                faceId,
+                awsFaceId: '',
+                confidence: 0,
+                position: {},
+              },
+            ],
+          })
+        )
+        await addToHistory(
+          UserNamedThemself({
+            personId,
+            userId,
+            name,
+          })
+        )
+        await addToHistory(
+          UserRecognizedPersonInPhoto({
+            photoId,
+            faceId,
+            personId,
+            userId,
+          })
+        )
+      })
+
+      it('should return face in awaiting-relationship or done stage and have name and personId', async () => {
+        const { steps } = await getHomePagePropsOnboarding(userId)
         expect(steps).toMatchObject({
           'upload-family-photo': 'annotating-photo',
           photos: [
             {
               photoId,
               photoUrl: getPhotoUrlFromId(photoId),
-              faces: [{ faceId, personId, name, stage: 'awaiting-relationship' }],
+              faces: [{ faceId, personId, name, stage: RELATIONSHIPS_ENABLED ? 'awaiting-relationship' : 'done' }],
             },
           ],
         })
       })
     })
 
-    describe('after OnboardingUserRecognizedPersonInFamilyPhoto', () => {
+    describe('after UserIgnoredRelationship', () => {
       const photoId = getUuid()
       const faceId = getUuid()
       const personId = getUuid()
@@ -362,67 +443,7 @@ describe('getHomePageProps', () => {
           })
         )
         await addToHistory(
-          OnboardingUserNamedThemself({
-            personId,
-            userId,
-            name,
-          })
-        )
-        await addToHistory(
-          OnboardingUserRecognizedPersonInFamilyPhoto({
-            photoId,
-            faceId,
-            personId,
-            userId,
-          })
-        )
-      })
-
-      it('should return face in awaiting-relationship stage and have name and personId', async () => {
-        const { steps } = await getHomePageProps(userId)
-        expect(steps).toMatchObject({
-          'upload-family-photo': 'annotating-photo',
-          photos: [
-            {
-              photoId,
-              photoUrl: getPhotoUrlFromId(photoId),
-              faces: [{ faceId, personId, name, stage: 'awaiting-relationship' }],
-            },
-          ],
-        })
-      })
-    })
-
-    describe('after OnboardingUserIgnoredRelationship', () => {
-      const photoId = getUuid()
-      const faceId = getUuid()
-      const personId = getUuid()
-      const name = 'Jhon'
-
-      beforeAll(async () => {
-        await resetDatabase()
-        await addToHistory(
-          OnboardingUserUploadedPhotoOfFamily({
-            uploadedBy: userId,
-            photoId,
-            location: { type: 'localfile' },
-          })
-        )
-        await addToHistory(
-          AWSDetectedFacesInPhoto({
-            photoId,
-            faces: [
-              {
-                faceId,
-                awsFaceId: '',
-                confidence: 0,
-                position: {},
-              },
-            ],
-          })
-        )
-        await addToHistory(
-          OnboardingUserNamedPersonInFamilyPhoto({
+          UserNamedPersonInPhoto({
             photoId,
             faceId,
             personId,
@@ -431,7 +452,7 @@ describe('getHomePageProps', () => {
           })
         )
         await addToHistory(
-          OnboardingUserIgnoredRelationship({
+          UserIgnoredRelationship({
             personId,
             userId,
           })
@@ -439,7 +460,7 @@ describe('getHomePageProps', () => {
       })
 
       it('should return face in done stage and have name and personId but no relationship', async () => {
-        const { steps } = await getHomePageProps(userId)
+        const { steps } = await getHomePagePropsOnboarding(userId)
         expect(steps).toMatchObject({
           'upload-family-photo': 'annotating-photo',
           photos: [
@@ -453,156 +474,160 @@ describe('getHomePageProps', () => {
       })
     })
 
-    describe('after OnboardingUserPostedRelationUsingOpenAI', () => {
-      const photoId = getUuid()
-      const faceId = getUuid()
-      const personId = getUuid()
-      const name = 'Jhon'
+    if (RELATIONSHIPS_ENABLED) {
+      describe('after UserPostedRelationUsingOpenAI', () => {
+        const photoId = getUuid()
+        const faceId = getUuid()
+        const personId = getUuid()
+        const name = 'Jhon'
 
-      beforeAll(async () => {
-        await resetDatabase()
-        await addToHistory(
-          OnboardingUserUploadedPhotoOfFamily({
-            uploadedBy: userId,
-            photoId,
-            location: { type: 'localfile' },
-          })
-        )
-        await addToHistory(
-          AWSDetectedFacesInPhoto({
-            photoId,
-            faces: [
-              {
-                faceId,
-                awsFaceId: '',
-                confidence: 0,
-                position: {},
-              },
-            ],
-          })
-        )
-        await addToHistory(
-          OnboardingUserNamedPersonInFamilyPhoto({
-            photoId,
-            faceId,
-            personId,
-            userId,
-            name,
-          })
-        )
-        await addToHistory(
-          OnboardingUserPostedRelationUsingOpenAI({
-            personId,
-            userId,
-            messages: [],
-            userAnswer: 'my mothers sister',
-            relationship: { relationship: 'aunt', side: 'maternal' },
-          })
-        )
-      })
-
-      it('should return face in awaiting-relationship-confirmation stage and include the relationship deduced by openAI', async () => {
-        const { steps } = await getHomePageProps(userId)
-        expect(steps).toMatchObject({
-          'upload-family-photo': 'annotating-photo',
-          photos: [
-            {
+        beforeAll(async () => {
+          await resetDatabase()
+          await addToHistory(
+            OnboardingUserUploadedPhotoOfFamily({
+              uploadedBy: userId,
               photoId,
-              photoUrl: getPhotoUrlFromId(photoId),
+              location: { type: 'localfile' },
+            })
+          )
+          await addToHistory(
+            AWSDetectedFacesInPhoto({
+              photoId,
               faces: [
                 {
                   faceId,
-                  personId,
-                  name,
-                  stage: 'awaiting-relationship-confirmation',
-                  messages: [],
-                  userAnswer: 'my mothers sister',
-                  relationship: { relationship: 'aunt', side: 'maternal' },
+                  awsFaceId: '',
+                  confidence: 0,
+                  position: {},
                 },
               ],
-            },
-          ],
+            })
+          )
+          await addToHistory(
+            UserNamedPersonInPhoto({
+              photoId,
+              faceId,
+              personId,
+              userId,
+              name,
+            })
+          )
+          await addToHistory(
+            UserPostedRelationUsingOpenAI({
+              personId,
+              userId,
+              messages: [],
+              userAnswer: 'my mothers sister',
+              relationship: { relationship: 'aunt', side: 'maternal' },
+            })
+          )
         })
-      })
-    })
 
-    describe('after OnboardingUserConfirmedRelationUsingOpenAI', () => {
-      const photoId = getUuid()
-      const faceId = getUuid()
-      const personId = getUuid()
-      const name = 'Jhon'
-
-      beforeAll(async () => {
-        await resetDatabase()
-        await addToHistory(
-          OnboardingUserUploadedPhotoOfFamily({
-            uploadedBy: userId,
-            photoId,
-            location: { type: 'localfile' },
-          })
-        )
-        await addToHistory(
-          AWSDetectedFacesInPhoto({
-            photoId,
-            faces: [
+        it('should return face in awaiting-relationship-confirmation stage and include the relationship deduced by openAI', async () => {
+          const { steps } = await getHomePagePropsOnboarding(userId)
+          expect(steps).toMatchObject({
+            'upload-family-photo': 'annotating-photo',
+            photos: [
               {
-                faceId,
-                awsFaceId: '',
-                confidence: 0,
-                position: {},
+                photoId,
+                photoUrl: getPhotoUrlFromId(photoId),
+                faces: [
+                  {
+                    faceId,
+                    personId,
+                    name,
+                    stage: 'awaiting-relationship-confirmation',
+                    messages: [],
+                    userAnswer: 'my mothers sister',
+                    relationship: { relationship: 'aunt', side: 'maternal' },
+                  },
+                ],
               },
             ],
           })
-        )
-        await addToHistory(
-          OnboardingUserNamedPersonInFamilyPhoto({
-            photoId,
-            faceId,
-            personId,
-            userId,
-            name,
-          })
-        )
-        await addToHistory(
-          OnboardingUserPostedRelationUsingOpenAI({
-            personId,
-            userId,
-            messages: [],
-            userAnswer: 'my mothers sister',
-            relationship: { relationship: 'aunt', side: 'maternal' },
-          })
-        )
-        await addToHistory(
-          OnboardingUserConfirmedRelationUsingOpenAI({
-            personId,
-            userId,
-            relationship: { relationship: 'aunt', side: 'maternal' },
-          })
-        )
+        })
       })
+    }
 
-      it('should return face in done stage and include the confirmed relationship', async () => {
-        const { steps } = await getHomePageProps(userId)
-        expect(steps).toMatchObject({
-          'upload-family-photo': 'annotating-photo',
-          photos: [
-            {
+    if (RELATIONSHIPS_ENABLED) {
+      describe('after UserConfirmedRelationUsingOpenAI', () => {
+        const photoId = getUuid()
+        const faceId = getUuid()
+        const personId = getUuid()
+        const name = 'Jhon'
+
+        beforeAll(async () => {
+          await resetDatabase()
+          await addToHistory(
+            OnboardingUserUploadedPhotoOfFamily({
+              uploadedBy: userId,
               photoId,
-              photoUrl: getPhotoUrlFromId(photoId),
+              location: { type: 'localfile' },
+            })
+          )
+          await addToHistory(
+            AWSDetectedFacesInPhoto({
+              photoId,
               faces: [
                 {
                   faceId,
-                  personId,
-                  name,
-                  stage: 'done',
-                  relationship: { relationship: 'aunt', side: 'maternal' },
+                  awsFaceId: '',
+                  confidence: 0,
+                  position: {},
                 },
               ],
-            },
-          ],
+            })
+          )
+          await addToHistory(
+            UserNamedPersonInPhoto({
+              photoId,
+              faceId,
+              personId,
+              userId,
+              name,
+            })
+          )
+          await addToHistory(
+            UserPostedRelationUsingOpenAI({
+              personId,
+              userId,
+              messages: [],
+              userAnswer: 'my mothers sister',
+              relationship: { relationship: 'aunt', side: 'maternal' },
+            })
+          )
+          await addToHistory(
+            UserConfirmedRelationUsingOpenAI({
+              personId,
+              userId,
+              relationship: { relationship: 'aunt', side: 'maternal' },
+            })
+          )
+        })
+
+        it('should return face in done stage and include the confirmed relationship', async () => {
+          const { steps } = await getHomePagePropsOnboarding(userId)
+          expect(steps).toMatchObject({
+            'upload-family-photo': 'annotating-photo',
+            photos: [
+              {
+                photoId,
+                photoUrl: getPhotoUrlFromId(photoId),
+                faces: [
+                  {
+                    faceId,
+                    personId,
+                    name,
+                    stage: 'done',
+                    relationship: { relationship: 'aunt', side: 'maternal' },
+                  },
+                ],
+              },
+            ],
+          })
         })
       })
-    })
+    }
 
     describe('if we know this face from elsewhere', () => {
       const photoId = getUuid()
@@ -613,7 +638,7 @@ describe('getHomePageProps', () => {
       beforeAll(async () => {
         await resetDatabase()
         await addToHistory(
-          OnboardingUserNamedThemself({
+          UserNamedThemself({
             userId,
             personId,
             name,
@@ -642,7 +667,7 @@ describe('getHomePageProps', () => {
         )
 
         await addToHistory(
-          OnboardingUserConfirmedHisFace({
+          UserConfirmedHisFace({
             userId,
             faceId,
             photoId,
@@ -652,7 +677,7 @@ describe('getHomePageProps', () => {
       })
 
       it('should return face in done stage but not include relationship yet (todo)', async () => {
-        const { steps } = await getHomePageProps(userId)
+        const { steps } = await getHomePagePropsOnboarding(userId)
         expect(steps).toMatchObject({
           'upload-family-photo': 'annotating-photo',
           photos: [
@@ -723,7 +748,7 @@ describe('getHomePageProps', () => {
       })
 
       it('should return an array of photos', async () => {
-        const { steps } = await getHomePageProps(userId)
+        const { steps } = await getHomePagePropsOnboarding(userId)
         expect(steps).toMatchObject({
           'upload-family-photo': 'annotating-photo',
           photos: [
@@ -771,7 +796,7 @@ describe('getHomePageProps', () => {
       })
 
       it('should return a done state', async () => {
-        const { steps } = await getHomePageProps(userId)
+        const { steps } = await getHomePagePropsOnboarding(userId)
         expect(steps).toMatchObject({
           'upload-family-photo': 'done',
         })
@@ -786,7 +811,7 @@ describe('getHomePageProps', () => {
       })
 
       it('should return awaiting-input state', async () => {
-        const { steps } = await getHomePageProps(userId)
+        const { steps } = await getHomePagePropsOnboarding(userId)
         expect(steps['create-first-thread']).toEqual('awaiting-input')
       })
     })
@@ -806,7 +831,7 @@ describe('getHomePageProps', () => {
       })
 
       it('should return thread-written state', async () => {
-        const { steps } = await getHomePageProps(userId)
+        const { steps } = await getHomePagePropsOnboarding(userId)
         expect(steps).toMatchObject({ 'create-first-thread': 'thread-written', threadId, message })
       })
     })
@@ -831,37 +856,37 @@ describe('getHomePageProps', () => {
       })
 
       it('should return done state', async () => {
-        const { steps } = await getHomePageProps(userId)
+        const { steps } = await getHomePagePropsOnboarding(userId)
         expect(steps).toMatchObject({ 'create-first-thread': 'done', threadId, message })
       })
     })
   })
   describe('chose-beneficiaries step', () => {
-    describe('before OnboardingBeneficiariesChosen', () => {
+    describe('before BeneficiariesChosen', () => {
       beforeAll(async () => {
         await resetDatabase()
       })
 
       it('should return awaiting-input state', async () => {
-        const { steps } = await getHomePageProps(userId)
+        const { steps } = await getHomePagePropsOnboarding(userId)
         expect(steps['chose-beneficiaries']).toEqual('awaiting-input')
       })
     })
 
-    describe('after OnboardingBeneficiariesChosen', () => {
+    describe('after BeneficiariesChosen', () => {
       beforeAll(async () => {
         await resetDatabase()
         await addToHistory(
-          OnboardingBeneficiariesChosen({
+          BeneficiariesChosen({
             userId,
             mode: 'user-distributes-codes',
           })
         )
       })
 
-      it('should return done state', async () => {
-        const { steps } = await getHomePageProps(userId)
-        expect(steps).toMatchObject({ 'chose-beneficiaries': 'done' })
+      it('should return isOnboarding: false', async () => {
+        const { isOnboarding } = await getHomePageProps(userId)
+        expect(isOnboarding).toBe(false)
       })
     })
   })

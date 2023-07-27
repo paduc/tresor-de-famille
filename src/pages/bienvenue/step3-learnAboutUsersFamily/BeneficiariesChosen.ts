@@ -1,8 +1,8 @@
 import { DomainEvent, makeDomainEvent } from '../../../dependencies/DomainEvent'
 import { UUID } from '../../../domain'
 
-export type OnboardingBeneficiariesChosen = DomainEvent<
-  'OnboardingBeneficiariesChosen',
+export type BeneficiariesChosen = DomainEvent<
+  'BeneficiariesChosen',
   { userId: UUID } & (
     | {
         mode: 'tdf-detection-contacts-beneficiaries' // 'automatic'
@@ -14,4 +14,4 @@ export type OnboardingBeneficiariesChosen = DomainEvent<
   )
 >
 
-export const OnboardingBeneficiariesChosen = makeDomainEvent<OnboardingBeneficiariesChosen>('OnboardingBeneficiariesChosen')
+export const BeneficiariesChosen = makeDomainEvent<BeneficiariesChosen>('BeneficiariesChosen')

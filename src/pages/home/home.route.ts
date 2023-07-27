@@ -10,21 +10,21 @@ import { personsIndex } from '../../dependencies/search'
 import { zIsUUID } from '../../domain'
 import { getUuid } from '../../libs/getUuid'
 import { getPersonIdForUserId } from '../_getPersonIdForUserId.query'
-import { OnboardingUserNamedThemself } from '../bienvenue/step1-userTellsAboutThemselves/OnboardingUserNamedThemself'
+import { UserNamedThemself } from '../bienvenue/step1-userTellsAboutThemselves/UserNamedThemself'
 import { uploadUserPhotoOfThemself } from '../bienvenue/step1-userTellsAboutThemselves/uploadUserPhotoOfThemself'
-import { OnboardingUserConfirmedHisFace } from '../bienvenue/step2-userUploadsPhoto/OnboardingUserConfirmedHisFace'
+import { UserConfirmedHisFace } from '../bienvenue/step2-userUploadsPhoto/UserConfirmedHisFace'
 import { uploadUserPhotoOfFamily } from '../bienvenue/step2-userUploadsPhoto/uploadUserPhotoOfFamily'
 import { isValidFamilyMemberRelationship } from '../bienvenue/step3-learnAboutUsersFamily/FamilyMemberRelationship'
-import { OnboardingFaceIgnoredInFamilyPhoto } from '../bienvenue/step3-learnAboutUsersFamily/OnboardingFaceIgnoredInFamilyPhoto'
-import { OnboardingUserConfirmedRelationUsingOpenAI } from '../bienvenue/step3-learnAboutUsersFamily/OnboardingUserConfirmedRelationUsingOpenAI'
-import { OnboardingUserIgnoredRelationship } from '../bienvenue/step3-learnAboutUsersFamily/OnboardingUserIgnoredRelationship'
-import { OnboardingUserNamedPersonInFamilyPhoto } from '../bienvenue/step3-learnAboutUsersFamily/OnboardingUserNamedPersonInFamilyPhoto'
-import { OnboardingUserRecognizedPersonInFamilyPhoto } from '../bienvenue/step3-learnAboutUsersFamily/OnboardingUserRecognizedPersonInFamilyPhoto'
+import { FaceIgnoredInPhoto } from '../bienvenue/step3-learnAboutUsersFamily/FaceIgnoredInPhoto'
+import { UserConfirmedRelationUsingOpenAI } from '../bienvenue/step3-learnAboutUsersFamily/UserConfirmedRelationUsingOpenAI'
+import { UserIgnoredRelationship } from '../bienvenue/step3-learnAboutUsersFamily/UserIgnoredRelationship'
+import { UserNamedPersonInPhoto } from '../bienvenue/step3-learnAboutUsersFamily/UserNamedPersonInPhoto'
+import { UserRecognizedPersonInPhoto } from '../bienvenue/step3-learnAboutUsersFamily/UserRecognizedPersonInPhoto'
 import { parseRelationshipUsingOpenAI } from '../bienvenue/step3-learnAboutUsersFamily/parseRelationshipUsingOpenAI'
 import { OnboardingUserStartedFirstThread } from '../bienvenue/step4-start-thread/OnboardingUserStartedFirstThread'
 import { OnboardingFamilyMemberAnnotationIsDone } from '../bienvenue/step3-learnAboutUsersFamily/OnboardingFamilyMemberAnnotationIsDone'
 import { OnboardingReadyForBeneficiaries } from '../bienvenue/step3-learnAboutUsersFamily/OnboardingReadyForBeneficiaries'
-import { OnboardingBeneficiariesChosen } from '../bienvenue/step3-learnAboutUsersFamily/OnboardingBeneficiariesChosen'
+import { BeneficiariesChosen } from '../bienvenue/step3-learnAboutUsersFamily/BeneficiariesChosen'
 
 const FILE_SIZE_LIMIT_MB = 50
 const upload = multer({
@@ -62,7 +62,7 @@ pageRouter
 
       const personId = getUuid()
       await addToHistory(
-        OnboardingUserNamedThemself({
+        UserNamedThemself({
           userId,
           personId,
           name: presentation,
@@ -103,7 +103,7 @@ pageRouter
 
       const personId = await getPersonIdForUserId(userId)
       await addToHistory(
-        OnboardingUserConfirmedHisFace({
+        UserConfirmedHisFace({
           userId,
           photoId,
           faceId,
@@ -122,7 +122,7 @@ pageRouter
       if (newFamilyMemberName.length > 0) {
         const personId = getUuid()
         await addToHistory(
-          OnboardingUserNamedPersonInFamilyPhoto({
+          UserNamedPersonInPhoto({
             userId,
             photoId,
             faceId,
@@ -148,7 +148,7 @@ pageRouter
           })
           .parse(request.body)
         await addToHistory(
-          OnboardingUserRecognizedPersonInFamilyPhoto({
+          UserRecognizedPersonInPhoto({
             userId,
             photoId,
             faceId,
@@ -164,7 +164,7 @@ pageRouter
         })
         .parse(request.body)
       await addToHistory(
-        OnboardingFaceIgnoredInFamilyPhoto({
+        FaceIgnoredInPhoto({
           ignoredBy: userId,
           photoId,
           faceId,
@@ -188,7 +188,7 @@ pageRouter
           personId: zIsUUID,
         })
         .parse(request.body)
-      await addToHistory(OnboardingUserIgnoredRelationship({ personId, userId }))
+      await addToHistory(UserIgnoredRelationship({ personId, userId }))
     } else if (action === 'startFirstThread') {
       const { message } = z
         .object({
@@ -224,7 +224,7 @@ pageRouter
 
         if (isValidFamilyMemberRelationship(reducedRelation)) {
           await addToHistory(
-            OnboardingUserConfirmedRelationUsingOpenAI({
+            UserConfirmedRelationUsingOpenAI({
               personId,
               relationship: reducedRelation,
               userId,
@@ -290,7 +290,7 @@ pageRouter
             .parse(beneficiaries)
 
           await addToHistory(
-            OnboardingBeneficiariesChosen({
+            BeneficiariesChosen({
               userId,
               mode,
               // @ts-ignore
@@ -301,7 +301,7 @@ pageRouter
 
         if (mode === 'user-distributes-codes') {
           await addToHistory(
-            OnboardingBeneficiariesChosen({
+            BeneficiariesChosen({
               userId,
               mode,
             })

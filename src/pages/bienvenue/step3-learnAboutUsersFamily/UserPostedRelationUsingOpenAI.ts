@@ -2,8 +2,8 @@ import { DomainEvent, makeDomainEvent } from '../../../dependencies/DomainEvent'
 import { UUID } from '../../../domain'
 import { FamilyMemberRelationship } from './FamilyMemberRelationship'
 
-export type OnboardingUserPostedRelationUsingOpenAI = DomainEvent<
-  'OnboardingUserPostedRelationUsingOpenAI',
+export type UserPostedRelationUsingOpenAI = DomainEvent<
+  'UserPostedRelationUsingOpenAI',
   {
     personId: UUID
     userAnswer: string
@@ -20,6 +20,4 @@ export type OnboardingUserPostedRelationUsingOpenAI = DomainEvent<
   }
 >
 
-export const OnboardingUserPostedRelationUsingOpenAI = makeDomainEvent<OnboardingUserPostedRelationUsingOpenAI>(
-  'OnboardingUserPostedRelationUsingOpenAI'
-)
+export const UserPostedRelationUsingOpenAI = makeDomainEvent<UserPostedRelationUsingOpenAI>('UserPostedRelationUsingOpenAI')

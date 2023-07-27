@@ -2,24 +2,23 @@ import { SearchIndex } from 'algoliasearch/lite'
 import type { Request, Response } from 'express'
 import ReactDOMServer from 'react-dom/server'
 import { ADMIN_USERID } from '../../dependencies/env'
+import { getSingleEvent } from '../../dependencies/getSingleEvent'
+import { UUID } from '../../domain'
+import { UserHasDesignatedThemselfAsPerson } from '../../events/UserHasDesignatedThemselfAsPerson'
 import { LocationContext } from '../../pages/_components/LocationContext'
 import { Session, SessionContext } from '../../pages/_components/SessionContext'
 import { PersonSearchContext } from '../../pages/_components/usePersonSearch'
-import { withContext } from './withContext'
-import { getSingleEvent } from '../../dependencies/getSingleEvent'
-import { UserUploadedPhotoToChat } from '../../pages/chat/uploadPhotoToChat/UserUploadedPhotoToChat'
+import { UserNamedThemself } from '../../pages/bienvenue/step1-userTellsAboutThemselves/UserNamedThemself'
+import { UserConfirmedHisFace } from '../../pages/bienvenue/step2-userUploadsPhoto/UserConfirmedHisFace'
 import { OnboardingUserUploadedPhotoOfFamily } from '../../pages/bienvenue/step2-userUploadsPhoto/OnboardingUserUploadedPhotoOfFamily'
-import { OnboardingUserUploadedPhotoOfThemself } from '../../pages/bienvenue/step1-userTellsAboutThemselves/OnboardingUserUploadedPhotoOfThemself'
-import { UserHasDesignatedThemselfAsPerson } from '../../events/UserHasDesignatedThemselfAsPerson'
-import { OnboardingUserNamedThemself } from '../../pages/bienvenue/step1-userTellsAboutThemselves/OnboardingUserNamedThemself'
-import { UUID } from '../../domain'
-import { OnboardingUserConfirmedHisFace } from '../../pages/bienvenue/step2-userUploadsPhoto/OnboardingUserConfirmedHisFace'
-import { OnboardingUserNamedPersonInFamilyPhoto } from '../../pages/bienvenue/step3-learnAboutUsersFamily/OnboardingUserNamedPersonInFamilyPhoto'
-import { OnboardingUserRecognizedPersonInFamilyPhoto } from '../../pages/bienvenue/step3-learnAboutUsersFamily/OnboardingUserRecognizedPersonInFamilyPhoto'
+import { UserNamedPersonInPhoto } from '../../pages/bienvenue/step3-learnAboutUsersFamily/UserNamedPersonInPhoto'
+import { UserRecognizedPersonInPhoto } from '../../pages/bienvenue/step3-learnAboutUsersFamily/UserRecognizedPersonInPhoto'
+import { OnboardingUserStartedFirstThread } from '../../pages/bienvenue/step4-start-thread/OnboardingUserStartedFirstThread'
+import { UserSentMessageToChat } from '../../pages/chat/sendMessageToChat/UserSentMessageToChat'
+import { UserUploadedPhotoToChat } from '../../pages/chat/uploadPhotoToChat/UserUploadedPhotoToChat'
 import { PhotoManuallyAnnotated } from '../../pages/photo/annotateManually/PhotoManuallyAnnotated'
 import { PhotoAnnotationConfirmed } from '../../pages/photo/confirmPhotoAnnotation/PhotoAnnotationConfirmed'
-import { UserSentMessageToChat } from '../../pages/chat/sendMessageToChat/UserSentMessageToChat'
-import { OnboardingUserStartedFirstThread } from '../../pages/bienvenue/step4-start-thread/OnboardingUserStartedFirstThread'
+import { withContext } from './withContext'
 
 const html = String.raw
 
@@ -120,8 +119,8 @@ async function getSession(request: Request): Promise<Session> {
 }
 
 const getProfilePicUrlForUser = async (userId: UUID): Promise<string | null> => {
-  const person = await getSingleEvent<UserHasDesignatedThemselfAsPerson | OnboardingUserNamedThemself>(
-    ['OnboardingUserNamedThemself', 'UserHasDesignatedThemselfAsPerson'],
+  const person = await getSingleEvent<UserHasDesignatedThemselfAsPerson | UserNamedThemself>(
+    ['UserNamedThemself', 'UserHasDesignatedThemselfAsPerson'],
     { userId }
   )
 
@@ -132,14 +131,14 @@ const getProfilePicUrlForUser = async (userId: UUID): Promise<string | null> => 
   const faceEvent = await getSingleEvent<
     | PhotoAnnotationConfirmed
     | PhotoManuallyAnnotated
-    | OnboardingUserConfirmedHisFace
-    | OnboardingUserNamedPersonInFamilyPhoto
-    | OnboardingUserRecognizedPersonInFamilyPhoto
+    | UserConfirmedHisFace
+    | UserNamedPersonInPhoto
+    | UserRecognizedPersonInPhoto
   >(
     [
-      'OnboardingUserConfirmedHisFace',
-      'OnboardingUserNamedPersonInFamilyPhoto',
-      'OnboardingUserRecognizedPersonInFamilyPhoto',
+      'UserConfirmedHisFace',
+      'UserNamedPersonInPhoto',
+      'UserRecognizedPersonInPhoto',
       'PhotoAnnotationConfirmed',
       'PhotoManuallyAnnotated',
     ],

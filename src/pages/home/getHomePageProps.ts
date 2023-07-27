@@ -5,19 +5,18 @@ import { getPhotoUrlFromId } from '../../dependencies/photo-storage'
 import { UUID } from '../../domain'
 import { getPersonByIdOrThrow, getPersonById } from '../_getPersonById'
 import { getPersonIdsForFaceId } from '../_getPersonsIdsForFaceId'
-import { OnboardingUserNamedThemself } from '../bienvenue/step1-userTellsAboutThemselves/OnboardingUserNamedThemself'
+import { UserNamedThemself } from '../bienvenue/step1-userTellsAboutThemselves/UserNamedThemself'
 import { OnboardingUserUploadedPhotoOfThemself } from '../bienvenue/step1-userTellsAboutThemselves/OnboardingUserUploadedPhotoOfThemself'
-import { OnboardingUserConfirmedHisFace } from '../bienvenue/step2-userUploadsPhoto/OnboardingUserConfirmedHisFace'
+import { UserConfirmedHisFace } from '../bienvenue/step2-userUploadsPhoto/UserConfirmedHisFace'
 import { OnboardingUserUploadedPhotoOfFamily } from '../bienvenue/step2-userUploadsPhoto/OnboardingUserUploadedPhotoOfFamily'
-import { OnboardingBeneficiariesChosen } from '../bienvenue/step3-learnAboutUsersFamily/OnboardingBeneficiariesChosen'
-import { OnboardingFaceIgnoredInFamilyPhoto } from '../bienvenue/step3-learnAboutUsersFamily/OnboardingFaceIgnoredInFamilyPhoto'
+import { BeneficiariesChosen } from '../bienvenue/step3-learnAboutUsersFamily/BeneficiariesChosen'
+import { FaceIgnoredInPhoto } from '../bienvenue/step3-learnAboutUsersFamily/FaceIgnoredInPhoto'
 import { OnboardingFamilyMemberAnnotationIsDone } from '../bienvenue/step3-learnAboutUsersFamily/OnboardingFamilyMemberAnnotationIsDone'
 import { OnboardingReadyForBeneficiaries } from '../bienvenue/step3-learnAboutUsersFamily/OnboardingReadyForBeneficiaries'
-import { OnboardingUserConfirmedRelationUsingOpenAI } from '../bienvenue/step3-learnAboutUsersFamily/OnboardingUserConfirmedRelationUsingOpenAI'
-import { OnboardingUserIgnoredRelationship } from '../bienvenue/step3-learnAboutUsersFamily/OnboardingUserIgnoredRelationship'
-import { OnboardingUserNamedPersonInFamilyPhoto } from '../bienvenue/step3-learnAboutUsersFamily/OnboardingUserNamedPersonInFamilyPhoto'
-import { OnboardingUserPostedRelationUsingOpenAI } from '../bienvenue/step3-learnAboutUsersFamily/OnboardingUserPostedRelationUsingOpenAI'
-import { OnboardingUserRecognizedPersonInFamilyPhoto } from '../bienvenue/step3-learnAboutUsersFamily/OnboardingUserRecognizedPersonInFamilyPhoto'
+import { UserConfirmedRelationUsingOpenAI } from '../bienvenue/step3-learnAboutUsersFamily/UserConfirmedRelationUsingOpenAI'
+import { UserIgnoredRelationship } from '../bienvenue/step3-learnAboutUsersFamily/UserIgnoredRelationship'
+import { UserNamedPersonInPhoto } from '../bienvenue/step3-learnAboutUsersFamily/UserNamedPersonInPhoto'
+import { UserPostedRelationUsingOpenAI } from '../bienvenue/step3-learnAboutUsersFamily/UserPostedRelationUsingOpenAI'
 import { OnboardingUserStartedFirstThread } from '../bienvenue/step4-start-thread/OnboardingUserStartedFirstThread'
 import { AWSDetectedFacesInPhoto } from '../photo/recognizeFacesInChatPhoto/AWSDetectedFacesInPhoto'
 import {
@@ -28,8 +27,9 @@ import {
   UploadFamilyPhoto,
   UploadFirstPhoto,
 } from './HomePage'
+import { UserRecognizedPersonInPhoto } from '../bienvenue/step3-learnAboutUsersFamily/UserRecognizedPersonInPhoto'
 
-const RELATIONSHIPS_ENABLED = false
+export const RELATIONSHIPS_ENABLED = false
 
 export const getHomePageProps = async (userId: UUID): Promise<HomePageProps> => {
   const step1 = await getGetUserName(userId)
@@ -57,7 +57,7 @@ export const getHomePageProps = async (userId: UUID): Promise<HomePageProps> => 
 }
 
 async function getFinishedOnboardingDate(userId: UUID): Promise<Date> {
-  const beneficiariesChosen = await getSingleEvent<OnboardingBeneficiariesChosen>('OnboardingBeneficiariesChosen', { userId })
+  const beneficiariesChosen = await getSingleEvent<BeneficiariesChosen>('BeneficiariesChosen', { userId })
 
   if (beneficiariesChosen) {
     return beneficiariesChosen.occurredAt
@@ -67,7 +67,7 @@ async function getFinishedOnboardingDate(userId: UUID): Promise<Date> {
 }
 
 async function getChoseBeneficiaries(userId: UUID): Promise<ChoseBeneficiaries> {
-  const beneficiaries = await getSingleEvent<OnboardingBeneficiariesChosen>('OnboardingBeneficiariesChosen', { userId })
+  const beneficiaries = await getSingleEvent<BeneficiariesChosen>('BeneficiariesChosen', { userId })
 
   if (beneficiaries) {
     return { 'chose-beneficiaries': 'done' }
@@ -146,13 +146,14 @@ async function getFamilyDetectedFace(args: { faceId: UUID; photoId: UUID; userId
   const { faceId, photoId, userId } = args
 
   // Has a this face been named or recognized ?
-  const personNamedOrRecognized = await getSingleEvent<
-    OnboardingUserNamedPersonInFamilyPhoto | OnboardingUserRecognizedPersonInFamilyPhoto
-  >(['OnboardingUserNamedPersonInFamilyPhoto', 'OnboardingUserRecognizedPersonInFamilyPhoto'], {
-    faceId,
-    photoId,
-    userId,
-  })
+  const personNamedOrRecognized = await getSingleEvent<UserNamedPersonInPhoto | UserRecognizedPersonInPhoto>(
+    ['UserNamedPersonInPhoto', 'UserRecognizedPersonInPhoto'],
+    {
+      faceId,
+      photoId,
+      userId,
+    }
+  )
 
   if (personNamedOrRecognized) {
     // Yes, the face was named or recognized
@@ -160,7 +161,7 @@ async function getFamilyDetectedFace(args: { faceId: UUID; photoId: UUID; userId
     const { personId } = payload
 
     let name: string
-    if (type === 'OnboardingUserNamedPersonInFamilyPhoto') {
+    if (type === 'UserNamedPersonInPhoto') {
       name = payload.name
     } else {
       name = (await getPersonByIdOrThrow(personId)).name
@@ -168,7 +169,7 @@ async function getFamilyDetectedFace(args: { faceId: UUID; photoId: UUID; userId
 
     if (RELATIONSHIPS_ENABLED) {
       // Did the user pass on naming this relationship ?
-      const ignoredRelationship = await getSingleEvent<OnboardingUserIgnoredRelationship>('OnboardingUserIgnoredRelationship', {
+      const ignoredRelationship = await getSingleEvent<UserIgnoredRelationship>('UserIgnoredRelationship', {
         personId,
       })
       if (ignoredRelationship) {
@@ -181,10 +182,9 @@ async function getFamilyDetectedFace(args: { faceId: UUID; photoId: UUID; userId
       }
 
       // Has a relationship been confirmed for this person ?
-      const confirmedRelation = await getSingleEvent<OnboardingUserConfirmedRelationUsingOpenAI>(
-        'OnboardingUserConfirmedRelationUsingOpenAI',
-        { personId }
-      )
+      const confirmedRelation = await getSingleEvent<UserConfirmedRelationUsingOpenAI>('UserConfirmedRelationUsingOpenAI', {
+        personId,
+      })
 
       if (confirmedRelation) {
         // Yes a relationship has been confirmed for this person
@@ -201,10 +201,9 @@ async function getFamilyDetectedFace(args: { faceId: UUID; photoId: UUID; userId
 
       // No confirmation
       // Has there been relationship posted by user ?
-      const userPostedRelationship = await getSingleEvent<OnboardingUserPostedRelationUsingOpenAI>(
-        'OnboardingUserPostedRelationUsingOpenAI',
-        { personId }
-      )
+      const userPostedRelationship = await getSingleEvent<UserPostedRelationUsingOpenAI>('UserPostedRelationUsingOpenAI', {
+        personId,
+      })
 
       if (userPostedRelationship) {
         // Yes, a relationship has been posted
@@ -237,7 +236,7 @@ async function getFamilyDetectedFace(args: { faceId: UUID; photoId: UUID; userId
   }
 
   // Has this face been ignored ?
-  const faceIgnored = await getSingleEvent<OnboardingFaceIgnoredInFamilyPhoto>('OnboardingFaceIgnoredInFamilyPhoto', {
+  const faceIgnored = await getSingleEvent<FaceIgnoredInPhoto>('FaceIgnoredInPhoto', {
     photoId,
     faceId,
     ignoredBy: userId,
@@ -273,7 +272,7 @@ async function getFamilyDetectedFace(args: { faceId: UUID; photoId: UUID; userId
 }
 
 async function getUploadFirstPhoto(userId: UUID): Promise<UploadFirstPhoto> {
-  const userFaceConfirmed = await getSingleEvent<OnboardingUserConfirmedHisFace>('OnboardingUserConfirmedHisFace', { userId })
+  const userFaceConfirmed = await getSingleEvent<UserConfirmedHisFace>('UserConfirmedHisFace', { userId })
 
   if (userFaceConfirmed) {
     const { photoId, faceId } = userFaceConfirmed.payload
@@ -306,7 +305,7 @@ async function getUploadFirstPhoto(userId: UUID): Promise<UploadFirstPhoto> {
 }
 
 async function getGetUserName(userId: UUID): Promise<GetUserName> {
-  const userNamedThemself = await getSingleEvent<OnboardingUserNamedThemself>('OnboardingUserNamedThemself', { userId })
+  const userNamedThemself = await getSingleEvent<UserNamedThemself>('UserNamedThemself', { userId })
 
   if (userNamedThemself) {
     const { name, personId } = userNamedThemself.payload

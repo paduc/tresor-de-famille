@@ -5,17 +5,17 @@ import { getPersonById, getPersonByIdOrThrow } from '../_getPersonById'
 import { getPersonIdsForFaceId } from '../_getPersonsIdsForFaceId'
 import { AWSDetectedFacesInPhoto } from '../photo/recognizeFacesInChatPhoto/AWSDetectedFacesInPhoto'
 import { BienvenuePageProps } from './BienvenuePage'
-import { OnboardingUserNamedThemself } from './step1-userTellsAboutThemselves/OnboardingUserNamedThemself'
+import { UserNamedThemself } from './step1-userTellsAboutThemselves/UserNamedThemself'
 import { OnboardingUserUploadedPhotoOfThemself } from './step1-userTellsAboutThemselves/OnboardingUserUploadedPhotoOfThemself'
 import { OnboardingUserUploadedPhotoOfFamily } from './step2-userUploadsPhoto/OnboardingUserUploadedPhotoOfFamily'
-import { OnboardingUserConfirmedHisFace } from './step2-userUploadsPhoto/OnboardingUserConfirmedHisFace'
-import { OnboardingFaceIgnoredInFamilyPhoto } from './step3-learnAboutUsersFamily/OnboardingFaceIgnoredInFamilyPhoto'
-import { OnboardingUserNamedPersonInFamilyPhoto } from './step3-learnAboutUsersFamily/OnboardingUserNamedPersonInFamilyPhoto'
-import { OnboardingUserPostedRelationUsingOpenAI } from './step3-learnAboutUsersFamily/OnboardingUserPostedRelationUsingOpenAI'
-import { OnboardingUserRecognizedPersonInFamilyPhoto } from './step3-learnAboutUsersFamily/OnboardingUserRecognizedPersonInFamilyPhoto'
-import { OnboardingUserConfirmedRelationUsingOpenAI } from './step3-learnAboutUsersFamily/OnboardingUserConfirmedRelationUsingOpenAI'
+import { UserConfirmedHisFace } from './step2-userUploadsPhoto/UserConfirmedHisFace'
+import { FaceIgnoredInPhoto } from './step3-learnAboutUsersFamily/FaceIgnoredInPhoto'
+import { UserNamedPersonInPhoto } from './step3-learnAboutUsersFamily/UserNamedPersonInPhoto'
+import { UserPostedRelationUsingOpenAI } from './step3-learnAboutUsersFamily/UserPostedRelationUsingOpenAI'
+import { UserRecognizedPersonInPhoto } from './step3-learnAboutUsersFamily/UserRecognizedPersonInPhoto'
+import { UserConfirmedRelationUsingOpenAI } from './step3-learnAboutUsersFamily/UserConfirmedRelationUsingOpenAI'
 import { getSingleEvent } from '../../dependencies/getSingleEvent'
-import { OnboardingUserIgnoredRelationship } from './step3-learnAboutUsersFamily/OnboardingUserIgnoredRelationship'
+import { UserIgnoredRelationship } from './step3-learnAboutUsersFamily/UserIgnoredRelationship'
 import { OnboardingUserStartedFirstThread } from './step4-start-thread/OnboardingUserStartedFirstThread'
 
 export async function getBienvenuePageProps(userId: UUID): Promise<BienvenuePageProps> {
@@ -56,9 +56,9 @@ type FamilyMemberPhotoFace = FamilyPhoto['faces'][number]
 type OnboardingStep = BienvenuePageProps['steps'][number]
 
 async function getUserPresentsThemselfStep(userId: UUID): Promise<OnboardingStep & { goal: 'get-user-name' }> {
-  // Get OnboardingUserNamedThemself to have access to personId and name
-  const { rows: userNamedRows } = await postgres.query<OnboardingUserNamedThemself>(
-    "SELECT * FROM history WHERE type='OnboardingUserNamedThemself' AND payload->>'userId'=$1 ORDER BY \"occurredAt\" DESC LIMIT 1",
+  // Get UserNamedThemself to have access to personId and name
+  const { rows: userNamedRows } = await postgres.query<UserNamedThemself>(
+    "SELECT * FROM history WHERE type='UserNamedThemself' AND payload->>'userId'=$1 ORDER BY \"occurredAt\" DESC LIMIT 1",
     [userId]
   )
 
@@ -124,8 +124,8 @@ async function getUserUploadsFamilyPhotoStep(userId: UUID): Promise<OnboardingSt
 
 async function getUserUploadsHisPhotoStep(userId: UUID): Promise<OnboardingStep & { goal: 'upload-first-photo' }> {
   // Has the user confirmed their face ?
-  const { rows: userConfirmedFace } = await postgres.query<OnboardingUserConfirmedHisFace>(
-    "SELECT * FROM history WHERE type='OnboardingUserConfirmedHisFace' AND payload->>'userId'=$1 ORDER BY \"occurredAt\" DESC LIMIT 1",
+  const { rows: userConfirmedFace } = await postgres.query<UserConfirmedHisFace>(
+    "SELECT * FROM history WHERE type='UserConfirmedHisFace' AND payload->>'userId'=$1 ORDER BY \"occurredAt\" DESC LIMIT 1",
     [userId]
   )
 
@@ -191,13 +191,14 @@ async function getFamilyDetectedFace(args: {
   const { detectedFace, photoId, userId } = args
 
   // Has a this face been named or recognized ?
-  const personNamedOrRecognized = await getSingleEvent<
-    OnboardingUserNamedPersonInFamilyPhoto | OnboardingUserRecognizedPersonInFamilyPhoto
-  >(['OnboardingUserNamedPersonInFamilyPhoto', 'OnboardingUserRecognizedPersonInFamilyPhoto'], {
-    faceId: detectedFace.faceId,
-    photoId,
-    userId,
-  })
+  const personNamedOrRecognized = await getSingleEvent<UserNamedPersonInPhoto | UserRecognizedPersonInPhoto>(
+    ['UserNamedPersonInPhoto', 'UserRecognizedPersonInPhoto'],
+    {
+      faceId: detectedFace.faceId,
+      photoId,
+      userId,
+    }
+  )
 
   if (personNamedOrRecognized) {
     // Yes, the face was named or recognized
@@ -205,14 +206,14 @@ async function getFamilyDetectedFace(args: {
     const { personId } = payload
 
     let name: string
-    if (type === 'OnboardingUserNamedPersonInFamilyPhoto') {
+    if (type === 'UserNamedPersonInPhoto') {
       name = payload.name
     } else {
       name = (await getPersonByIdOrThrow(personId)).name
     }
 
     // Did the user pass on naming this relationship ?
-    const ignoredRelationship = await getSingleEvent<OnboardingUserIgnoredRelationship>('OnboardingUserIgnoredRelationship', {
+    const ignoredRelationship = await getSingleEvent<UserIgnoredRelationship>('UserIgnoredRelationship', {
       personId,
     })
     if (ignoredRelationship) {
@@ -225,8 +226,8 @@ async function getFamilyDetectedFace(args: {
     }
 
     // Has a relationship been confirmed for this person ?
-    const { rows: confirmedRelationships } = await postgres.query<OnboardingUserConfirmedRelationUsingOpenAI>(
-      "SELECT * FROM history WHERE type='OnboardingUserConfirmedRelationUsingOpenAI' AND payload->>'personId'=$1 ORDER BY \"occurredAt\" DESC LIMIT 1",
+    const { rows: confirmedRelationships } = await postgres.query<UserConfirmedRelationUsingOpenAI>(
+      "SELECT * FROM history WHERE type='UserConfirmedRelationUsingOpenAI' AND payload->>'personId'=$1 ORDER BY \"occurredAt\" DESC LIMIT 1",
       [personId]
     )
 
@@ -245,8 +246,8 @@ async function getFamilyDetectedFace(args: {
 
     // No confirmation
     // Has there been relationship posted by user ?
-    const { rows: relationships } = await postgres.query<OnboardingUserPostedRelationUsingOpenAI>(
-      "SELECT * FROM history WHERE type='OnboardingUserPostedRelationUsingOpenAI' AND payload->>'personId'=$1 ORDER BY \"occurredAt\" DESC LIMIT 1",
+    const { rows: relationships } = await postgres.query<UserPostedRelationUsingOpenAI>(
+      "SELECT * FROM history WHERE type='UserPostedRelationUsingOpenAI' AND payload->>'personId'=$1 ORDER BY \"occurredAt\" DESC LIMIT 1",
       [personId]
     )
 
@@ -275,8 +276,8 @@ async function getFamilyDetectedFace(args: {
   }
 
   // Has this face been ignored ?
-  const { rowCount: faceIgnored } = await postgres.query<OnboardingFaceIgnoredInFamilyPhoto>(
-    "SELECT * FROM history WHERE type='OnboardingFaceIgnoredInFamilyPhoto' AND payload->>'faceId'=$1 AND payload->>'photoId'=$2 AND payload->>'ignoredBy'=$3 ORDER BY \"occurredAt\" DESC LIMIT 1",
+  const { rowCount: faceIgnored } = await postgres.query<FaceIgnoredInPhoto>(
+    "SELECT * FROM history WHERE type='FaceIgnoredInPhoto' AND payload->>'faceId'=$1 AND payload->>'photoId'=$2 AND payload->>'ignoredBy'=$3 ORDER BY \"occurredAt\" DESC LIMIT 1",
     [detectedFace.faceId, photoId, userId]
   )
 

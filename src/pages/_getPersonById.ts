@@ -1,8 +1,8 @@
 import { postgres } from '../dependencies/database'
 import { UUID } from '../domain'
 import { GedcomImported } from '../events'
-import { OnboardingUserNamedThemself } from './bienvenue/step1-userTellsAboutThemselves/OnboardingUserNamedThemself'
-import { OnboardingUserNamedPersonInFamilyPhoto } from './bienvenue/step3-learnAboutUsersFamily/OnboardingUserNamedPersonInFamilyPhoto'
+import { UserNamedThemself } from './bienvenue/step1-userTellsAboutThemselves/UserNamedThemself'
+import { UserNamedPersonInPhoto } from './bienvenue/step3-learnAboutUsersFamily/UserNamedPersonInPhoto'
 import { OpenAIMadeDeductions } from './chat/sendToOpenAIForDeductions/OpenAIMadeDeductions'
 import { PhotoAnnotatedUsingOpenAI } from './photo/annotatePhotoUsingOpenAI/PhotoAnnotatedUsingOpenAI'
 
@@ -54,8 +54,8 @@ export const getPersonById = async (personId: UUID): Promise<PersonById | null> 
     }
   }
 
-  const { rows: onboardedPersons } = await postgres.query<OnboardingUserNamedThemself>(
-    "SELECT * FROM history WHERE type = 'OnboardingUserNamedThemself'"
+  const { rows: onboardedPersons } = await postgres.query<UserNamedThemself>(
+    "SELECT * FROM history WHERE type = 'UserNamedThemself'"
   )
 
   if (onboardedPersons.length) {
@@ -65,8 +65,8 @@ export const getPersonById = async (personId: UUID): Promise<PersonById | null> 
     }
   }
 
-  const { rows: personsNamedDuringOnboarding } = await postgres.query<OnboardingUserNamedPersonInFamilyPhoto>(
-    "SELECT * FROM history WHERE type = 'OnboardingUserNamedPersonInFamilyPhoto'"
+  const { rows: personsNamedDuringOnboarding } = await postgres.query<UserNamedPersonInPhoto>(
+    "SELECT * FROM history WHERE type = 'UserNamedPersonInPhoto'"
   )
 
   if (personsNamedDuringOnboarding.length) {

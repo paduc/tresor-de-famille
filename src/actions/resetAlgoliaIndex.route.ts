@@ -3,8 +3,8 @@ import { postgres } from '../dependencies/database'
 import { REGISTRATION_CODE } from '../dependencies/env'
 import { personsIndex } from '../dependencies/search'
 import { GedcomImported } from '../events'
-import { OnboardingUserNamedThemself } from '../pages/bienvenue/step1-userTellsAboutThemselves/OnboardingUserNamedThemself'
-import { OnboardingUserNamedPersonInFamilyPhoto } from '../pages/bienvenue/step3-learnAboutUsersFamily/OnboardingUserNamedPersonInFamilyPhoto'
+import { UserNamedThemself } from '../pages/bienvenue/step1-userTellsAboutThemselves/UserNamedThemself'
+import { UserNamedPersonInPhoto } from '../pages/bienvenue/step3-learnAboutUsersFamily/UserNamedPersonInPhoto'
 import { PhotoAnnotatedUsingOpenAI } from '../pages/photo/annotatePhotoUsingOpenAI/PhotoAnnotatedUsingOpenAI'
 import { PhotoAnnotationConfirmed } from '../pages/photo/confirmPhotoAnnotation/PhotoAnnotationConfirmed'
 import { actionsRouter } from './actionsRouter'
@@ -52,8 +52,8 @@ actionsRouter.get('/resetAlgoliaIndex', requireAuth(), async (request, response)
 })
 
 async function indexUserPresentedThemself() {
-  const { rows: onboardedPersons } = await postgres.query<OnboardingUserNamedThemself>(
-    "SELECT * FROM history WHERE type = 'OnboardingUserNamedThemself'"
+  const { rows: onboardedPersons } = await postgres.query<UserNamedThemself>(
+    "SELECT * FROM history WHERE type = 'UserNamedThemself'"
   )
 
   for (const onboardedPerson of onboardedPersons) {
@@ -68,8 +68,8 @@ async function indexUserPresentedThemself() {
 }
 
 async function indexUserPresentedFamilyMember() {
-  const { rows: onboardedPersons } = await postgres.query<OnboardingUserNamedPersonInFamilyPhoto>(
-    "SELECT * FROM history WHERE type = 'OnboardingUserNamedPersonInFamilyPhoto'"
+  const { rows: onboardedPersons } = await postgres.query<UserNamedPersonInPhoto>(
+    "SELECT * FROM history WHERE type = 'UserNamedPersonInPhoto'"
   )
 
   for (const onboardedPerson of onboardedPersons) {

@@ -16,7 +16,7 @@ const fakePersonSearch = async (query: string) => {
 }
 
 export default {
-  title: 'Onboarding',
+  title: 'DEPRECATED Onboarding',
   component: BienvenuePage,
   parameters: { layout: 'fullscreen' },
   decorators: [

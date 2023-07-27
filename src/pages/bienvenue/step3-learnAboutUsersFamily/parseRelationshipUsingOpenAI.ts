@@ -3,7 +3,7 @@ import { addToHistory } from '../../../dependencies/addToHistory'
 import { UUID } from '../../../domain'
 import { getPersonByIdOrThrow } from '../../_getPersonById'
 import { FamilyMemberRelationship, isRelationWithSide, isRelationWithoutSide } from './FamilyMemberRelationship'
-import { OnboardingUserPostedRelationUsingOpenAI } from './OnboardingUserPostedRelationUsingOpenAI'
+import { UserPostedRelationUsingOpenAI } from './UserPostedRelationUsingOpenAI'
 
 const relationships = [
   'father',
@@ -116,7 +116,7 @@ export const parseRelationshipUsingOpenAI = async ({ userId, personId, userAnswe
     }
 
     await addToHistory(
-      OnboardingUserPostedRelationUsingOpenAI({ userId, personId, userAnswer, messages, relationship: parsedRelationship })
+      UserPostedRelationUsingOpenAI({ userId, personId, userAnswer, messages, relationship: parsedRelationship })
     )
   } catch (error) {
     console.error(error)
