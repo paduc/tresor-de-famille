@@ -141,22 +141,24 @@ const PhotoItem = (props: PhotoItemProps) => {
   const photoPageUrl = `/photo/${props.photoId}/photo.html?threadId=${props.chatId}`
 
   return (
-    <div className='grid grid-cols-1 w-full px-4 sm:px-10 pb-2'>
+    <div className='grid grid-cols-1 w-full px-4 sm:px-8 pb-2'>
       <div className='mb-2'>
         <a href={photoPageUrl}>
           <img src={url} className='max-w-full max-h-[50vh] border border-gray-300 shadow-sm' />
         </a>
       </div>
 
-      <p className='text-md text-gray-600 mb-1'>{description}</p>
-      {descriptionOfPeople ? <p className='text-md text-gray-600 mb-1'>avec {descriptionOfPeople}</p> : null}
-      {!description && unrecognizedFacesInPhoto ? (
-        <p className='text-md text-gray-600 mb-1'>
-          <a href={photoPageUrl} className='font-medium text-indigo-600 hover:text-indigo-500'>
-            Annoter le(s) {unrecognizedFacesInPhoto} visage(s)
-          </a>
-        </p>
-      ) : null}
+      <div className='sm:px-2'>
+        <p className='text-md text-gray-600 mb-1 whitespace-pre-wrap'>{description}</p>
+        {descriptionOfPeople ? <p className='text-md text-gray-600 mb-1'>avec {descriptionOfPeople}</p> : null}
+        {!description && unrecognizedFacesInPhoto ? (
+          <p className='text-md text-gray-600 mb-1'>
+            <a href={photoPageUrl} className='font-medium text-indigo-600 hover:text-indigo-500'>
+              Annoter le(s) {unrecognizedFacesInPhoto} visage(s)
+            </a>
+          </p>
+        ) : null}
+      </div>
     </div>
   )
 }

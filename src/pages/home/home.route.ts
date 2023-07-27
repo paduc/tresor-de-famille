@@ -38,7 +38,7 @@ pageRouter
     try {
       const props = await getHomePageProps(request.session.user!.id)
 
-      responseAsHtml(request, response, HomePage({ ...props }))
+      responseAsHtml(request, response, HomePage(props))
     } catch (error) {
       return response.send('Erreur de chargement de page home')
     }

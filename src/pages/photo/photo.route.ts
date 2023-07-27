@@ -2,26 +2,20 @@ import multer from 'multer'
 import zod, { z } from 'zod'
 import { addToHistory } from '../../dependencies/addToHistory'
 import { requireAuth } from '../../dependencies/authn'
+import { personsIndex } from '../../dependencies/search'
 import { zIsUUID } from '../../domain'
 import { getUuid } from '../../libs/getUuid'
 import { responseAsHtml } from '../../libs/ssr/responseAsHtml'
-import { uploadPhotoToChat } from '../chat/uploadPhotoToChat/uploadPhotoToChat'
-import { pageRouter } from '../pageRouter'
-import { PhotoPage } from './PhotoPage/PhotoPage'
-import { UserAddedCaptionToPhoto } from './UserAddedCaptionToPhoto'
-import { annotatePhotoUsingOpenAI } from './annotatePhotoUsingOpenAI/annotatePhotoUsingOpenAI'
-import { confirmOpenAIPhotoAnnotation } from './confirmPhotoAnnotation/confirmOpenAIPhotoAnnotation'
-import { getPhoto } from './getPhoto.query'
-import { detectFacesInPhotoUsingAWS } from './recognizeFacesInChatPhoto/detectFacesInPhotoUsingAWS'
-import { confirmAWSPhotoAnnotation } from './confirmPhotoAnnotation/confirmAWSPhotoAnnotation'
-import { annotateManually } from './annotateManually/annotateManually'
 import { onboardingUrl } from '../bienvenue/onboardingUrl'
-import { personsIndex } from '../../dependencies/search'
+import { FaceIgnoredInPhoto } from '../bienvenue/step3-learnAboutUsersFamily/FaceIgnoredInPhoto'
 import { UserNamedPersonInPhoto } from '../bienvenue/step3-learnAboutUsersFamily/UserNamedPersonInPhoto'
 import { UserRecognizedPersonInPhoto } from '../bienvenue/step3-learnAboutUsersFamily/UserRecognizedPersonInPhoto'
-import { FaceIgnoredInPhoto } from '../bienvenue/step3-learnAboutUsersFamily/FaceIgnoredInPhoto'
-import { getNewPhotoPageProps } from './getNewPhotoPageProps'
+import { uploadPhotoToChat } from '../chat/uploadPhotoToChat/uploadPhotoToChat'
+import { pageRouter } from '../pageRouter'
 import { NewPhotoPage } from './PhotoPage/NewPhotoPage'
+import { UserAddedCaptionToPhoto } from './UserAddedCaptionToPhoto'
+import { getNewPhotoPageProps } from './getNewPhotoPageProps'
+import { detectFacesInPhotoUsingAWS } from './recognizeFacesInChatPhoto/detectFacesInPhotoUsingAWS'
 
 const FILE_SIZE_LIMIT_MB = 50
 const upload = multer({
@@ -52,7 +46,7 @@ pageRouter
         props.updated = true
       }
 
-      responseAsHtml(request, response, NewPhotoPage({ ...props }))
+      responseAsHtml(request, response, NewPhotoPage(props))
     } catch (error) {
       console.error('error', error)
       response.send(error)
