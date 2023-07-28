@@ -57,7 +57,7 @@ export const PersonSearch = ({ onPersonSelected, open, setOpen, personFaceUrl }:
           leave='ease-in duration-200'
           leaveFrom='opacity-100'
           leaveTo='opacity-0'>
-          <div className='fixed inset-0 bg-white bg-opacity-100 lg:bg-opacity-50 transition-opacity' />
+          <div className='fixed inset-0 bg-gray-100 bg-opacity-100 transition-opacity' />
         </Transition.Child>
 
         <div className='fixed inset-0 z-10 overflow-y-auto p-4 sm:p-6 md:p-20'>
@@ -82,8 +82,9 @@ export const PersonSearch = ({ onPersonSelected, open, setOpen, personFaceUrl }:
                   <Combobox.Input
                     className={`h-12 w-full border-0 bg-transparent ${
                       personFaceUrl ? 'pl-24' : 'pl-11'
-                    } pr-4 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm`}
-                    placeholder='Search...'
+                    } pr-4 text-gray-900 placeholder:text-gray-400 focus:ring-0`}
+                    autoFocus
+                    placeholder='Rechercher...'
                     onChange={(event) => setQuery(event.target.value.trim())}
                   />
                 </div>
@@ -132,7 +133,7 @@ export const PersonSearch = ({ onPersonSelected, open, setOpen, personFaceUrl }:
                 )}
 
                 {query !== '' && hits.length === 0 && (
-                  <p className='p-4 text-sm text-gray-500'>Cette personne n'est pas encore connu ?!</p>
+                  <p className='p-4 text-sm text-gray-500'>Votre trésor ne parle pas encore de cette personne.</p>
                 )}
               </Combobox>
             </Dialog.Panel>

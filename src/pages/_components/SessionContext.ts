@@ -10,6 +10,7 @@ export type Session =
       profilePic: string | null
       isAdmin: boolean
       arePhotosEnabled: boolean
+      arePersonsEnabled: boolean
       areThreadsEnabled: boolean
       areVideosEnabled: boolean
     }

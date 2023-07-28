@@ -13,8 +13,10 @@
   ```
 */
 import { Dialog, Menu, Transition } from '@headlessui/react'
-import { Bars3Icon, BookOpenIcon, PhotoIcon, PlusSmallIcon, XMarkIcon } from '@heroicons/react/24/outline'
+import { Bars3Icon, BookOpenIcon, MagnifyingGlassIcon, PhotoIcon, PlusSmallIcon, XMarkIcon } from '@heroicons/react/24/outline'
 import React, { Fragment, useContext, useState } from 'react'
+import { PersonPageURL } from '../../person/PersonPageURL'
+import { PersonSearch } from '../../photo/PhotoPage/PersonSearch'
 import { InlinePhotoUpload } from '../InlinePhotoUpload'
 import { LocationContext } from '../LocationContext'
 import { Logo } from '../Logo'
@@ -34,6 +36,17 @@ export default function AdaptiveLayout({ children }: AdaptiveLayoutProps) {
   const url = useContext(LocationContext)
 
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [personSearchOpen, setPersonSearchOpen] = useState(false)
+
+  const keyDownHandler = (event: KeyboardEvent) => {
+    if (event.metaKey && event.key === 'k') {
+      setPersonSearchOpen(true)
+    }
+  }
+
+  React.useEffect(() => {
+    session.isLoggedIn && session.arePersonsEnabled && window.addEventListener('keydown', keyDownHandler)
+  })
 
   if (!session.isLoggedIn) {
     return <p>Session not available</p>
@@ -78,6 +91,15 @@ export default function AdaptiveLayout({ children }: AdaptiveLayoutProps) {
         ```
       */}
       <div>
+        {session.arePersonsEnabled ? (
+          <PersonSearch
+            open={personSearchOpen}
+            setOpen={setPersonSearchOpen}
+            onPersonSelected={(personId) => {
+              window.location.assign(PersonPageURL(personId))
+            }}
+          />
+        ) : null}
         {/* Mobile navbar */}
         <Transition.Root show={sidebarOpen} as={Fragment}>
           <Dialog as='div' className='relative z-40 lg:hidden' onClose={setSidebarOpen}>
@@ -349,22 +371,22 @@ export default function AdaptiveLayout({ children }: AdaptiveLayoutProps) {
               <div className='h-6 w-px bg-gray-900/10 lg:hidden' aria-hidden='true' />
 
               <div className='flex flex-1 gap-x-4 self-stretch lg:gap-x-6'>
-                <form className='relative flex flex-1' action='#' method='GET'>
-                  {/* <label htmlFor='search-field' className='sr-only'>
-                  Search
-                </label>
-                <SearchIcon
-                  className='pointer-events-none absolute inset-y-0 left-0 h-full w-5 text-gray-400'
-                  aria-hidden='true'
-                />
-                <input
-                  id='search-field'
-                  className='block h-full w-full border-0 py-0 pl-8 pr-0 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm'
-                  placeholder='Search...'
-                  type='search'
-                  name='search'
-                /> */}
-                </form>
+                <div className='relative flex flex-1 items-center'>
+                  {session.arePersonsEnabled ? (
+                    <>
+                      <MagnifyingGlassIcon
+                        className='h-5 w-5 text-gray-400 cursor-pointer'
+                        aria-hidden='true'
+                        onClick={() => setPersonSearchOpen(true)}
+                      />
+                      <div
+                        className='pl-3 w-full text-gray-400 align-middle cursor-pointer'
+                        onClick={() => setPersonSearchOpen(true)}>
+                        Rechercher...
+                      </div>
+                    </>
+                  ) : null}
+                </div>
                 <div className='flex items-center gap-x-4 lg:gap-x-6'>
                   {/* Separator */}
                   {sidebarAccessible ? (

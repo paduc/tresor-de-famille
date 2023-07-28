@@ -102,6 +102,8 @@ async function getSession(request: Request): Promise<Session> {
       { userId }
     )
 
+    const hasPersons = await getSingleEvent<UserNamedPersonInPhoto>('UserNamedPersonInPhoto', { userId })
+
     const profilePic = await getProfilePicUrlForUser(userId)
 
     return {
@@ -110,6 +112,7 @@ async function getSession(request: Request): Promise<Session> {
       isAdmin: userId === ADMIN_USERID,
       profilePic,
       arePhotosEnabled: !!hasPhotos,
+      arePersonsEnabled: !!hasPersons,
       areThreadsEnabled: !!hasThreads,
       areVideosEnabled: false,
     }

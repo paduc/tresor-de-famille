@@ -11,6 +11,7 @@ import { PhotoListPageUrl } from '../../listPhotos/PhotoListPageUrl'
 import { PersonPageURL } from '../../person/PersonPageURL'
 import { Switch } from '@headlessui/react'
 import classNames from 'classnames'
+import { ClientOnly } from '../../_components/ClientOnly'
 
 type PhotoFace = {
   faceId: UUID
@@ -40,7 +41,16 @@ export type NewPhotoPageProps = {
   updated?: boolean
 }
 
-export const NewPhotoPage = withBrowserBundle(({ context, caption, photoId, photoUrl, faces, updated }: NewPhotoPageProps) => {
+export const NewPhotoPage = withBrowserBundle((props: NewPhotoPageProps) => {
+  // To avoid the warning that useLayoutEffect does not work in SSR
+  return (
+    <ClientOnly>
+      <Wrapper {...props} />
+    </ClientOnly>
+  )
+})
+
+const Wrapper = ({ context, caption, photoId, photoUrl, faces, updated }: NewPhotoPageProps) => {
   const session = React.useContext(SessionContext)
 
   // For UI testing purposes (view under the fold)
@@ -202,7 +212,7 @@ export const NewPhotoPage = withBrowserBundle(({ context, caption, photoId, phot
       </div>
     </div>
   )
-})
+}
 
 type PhotoBadgeProps = {
   photoId: UUID

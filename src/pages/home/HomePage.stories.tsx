@@ -33,6 +33,7 @@ export default {
             arePhotosEnabled: false,
             areThreadsEnabled: false,
             areVideosEnabled: false,
+            arePersonsEnabled: true,
           }}>
           <PersonSearchContext.Provider value={{ search: fakePersonSearch } as unknown as SearchIndex}>
             <Story />
@@ -54,6 +55,7 @@ export const AfterOnboarding = () => (
       arePhotosEnabled: true,
       areThreadsEnabled: true,
       areVideosEnabled: false,
+      arePersonsEnabled: true,
     }}>
     <HomePage isOnboarding={false} displayFinisherCongratulations={true} />
   </SessionContext.Provider>
