@@ -31,9 +31,8 @@ actionsRouter.get('/resetAlgoliaIndex', requireAuth(), async (request, response)
     response.send(error.message).status(400)
   }
 
-  // index UserPresentedThemself..
   try {
-    await indexUserPresentedThemself()
+    await indexUserNamedThemself()
   } catch (error) {
     console.error(error)
     // @ts-ignore
@@ -41,7 +40,7 @@ actionsRouter.get('/resetAlgoliaIndex', requireAuth(), async (request, response)
   }
 
   try {
-    await indexUserPresentedFamilyMember()
+    await indexUserNamedPersonInPhoto()
   } catch (error) {
     console.error(error)
     // @ts-ignore
@@ -51,7 +50,7 @@ actionsRouter.get('/resetAlgoliaIndex', requireAuth(), async (request, response)
   response.send('Everything is OK: algolia persons index has been rebuilt')
 })
 
-async function indexUserPresentedThemself() {
+async function indexUserNamedThemself() {
   const { rows: onboardedPersons } = await postgres.query<UserNamedThemself>(
     "SELECT * FROM history WHERE type = 'UserNamedThemself'"
   )
@@ -67,7 +66,7 @@ async function indexUserPresentedThemself() {
   }
 }
 
-async function indexUserPresentedFamilyMember() {
+async function indexUserNamedPersonInPhoto() {
   const { rows: onboardedPersons } = await postgres.query<UserNamedPersonInPhoto>(
     "SELECT * FROM history WHERE type = 'UserNamedPersonInPhoto'"
   )

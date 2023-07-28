@@ -120,7 +120,7 @@ export const NewPhotoPage = withBrowserBundle(({ context, caption, photoId, phot
                     </div>
                   </div>
                 ) : (
-                  <ul className='flex flex-wrap justify-between sm:justify-normal gap-2 mt-3 pt-3'>
+                  <ul className='flex flex-wrap gap-2 mt-3 pt-3'>
                     {annotatedFaces.map((face) => (
                       <li key={`photoface${face.faceId}`} className='text-gray-300 mr-2 mb-2'>
                         <a
