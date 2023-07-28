@@ -120,9 +120,9 @@ export const NewPhotoPage = withBrowserBundle(({ context, caption, photoId, phot
                     </div>
                   </div>
                 ) : (
-                  <ul className='flex gap-2 mt-3 pt-3'>
+                  <ul className='flex flex-wrap justify-between sm:justify-normal gap-2 mt-3 pt-3'>
                     {annotatedFaces.map((face) => (
-                      <li key={`photoface${face.faceId}`} className='text-gray-300 mr-2 mb-2 flex flex-col items-center'>
+                      <li key={`photoface${face.faceId}`} className='text-gray-300 mr-2 mb-2'>
                         <a
                           href={PersonPageURL(face.personId)}
                           onClick={(e) => {
@@ -130,7 +130,8 @@ export const NewPhotoPage = withBrowserBundle(({ context, caption, photoId, phot
                               e.preventDefault()
                               setSelectedFace(face)
                             }
-                          }}>
+                          }}
+                          className='flex flex-col items-center'>
                           <PhotoBadge faceId={face.faceId} photoId={photoId} className={``} altText={face.name || ''} />
                           <div className='mt-1 max-w-[80px] truncate'>{face.name}</div>
                         </a>
