@@ -1090,7 +1090,7 @@ function FamilyMemberView({ steps }: FamilyMemberViewProps) {
       <div className='text-lg leading-5 mt-3 text-gray-500'>
         Voici un aperçu de votre famille, à partir de vos annotations:{' '}
       </div>
-      <ul className='flex gap-2 mt-3 pt-3'>
+      <ul className='flex flex-wrap gap-2 mt-3 pt-3'>
         {faces.map((face) => (
           <li key={`doneface${face.faceId}`} className='text-gray-500 mr-2 mb-2 flex flex-col items-center'>
             <PhotoBadge faceId={face.faceId} photoId={face.photoId} className='' />
