@@ -11,7 +11,7 @@ import { actionsRouter } from './actionsRouter'
 
 actionsRouter.get('/resetAlgoliaIndex', requireAuth(), async (request, response) => {
   // Reset the index (remove all objects)
-  personsIndex.clearObjects()
+  await personsIndex.clearObjects()
 
   // insert gedcom
   try {
