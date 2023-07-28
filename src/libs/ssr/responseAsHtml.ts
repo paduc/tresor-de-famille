@@ -4,7 +4,6 @@ import ReactDOMServer from 'react-dom/server'
 import { ADMIN_USERID } from '../../dependencies/env'
 import { getSingleEvent } from '../../dependencies/getSingleEvent'
 import { UUID } from '../../domain'
-import { UserHasDesignatedThemselfAsPerson } from '../../events/UserHasDesignatedThemselfAsPerson'
 import { LocationContext } from '../../pages/_components/LocationContext'
 import { Session, SessionContext } from '../../pages/_components/SessionContext'
 import { PersonSearchContext } from '../../pages/_components/usePersonSearch'
@@ -122,10 +121,7 @@ async function getSession(request: Request): Promise<Session> {
 }
 
 const getProfilePicUrlForUser = async (userId: UUID): Promise<string | null> => {
-  const person = await getSingleEvent<UserHasDesignatedThemselfAsPerson | UserNamedThemself>(
-    ['UserNamedThemself', 'UserHasDesignatedThemselfAsPerson'],
-    { userId }
-  )
+  const person = await getSingleEvent<UserNamedThemself>(['UserNamedThemself'], { userId })
 
   if (!person) return null
 

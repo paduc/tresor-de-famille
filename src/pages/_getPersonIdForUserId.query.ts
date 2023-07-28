@@ -1,19 +1,15 @@
-import { postgres } from '../dependencies/database'
+import { getSingleEvent } from '../dependencies/getSingleEvent'
 import { UUID } from '../domain'
-import { UserHasDesignatedThemselfAsPerson } from '../events/UserHasDesignatedThemselfAsPerson'
 import { UserNamedThemself } from './bienvenue/step1-userTellsAboutThemselves/UserNamedThemself'
 
 export const getPersonIdForUserId = async (userId: UUID): Promise<UUID> => {
-  const { rows } = await postgres.query<UserHasDesignatedThemselfAsPerson | UserNamedThemself>(
-    "SELECT * FROM history WHERE type IN ('UserHasDesignatedThemselfAsPerson','UserNamedThemself') AND payload->>'userId'=$1 LIMIT 1",
-    [userId]
-  )
+  const userNamedThemself = await getSingleEvent<UserNamedThemself>('UserNamedThemself', { userId })
 
-  if (!rows.length) {
+  if (!userNamedThemself) {
     throw new Error(`Cet utilisateur ne s'est pas encore présenté`)
   }
 
-  const { personId } = rows[0].payload
+  const { personId } = userNamedThemself.payload
 
   return personId
 }
