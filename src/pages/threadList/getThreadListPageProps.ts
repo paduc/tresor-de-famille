@@ -8,10 +8,14 @@ import { UserUploadedPhotoToChat } from '../chat/uploadPhotoToChat/UserUploadedP
 import { ThreadListPageProps } from './ThreadListPage'
 
 export const getThreadListPageProps = async (userId: UUID): Promise<ThreadListPageProps> => {
-  const threadEvents = await getEventList<UserSentMessageToChat | OnboardingUserStartedFirstThread | UserUploadedPhotoToChat>(
-    ['OnboardingUserStartedFirstThread', 'UserSentMessageToChat', 'UserUploadedPhotoToChat'],
+  const messagesEvents = await getEventList<UserSentMessageToChat | OnboardingUserStartedFirstThread>(
+    ['OnboardingUserStartedFirstThread', 'UserSentMessageToChat'],
     { userId }
   )
+
+  const userUploadedEvents = await getEventList<UserUploadedPhotoToChat>('UserUploadedPhotoToChat', { uploadedBy: userId })
+
+  const threadEvents = [...messagesEvents, ...userUploadedEvents]
 
   const uniqueThreads = new Map<UUID, (UserSentMessageToChat | OnboardingUserStartedFirstThread | UserUploadedPhotoToChat)[]>()
   for (const threadEvent of threadEvents) {
