@@ -64,7 +64,7 @@ export const PersonAutocomplete = ({ onPersonSelected, className }: PersonAutoco
           {hits.map((hit) => (
             <Combobox.Option
               key={`hit_${hit.objectID}`}
-              value={{ ...hit, type: 'known' }}
+              value={{ type: 'known', personId: hit.objectID }}
               className={({ active }) =>
                 classNames('cursor-default select-none py-3 px-4', active && 'bg-indigo-600 text-white')
               }>
@@ -110,7 +110,7 @@ function NewPersonFromQuery({ query }: { query: string }) {
   return (
     <Combobox.Option
       key={`hit_new_object`}
-      value={{ type: 'unknown', objectID: 'new', name: query }}
+      value={{ type: 'unknown', name: query }}
       className={({ active }) =>
         classNames('cursor-default select-none text-base py-2 px-4', active && 'bg-indigo-600 text-white')
       }>

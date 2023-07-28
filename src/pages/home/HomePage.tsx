@@ -632,10 +632,6 @@ export const AnnotateFamilyPhoto = ({ step }: AnnotateFamilyPhotoProps) => {
   }
 }
 
-type AnnotatingSinglePhotoProps = {}
-
-function AnnotatingSinglePhoto({}: AnnotatingSinglePhotoProps) {}
-
 type FamilyMemberNameFormProps = {
   faceId: UUID
   photoId: UUID
