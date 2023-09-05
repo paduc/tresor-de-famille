@@ -12,6 +12,7 @@ import { PersonPageURL } from '../../person/PersonPageURL'
 import { Switch } from '@headlessui/react'
 import classNames from 'classnames'
 import { ClientOnly } from '../../_components/ClientOnly'
+import { ArrowDownIcon } from '@heroicons/react/24/outline'
 
 type PhotoFace = {
   faceId: UUID
@@ -53,6 +54,8 @@ export const NewPhotoPage = withBrowserBundle((props: NewPhotoPageProps) => {
 const Wrapper = ({ context, caption, photoId, photoUrl, faces, updated }: NewPhotoPageProps) => {
   const session = React.useContext(SessionContext)
 
+  const [isScrollHintVisible, toggleScrollHint] = React.useState(true)
+
   // For UI testing purposes (view under the fold)
   const bottomRef = useRef<HTMLDivElement | null>(null)
   useLayoutEffect(() => {
@@ -81,6 +84,16 @@ const Wrapper = ({ context, caption, photoId, photoUrl, faces, updated }: NewPho
           className='absolute top-2 left-2 text-gray-300'>
           <XMarkIcon className='cursor-pointer h-8 w-8' />
         </a>
+        {isScrollHintVisible ? (
+          <div
+            className='cursor-pointer absolute bottom-2 left-2 text-gray-300 animate-bounce'
+            onClick={() => toggleScrollHint(false)}>
+            <div className='flex  leading-6 align-middle'>
+              <ArrowDownIcon className=' h-6 w-6 mr-1' />
+              Faire défiler
+            </div>
+          </div>
+        ) : null}
         <div className='grid place-items-center h-screen'>
           <img src={photoUrl} className='max-w-full max-h-screen' />
         </div>
