@@ -670,11 +670,6 @@ const FamilyMemberNameForm = ({ faceId, photoId }: FamilyMemberNameFormProps) =>
         <input type='hidden' name='photoId' value={photoId} />
         <input type='hidden' name='newFamilyMemberName' value='' />
         <input type='hidden' name='existingFamilyMemberId' value='' />
-
-        <button type='submit' className={`${primaryButtonStyles} mt-3`}>
-          <SendIcon className={`${buttonIconStyles}`} aria-hidden='true' />
-          Envoyer
-        </button>
       </form>
       <form method='POST' className='relative mt-3'>
         <input type='hidden' name='action' value='ignoreFamilyMemberFaceInPhoto' />
