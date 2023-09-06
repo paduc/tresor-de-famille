@@ -169,12 +169,8 @@ const Wrapper = ({ context, caption, photoId, photoUrl, faces, updated }: NewPho
                       <li
                         key={`photoface${face.faceId}`}
                         className='text-gray-500 mr-2 mb-2 flex flex-col items-center relative'
-                        onClick={() => (faceEditionMode ? setSelectedFace(face) : null)}>
-                        <PhotoBadge
-                          faceId={face.faceId}
-                          photoId={photoId}
-                          className={`${faceEditionMode ? 'cursor-pointer' : 'cursor-default'}`}
-                        />
+                        onClick={() => setSelectedFace(face)}>
+                        <PhotoBadge faceId={face.faceId} photoId={photoId} className={'cursor-pointer'} />
                         <div className='absolute top-11 right-0 h-4 w-4 rounded-full bg-blue-600 -ring-2 ring-1  ring-white'>
                           <div className='text-white text-xs text-center'>?</div>
                         </div>
@@ -184,12 +180,8 @@ const Wrapper = ({ context, caption, photoId, photoUrl, faces, updated }: NewPho
                       <li
                         key={`photoface${face.faceId}`}
                         className='text-gray-500 mr-2 mb-2 flex flex-col items-center relative'
-                        onClick={() => (faceEditionMode ? setSelectedFace(face) : null)}>
-                        <PhotoBadge
-                          faceId={face.faceId}
-                          photoId={photoId}
-                          className={`grayscale ${faceEditionMode ? 'cursor-pointer' : 'cursor-default'}`}
-                        />
+                        onClick={() => setSelectedFace(face)}>
+                        <PhotoBadge faceId={face.faceId} photoId={photoId} className={`grayscale cursor-pointer`} />
                         <div className='absolute top-11 right-0 h-4 w-4 rounded-full bg-red-600 -ring-2 ring-1 ring-white'>
                           <div className='text-white text-center'>
                             <XMarkIcon className='h-[3.5] w-[3.5]' />
