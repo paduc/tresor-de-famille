@@ -55,7 +55,7 @@ export const ChatPage = withBrowserBundle(({ error, success, title, history, cha
           <input
             type='text'
             name='title'
-            className='sm:ml-6 block pl-3 text-xl text-gray-800 placeholder:text-gray-500 placeholder:text-base placeholder:font-normal bg-transparent font-medium border-0 w-full max-w-2xl focus:ring-0'
+            className='w-full sm:ml-6 max-w-2xl px-4 py-4 text-gray-800 text-xl bg-white border  border-gray-300 border-x-white sm:border-x-gray-300 shadow-sm'
             placeholder='Titre (optionnel)'
             defaultValue={title}
           />
