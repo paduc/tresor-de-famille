@@ -170,7 +170,7 @@ function Wrapper({ children }: React.PropsWithChildren) {
     <AppLayout>
       <div className='px-4 py-6 md:px-8 md:py-12'>
         <h2 className='text-3xl font-bold tracking-tight text-gray-900 md:text-4xl'>
-          <span className='block'>Bienvenu sur Trésor de famille</span>
+          <span className='block'>Bienvenue sur Trésor de famille</span>
           <div>
             {session.profilePic ? (
               <div className='mt-2 inline-flex items-center'>
