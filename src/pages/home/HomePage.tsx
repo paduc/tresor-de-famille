@@ -802,9 +802,16 @@ export const FirstThreadStep = ({ step }: FirstThreadStepProps) => {
           Bravo! Maintenant que vous avez lancé le fil de souvenir, vous pouvez le compléter avec un titre, des propos
           supplémentaires, des photos, etc.
         </Paragraph>
-        <a className='text-indigo-600 text-lg font-semibold border-b border-b-indigo-600' href={threadUrl}>
-          Aller à mon souvenir
-        </a>
+
+        <Paragraph>
+          Vous trouverez tous vos fils de souvenirs, dans le menu{' '}
+          <a
+            className='hover:text-indigo-600 text-xl border-dashed hover:border-solid border-b border-b-indigo-600'
+            href={'/threads.html'}>
+            fils de souvenir
+          </a>
+          .
+        </Paragraph>
       </div>
       <div className='pt-5'>
         <Paragraph>
@@ -837,6 +844,16 @@ type TriggerMode = {
 
 const triggerModes: TriggerMode[] = [
   {
+    mode: 'user-distributes-codes',
+    name: 'Manuel',
+    description: (
+      <div className='space-y-3'>
+        <div>Vous imprimez et distribuez des QR code spécialement conçus à vos bénéficiaires.</div>
+        <div>Le moment venu, vos bénéficiaires pourront flasher le QR code et obtenir l'accès à votre trésor.</div>
+      </div>
+    ),
+  },
+  {
     mode: 'tdf-detection-contacts-beneficiaries',
     name: 'Automatique',
     description: (
@@ -847,16 +864,6 @@ const triggerModes: TriggerMode[] = [
         <div>
           En l'absence de réponse, nous déclenchons la procédure de transmission, en prenant contact avec vos bénéficiaires.
         </div>
-      </div>
-    ),
-  },
-  {
-    mode: 'user-distributes-codes',
-    name: 'Manuel',
-    description: (
-      <div className='space-y-3'>
-        <div>Vous imprimez et distribuez des QR code spécialement conçus à vos bénéficiaires.</div>
-        <div>Le moment venu, vos bénéficiaires pourront flasher le QR code et obtenir l'accès à votre trésor.</div>
       </div>
     ),
   },
@@ -956,8 +963,15 @@ export const ChoseBeneficiariesStep = ({ step }: ChoseBeneficiariesStepProps) =>
                   setBeneficiaryCount(beneficiaryCount + 1)
                 }}>
                 <PlusIcon className={`${buttonIconStyles}`} />
-                Ajouter un bénéficiaire
+                Ajouter un bénéficiaire dans le formulaire
               </button>
+
+              <div>
+                <button type='submit' className={`${primaryButtonStyles} mt-6`}>
+                  <CheckIcon className={`${buttonIconStyles}`} aria-hidden='true' />
+                  Enregistrer mes bénéficiaires
+                </button>
+              </div>
             </div>
           ) : (
             <div className='py-3'>
@@ -977,14 +991,14 @@ export const ChoseBeneficiariesStep = ({ step }: ChoseBeneficiariesStepProps) =>
                 N'hésitez pas à l'imprimer en plusieurs exemplaires et à le placer à des endroits sur (chez le notaire, dans un
                 dossier 'en cas de décès', chez des proches...).
               </p>
+              <button type='submit' className={`${primaryButtonStyles} mt-6`}>
+                <CheckIcon className={`${buttonIconStyles}`} aria-hidden='true' />
+                Enregistrer mon mode de transmission
+              </button>
             </div>
           )}
         </div>
         <div>
-          <button type='submit' className={`${primaryButtonStyles} mt-6`}>
-            <CheckIcon className={`${buttonIconStyles}`} aria-hidden='true' />
-            Valider
-          </button>
           <p className='mt-2 max-w-2xl text-base leading-6 text-gray-600'>
             Quoi qu'il en soit, vous pourrez modifier ces choix plus tard.
           </p>
