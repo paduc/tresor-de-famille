@@ -71,6 +71,7 @@ actionsRouter.route('/photo/:photoId/face/:faceId').get(requireAuth(), async (re
   // .withMetadata() // could also be used
 
   response.set('Content-Type', 'image/*')
+  response.set('Cache-Control', 'private, max-age=15552000')
 
   extractedImage.pipe(response)
 })

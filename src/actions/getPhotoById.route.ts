@@ -9,6 +9,7 @@ actionsRouter.route('/photos/:photoId').get(requireAuth(), async (request, respo
   const { photoId } = zod.object({ photoId: zIsUUID }).parse(request.params)
 
   response.set('Content-Type', 'image/*')
+  response.set('Cache-Control', 'private, max-age=15552000')
 
   downloadPhoto(photoId).pipe(response)
 })
