@@ -97,10 +97,6 @@ export const PersonAutocomplete = ({ onPersonSelected }: PersonAutocompleteProps
           {query.length > 0 && firstHitStartsWithQuery(hits, query) ? <NewPersonFromQuery query={query} /> : null}
         </Combobox.Options>
       </div>
-
-      {query !== '' && hits.length === 0 && (
-        <p className='p-4 text-sm text-gray-500'>Cette personne n'est pas encore connu ?!</p>
-      )}
     </Combobox>
   )
 }
