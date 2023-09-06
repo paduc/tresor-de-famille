@@ -144,11 +144,7 @@ const Wrapper = ({ context, caption, photoId, photoUrl, faces, updated }: NewPho
                       />
                     </div>
                     <div>
-                      <FamilyMemberNameForm
-                        faceId={selectedFace.faceId}
-                        photoId={photoId}
-                        onDismiss={() => setSelectedFace(null)}
-                      />
+                      <FamilyMemberNameForm face={selectedFace} onDismiss={() => setSelectedFace(null)} />
                     </div>
                   </div>
                 ) : (
@@ -255,12 +251,11 @@ const PhotoBadge = ({ photoId, className, faceId, altText }: PhotoBadgeProps) =>
 }
 
 type FamilyMemberNameFormProps = {
-  faceId: UUID
-  photoId: UUID
+  face: PhotoFace
   onDismiss?: () => unknown
 }
 
-const FamilyMemberNameForm = ({ faceId, photoId, onDismiss }: FamilyMemberNameFormProps) => {
+const FamilyMemberNameForm = ({ face, onDismiss }: FamilyMemberNameFormProps) => {
   const formRef = React.useRef<HTMLFormElement>(null)
 
   const handlePersonSelected = (selection: { type: 'known'; personId: UUID } | { type: 'unknown'; name: string }) => {
@@ -283,10 +278,16 @@ const FamilyMemberNameForm = ({ faceId, photoId, onDismiss }: FamilyMemberNameFo
     }
   }
 
+  const { faceId } = face
+
   return (
     <div className=''>
       <p className={`mb-2 text-gray-300`}>Quel est le nom de cette personne ?</p>
-      <PersonAutocomplete onPersonSelected={handlePersonSelected} className='max-w-xl text-gray-800' />
+      <PersonAutocomplete
+        onPersonSelected={handlePersonSelected}
+        className='max-w-xl text-gray-800'
+        presentPerson={face.stage === 'done' ? face : undefined}
+      />
       <form method='POST' ref={formRef}>
         <input type='hidden' name='action' value='submitFamilyMemberName' />
         <input type='hidden' name='faceId' value={faceId} />

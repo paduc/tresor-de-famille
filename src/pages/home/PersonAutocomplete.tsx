@@ -14,6 +14,7 @@ type SearchPersonHitDTO = {
 type PersonAutocompleteProps = {
   onPersonSelected: (person: { type: 'known'; personId: UUID } | { type: 'unknown'; name: string }) => unknown
   className?: string
+  presentPerson?: { name: string; personId: UUID }
 }
 
 // @ts-ignore
@@ -21,8 +22,8 @@ function classNames(...classes) {
   return classes.filter(Boolean).join(' ')
 }
 
-export const PersonAutocomplete = ({ onPersonSelected, className }: PersonAutocompleteProps) => {
-  const [query, setQuery] = useState('')
+export const PersonAutocomplete = ({ onPersonSelected, className, presentPerson }: PersonAutocompleteProps) => {
+  const [query, setQuery] = useState('Jo')
 
   const index = usePersonSearch()
   if (index === null) return null
@@ -45,7 +46,7 @@ export const PersonAutocomplete = ({ onPersonSelected, className }: PersonAutoco
   }, [index, setHits, query])
 
   return (
-    <Combobox onChange={(person: any) => onPersonSelected(person)}>
+    <Combobox defaultValue={presentPerson?.name || ''} onChange={(person: any) => onPersonSelected(person)}>
       <div className={`relative sm:ml-0 ${className || ''}`}>
         <div className='overflow-hidden shadow-sm border border-gray-200 focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500'>
           <label htmlFor='familyMemberName' className='sr-only'>
