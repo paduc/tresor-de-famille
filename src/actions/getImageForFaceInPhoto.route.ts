@@ -22,7 +22,14 @@ actionsRouter.route('/photo/:photoId/face/:faceId').get(requireAuth(), async (re
 
   if (!face) throw new Error('Face with this faceId does not appear to have been detected on this photo.')
 
-  const { Width, Height, Top, Left } = face.position
+  const { Width: oWidth, Height: oHeight, Top: oTop, Left: oLeft } = face.position
+
+  // Add some more space around the face
+  const spacing = 1.4
+  const Width = oWidth! * spacing
+  const Height = oHeight! * spacing
+  const Top = oTop! - (Height - oHeight!) / 2
+  const Left = oLeft! - (Width - oWidth!) / 2
 
   // Get the original image as a Readable stream
   const originalImageStream = downloadPhoto(photoId)
