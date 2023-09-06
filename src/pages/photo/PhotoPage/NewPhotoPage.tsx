@@ -65,6 +65,12 @@ const Wrapper = ({ context, caption, photoId, photoUrl, faces, updated }: NewPho
   const [selectedFace, setSelectedFace] = useState<PhotoFace | null>(null)
   const [faceEditionMode, setFaceEditionMode] = useState<boolean>(false)
 
+  const scrollEvent = () => {
+    if (isScrollHintVisible) {
+      toggleScrollHint(false)
+    }
+  }
+
   if (!session.isLoggedIn)
     return (
       <div>
@@ -78,22 +84,25 @@ const Wrapper = ({ context, caption, photoId, photoUrl, faces, updated }: NewPho
 
   return (
     <div className='relative'>
-      <div className='bg-black absolute overflow-y-scroll overflow-x-hidden top-0 bottom-0 left-0 right-0 w-[100hh] h-[100vh]'>
+      <div
+        className='bg-black absolute overflow-y-scroll overflow-x-hidden top-0 bottom-0 left-0 right-0 w-[100hh] h-[100vh]'
+        onScroll={scrollEvent}>
         <a
           href={`${context ? getThreadUrl(context.threadId) : PhotoListPageUrl}`}
           className='absolute top-2 left-2 text-gray-300'>
           <XMarkIcon className='cursor-pointer h-8 w-8' />
         </a>
-        {isScrollHintVisible ? (
-          <div
-            className='cursor-pointer absolute bottom-2 left-2 text-gray-300 animate-bounce'
-            onClick={() => toggleScrollHint(false)}>
-            <div className='flex  leading-6 align-middle'>
-              <ArrowDownIcon className=' h-6 w-6 mr-1' />
-              Faire défiler
-            </div>
+
+        <div
+          className={`${
+            isScrollHintVisible ? 'opacity-100' : 'opacity-0'
+          } transition-opacity duration-300 cursor-pointer absolute bottom-2 left-2 text-gray-300 animate-bounce`}
+          onClick={() => toggleScrollHint(false)}>
+          <div className='flex  leading-6 align-middle'>
+            <ArrowDownIcon className=' h-6 w-6 mr-1' />
+            Faire défiler
           </div>
-        ) : null}
+        </div>
         <div className='grid place-items-center h-screen'>
           <img src={photoUrl} className='max-w-full max-h-screen' />
         </div>
