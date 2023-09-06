@@ -127,22 +127,7 @@ const getProfilePicUrlForUser = async (userId: UUID): Promise<string | null> => 
 
   const { personId } = person.payload
 
-  const faceEvent = await getSingleEvent<
-    | PhotoAnnotationConfirmed
-    | PhotoManuallyAnnotated
-    | UserConfirmedHisFace
-    | UserNamedPersonInPhoto
-    | UserRecognizedPersonInPhoto
-  >(
-    [
-      'UserConfirmedHisFace',
-      'UserNamedPersonInPhoto',
-      'UserRecognizedPersonInPhoto',
-      'PhotoAnnotationConfirmed',
-      'PhotoManuallyAnnotated',
-    ],
-    { personId }
-  )
+  const faceEvent = await getSingleEvent<UserConfirmedHisFace>(['UserConfirmedHisFace'], { personId })
 
   if (!faceEvent) return null
 
