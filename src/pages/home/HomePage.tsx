@@ -963,7 +963,7 @@ export const ChoseBeneficiariesStep = ({ step }: ChoseBeneficiariesStepProps) =>
                   setBeneficiaryCount(beneficiaryCount + 1)
                 }}>
                 <PlusIcon className={`${buttonIconStyles}`} />
-                Ajouter un bénéficiaire dans le formulaire
+                Ajouter un champ bénéficiaire
               </button>
 
               <div>
