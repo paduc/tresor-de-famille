@@ -285,10 +285,8 @@ function GetUserName() {
               }}
             />
           </div>
-          <button
-            type='submit'
-            className='inline-flex items-center mt-3 px-3 py-1.5 border border-transparent sm:text-xs font-medium rounded-full shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
-            <SendIcon className='-ml-0.5 mr-2 h-4 w-4' aria-hidden='true' />
+          <button type='submit' className={primaryButtonStyles}>
+            <SendIcon className={buttonIconStyles} aria-hidden='true' />
             Envoyer
           </button>
         </form>
@@ -678,6 +676,15 @@ const FamilyMemberNameForm = ({ faceId, photoId }: FamilyMemberNameFormProps) =>
         <button type='submit' className={`${secondaryRedButtonStyles}`}>
           <XMarkIcon className={`${buttonIconStyles}`} aria-hidden='true' />
           Ignorer ce visage
+        </button>
+      </form>
+      <form method='POST' className='relative mt-3'>
+        <input type='hidden' name='action' value='ignoreOtherFamilyMemberFacesInPhoto' />
+        <input type='hidden' name='faceId' value={faceId} />
+        <input type='hidden' name='photoId' value={photoId} />
+        <button type='submit' className={`${secondaryRedButtonStyles}`}>
+          <XMarkIcon className={`${buttonIconStyles}`} aria-hidden='true' />
+          Ignorer tous les autres visages
         </button>
       </form>
     </>
