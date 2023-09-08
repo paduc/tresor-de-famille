@@ -1,8 +1,8 @@
 import { postgres } from '../dependencies/database'
 import { UUID } from '../domain'
-import { UserConfirmedHisFace } from './bienvenue/step2-userUploadsPhoto/UserConfirmedHisFace'
-import { UserNamedPersonInPhoto } from './bienvenue/step3-learnAboutUsersFamily/UserNamedPersonInPhoto'
-import { UserRecognizedPersonInPhoto } from './bienvenue/step3-learnAboutUsersFamily/UserRecognizedPersonInPhoto'
+import { UserConfirmedHisFace } from '../events/onboarding/UserConfirmedHisFace'
+import { UserNamedPersonInPhoto } from '../events/onboarding/UserNamedPersonInPhoto'
+import { UserRecognizedPersonInPhoto } from '../events/onboarding/UserRecognizedPersonInPhoto'
 import { PhotoManuallyAnnotated } from './photo/annotateManually/PhotoManuallyAnnotated'
 import { PhotoAnnotationConfirmed } from './photo/confirmPhotoAnnotation/PhotoAnnotationConfirmed'
 

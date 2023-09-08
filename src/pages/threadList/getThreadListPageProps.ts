@@ -1,7 +1,7 @@
 import { getEventList } from '../../dependencies/getEventList'
 import { getSingleEvent } from '../../dependencies/getSingleEvent'
 import { UUID } from '../../domain'
-import { OnboardingUserStartedFirstThread } from '../bienvenue/step4-start-thread/OnboardingUserStartedFirstThread'
+import { OnboardingUserStartedFirstThread } from '../../events/onboarding/OnboardingUserStartedFirstThread'
 import { UserSetChatTitle } from '../chat/UserSetChatTitle'
 import { UserSentMessageToChat } from '../chat/sendMessageToChat/UserSentMessageToChat'
 import { UserUploadedPhotoToChat } from '../chat/uploadPhotoToChat/UserUploadedPhotoToChat'

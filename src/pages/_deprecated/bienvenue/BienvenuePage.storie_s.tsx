@@ -1,9 +1,9 @@
 import * as React from 'react'
-import { SessionContext } from '../_components'
+import { SessionContext } from '../../_components'
 import { BienvenuePage } from './BienvenuePage'
-import { getUuid } from '../../libs/getUuid'
+import { getUuid } from '../../../libs/getUuid'
 import { SearchIndex } from 'algoliasearch'
-import { PersonSearchContext } from '../_components/usePersonSearch'
+import { PersonSearchContext } from '../../_components/usePersonSearch'
 
 const fakePersonSearch = async (query: string) => {
   return {

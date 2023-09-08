@@ -1,10 +1,9 @@
 import { postgres } from '../dependencies/database'
-import { getEventList } from '../dependencies/getEventList'
 import { UUID } from '../domain'
 import { GedcomImported } from '../events'
-import { UserNamedThemself } from './bienvenue/step1-userTellsAboutThemselves/UserNamedThemself'
-import { UserNamedPersonInPhoto } from './bienvenue/step3-learnAboutUsersFamily/UserNamedPersonInPhoto'
-import { UserRecognizedPersonInPhoto } from './bienvenue/step3-learnAboutUsersFamily/UserRecognizedPersonInPhoto'
+import { UserNamedPersonInPhoto } from '../events/onboarding/UserNamedPersonInPhoto'
+import { UserNamedThemself } from '../events/onboarding/UserNamedThemself'
+
 import { OpenAIMadeDeductions } from './chat/sendToOpenAIForDeductions/OpenAIMadeDeductions'
 import { PhotoAnnotatedUsingOpenAI } from './photo/annotatePhotoUsingOpenAI/PhotoAnnotatedUsingOpenAI'
 

@@ -2,7 +2,7 @@ import { Combobox } from '@headlessui/react'
 import { CheckIcon } from '@heroicons/react/20/solid'
 import React, { useState } from 'react'
 import { UUID } from '../../domain/UUID'
-import { usePersonSearch } from '../_components/usePersonSearch'
+import { usePersonSearch } from './usePersonSearch'
 
 type SearchPersonHitDTO = {
   objectID: string

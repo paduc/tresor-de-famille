@@ -8,8 +8,8 @@ import { AWSDetectedFacesInPhoto } from './AWSDetectedFacesInPhoto'
 import { getAWSDetectedFacesInPhoto } from './getAWSDetectedFacesInPhoto'
 import { getAwsRekognitionCollectionId } from '../../../dependencies/face-recognition'
 import { UserUploadedPhotoToChat } from '../../chat/uploadPhotoToChat/UserUploadedPhotoToChat'
-import { OnboardingUserUploadedPhotoOfThemself } from '../../bienvenue/step1-userTellsAboutThemselves/OnboardingUserUploadedPhotoOfThemself'
-import { OnboardingUserUploadedPhotoOfFamily } from '../../bienvenue/step2-userUploadsPhoto/OnboardingUserUploadedPhotoOfFamily'
+import { OnboardingUserUploadedPhotoOfThemself } from '../../../events/onboarding/OnboardingUserUploadedPhotoOfThemself'
+import { OnboardingUserUploadedPhotoOfFamily } from '../../../events/onboarding/OnboardingUserUploadedPhotoOfFamily'
 
 type DetectFacesInPhotosUsingAWSArgs = {
   file: Express.Multer.File

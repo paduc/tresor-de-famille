@@ -1,10 +1,10 @@
 import fs from 'node:fs'
-import { uploadPhoto } from '../../../dependencies/photo-storage'
-import { addToHistory } from '../../../dependencies/addToHistory'
-import { UUID } from '../../../domain'
-import { getUuid } from '../../../libs/getUuid'
-import { OnboardingUserUploadedPhotoOfThemself } from './OnboardingUserUploadedPhotoOfThemself'
-import { detectFacesInPhotoUsingAWS } from '../../photo/recognizeFacesInChatPhoto/detectFacesInPhotoUsingAWS'
+import { uploadPhoto } from '../../../../dependencies/photo-storage'
+import { addToHistory } from '../../../../dependencies/addToHistory'
+import { UUID } from '../../../../domain'
+import { getUuid } from '../../../../libs/getUuid'
+import { OnboardingUserUploadedPhotoOfThemself } from '../../../../events/onboarding/OnboardingUserUploadedPhotoOfThemself'
+import { detectFacesInPhotoUsingAWS } from '../../../photo/recognizeFacesInChatPhoto/detectFacesInPhotoUsingAWS'
 
 type UploadUserPhotoOfThemselfArgs = {
   file: Express.Multer.File

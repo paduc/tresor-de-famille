@@ -1,6 +1,6 @@
 import { getSingleEvent } from '../dependencies/getSingleEvent'
 import { UUID } from '../domain'
-import { UserNamedThemself } from './bienvenue/step1-userTellsAboutThemselves/UserNamedThemself'
+import { UserNamedThemself } from '../events/onboarding/UserNamedThemself'
 
 export const getPersonIdForUserId = async (userId: UUID): Promise<UUID> => {
   const userNamedThemself = await getSingleEvent<UserNamedThemself>('UserNamedThemself', { userId })

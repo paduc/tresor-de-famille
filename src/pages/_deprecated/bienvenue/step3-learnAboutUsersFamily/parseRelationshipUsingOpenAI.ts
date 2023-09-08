@@ -1,7 +1,7 @@
-import { openai } from '../../../dependencies/LLM'
-import { addToHistory } from '../../../dependencies/addToHistory'
-import { UUID } from '../../../domain'
-import { getPersonByIdOrThrow } from '../../_getPersonById'
+import { openai } from '../../../../dependencies/LLM'
+import { addToHistory } from '../../../../dependencies/addToHistory'
+import { UUID } from '../../../../domain'
+import { getPersonByIdOrThrow } from '../../../_getPersonById'
 import { FamilyMemberRelationship, isRelationWithSide, isRelationWithoutSide } from './FamilyMemberRelationship'
 import { UserPostedRelationUsingOpenAI } from './UserPostedRelationUsingOpenAI'
 

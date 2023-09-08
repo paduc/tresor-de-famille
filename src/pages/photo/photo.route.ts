@@ -6,16 +6,15 @@ import { personsIndex } from '../../dependencies/search'
 import { zIsUUID } from '../../domain'
 import { getUuid } from '../../libs/getUuid'
 import { responseAsHtml } from '../../libs/ssr/responseAsHtml'
-import { onboardingUrl } from '../bienvenue/onboardingUrl'
-import { FaceIgnoredInPhoto } from '../bienvenue/step3-learnAboutUsersFamily/FaceIgnoredInPhoto'
-import { UserNamedPersonInPhoto } from '../bienvenue/step3-learnAboutUsersFamily/UserNamedPersonInPhoto'
-import { UserRecognizedPersonInPhoto } from '../bienvenue/step3-learnAboutUsersFamily/UserRecognizedPersonInPhoto'
 import { uploadPhotoToChat } from '../chat/uploadPhotoToChat/uploadPhotoToChat'
 import { pageRouter } from '../pageRouter'
 import { NewPhotoPage } from './PhotoPage/NewPhotoPage'
 import { UserAddedCaptionToPhoto } from './UserAddedCaptionToPhoto'
 import { getNewPhotoPageProps } from './getNewPhotoPageProps'
 import { detectFacesInPhotoUsingAWS } from './recognizeFacesInChatPhoto/detectFacesInPhotoUsingAWS'
+import { FaceIgnoredInPhoto } from '../../events/onboarding/FaceIgnoredInPhoto'
+import { UserNamedPersonInPhoto } from '../../events/onboarding/UserNamedPersonInPhoto'
+import { UserRecognizedPersonInPhoto } from '../../events/onboarding/UserRecognizedPersonInPhoto'
 
 const FILE_SIZE_LIMIT_MB = 50
 const upload = multer({
@@ -180,7 +179,7 @@ pageRouter.route('/add-photo.html').post(requireAuth(), upload.single('photo'), 
     await detectFacesInPhotoUsingAWS({ file, photoId })
 
     if (isOnboarding && isOnboarding === 'yes') {
-      return response.redirect(onboardingUrl)
+      return response.redirect('/')
     }
 
     if (chatIdFromForm) {

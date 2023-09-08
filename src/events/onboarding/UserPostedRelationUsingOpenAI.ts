@@ -1,6 +1,6 @@
-import { DomainEvent, makeDomainEvent } from '../../../dependencies/DomainEvent'
-import { UUID } from '../../../domain'
-import { FamilyMemberRelationship } from './FamilyMemberRelationship'
+import { DomainEvent, makeDomainEvent } from '../../dependencies/DomainEvent'
+import { UUID } from '../../domain'
+import { FamilyMemberRelationship } from '../../domain/FamilyMemberRelationship'
 
 export type UserPostedRelationUsingOpenAI = DomainEvent<
   'UserPostedRelationUsingOpenAI',

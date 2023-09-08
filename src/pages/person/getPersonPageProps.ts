@@ -4,13 +4,14 @@ import { getPhotoUrlFromId } from '../../dependencies/photo-storage'
 import { UUID } from '../../domain'
 import { getPersonById } from '../_getPersonById'
 import { getPersonIdsForFaceId } from '../_getPersonsIdsForFaceId'
-import { UserConfirmedHisFace } from '../bienvenue/step2-userUploadsPhoto/UserConfirmedHisFace'
-import { UserNamedPersonInPhoto } from '../bienvenue/step3-learnAboutUsersFamily/UserNamedPersonInPhoto'
-import { UserRecognizedPersonInPhoto } from '../bienvenue/step3-learnAboutUsersFamily/UserRecognizedPersonInPhoto'
+import { UserConfirmedHisFace } from '../../events/onboarding/UserConfirmedHisFace'
+
 import { PhotoManuallyAnnotated } from '../photo/annotateManually/PhotoManuallyAnnotated'
 import { PhotoAnnotationConfirmed } from '../photo/confirmPhotoAnnotation/PhotoAnnotationConfirmed'
 import { AWSDetectedFacesInPhoto } from '../photo/recognizeFacesInChatPhoto/AWSDetectedFacesInPhoto'
 import { PersonPageProps } from './PersonPage'
+import { UserNamedPersonInPhoto } from '../../events/onboarding/UserNamedPersonInPhoto'
+import { UserRecognizedPersonInPhoto } from '../../events/onboarding/UserRecognizedPersonInPhoto'
 
 export const getPersonPageProps = async (personId: UUID): Promise<PersonPageProps> => {
   const photos = await getPersonPhotos(personId)

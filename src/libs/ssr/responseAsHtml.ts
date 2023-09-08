@@ -4,20 +4,18 @@ import ReactDOMServer from 'react-dom/server'
 import { ADMIN_USERID } from '../../dependencies/env'
 import { getSingleEvent } from '../../dependencies/getSingleEvent'
 import { UUID } from '../../domain'
+import { OnboardingUserStartedFirstThread } from '../../events/onboarding/OnboardingUserStartedFirstThread'
+import { OnboardingUserUploadedPhotoOfFamily } from '../../events/onboarding/OnboardingUserUploadedPhotoOfFamily'
+import { UserConfirmedHisFace } from '../../events/onboarding/UserConfirmedHisFace'
+import { UserNamedThemself } from '../../events/onboarding/UserNamedThemself'
 import { LocationContext } from '../../pages/_components/LocationContext'
 import { Session, SessionContext } from '../../pages/_components/SessionContext'
 import { PersonSearchContext } from '../../pages/_components/usePersonSearch'
-import { UserNamedThemself } from '../../pages/bienvenue/step1-userTellsAboutThemselves/UserNamedThemself'
-import { UserConfirmedHisFace } from '../../pages/bienvenue/step2-userUploadsPhoto/UserConfirmedHisFace'
-import { OnboardingUserUploadedPhotoOfFamily } from '../../pages/bienvenue/step2-userUploadsPhoto/OnboardingUserUploadedPhotoOfFamily'
-import { UserNamedPersonInPhoto } from '../../pages/bienvenue/step3-learnAboutUsersFamily/UserNamedPersonInPhoto'
-import { UserRecognizedPersonInPhoto } from '../../pages/bienvenue/step3-learnAboutUsersFamily/UserRecognizedPersonInPhoto'
-import { OnboardingUserStartedFirstThread } from '../../pages/bienvenue/step4-start-thread/OnboardingUserStartedFirstThread'
 import { UserSentMessageToChat } from '../../pages/chat/sendMessageToChat/UserSentMessageToChat'
 import { UserUploadedPhotoToChat } from '../../pages/chat/uploadPhotoToChat/UserUploadedPhotoToChat'
-import { PhotoManuallyAnnotated } from '../../pages/photo/annotateManually/PhotoManuallyAnnotated'
-import { PhotoAnnotationConfirmed } from '../../pages/photo/confirmPhotoAnnotation/PhotoAnnotationConfirmed'
 import { withContext } from './withContext'
+import { UserNamedPersonInPhoto } from '../../events/onboarding/UserNamedPersonInPhoto'
+import { OnboardingUserUploadedPhotoOfThemself } from '../../events/onboarding/OnboardingUserUploadedPhotoOfThemself'
 
 const html = String.raw
 
@@ -89,12 +87,11 @@ async function getSession(request: Request): Promise<Session> {
   if (user) {
     const userId = user.id
 
-    const hasPhotos = await getSingleEvent<UserUploadedPhotoToChat | OnboardingUserUploadedPhotoOfFamily>(
-      ['OnboardingUserUploadedPhotoOfFamily', 'UserUploadedPhotoToChat'],
-      {
-        uploadedBy: userId,
-      }
-    )
+    const hasPhotos = await getSingleEvent<
+      UserUploadedPhotoToChat | OnboardingUserUploadedPhotoOfFamily | OnboardingUserUploadedPhotoOfThemself
+    >(['OnboardingUserUploadedPhotoOfFamily', 'UserUploadedPhotoToChat', 'OnboardingUserUploadedPhotoOfThemself'], {
+      uploadedBy: userId,
+    })
 
     const hasThreads = await getSingleEvent<UserSentMessageToChat | OnboardingUserStartedFirstThread>(
       ['UserSentMessageToChat', 'OnboardingUserStartedFirstThread'],

@@ -1,28 +1,27 @@
-import { resetDatabase } from '../../dependencies/__test__/resetDatabase'
-import { addToHistory } from '../../dependencies/addToHistory'
-import { getPhotoUrlFromId } from '../../dependencies/photo-storage'
-import { getUuid } from '../../libs/getUuid'
-import { UserNamedThemself } from '../bienvenue/step1-userTellsAboutThemselves/UserNamedThemself'
-import { OnboardingUserUploadedPhotoOfThemself } from '../bienvenue/step1-userTellsAboutThemselves/OnboardingUserUploadedPhotoOfThemself'
-import { UserConfirmedHisFace } from '../bienvenue/step2-userUploadsPhoto/UserConfirmedHisFace'
-import { OnboardingUserUploadedPhotoOfFamily } from '../bienvenue/step2-userUploadsPhoto/OnboardingUserUploadedPhotoOfFamily'
-import { BeneficiariesChosen } from '../bienvenue/step3-learnAboutUsersFamily/BeneficiariesChosen'
-import { FaceIgnoredInPhoto } from '../bienvenue/step3-learnAboutUsersFamily/FaceIgnoredInPhoto'
-import { OnboardingFamilyMemberAnnotationIsDone } from '../bienvenue/step3-learnAboutUsersFamily/OnboardingFamilyMemberAnnotationIsDone'
-import { OnboardingReadyForBeneficiaries } from '../bienvenue/step3-learnAboutUsersFamily/OnboardingReadyForBeneficiaries'
-import { UserConfirmedRelationUsingOpenAI } from '../bienvenue/step3-learnAboutUsersFamily/UserConfirmedRelationUsingOpenAI'
-import { UserIgnoredRelationship } from '../bienvenue/step3-learnAboutUsersFamily/UserIgnoredRelationship'
-import { UserNamedPersonInPhoto } from '../bienvenue/step3-learnAboutUsersFamily/UserNamedPersonInPhoto'
-import { UserPostedRelationUsingOpenAI } from '../bienvenue/step3-learnAboutUsersFamily/UserPostedRelationUsingOpenAI'
-import { OnboardingUserStartedFirstThread } from '../bienvenue/step4-start-thread/OnboardingUserStartedFirstThread'
-import { AWSDetectedFacesInPhoto } from '../photo/recognizeFacesInChatPhoto/AWSDetectedFacesInPhoto'
-import { RELATIONSHIPS_ENABLED, getHomePageProps } from './getHomePageProps'
-import { UUID } from '../../domain'
-import { HomePageProps } from './HomePage'
-import { UserRecognizedPersonInPhoto } from '../bienvenue/step3-learnAboutUsersFamily/UserRecognizedPersonInPhoto'
-
-const getHomePagePropsOnboarding = async (userId: UUID): Promise<HomePageProps & { isOnboarding: true }> => {
-  const props = await getHomePageProps(userId)
+import { resetDatabase } from '../../../dependencies/__test__/resetDatabase'
+import { addToHistory } from '../../../dependencies/addToHistory'
+import { getPhotoUrlFromId } from '../../../dependencies/photo-storage'
+import { getUuid } from '../../../libs/getUuid'
+import { UserNamedThemself } from '../../../events/onboarding/UserNamedThemself'
+import { OnboardingUserUploadedPhotoOfThemself } from '../../../events/onboarding/OnboardingUserUploadedPhotoOfThemself'
+import { UserConfirmedHisFace } from '../../../events/onboarding/UserConfirmedHisFace'
+import { OnboardingUserUploadedPhotoOfFamily } from '../../../events/onboarding/OnboardingUserUploadedPhotoOfFamily'
+import { BeneficiariesChosen } from '../../../events/onboarding/BeneficiariesChosen'
+import { UUID } from 'aws-sdk/clients/cloudtrail'
+import { FaceIgnoredInPhoto } from '../../../events/onboarding/FaceIgnoredInPhoto'
+import { OnboardingFamilyMemberAnnotationIsDone } from '../../../events/onboarding/OnboardingFamilyMemberAnnotationIsDone'
+import { OnboardingReadyForBeneficiaries } from '../../../events/onboarding/OnboardingReadyForBeneficiaries'
+import { OnboardingUserStartedFirstThread } from '../../../events/onboarding/OnboardingUserStartedFirstThread'
+import { UserConfirmedRelationUsingOpenAI } from '../../../events/onboarding/UserConfirmedRelationUsingOpenAI'
+import { UserIgnoredRelationship } from '../../../events/onboarding/UserIgnoredRelationship'
+import { UserNamedPersonInPhoto } from '../../../events/onboarding/UserNamedPersonInPhoto'
+import { UserPostedRelationUsingOpenAI } from '../../../events/onboarding/UserPostedRelationUsingOpenAI'
+import { UserRecognizedPersonInPhoto } from '../../../events/onboarding/UserRecognizedPersonInPhoto'
+import { AWSDetectedFacesInPhoto } from '../../photo/recognizeFacesInChatPhoto/AWSDetectedFacesInPhoto'
+import { OnboardingHomePageProps } from './OnboardingHomePage'
+import { getOnboardingHomePageProps, RELATIONSHIPS_ENABLED } from './getOnboardingHomePageProps'
+const getHomePagePropsOnboarding = async (userId: UUID): Promise<OnboardingHomePageProps & { isOnboarding: true }> => {
+  const props = await getOnboardingHomePageProps(userId)
   if (!props.isOnboarding) throw 'onboarding only'
 
   return props
@@ -885,7 +884,7 @@ describe('getHomePageProps', () => {
       })
 
       it('should return isOnboarding: false', async () => {
-        const { isOnboarding } = await getHomePageProps(userId)
+        const { isOnboarding } = await getOnboardingHomePageProps(userId)
         expect(isOnboarding).toBe(false)
       })
     })
