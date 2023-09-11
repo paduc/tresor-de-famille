@@ -8,6 +8,18 @@ import { InlinePhotoUploadBtn } from '../../_components/InlinePhotoUploadBtn'
 import { AppLayout } from '../../_components/layout/AppLayout'
 import { PhotoIcon } from './PhotoIcon'
 
+import { Node, Extension } from '@tiptap/core'
+import {
+  EditorContent,
+  JSONContent,
+  useEditor,
+  ReactNodeViewRenderer,
+  mergeAttributes,
+  NodeViewWrapper,
+  Attributes,
+} from '@tiptap/react'
+import StarterKit from '@tiptap/starter-kit'
+
 // @ts-ignore
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ')
@@ -47,6 +59,27 @@ export type ChatPageProps = {
 
 export const ChatPage = withBrowserBundle(({ error, success, title, history, chatId }: ChatPageProps) => {
   const newMessageAreaRef = React.useRef<HTMLTextAreaElement>(null)
+
+  const handleChange = (json: JSONContent) => {
+    console.log({ json })
+  }
+
+  const content = history.reduce((content, event): string => {
+    if (event.type === 'photo') {
+      return `${content}<tdf-photo url="${event.url}" chatId="${event.chatId}" photoId="${event.photoId}" description="${
+        event.description || ''
+      }" unrecognizedFacesInPhoto="${event.unrecognizedFacesInPhoto}" personsInPhoto="${encodeURIComponent(
+        JSON.stringify(event.personsInPhoto)
+      )}"></tdf-photo>`
+    }
+
+    if (event.type === 'message') {
+      return content + `<p class="text-xl">${event.message.body}</p>`
+    }
+
+    return content
+  }, '')
+
   return (
     <AppLayout>
       <div className='pt-2 overflow-hidden pb-40'>
@@ -60,7 +93,10 @@ export const ChatPage = withBrowserBundle(({ error, success, title, history, cha
             defaultValue={title}
           />
         </form>
-        <ul role='list' className='mt-3 grid grid-cols-1 gap-2'>
+        <div className='mt-4 mb-4'>
+          <RichTextEditor onChange={handleChange} content={content} />
+        </div>
+        <ul role='list' className='hidden mt-3 grid grid-cols-1 gap-2'>
           {history
             ? history.map((event, index) => {
                 if (event.type === 'photo') {
@@ -141,7 +177,7 @@ const PhotoItem = (props: PhotoItemProps) => {
   const photoPageUrl = `/photo/${props.photoId}/photo.html?threadId=${props.chatId}`
 
   return (
-    <div className='grid grid-cols-1 w-full px-4 sm:px-8 pb-2'>
+    <div className='grid grid-cols-1 w-full px-4 sm:px-8 py-2'>
       <div className='mb-2'>
         <a href={photoPageUrl}>
           <img src={url} className='max-w-full max-h-[50vh] border border-gray-300 shadow-sm' />
@@ -151,7 +187,7 @@ const PhotoItem = (props: PhotoItemProps) => {
       <div className='sm:px-2'>
         <p className='text-md text-gray-600 mb-1 whitespace-pre-wrap'>{description}</p>
         {descriptionOfPeople ? <p className='text-md text-gray-600 mb-1'>avec {descriptionOfPeople}</p> : null}
-        {!description && unrecognizedFacesInPhoto ? (
+        {!(description || description?.length) && unrecognizedFacesInPhoto ? (
           <p className='text-md text-gray-600 mb-1'>
             <a href={photoPageUrl} className='font-medium text-indigo-600 hover:text-indigo-500'>
               Annoter le(s) {unrecognizedFacesInPhoto} visage(s)
@@ -162,3 +198,111 @@ const PhotoItem = (props: PhotoItemProps) => {
     </div>
   )
 }
+
+function RichTextEditor(props: { content: string; onChange: (json: JSONContent) => void }) {
+  const editor = useEditor({
+    extensions: [
+      StarterKit.configure({
+        paragraph: {
+          HTMLAttributes: {
+            class:
+              'sm:ml-6 max-w-2xl px-4 py-4 text-gray-800 text-lg bg-white border  border-gray-300 border-x-white sm:border-x-gray-300 shadow-sm whitespace-pre-wrap [&+p]:-mt-1 [&+p]:border-t-0 [&+p]:pt-0',
+          },
+        },
+      }),
+      TipTapPhotoNode,
+    ],
+    content: props.content,
+    editorProps: {
+      attributes: {
+        class: 'focus:outline-none',
+      },
+    },
+  })
+
+  // editor?.on('update', () => {
+  //   const jSON = editor.getJSON()
+  //   props.onChange(jSON)
+  // })
+
+  return <EditorContent editor={editor} />
+}
+
+const PhotoItemWrappedForTipTap = (props: {
+  node: {
+    attrs: {
+      [Attr in keyof PhotoItemProps]: PhotoItemProps[Attr] extends UUID
+        ? UUID
+        : PhotoItemProps[Attr] extends number
+        ? number
+        : string
+    }
+  }
+}) => {
+  try {
+    const parsedPersonsInPhoto: string[] = JSON.parse(decodeURIComponent(props.node.attrs.personsInPhoto))
+
+    if (!Array.isArray(parsedPersonsInPhoto) || parsedPersonsInPhoto.some((nom) => typeof nom !== 'string')) {
+      throw new Error('Illegal name list')
+    }
+
+    const remixedProps: PhotoItemProps = { ...props.node.attrs, personsInPhoto: parsedPersonsInPhoto }
+
+    const { chatId, photoId, url, description, personsInPhoto, unrecognizedFacesInPhoto } = remixedProps
+
+    return (
+      <NodeViewWrapper className='tdf-photo'>
+        <PhotoItem
+          chatId={chatId}
+          personsInPhoto={personsInPhoto}
+          photoId={photoId}
+          unrecognizedFacesInPhoto={unrecognizedFacesInPhoto}
+          url={url}
+          description={description}
+          key={photoId}
+        />
+      </NodeViewWrapper>
+    )
+  } catch (error) {
+    return (
+      <NodeViewWrapper className='tdf-photo'>
+        <div>Error: illegal values in photo module</div>
+      </NodeViewWrapper>
+    )
+  }
+}
+
+const TipTapPhotoNode = Node.create({
+  name: 'photoNode',
+
+  group: 'block',
+
+  atom: true,
+
+  addAttributes(): (Attributes | {}) & { [Attr in keyof PhotoItemProps]: any } {
+    return {
+      chatId: {},
+      photoId: {},
+      url: {},
+      description: {},
+      personsInPhoto: {},
+      unrecognizedFacesInPhoto: {},
+    }
+  },
+
+  parseHTML() {
+    return [
+      {
+        tag: 'tdf-photo',
+      },
+    ]
+  },
+
+  renderHTML({ HTMLAttributes }) {
+    return ['tdf-photo', mergeAttributes(HTMLAttributes)]
+  },
+
+  addNodeView() {
+    return ReactNodeViewRenderer(PhotoItemWrappedForTipTap)
+  },
+})

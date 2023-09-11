@@ -59,6 +59,8 @@ export const AvecUnePhotoEtVisagesNonIdentifiés = () => (
       {
         timestamp: t0,
         type: 'photo',
+        chatId: getUuid(),
+        chatId: getUuid(),
         photoId: 'photo123' as UUID,
         url: 'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=500&h=500&q=80',
         personsInPhoto: ['Jean', 'Marie', 'Philippe', 'Joseph', 'Helicopter', 'Banane'],
@@ -75,6 +77,7 @@ export const AvecUnePhotoEtVisagesTousIdentifiés = () => (
       {
         timestamp: t0,
         type: 'photo',
+        chatId: getUuid(),
         photoId: 'photo123' as UUID,
         url: 'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=500&h=500&q=80',
         personsInPhoto: ['Jean', 'Marie', 'Philippe', 'Joseph', 'Helicopter', 'Banane'],
@@ -109,17 +112,27 @@ export const AvecUnMelangeDePhotoEtMessage = () => (
         timestamp: t0,
         type: 'message',
         message: {
-          body: `Lorem ipsum dolor sit amet.
-          
-          Consectetur adipiscing elit. Tincidunt nunc ipsum tempor purus vitae id. Morbi in vestibulum nec varius. Et diam cursus quis sed purus nam. Scelerisque amet elit non sit ut tincidunt condimentum. Nisl ultrices eu venenatis diam.`,
+          body: `
+          Premier message
+          `,
+        },
+      },
+      {
+        timestamp: t0,
+        type: 'message',
+        message: {
+          body: `
+          Deuxieme message
+          `,
         },
       },
       {
         timestamp: t0 + 1 * HOUR,
         type: 'photo',
+        chatId: getUuid(),
         photoId: 'photo123' as UUID,
         url: 'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=500&h=500&q=80',
-        description: 'Cette photo commence a me taper sur les nerfs.',
+        description: 'Ici la description',
         personsInPhoto: ['Jean', 'Marie', 'Philippe', 'Joseph', 'Helicopter', 'Banane'],
         unrecognizedFacesInPhoto: 0,
       },
@@ -127,39 +140,17 @@ export const AvecUnMelangeDePhotoEtMessage = () => (
         timestamp: t0 + 2 * HOUR,
         type: 'message',
         message: {
-          body: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Tincidunt nunc ipsum tempor purus vitae id. Morbi in vestibulum nec varius. Et diam cursus quis sed purus nam. Scelerisque amet elit non sit ut tincidunt condimentum. Nisl ultrices eu venenatis diam.',
+          body: 'Deuxieme texte',
         },
       },
       {
-        timestamp: t0 + 2 * HOUR,
-        type: 'message',
-        message: {
-          body: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Tincidunt nunc ipsum tempor purus vitae id. Morbi in vestibulum nec varius. Et diam cursus quis sed purus nam. Scelerisque amet elit non sit ut tincidunt condimentum. Nisl ultrices eu venenatis diam.',
-        },
-      },
-      {
-        timestamp: t0 + 1 * HOUR,
+        timestamp: t0 + 4 * HOUR,
         type: 'photo',
+        chatId: getUuid(),
         photoId: 'photo123' as UUID,
-        url: 'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=500&h=1500&q=80',
+        url: 'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=500&h=500&q=80',
         personsInPhoto: [],
         unrecognizedFacesInPhoto: 3,
-      },
-      {
-        timestamp: t0 + 1 * HOUR,
-        type: 'photo',
-        photoId: 'photo123' as UUID,
-        url: 'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=2500&h=500&q=80',
-        description: 'Je ne sais plus',
-        personsInPhoto: [],
-        unrecognizedFacesInPhoto: 0,
-      },
-      {
-        timestamp: t0 + 2 * HOUR,
-        type: 'message',
-        message: {
-          body: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Tincidunt nunc ipsum tempor purus vitae id. Morbi in vestibulum nec varius. Et diam cursus quis sed purus nam. Scelerisque amet elit non sit ut tincidunt condimentum. Nisl ultrices eu venenatis diam.',
-        },
       },
     ]}
   />
