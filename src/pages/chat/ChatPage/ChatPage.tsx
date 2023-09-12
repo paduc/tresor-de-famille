@@ -64,7 +64,7 @@ export const ChatPage = withBrowserBundle(({ error, success, title, history, cha
     console.log({ json })
   }
 
-  const content = history.reduce((content, event): string => {
+  let content = history.reduce((content, event): string => {
     if (event.type === 'photo') {
       return `${content}<tdf-photo url="${event.url}" chatId="${event.chatId}" photoId="${event.photoId}" description="${
         event.description || ''
@@ -74,11 +74,15 @@ export const ChatPage = withBrowserBundle(({ error, success, title, history, cha
     }
 
     if (event.type === 'message') {
-      return content + `<p class="text-xl">${event.message.body}</p>`
+      return content + `<p>${event.message.body}</p>`
     }
 
     return content
   }, '')
+
+  if (history.at(-1)?.type === 'photo') {
+    content += '<p></p>'
+  }
 
   return (
     <AppLayout>
@@ -96,75 +100,21 @@ export const ChatPage = withBrowserBundle(({ error, success, title, history, cha
         <div className='mt-4 mb-4'>
           <RichTextEditor onChange={handleChange} content={content} />
         </div>
-        <ul role='list' className='hidden mt-3 grid grid-cols-1 gap-2'>
-          {history
-            ? history.map((event, index) => {
-                if (event.type === 'photo') {
-                  return <PhotoItem key={`event_${index}`} {...{ ...event, chatId }} />
+        <div className='ml-4 sm:ml-6 mt-3'>
+          <InlinePhotoUploadBtn formAction='/add-photo.html' formKey='addNewPhotoToChat' hiddenFields={{ chatId }}>
+            <span
+              className={`${secondaryButtonStyles}`}
+              onClick={(e) => {
+                if (newMessageAreaRef.current !== null && newMessageAreaRef.current.value !== '') {
+                  e.preventDefault()
+                  alert("Merci d'envoyer votre souvenir avant d'ajouter une photo.")
                 }
-
-                if (event.type === 'message') {
-                  return (
-                    <div
-                      key={`event_${index}`}
-                      className='sm:ml-6 max-w-2xl px-4 py-4 text-gray-800 text-lg bg-white border  border-gray-300 border-x-white sm:border-x-gray-300 shadow-sm'>
-                      <p className='whitespace-pre-wrap'>{event.message.body}</p>
-                    </div>
-                  )
-                }
-
-                return null
-              })
-            : null}
-          <li>
-            <form method='POST' className='block relative'>
-              <input type='hidden' name='action' value='newMessage' />
-              <TextareaAutosize
-                ref={newMessageAreaRef}
-                name='message'
-                minRows={4}
-                autoFocus={history.every((event) => event.type !== 'message')}
-                className='px-4 py-4 block w-full sm:ml-6 max-w-2xl border-gray-300 border-x-white sm:border-x-gray-300 shadow-sm resize-none  text-gray-800 ring-0 placeholder:text-gray-400 focus:border-gray-300 focus:ring-0 text-lg focus:outline-none'
-                placeholder='...'
-                onKeyDown={(e) => {
-                  const text = e.currentTarget.value.trim()
-                  if (e.key === 'Enter' && e.metaKey) {
-                    e.preventDefault()
-                    // @ts-ignore
-                    if (text) e.target.form.submit()
-                  }
-                }}
-              />
-              <div className='ml-4 sm:ml-6 mt-3'>
-                <button
-                  type='submit'
-                  onClick={(e) => {
-                    if (newMessageAreaRef.current && !newMessageAreaRef.current.value.trim().length) {
-                      e.preventDefault()
-                    }
-                  }}
-                  className={`${primaryButtonStyles}`}>
-                  Envoyer
-                </button>
-              </div>
-            </form>
-            <div className='ml-4 sm:ml-6 mt-3'>
-              <InlinePhotoUploadBtn formAction='/add-photo.html' formKey='addNewPhotoToChat' hiddenFields={{ chatId }}>
-                <span
-                  className={`${secondaryButtonStyles}`}
-                  onClick={(e) => {
-                    if (newMessageAreaRef.current !== null && newMessageAreaRef.current.value !== '') {
-                      e.preventDefault()
-                      alert("Merci d'envoyer votre souvenir avant d'ajouter une photo.")
-                    }
-                  }}>
-                  <PhotoIcon className={`${buttonIconStyles}`} aria-hidden='true' />
-                  Ajouter une photo
-                </span>
-              </InlinePhotoUploadBtn>
-            </div>
-          </li>
-        </ul>
+              }}>
+              <PhotoIcon className={`${buttonIconStyles}`} aria-hidden='true' />
+              Ajouter une photo
+            </span>
+          </InlinePhotoUploadBtn>
+        </div>
       </div>
     </AppLayout>
   )
