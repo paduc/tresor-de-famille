@@ -1,22 +1,22 @@
 import React from 'react'
-import TextareaAutosize from 'react-textarea-autosize'
 
 import { UUID } from '../../../domain'
 import { withBrowserBundle } from '../../../libs/ssr/withBrowserBundle'
-import { buttonIconStyles, primaryButtonStyles, secondaryButtonStyles } from '../../_components/Button'
+import { buttonIconStyles, secondaryButtonStyles } from '../../_components/Button'
 import { InlinePhotoUploadBtn } from '../../_components/InlinePhotoUploadBtn'
 import { AppLayout } from '../../_components/layout/AppLayout'
 import { PhotoIcon } from './PhotoIcon'
 
-import { Node, Extension } from '@tiptap/core'
+import { Node } from '@tiptap/core'
 import {
+  Attributes,
   EditorContent,
+  FloatingMenu,
   JSONContent,
-  useEditor,
+  NodeViewWrapper,
   ReactNodeViewRenderer,
   mergeAttributes,
-  NodeViewWrapper,
-  Attributes,
+  useEditor,
 } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 
@@ -175,7 +175,22 @@ function RichTextEditor(props: { content: string; onChange: (json: JSONContent) 
   //   props.onChange(jSON)
   // })
 
-  return <EditorContent editor={editor} />
+  if (!editor) {
+    return <>Error lors du chargement de l'éditeur d'anecdotes</>
+  }
+
+  return (
+    <>
+      <FloatingMenu editor={editor} tippyOptions={{ duration: 100 }}>
+        <span
+          className={`ml-5 pl-3 border border-y-0 border-r-0 border-l border-l-gray-300 cursor-pointer inline-flex items-center text-indigo-600 hover:underline hover:underline-offset-2`}>
+          <PhotoIcon className={`${buttonIconStyles} h-4 w-4`} aria-hidden='true' />
+          Insérer une photo
+        </span>
+      </FloatingMenu>
+      <EditorContent editor={editor} />
+    </>
+  )
 }
 
 const PhotoItemWrappedForTipTap = (props: {
