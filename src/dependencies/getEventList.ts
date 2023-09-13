@@ -14,7 +14,7 @@ export type PayloadPropertyMap<T extends DomainEvent> = Equals<Map<T>, {}> exten
   : never
 
 /**
- * Get all the events from the given types, in order of occurrence
+ * Get all the events from the given types, in ascending order of occurrence
  * @param type a string or array of strings representing the event types
  * @param payloadParams an optional key/value pairs of payload parameters
  */

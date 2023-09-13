@@ -51,6 +51,8 @@ pageRouter
 
     const props = await getChatPageProps(chatId)
 
+    // console.log(JSON.stringify({ props }, null, 2))
+
     responseAsHtml(request, response, ChatPage(props))
   })
   .post(requireAuth(), async (request, response) => {

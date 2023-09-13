@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 
 import { UUID } from '../../../domain'
 import { withBrowserBundle } from '../../../libs/ssr/withBrowserBundle'
@@ -10,6 +10,7 @@ import { PhotoIcon } from './PhotoIcon'
 import { Node } from '@tiptap/core'
 import {
   Attributes,
+  Content,
   EditorContent,
   FloatingMenu,
   JSONContent,
@@ -19,6 +20,7 @@ import {
   useEditor,
 } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
+import { TipTapContentAsJSON } from '../UserUpdatedThreadAsRichText'
 
 // @ts-ignore
 function classNames(...classes) {
@@ -53,35 +55,19 @@ export type ChatPageProps = {
   success?: string
   error?: string
   title?: string
-  history: ChatEvent[]
+  contentAsJSON: TipTapContentAsJSON
   chatId: UUID
 }
 
-export const ChatPage = withBrowserBundle(({ error, success, title, history, chatId }: ChatPageProps) => {
+export const ChatPage = withBrowserBundle(({ error, success, title, contentAsJSON, chatId }: ChatPageProps) => {
   const newMessageAreaRef = React.useRef<HTMLTextAreaElement>(null)
 
-  const handleChange = (json: JSONContent) => {
-    console.log({ json })
+  const handleChange = (html: string) => {
+    console.log({ html })
   }
 
-  let content = history.reduce((content, event): string => {
-    if (event.type === 'photo') {
-      return `${content}<tdf-photo url="${event.url}" chatId="${event.chatId}" photoId="${event.photoId}" description="${
-        event.description || ''
-      }" unrecognizedFacesInPhoto="${event.unrecognizedFacesInPhoto}" personsInPhoto="${encodeURIComponent(
-        JSON.stringify(event.personsInPhoto)
-      )}"></tdf-photo>`
-    }
-
-    if (event.type === 'message') {
-      return content + `<p>${event.message.body}</p>`
-    }
-
-    return content
-  }, '')
-
-  if (history.at(-1)?.type === 'photo') {
-    content += '<p></p>'
+  if (contentAsJSON.content.at(-1)?.type !== 'paragraph') {
+    contentAsJSON.content.push({ type: 'paragraph' })
   }
 
   return (
@@ -98,7 +84,7 @@ export const ChatPage = withBrowserBundle(({ error, success, title, history, cha
           />
         </form>
         <div className='mt-4 mb-4'>
-          <RichTextEditor onChange={handleChange} content={content} />
+          <RichTextEditor onChange={handleChange} content={contentAsJSON} />
         </div>
         <div className='ml-4 sm:ml-6 mt-3'>
           <InlinePhotoUploadBtn formAction='/add-photo.html' formKey='addNewPhotoToChat' hiddenFields={{ chatId }}>
@@ -149,7 +135,7 @@ const PhotoItem = (props: PhotoItemProps) => {
   )
 }
 
-function RichTextEditor(props: { content: string; onChange: (json: JSONContent) => void }) {
+function RichTextEditor(props: { content: Content; onChange: (html: string) => void }) {
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -163,6 +149,7 @@ function RichTextEditor(props: { content: string; onChange: (json: JSONContent) 
       TipTapPhotoNode,
     ],
     content: props.content,
+    autofocus: true,
     editorProps: {
       attributes: {
         class: 'focus:outline-none',
@@ -170,10 +157,12 @@ function RichTextEditor(props: { content: string; onChange: (json: JSONContent) 
     },
   })
 
-  // editor?.on('update', () => {
-  //   const jSON = editor.getJSON()
-  //   props.onChange(jSON)
-  // })
+  useEffect(() => {
+    editor?.on('update', () => {
+      console.log(editor.getJSON())
+      // props.onChange(editor.getHTML())
+    })
+  }, [editor])
 
   if (!editor) {
     return <>Error lors du chargement de l'éditeur d'anecdotes</>
