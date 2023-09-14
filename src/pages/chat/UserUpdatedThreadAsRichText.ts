@@ -12,7 +12,6 @@ export type UserUpdatedThreadAsRichText = DomainEvent<
   'UserUpdatedThreadAsRichText',
   {
     chatId: UUID
-    contentAsHTML: string
     contentAsJSON: TipTapContentAsJSON
     userId: UUID
   }

@@ -1,8 +1,8 @@
-import React, { useEffect } from 'react'
+import React, { forwardRef, useEffect } from 'react'
 
 import { UUID } from '../../../domain'
 import { withBrowserBundle } from '../../../libs/ssr/withBrowserBundle'
-import { buttonIconStyles, secondaryButtonStyles } from '../../_components/Button'
+import { buttonIconStyles, primaryButtonStyles, secondaryButtonStyles } from '../../_components/Button'
 import { InlinePhotoUploadBtn } from '../../_components/InlinePhotoUploadBtn'
 import { AppLayout } from '../../_components/layout/AppLayout'
 import { PhotoIcon } from './PhotoIcon'
@@ -11,6 +11,7 @@ import { Node } from '@tiptap/core'
 import {
   Attributes,
   Content,
+  Editor,
   EditorContent,
   FloatingMenu,
   JSONContent,
@@ -21,6 +22,7 @@ import {
 } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import { TipTapContentAsJSON } from '../UserUpdatedThreadAsRichText'
+import { fixedForwardRef } from '../../../libs/fixedForwardRef'
 
 // @ts-ignore
 function classNames(...classes) {
@@ -62,6 +64,9 @@ export type ChatPageProps = {
 export const ChatPage = withBrowserBundle(({ error, success, title, contentAsJSON, chatId }: ChatPageProps) => {
   const newMessageAreaRef = React.useRef<HTMLTextAreaElement>(null)
 
+  const richTextEditorRef = React.useRef<RichTextEditorRef>(null)
+  if (richTextEditorRef) richTextEditorRef.current?.getContents()
+
   const handleChange = (html: string) => {
     console.log({ html })
   }
@@ -84,8 +89,34 @@ export const ChatPage = withBrowserBundle(({ error, success, title, contentAsJSO
           />
         </form>
         <div className='mt-4 mb-4'>
-          <RichTextEditor onChange={handleChange} content={contentAsJSON} />
+          <RichTextEditor ref={richTextEditorRef} onChange={handleChange} content={contentAsJSON} />
         </div>
+        <form
+          method='POST'
+          onSubmit={(e) => {
+            e.preventDefault()
+
+            const contentAsJSON = richTextEditorRef.current?.getContents()
+            if (!contentAsJSON) {
+              alert("Il n'y a pas de contenu à sauvegarder")
+              return
+            }
+
+            // Insert the contents of RichTextEditor in the hidden field
+            const form = e.currentTarget
+            const formElements = form.elements as typeof form.elements & {
+              contentAsJSONEncoded: HTMLInputElement
+            }
+            formElements.contentAsJSONEncoded.value = encodeURIComponent(JSON.stringify(contentAsJSON))
+
+            form.submit()
+          }}>
+          <input type='hidden' name='contentAsJSONEncoded' />
+          <input type='hidden' name='action' value='saveRichContentsAsJSON' />
+          <button type='submit' className={`ml-4 sm:ml-6 mt-3 ${primaryButtonStyles}`}>
+            Sauvegarder
+          </button>
+        </form>
         <div className='ml-4 sm:ml-6 mt-3'>
           <InlinePhotoUploadBtn formAction='/add-photo.html' formKey='addNewPhotoToChat' hiddenFields={{ chatId }}>
             <span
@@ -134,8 +165,16 @@ const PhotoItem = (props: PhotoItemProps) => {
     </div>
   )
 }
+type RichTextEditorProps = {
+  content: Content
+  onChange: (html: string) => void
+}
 
-function RichTextEditor(props: { content: Content; onChange: (html: string) => void }) {
+type RichTextEditorRef = {
+  getContents: () => JSONContent
+}
+
+const RichTextEditor = fixedForwardRef<RichTextEditorRef, RichTextEditorProps>((props, ref) => {
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -149,7 +188,7 @@ function RichTextEditor(props: { content: Content; onChange: (html: string) => v
       TipTapPhotoNode,
     ],
     content: props.content,
-    autofocus: true,
+    autofocus: 'end',
     editorProps: {
       attributes: {
         class: 'focus:outline-none',
@@ -157,16 +196,15 @@ function RichTextEditor(props: { content: Content; onChange: (html: string) => v
     },
   })
 
-  useEffect(() => {
-    editor?.on('update', () => {
-      console.log(editor.getJSON())
-      // props.onChange(editor.getHTML())
-    })
-  }, [editor])
+  const editorRef: React.MutableRefObject<Editor | null> = React.useRef(null)
+  React.useImperativeHandle(ref, () => ({
+    getContents: () => {
+      return editorRef.current!.getJSON()
+    },
+  }))
 
-  if (!editor) {
-    return <>Error lors du chargement de l'éditeur d'anecdotes</>
-  }
+  if (!editor) return null
+  editorRef.current = editor
 
   return (
     <>
@@ -180,7 +218,7 @@ function RichTextEditor(props: { content: Content; onChange: (html: string) => v
       <EditorContent editor={editor} />
     </>
   )
-}
+})
 
 const PhotoItemWrappedForTipTap = (props: {
   node: {

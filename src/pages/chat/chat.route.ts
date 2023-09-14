@@ -9,6 +9,7 @@ import { getChatPageProps } from './getChatHistory/getChatPageProps'
 import { UserSentMessageToChat } from './sendMessageToChat/UserSentMessageToChat'
 import { addToHistory } from '../../dependencies/addToHistory'
 import { UserSetChatTitle } from './UserSetChatTitle'
+import { TipTapContentAsJSON, UserUpdatedThreadAsRichText } from './UserUpdatedThreadAsRichText'
 
 const fakeProfilePicUrl =
   'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80'
@@ -59,7 +60,7 @@ pageRouter
     const userId = request.session.user!.id
     const { chatId } = z.object({ chatId: zIsUUID }).parse(request.params)
 
-    const { action } = z.object({ action: z.enum(['setTitle', 'newMessage']) }).parse(request.body)
+    const { action } = z.object({ action: z.enum(['setTitle', 'newMessage', 'saveRichContentsAsJSON']) }).parse(request.body)
 
     if (action === 'newMessage') {
       const { message } = z.object({ message: z.string() }).parse(request.body)
@@ -74,6 +75,22 @@ pageRouter
             messageId,
           })
         )
+      }
+    } else if (action === 'saveRichContentsAsJSON') {
+      const { contentAsJSONEncoded } = z.object({ contentAsJSONEncoded: z.string() }).parse(request.body)
+
+      try {
+        const contentAsJSON = JSON.parse(decodeURIComponent(contentAsJSONEncoded)) as TipTapContentAsJSON
+
+        await addToHistory(
+          UserUpdatedThreadAsRichText({
+            chatId,
+            contentAsJSON,
+            userId,
+          })
+        )
+      } catch (error) {
+        console.error('Impossible to parse the contentAsJSON payload that was sent by the client.')
       }
     } else if (action === 'setTitle') {
       const { title } = z.object({ title: z.string() }).parse(request.body)
