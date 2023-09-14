@@ -1,3 +1,4 @@
+import { DomainEvent } from '../../dependencies/DomainEvent'
 import { getSingleEvent } from '../../dependencies/getSingleEvent'
 import { getPhotoUrlFromId } from '../../dependencies/photo-storage'
 import { UUID } from '../../domain/UUID'
@@ -41,8 +42,7 @@ export const getNewPhotoPageProps = async ({
 async function getFamilyDetectedFace(args: { faceId: UUID; photoId: UUID; userId: UUID }): Promise<PhotoFace> {
   const { faceId, photoId, userId } = args
 
-  // Has a this face been named or recognized ?
-  const personNamedOrRecognized = await getSingleEvent<UserNamedPersonInPhoto | UserRecognizedPersonInPhoto>(
+  const personNamedOrRecognizedEvent = await getSingleEvent<UserNamedPersonInPhoto | UserRecognizedPersonInPhoto>(
     ['UserNamedPersonInPhoto', 'UserRecognizedPersonInPhoto'],
     {
       faceId,
@@ -51,9 +51,28 @@ async function getFamilyDetectedFace(args: { faceId: UUID; photoId: UUID; userId
     }
   )
 
-  if (personNamedOrRecognized) {
-    // Yes, the face was named or recognized
-    const { type, payload } = personNamedOrRecognized
+  const faceIgnoredEvent = await getSingleEvent<FaceIgnoredInPhoto>('FaceIgnoredInPhoto', {
+    photoId,
+    faceId,
+    ignoredBy: userId,
+  })
+
+  type Defined = Exclude<typeof personNamedOrRecognizedEvent | typeof faceIgnoredEvent, undefined>
+
+  const latestEvent = [personNamedOrRecognizedEvent, faceIgnoredEvent]
+    .filter((event): event is Defined => !!event)
+    .sort((a, b) => a.occurredAt.getTime() - b.occurredAt.getTime())
+    .at(-1)
+
+  if (latestEvent) {
+    if (latestEvent.type === 'FaceIgnoredInPhoto') {
+      return {
+        faceId,
+        stage: 'ignored',
+      }
+    }
+
+    const { type, payload } = latestEvent
     const { personId } = payload
 
     let name: string
@@ -62,19 +81,12 @@ async function getFamilyDetectedFace(args: { faceId: UUID; photoId: UUID; userId
     } else {
       name = (await getPersonByIdOrThrow(personId)).name
     }
-  }
 
-  // Has this face been ignored ?
-  const faceIgnored = await getSingleEvent<FaceIgnoredInPhoto>('FaceIgnoredInPhoto', {
-    photoId,
-    faceId,
-    ignoredBy: userId,
-  })
-
-  if (faceIgnored) {
     return {
       faceId,
-      stage: 'ignored',
+      stage: 'done',
+      personId,
+      name,
     }
   }
 
