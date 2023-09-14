@@ -1,12 +1,6 @@
-import { DomainEvent, makeDomainEvent, JSON } from '../../dependencies/DomainEvent'
+import { DomainEvent, makeDomainEvent } from '../../dependencies/DomainEvent'
 import { UUID } from '../../domain'
-
-type TipTapJSON = { type: string; text?: string; content?: TipTapJSON[]; attrs?: { [Key: string]: string | number } }
-
-export type TipTapContentAsJSON = {
-  type: 'doc'
-  content: TipTapJSON[]
-}
+import { TipTapContentAsJSON } from './TipTapTypes'
 
 export type UserUpdatedThreadAsRichText = DomainEvent<
   'UserUpdatedThreadAsRichText',

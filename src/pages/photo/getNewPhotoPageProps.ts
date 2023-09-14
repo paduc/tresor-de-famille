@@ -1,4 +1,3 @@
-import { DomainEvent } from '../../dependencies/DomainEvent'
 import { getSingleEvent } from '../../dependencies/getSingleEvent'
 import { getPhotoUrlFromId } from '../../dependencies/photo-storage'
 import { UUID } from '../../domain/UUID'

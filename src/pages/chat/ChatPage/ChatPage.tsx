@@ -21,8 +21,8 @@ import {
   useEditor,
 } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
-import { TipTapContentAsJSON } from '../UserUpdatedThreadAsRichText'
 import { fixedForwardRef } from '../../../libs/fixedForwardRef'
+import { TipTapContentAsJSON, encodeStringy } from '../TipTapTypes'
 
 // @ts-ignore
 function classNames(...classes) {
@@ -67,11 +67,8 @@ export const ChatPage = withBrowserBundle(({ error, success, title, contentAsJSO
   const richTextEditorRef = React.useRef<RichTextEditorRef>(null)
   if (richTextEditorRef) richTextEditorRef.current?.getContents()
 
-  const handleChange = (html: string) => {
-    console.log({ html })
-  }
-
   if (contentAsJSON.content.at(-1)?.type !== 'paragraph') {
+    // @ts-ignore
     contentAsJSON.content.push({ type: 'paragraph' })
   }
 
@@ -89,7 +86,7 @@ export const ChatPage = withBrowserBundle(({ error, success, title, contentAsJSO
           />
         </form>
         <div className='mt-4 mb-4'>
-          <RichTextEditor ref={richTextEditorRef} onChange={handleChange} content={contentAsJSON} />
+          <RichTextEditor ref={richTextEditorRef} content={contentAsJSON} />
         </div>
         <form
           method='POST'
@@ -167,7 +164,6 @@ const PhotoItem = (props: PhotoItemProps) => {
 }
 type RichTextEditorProps = {
   content: Content
-  onChange: (html: string) => void
 }
 
 type RichTextEditorRef = {
@@ -186,6 +182,7 @@ const RichTextEditor = fixedForwardRef<RichTextEditorRef, RichTextEditorProps>((
         },
       }),
       TipTapPhotoNode,
+      InsertPhotoMarker,
     ],
     content: props.content,
     autofocus: 'end',
@@ -196,20 +193,69 @@ const RichTextEditor = fixedForwardRef<RichTextEditorRef, RichTextEditorProps>((
     },
   })
 
+  const photoUploadForm = React.useRef<HTMLFormElement>(null)
+
+  // Make sure the content always ends with a paragraph
+  useEffect(() => {
+    editor?.on('update', (e) => {
+      const editorHtml = editor.getHTML()
+      if (!editorHtml.endsWith('p>')) {
+        const { size } = editor.view.state.doc.content
+
+        editor.chain().insertContentAt(size, '<p></p>').run()
+      }
+    })
+  }, [editor])
   const editorRef: React.MutableRefObject<Editor | null> = React.useRef(null)
+
   React.useImperativeHandle(ref, () => ({
     getContents: () => {
       return editorRef.current!.getJSON()
     },
   }))
-
   if (!editor) return null
+
   editorRef.current = editor
 
   return (
     <>
+      <form method='post' ref={photoUploadForm} encType='multipart/form-data'>
+        <input type='hidden' name='action' value='insertPhotoAtMarker' />
+        <input type='hidden' name='contentAsJSONEncoded' value='' />
+        <input
+          type='file'
+          id={`file-input-insert-file-in-rich-text`}
+          name='photo'
+          className='hidden'
+          accept='image/png, image/jpeg, image/jpg'
+          onChange={(e) => {
+            editor
+              .chain()
+              .focus()
+              .insertContent({
+                type: 'insertPhotoMarker',
+              })
+              .run()
+
+            const contentAsJSON = editor.getJSON()
+
+            const form = e.currentTarget.form!
+
+            // @ts-ignore
+            form.elements.contentAsJSONEncoded.value = encodeURIComponent(JSON.stringify(contentAsJSON))
+
+            form.submit()
+          }}
+        />
+      </form>
       <FloatingMenu editor={editor} tippyOptions={{ duration: 100 }}>
         <span
+          onClick={() => {
+            if (photoUploadForm.current) {
+              // @ts-ignore
+              photoUploadForm.current.elements.photo.click()
+            }
+          }}
           className={`ml-5 pl-3 border border-y-0 border-r-0 border-l border-l-gray-300 cursor-pointer inline-flex items-center text-indigo-600 hover:underline hover:underline-offset-2`}>
           <PhotoIcon className={`${buttonIconStyles} h-4 w-4`} aria-hidden='true' />
           Insérer une photo
@@ -256,6 +302,7 @@ const PhotoItemWrappedForTipTap = (props: {
       </NodeViewWrapper>
     )
   } catch (error) {
+    console.error(error)
     return (
       <NodeViewWrapper className='tdf-photo'>
         <div>Error: illegal values in photo module</div>
@@ -296,5 +343,25 @@ const TipTapPhotoNode = Node.create({
 
   addNodeView() {
     return ReactNodeViewRenderer(PhotoItemWrappedForTipTap)
+  },
+})
+
+const InsertPhotoMarker = Node.create({
+  name: 'insertPhotoMarker',
+
+  group: 'block',
+
+  atom: true,
+
+  parseHTML() {
+    return [
+      {
+        tag: 'insert-photo-here',
+      },
+    ]
+  },
+
+  renderHTML({ HTMLAttributes }) {
+    return ['insert-photo-here', mergeAttributes(HTMLAttributes)]
   },
 })

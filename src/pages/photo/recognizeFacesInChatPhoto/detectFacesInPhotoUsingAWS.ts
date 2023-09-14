@@ -10,6 +10,8 @@ import { getAwsRekognitionCollectionId } from '../../../dependencies/face-recogn
 import { UserUploadedPhotoToChat } from '../../chat/uploadPhotoToChat/UserUploadedPhotoToChat'
 import { OnboardingUserUploadedPhotoOfThemself } from '../../../events/onboarding/OnboardingUserUploadedPhotoOfThemself'
 import { OnboardingUserUploadedPhotoOfFamily } from '../../../events/onboarding/OnboardingUserUploadedPhotoOfFamily'
+import { UserInsertedPhotoInRichTextThread } from '../../chat/UserInsertedPhotoInRichTextThread'
+import { getSingleEvent } from '../../../dependencies/getSingleEvent'
 
 type DetectFacesInPhotosUsingAWSArgs = {
   file: Express.Multer.File
@@ -80,14 +82,25 @@ async function getFaceIdForAWSFaceIdInOtherPhotos(awsFaceId: string, userId: UUI
 }
 
 async function getOwnerUserIdForPhotoId(photoId: UUID): Promise<UUID | undefined> {
-  const { rows } = await postgres.query<
-    UserUploadedPhotoToChat | OnboardingUserUploadedPhotoOfThemself | OnboardingUserUploadedPhotoOfFamily
+  const latestForPhoto = await getSingleEvent<
+    | UserUploadedPhotoToChat
+    | OnboardingUserUploadedPhotoOfThemself
+    | OnboardingUserUploadedPhotoOfFamily
+    | UserInsertedPhotoInRichTextThread
   >(
-    "SELECT * FROM history WHERE type IN ('UserUploadedPhotoToChat','OnboardingUserUploadedPhotoOfThemself','OnboardingUserUploadedPhotoOfFamily') AND payload->>'photoId'=$1 ORDER BY \"occurredAt\" DESC LIMIT 1",
-    [photoId]
+    [
+      'UserInsertedPhotoInRichTextThread',
+      'OnboardingUserUploadedPhotoOfFamily',
+      'OnboardingUserUploadedPhotoOfThemself',
+      'UserUploadedPhotoToChat',
+    ],
+    { photoId }
   )
 
-  if (!rows.length) return
+  if (!latestForPhoto) return
 
-  return rows[0].payload.uploadedBy
+  if (latestForPhoto.type === 'UserInsertedPhotoInRichTextThread') {
+    return latestForPhoto.payload.userId
+  }
+  return latestForPhoto.payload.uploadedBy
 }
