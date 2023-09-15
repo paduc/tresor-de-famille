@@ -22,23 +22,36 @@ export const getPersonIdsForFaceIdOld = async (faceId: UUID): Promise<UUID[]> =>
   return Array.from(new Set(rows.map((row) => row.payload.personId)))
 }
 
-export const getPersonIdsForFaceId = async (faceId: UUID): Promise<UUID[]> => {
-  const annotationEvents = await getEventList<
-    | PhotoAnnotationConfirmed
-    | PhotoManuallyAnnotated
-    | UserConfirmedHisFace
-    | UserNamedPersonInPhoto
-    | UserRecognizedPersonInPhoto
-  >(
-    [
-      'PhotoAnnotationConfirmed',
-      'PhotoManuallyAnnotated',
-      'UserConfirmedHisFace',
-      'UserNamedPersonInPhoto',
-      'UserRecognizedPersonInPhoto',
-    ],
-    { faceId }
-  )
+export const getPersonIdsForFaceId = async ({ faceId, userId }: { faceId: UUID; userId: UUID }): Promise<UUID[]> => {
+  const annotationEvents = (
+    await getEventList<
+      | PhotoAnnotationConfirmed
+      | PhotoManuallyAnnotated
+      | UserConfirmedHisFace
+      | UserNamedPersonInPhoto
+      | UserRecognizedPersonInPhoto
+    >(
+      [
+        'PhotoAnnotationConfirmed',
+        'PhotoManuallyAnnotated',
+        'UserConfirmedHisFace',
+        'UserNamedPersonInPhoto',
+        'UserRecognizedPersonInPhoto',
+      ],
+      { faceId }
+    )
+  ).filter((event) => {
+    // Only keep user events
+    // (could have been done in the query but the userId is in different payload fields)
+    switch (event.type) {
+      case 'PhotoAnnotationConfirmed':
+        return event.payload.confirmedBy === userId
+      case 'PhotoManuallyAnnotated':
+        return event.payload.annotatedBy === userId
+      default:
+        return event.payload.userId === userId
+    }
+  })
 
   type PhotoId = UUID
   type PersonId = UUID

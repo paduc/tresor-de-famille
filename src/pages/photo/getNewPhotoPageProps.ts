@@ -44,6 +44,7 @@ export const getNewPhotoPageProps = async ({
   }
 }
 
+// Copy from getChatPageProps()
 async function getFamilyDetectedFace(args: { faceId: UUID; photoId: UUID; userId: UUID }): Promise<PhotoFace> {
   const { faceId, photoId, userId } = args
 
@@ -96,7 +97,7 @@ async function getFamilyDetectedFace(args: { faceId: UUID; photoId: UUID; userId
   }
 
   // Do we recognize this face from elsewhere ?
-  const persons = await getPersonIdsForFaceId(faceId)
+  const persons = await getPersonIdsForFaceId({ faceId, userId })
   if (persons.length) {
     const personId = persons[0]
     const person = await getPersonById(personId)
