@@ -1,5 +1,4 @@
-import React from 'react'
-import TextareaAutosize from 'react-textarea-autosize'
+import React, { forwardRef, useEffect } from 'react'
 
 import { UUID } from '../../../domain'
 import { withBrowserBundle } from '../../../libs/ssr/withBrowserBundle'
@@ -7,6 +6,23 @@ import { buttonIconStyles, primaryButtonStyles, secondaryButtonStyles } from '..
 import { InlinePhotoUploadBtn } from '../../_components/InlinePhotoUploadBtn'
 import { AppLayout } from '../../_components/layout/AppLayout'
 import { PhotoIcon } from './PhotoIcon'
+
+import { Node } from '@tiptap/core'
+import {
+  Attributes,
+  Content,
+  Editor,
+  EditorContent,
+  FloatingMenu,
+  JSONContent,
+  NodeViewWrapper,
+  ReactNodeViewRenderer,
+  mergeAttributes,
+  useEditor,
+} from '@tiptap/react'
+import StarterKit from '@tiptap/starter-kit'
+import { fixedForwardRef } from '../../../libs/fixedForwardRef'
+import { TipTapContentAsJSON, encodeStringy } from '../TipTapTypes'
 
 // @ts-ignore
 function classNames(...classes) {
@@ -41,12 +57,21 @@ export type ChatPageProps = {
   success?: string
   error?: string
   title?: string
-  history: ChatEvent[]
+  contentAsJSON: TipTapContentAsJSON
   chatId: UUID
 }
 
-export const ChatPage = withBrowserBundle(({ error, success, title, history, chatId }: ChatPageProps) => {
+export const ChatPage = withBrowserBundle(({ error, success, title, contentAsJSON, chatId }: ChatPageProps) => {
   const newMessageAreaRef = React.useRef<HTMLTextAreaElement>(null)
+
+  const richTextEditorRef = React.useRef<RichTextEditorRef>(null)
+  if (richTextEditorRef) richTextEditorRef.current?.getContents()
+
+  if (contentAsJSON.content.at(-1)?.type !== 'paragraph') {
+    // @ts-ignore
+    contentAsJSON.content.push({ type: 'paragraph' })
+  }
+
   return (
     <AppLayout>
       <div className='pt-2 overflow-hidden pb-40'>
@@ -60,75 +85,50 @@ export const ChatPage = withBrowserBundle(({ error, success, title, history, cha
             defaultValue={title}
           />
         </form>
-        <ul role='list' className='mt-3 grid grid-cols-1 gap-2'>
-          {history
-            ? history.map((event, index) => {
-                if (event.type === 'photo') {
-                  return <PhotoItem key={`event_${index}`} {...{ ...event, chatId }} />
-                }
+        <div className='mt-4 mb-4'>
+          <RichTextEditor ref={richTextEditorRef} content={contentAsJSON} />
+        </div>
+        <form
+          method='POST'
+          onSubmit={(e) => {
+            e.preventDefault()
 
-                if (event.type === 'message') {
-                  return (
-                    <div
-                      key={`event_${index}`}
-                      className='sm:ml-6 max-w-2xl px-4 py-4 text-gray-800 text-lg bg-white border  border-gray-300 border-x-white sm:border-x-gray-300 shadow-sm'>
-                      <p className='whitespace-pre-wrap'>{event.message.body}</p>
-                    </div>
-                  )
-                }
+            const contentAsJSON = richTextEditorRef.current?.getContents()
+            if (!contentAsJSON) {
+              alert("Il n'y a pas de contenu à sauvegarder")
+              return
+            }
 
-                return null
-              })
-            : null}
-          <li>
-            <form method='POST' className='block relative'>
-              <input type='hidden' name='action' value='newMessage' />
-              <TextareaAutosize
-                ref={newMessageAreaRef}
-                name='message'
-                minRows={4}
-                autoFocus={history.every((event) => event.type !== 'message')}
-                className='px-4 py-4 block w-full sm:ml-6 max-w-2xl border-gray-300 border-x-white sm:border-x-gray-300 shadow-sm resize-none  text-gray-800 ring-0 placeholder:text-gray-400 focus:border-gray-300 focus:ring-0 text-lg focus:outline-none'
-                placeholder='...'
-                onKeyDown={(e) => {
-                  const text = e.currentTarget.value.trim()
-                  if (e.key === 'Enter' && e.metaKey) {
-                    e.preventDefault()
-                    // @ts-ignore
-                    if (text) e.target.form.submit()
-                  }
-                }}
-              />
-              <div className='ml-4 sm:ml-6 mt-3'>
-                <button
-                  type='submit'
-                  onClick={(e) => {
-                    if (newMessageAreaRef.current && !newMessageAreaRef.current.value.trim().length) {
-                      e.preventDefault()
-                    }
-                  }}
-                  className={`${primaryButtonStyles}`}>
-                  Envoyer
-                </button>
-              </div>
-            </form>
-            <div className='ml-4 sm:ml-6 mt-3'>
-              <InlinePhotoUploadBtn formAction='/add-photo.html' formKey='addNewPhotoToChat' hiddenFields={{ chatId }}>
-                <span
-                  className={`${secondaryButtonStyles}`}
-                  onClick={(e) => {
-                    if (newMessageAreaRef.current !== null && newMessageAreaRef.current.value !== '') {
-                      e.preventDefault()
-                      alert("Merci d'envoyer votre souvenir avant d'ajouter une photo.")
-                    }
-                  }}>
-                  <PhotoIcon className={`${buttonIconStyles}`} aria-hidden='true' />
-                  Ajouter une photo
-                </span>
-              </InlinePhotoUploadBtn>
-            </div>
-          </li>
-        </ul>
+            // Insert the contents of RichTextEditor in the hidden field
+            const form = e.currentTarget
+            const formElements = form.elements as typeof form.elements & {
+              contentAsJSONEncoded: HTMLInputElement
+            }
+            formElements.contentAsJSONEncoded.value = encodeURIComponent(JSON.stringify(contentAsJSON))
+
+            form.submit()
+          }}>
+          <input type='hidden' name='contentAsJSONEncoded' />
+          <input type='hidden' name='action' value='saveRichContentsAsJSON' />
+          <button type='submit' className={`ml-4 sm:ml-6 mt-3 ${primaryButtonStyles}`}>
+            Sauvegarder
+          </button>
+        </form>
+        <div className='ml-4 sm:ml-6 mt-3'>
+          <InlinePhotoUploadBtn formAction='/add-photo.html' formKey='addNewPhotoToChat' hiddenFields={{ chatId }}>
+            <span
+              className={`${secondaryButtonStyles}`}
+              onClick={(e) => {
+                if (newMessageAreaRef.current !== null && newMessageAreaRef.current.value !== '') {
+                  e.preventDefault()
+                  alert("Merci d'envoyer votre souvenir avant d'ajouter une photo.")
+                }
+              }}>
+              <PhotoIcon className={`${buttonIconStyles}`} aria-hidden='true' />
+              Ajouter une photo
+            </span>
+          </InlinePhotoUploadBtn>
+        </div>
       </div>
     </AppLayout>
   )
@@ -141,7 +141,7 @@ const PhotoItem = (props: PhotoItemProps) => {
   const photoPageUrl = `/photo/${props.photoId}/photo.html?threadId=${props.chatId}`
 
   return (
-    <div className='grid grid-cols-1 w-full px-4 sm:px-8 pb-2'>
+    <div className='grid grid-cols-1 w-full px-4 sm:px-8 py-2'>
       <div className='mb-2'>
         <a href={photoPageUrl}>
           <img src={url} className='max-w-full max-h-[50vh] border border-gray-300 shadow-sm' />
@@ -151,7 +151,7 @@ const PhotoItem = (props: PhotoItemProps) => {
       <div className='sm:px-2'>
         <p className='text-md text-gray-600 mb-1 whitespace-pre-wrap'>{description}</p>
         {descriptionOfPeople ? <p className='text-md text-gray-600 mb-1'>avec {descriptionOfPeople}</p> : null}
-        {!description && unrecognizedFacesInPhoto ? (
+        {!(description || description?.length) && unrecognizedFacesInPhoto ? (
           <p className='text-md text-gray-600 mb-1'>
             <a href={photoPageUrl} className='font-medium text-indigo-600 hover:text-indigo-500'>
               Annoter le(s) {unrecognizedFacesInPhoto} visage(s)
@@ -162,3 +162,206 @@ const PhotoItem = (props: PhotoItemProps) => {
     </div>
   )
 }
+type RichTextEditorProps = {
+  content: Content
+}
+
+type RichTextEditorRef = {
+  getContents: () => JSONContent
+}
+
+const RichTextEditor = fixedForwardRef<RichTextEditorRef, RichTextEditorProps>((props, ref) => {
+  const editor = useEditor({
+    extensions: [
+      StarterKit.configure({
+        paragraph: {
+          HTMLAttributes: {
+            class:
+              'sm:ml-6 max-w-2xl px-4 py-4 text-gray-800 text-lg bg-white border  border-gray-300 border-x-white sm:border-x-gray-300 shadow-sm whitespace-pre-wrap [&+p]:-mt-1 [&+p]:border-t-0 [&+p]:pt-0',
+          },
+        },
+      }),
+      TipTapPhotoNode,
+      InsertPhotoMarker,
+    ],
+    content: props.content,
+    autofocus: 'end',
+    editorProps: {
+      attributes: {
+        class: 'focus:outline-none',
+      },
+    },
+  })
+
+  const photoUploadForm = React.useRef<HTMLFormElement>(null)
+
+  // Make sure the content always ends with a paragraph
+  useEffect(() => {
+    editor?.on('update', (e) => {
+      const editorHtml = editor.getHTML()
+      if (!editorHtml.endsWith('p>')) {
+        const { size } = editor.view.state.doc.content
+
+        editor.chain().insertContentAt(size, '<p></p>').run()
+      }
+    })
+  }, [editor])
+  const editorRef: React.MutableRefObject<Editor | null> = React.useRef(null)
+
+  React.useImperativeHandle(ref, () => ({
+    getContents: () => {
+      return editorRef.current!.getJSON()
+    },
+  }))
+  if (!editor) return null
+
+  editorRef.current = editor
+
+  return (
+    <>
+      <form method='post' ref={photoUploadForm} encType='multipart/form-data'>
+        <input type='hidden' name='action' value='insertPhotoAtMarker' />
+        <input type='hidden' name='contentAsJSONEncoded' value='' />
+        <input
+          type='file'
+          id={`file-input-insert-file-in-rich-text`}
+          name='photo'
+          className='hidden'
+          accept='image/png, image/jpeg, image/jpg'
+          onChange={(e) => {
+            editor
+              .chain()
+              .focus()
+              .insertContent({
+                type: 'insertPhotoMarker',
+              })
+              .run()
+
+            const contentAsJSON = editor.getJSON()
+
+            const form = e.currentTarget.form!
+
+            // @ts-ignore
+            form.elements.contentAsJSONEncoded.value = encodeURIComponent(JSON.stringify(contentAsJSON))
+
+            form.submit()
+          }}
+        />
+      </form>
+      <FloatingMenu editor={editor} tippyOptions={{ duration: 100 }}>
+        <span
+          onClick={() => {
+            if (photoUploadForm.current) {
+              // @ts-ignore
+              photoUploadForm.current.elements.photo.click()
+            }
+          }}
+          className={`ml-5 pl-3 border border-y-0 border-r-0 border-l border-l-gray-300 cursor-pointer inline-flex items-center text-indigo-600 hover:underline hover:underline-offset-2`}>
+          <PhotoIcon className={`${buttonIconStyles} h-4 w-4`} aria-hidden='true' />
+          Insérer une photo
+        </span>
+      </FloatingMenu>
+      <EditorContent editor={editor} />
+    </>
+  )
+})
+
+const PhotoItemWrappedForTipTap = (props: {
+  node: {
+    attrs: {
+      [Attr in keyof PhotoItemProps]: PhotoItemProps[Attr] extends UUID
+        ? UUID
+        : PhotoItemProps[Attr] extends number
+        ? number
+        : string
+    }
+  }
+}) => {
+  try {
+    const parsedPersonsInPhoto: string[] = JSON.parse(decodeURIComponent(props.node.attrs.personsInPhoto))
+
+    if (!Array.isArray(parsedPersonsInPhoto) || parsedPersonsInPhoto.some((nom) => typeof nom !== 'string')) {
+      throw new Error('Illegal name list')
+    }
+
+    const remixedProps: PhotoItemProps = { ...props.node.attrs, personsInPhoto: parsedPersonsInPhoto }
+
+    const { chatId, photoId, url, description, personsInPhoto, unrecognizedFacesInPhoto } = remixedProps
+
+    return (
+      <NodeViewWrapper className='tdf-photo'>
+        <PhotoItem
+          chatId={chatId}
+          personsInPhoto={personsInPhoto}
+          photoId={photoId}
+          unrecognizedFacesInPhoto={unrecognizedFacesInPhoto}
+          url={url}
+          description={description}
+          key={photoId}
+        />
+      </NodeViewWrapper>
+    )
+  } catch (error) {
+    console.error(error)
+    return (
+      <NodeViewWrapper className='tdf-photo'>
+        <div>Error: illegal values in photo module</div>
+      </NodeViewWrapper>
+    )
+  }
+}
+
+const TipTapPhotoNode = Node.create({
+  name: 'photoNode',
+
+  group: 'block',
+
+  atom: true,
+
+  addAttributes(): (Attributes | {}) & { [Attr in keyof PhotoItemProps]: any } {
+    return {
+      chatId: {},
+      photoId: {},
+      url: {},
+      description: {},
+      personsInPhoto: {},
+      unrecognizedFacesInPhoto: {},
+    }
+  },
+
+  parseHTML() {
+    return [
+      {
+        tag: 'tdf-photo',
+      },
+    ]
+  },
+
+  renderHTML({ HTMLAttributes }) {
+    return ['tdf-photo', mergeAttributes(HTMLAttributes)]
+  },
+
+  addNodeView() {
+    return ReactNodeViewRenderer(PhotoItemWrappedForTipTap)
+  },
+})
+
+const InsertPhotoMarker = Node.create({
+  name: 'insertPhotoMarker',
+
+  group: 'block',
+
+  atom: true,
+
+  parseHTML() {
+    return [
+      {
+        tag: 'insert-photo-here',
+      },
+    ]
+  },
+
+  renderHTML({ HTMLAttributes }) {
+    return ['insert-photo-here', mergeAttributes(HTMLAttributes)]
+  },
+})

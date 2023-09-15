@@ -1,7 +1,7 @@
 import { v4 as uuid } from 'uuid'
 
 type Literal = boolean | null | number | string
-type JSON = Literal | { [key: string]: JSON } | JSON[]
+export type JSON = Literal | { [key: string]: JSON } | JSON[]
 
 export type DomainEvent<Type extends string = string, Payload extends JSON = any> = {
   id: string

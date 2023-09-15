@@ -5,6 +5,7 @@ const webpack = require('webpack')
 
 const pageEntries = glob
   .sync('./src/**/*Page.tsx')
+  .filter((filePath) => !filePath.includes('_deprecated'))
   .filter(fileUsesHydration)
   .map((filePath) => {
     return { name: path.basename(filePath, '.tsx'), path: filePath }

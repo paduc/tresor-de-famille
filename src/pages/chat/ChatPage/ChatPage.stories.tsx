@@ -59,6 +59,8 @@ export const AvecUnePhotoEtVisagesNonIdentifiés = () => (
       {
         timestamp: t0,
         type: 'photo',
+        chatId: getUuid(),
+        chatId: getUuid(),
         photoId: 'photo123' as UUID,
         url: 'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=500&h=500&q=80',
         personsInPhoto: ['Jean', 'Marie', 'Philippe', 'Joseph', 'Helicopter', 'Banane'],
@@ -75,6 +77,7 @@ export const AvecUnePhotoEtVisagesTousIdentifiés = () => (
       {
         timestamp: t0,
         type: 'photo',
+        chatId: getUuid(),
         photoId: 'photo123' as UUID,
         url: 'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=500&h=500&q=80',
         personsInPhoto: ['Jean', 'Marie', 'Philippe', 'Joseph', 'Helicopter', 'Banane'],
@@ -104,63 +107,63 @@ export const AvecUnePhotoEtUneDescription = () => (
 export const AvecUnMelangeDePhotoEtMessage = () => (
   <ChatPage
     chatId={getUuid()}
-    history={[
-      {
-        timestamp: t0,
-        type: 'message',
-        message: {
-          body: `Lorem ipsum dolor sit amet.
-          
-          Consectetur adipiscing elit. Tincidunt nunc ipsum tempor purus vitae id. Morbi in vestibulum nec varius. Et diam cursus quis sed purus nam. Scelerisque amet elit non sit ut tincidunt condimentum. Nisl ultrices eu venenatis diam.`,
+    contentAsJSON={{
+      type: 'doc',
+      content: [
+        {
+          type: 'paragraph',
+          content: [
+            {
+              type: 'text',
+              text: 'Premier message',
+            },
+          ],
         },
-      },
-      {
-        timestamp: t0 + 1 * HOUR,
-        type: 'photo',
-        photoId: 'photo123' as UUID,
-        url: 'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=500&h=500&q=80',
-        description: 'Cette photo commence a me taper sur les nerfs.',
-        personsInPhoto: ['Jean', 'Marie', 'Philippe', 'Joseph', 'Helicopter', 'Banane'],
-        unrecognizedFacesInPhoto: 0,
-      },
-      {
-        timestamp: t0 + 2 * HOUR,
-        type: 'message',
-        message: {
-          body: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Tincidunt nunc ipsum tempor purus vitae id. Morbi in vestibulum nec varius. Et diam cursus quis sed purus nam. Scelerisque amet elit non sit ut tincidunt condimentum. Nisl ultrices eu venenatis diam.',
+        {
+          type: 'photoNode',
+          attrs: {
+            chatId: getUuid(),
+            photoId: 'photo123' as UUID,
+            url: 'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=500&h=500&q=80',
+            description: 'Ici la description',
+            personsInPhoto: encodeURIComponent(JSON.stringify(['Jean', 'Marie', 'Philippe', 'Joseph', 'Helicopter', 'Banane'])),
+            unrecognizedFacesInPhoto: 0,
+          },
         },
-      },
-      {
-        timestamp: t0 + 2 * HOUR,
-        type: 'message',
-        message: {
-          body: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Tincidunt nunc ipsum tempor purus vitae id. Morbi in vestibulum nec varius. Et diam cursus quis sed purus nam. Scelerisque amet elit non sit ut tincidunt condimentum. Nisl ultrices eu venenatis diam.',
+        {
+          type: 'paragraph',
+          content: [
+            {
+              type: 'text',
+              text: 'Second message',
+            },
+          ],
         },
-      },
-      {
-        timestamp: t0 + 1 * HOUR,
-        type: 'photo',
-        photoId: 'photo123' as UUID,
-        url: 'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=500&h=1500&q=80',
-        personsInPhoto: [],
-        unrecognizedFacesInPhoto: 3,
-      },
-      {
-        timestamp: t0 + 1 * HOUR,
-        type: 'photo',
-        photoId: 'photo123' as UUID,
-        url: 'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=2500&h=500&q=80',
-        description: 'Je ne sais plus',
-        personsInPhoto: [],
-        unrecognizedFacesInPhoto: 0,
-      },
-      {
-        timestamp: t0 + 2 * HOUR,
-        type: 'message',
-        message: {
-          body: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Tincidunt nunc ipsum tempor purus vitae id. Morbi in vestibulum nec varius. Et diam cursus quis sed purus nam. Scelerisque amet elit non sit ut tincidunt condimentum. Nisl ultrices eu venenatis diam.',
+        {
+          type: 'paragraph',
+          content: [
+            {
+              type: 'text',
+              text: 'Third message',
+            },
+          ],
         },
-      },
-    ]}
+        {
+          type: 'photoNode',
+          attrs: {
+            chatId: getUuid(),
+            photoId: 'photo123' as UUID,
+            url: 'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=500&h=500&q=80',
+            description: '',
+            personsInPhoto: encodeURIComponent(JSON.stringify([])),
+            unrecognizedFacesInPhoto: 10,
+          },
+        },
+        {
+          type: 'paragraph',
+          content: [],
+        },
+      ],
+    }}
   />
 )

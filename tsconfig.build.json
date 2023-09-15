@@ -3,5 +3,6 @@
   "exclude": [
     "src/**/*.stories.tsx",
     "src/**/*.integration.ts",
+    "src/pages/_deprecated/**/*"
   ]
 }
