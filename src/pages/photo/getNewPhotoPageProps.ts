@@ -2,8 +2,11 @@ import { getSingleEvent } from '../../dependencies/getSingleEvent'
 import { getPhotoUrlFromId } from '../../dependencies/photo-storage'
 import { UUID } from '../../domain/UUID'
 import { FaceIgnoredInPhoto } from '../../events/onboarding/FaceIgnoredInPhoto'
+import { OnboardingUserUploadedPhotoOfFamily } from '../../events/onboarding/OnboardingUserUploadedPhotoOfFamily'
+import { OnboardingUserUploadedPhotoOfThemself } from '../../events/onboarding/OnboardingUserUploadedPhotoOfThemself'
 import { UserNamedPersonInPhoto } from '../../events/onboarding/UserNamedPersonInPhoto'
 import { UserRecognizedPersonInPhoto } from '../../events/onboarding/UserRecognizedPersonInPhoto'
+import { doesPhotoExist } from '../_doesPhotoExist'
 import { getPersonById, getPersonByIdOrThrow } from '../_getPersonById'
 import { getPersonIdsForFaceId } from '../_getPersonsIdsForFaceId'
 
@@ -20,6 +23,9 @@ export const getNewPhotoPageProps = async ({
   photoId: UUID
   userId: UUID
 }): Promise<NewPhotoPageProps> => {
+  const photoExists = await doesPhotoExist({ photoId, userId })
+  if (!photoExists) throw new Error('Photo does not exist')
+
   const captionSet = await getSingleEvent<UserAddedCaptionToPhoto>('UserAddedCaptionToPhoto', { photoId })
 
   const facesDetected = await getSingleEvent<AWSDetectedFacesInPhoto>('AWSDetectedFacesInPhoto', { photoId })

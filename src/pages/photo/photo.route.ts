@@ -48,7 +48,7 @@ pageRouter
       responseAsHtml(request, response, NewPhotoPage(props))
     } catch (error) {
       console.error('error', error)
-      response.send(error)
+      response.sendStatus(500)
     }
   })
   .post(requireAuth(), async (request, response) => {
