@@ -5,13 +5,20 @@ import { OnboardingUserUploadedPhotoOfThemself } from '../../events/onboarding/O
 import { OnboardingUserUploadedPhotoOfFamily } from '../../events/onboarding/OnboardingUserUploadedPhotoOfFamily'
 import { UserUploadedPhotoToChat } from '../chat/uploadPhotoToChat/UserUploadedPhotoToChat'
 import { ListPhotosProps } from './ListPhotosPage'
+import { UserInsertedPhotoInRichTextThread } from '../chat/UserInsertedPhotoInRichTextThread'
 
 export const getListPhotosProps = async (userId: UUID): Promise<ListPhotosProps> => {
-  const photos = await getEventList<
+  const uploadedPhotos = await getEventList<
     UserUploadedPhotoToChat | OnboardingUserUploadedPhotoOfFamily | OnboardingUserUploadedPhotoOfThemself
   >(['OnboardingUserUploadedPhotoOfFamily', 'OnboardingUserUploadedPhotoOfThemself', 'UserUploadedPhotoToChat'], {
     uploadedBy: userId,
   })
+
+  const insertedPhotos = await getEventList<UserInsertedPhotoInRichTextThread>('UserInsertedPhotoInRichTextThread', {
+    userId,
+  })
+
+  const photos = [...uploadedPhotos, ...insertedPhotos]
 
   return {
     photos: photos.map(({ payload: { photoId } }) => ({
