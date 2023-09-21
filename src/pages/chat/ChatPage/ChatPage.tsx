@@ -1,5 +1,7 @@
-import React, { forwardRef, useEffect } from 'react'
-
+import debounce from 'lodash.debounce'
+import { formatRelative } from 'date-fns'
+import { fr } from 'date-fns/locale'
+import React, { useCallback, useEffect, useState } from 'react'
 import { UUID } from '../../../domain'
 import { withBrowserBundle } from '../../../libs/ssr/withBrowserBundle'
 import { buttonIconStyles, primaryButtonStyles, secondaryButtonStyles } from '../../_components/Button'
@@ -22,7 +24,8 @@ import {
 } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import { fixedForwardRef } from '../../../libs/fixedForwardRef'
-import { TipTapContentAsJSON, encodeStringy } from '../TipTapTypes'
+import { TipTapContentAsJSON } from '../TipTapTypes'
+import { Epoch } from '../../../libs/typeguards'
 
 // @ts-ignore
 function classNames(...classes) {
@@ -54,18 +57,16 @@ export type ChatEvent = { timestamp: number } & (
 )
 
 export type ChatPageProps = {
-  success?: string
-  error?: string
   title?: string
   contentAsJSON: TipTapContentAsJSON
+  lastUpdated: Epoch | undefined
   chatId: UUID
 }
 
-export const ChatPage = withBrowserBundle(({ error, success, title, contentAsJSON, chatId }: ChatPageProps) => {
+export const ChatPage = withBrowserBundle(({ title, contentAsJSON, lastUpdated, chatId }: ChatPageProps) => {
   const newMessageAreaRef = React.useRef<HTMLTextAreaElement>(null)
 
   const richTextEditorRef = React.useRef<RichTextEditorRef>(null)
-  if (richTextEditorRef) richTextEditorRef.current?.getContents()
 
   if (contentAsJSON.content.at(-1)?.type !== 'paragraph') {
     // @ts-ignore
@@ -75,45 +76,10 @@ export const ChatPage = withBrowserBundle(({ error, success, title, contentAsJSO
   return (
     <AppLayout>
       <div className='pt-2 overflow-hidden pb-40'>
-        <form method='post'>
-          <input type='hidden' name='action' value='setTitle' />
-          <input
-            type='text'
-            name='title'
-            className='w-full sm:ml-6 max-w-2xl px-4 py-4 text-gray-800 text-xl bg-white border  border-gray-300 border-x-white sm:border-x-gray-300 shadow-sm'
-            placeholder='Titre (optionnel)'
-            defaultValue={title}
-          />
-        </form>
+        <Title title={title} chatId={chatId} />
         <div className='mt-4 mb-4'>
-          <RichTextEditor ref={richTextEditorRef} content={contentAsJSON} />
+          <RichTextEditor ref={richTextEditorRef} content={contentAsJSON} chatId={chatId} lastUpdated={lastUpdated} />
         </div>
-        <form
-          method='POST'
-          onSubmit={(e) => {
-            e.preventDefault()
-
-            const contentAsJSON = richTextEditorRef.current?.getContents()
-            if (!contentAsJSON) {
-              alert("Il n'y a pas de contenu à sauvegarder")
-              return
-            }
-
-            // Insert the contents of RichTextEditor in the hidden field
-            const form = e.currentTarget
-            const formElements = form.elements as typeof form.elements & {
-              contentAsJSONEncoded: HTMLInputElement
-            }
-            formElements.contentAsJSONEncoded.value = encodeURIComponent(JSON.stringify(contentAsJSON))
-
-            form.submit()
-          }}>
-          <input type='hidden' name='contentAsJSONEncoded' />
-          <input type='hidden' name='action' value='saveRichContentsAsJSON' />
-          <button type='submit' className={`ml-4 sm:ml-6 mt-3 ${primaryButtonStyles}`}>
-            Sauvegarder
-          </button>
-        </form>
         <div className='ml-4 sm:ml-6 mt-3'>
           <InlinePhotoUploadBtn formAction='/add-photo.html' formKey='addNewPhotoToChat' hiddenFields={{ chatId }}>
             <span
@@ -162,22 +128,144 @@ const PhotoItem = (props: PhotoItemProps) => {
     </div>
   )
 }
+
+const Title = ({ title, chatId }: { title: string | undefined; chatId: UUID }) => {
+  const [latestTitle, setLatestTitle] = useState<string | undefined>(title)
+  const [status, setStatus] = useState<AutosaveStatus>('idle')
+
+  const save = (newTitle: string) => {
+    setStatus('saving')
+    fetch(`/chat/${chatId}/chat.html`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'clientsideTitleUpdate', title: newTitle }),
+    }).then((res) => {
+      if (!res.ok) {
+        alert("Le titre n'a pas pu être sauvegardé")
+        setStatus('error')
+        return
+      }
+      setStatus('saved')
+      setLatestTitle(newTitle)
+      setTimeout(() => {
+        setStatus('idle')
+      }, 2000)
+    })
+  }
+
+  const debouncedSave = useCallback(debounce(save, 3000), [])
+
+  return (
+    <div className='relative w-full max-w-2xl'>
+      <div className='absolute top-5 right-2'>
+        <StatusIndicator status={status} />
+      </div>
+      <input
+        type='text'
+        name='title'
+        className='w-full sm:ml-6 max-w-2xl px-4 py-4 text-gray-800 text-xl bg-white border  border-gray-300 border-x-white sm:border-x-gray-300 shadow-sm'
+        placeholder='Titre (optionnel)'
+        onChange={(e) => {
+          const newTitle = e.target.value
+          if (newTitle !== latestTitle) {
+            debouncedSave(newTitle)
+          }
+        }}
+        defaultValue={title}
+      />
+    </div>
+  )
+}
+
+type AutosaveStatus = 'idle' | 'saving' | 'saved' | 'error'
+const useAutosaveEditor = (
+  editor: Editor | null,
+  chatId: UUID,
+  initialLastUpdated: Epoch | undefined
+): { status: AutosaveStatus; lastUpdated: Epoch | undefined } => {
+  // console.log('useAutosaveEditor', editor)
+  const [latestHTML, setLatestHTML] = useState<string | null>(null)
+  const [status, setStatus] = useState<AutosaveStatus>('idle')
+  const [lastUpdated, setLastUpdated] = useState<Epoch | undefined>(initialLastUpdated)
+
+  const save = (newJSON: any) => {
+    setStatus('saving')
+    // setTimeout(() => {
+    //   setStatus('saved')
+    //   setLatestHTML(newJSON)
+    //   setLastUpdated(Date.now() as Epoch)
+    //   setTimeout(() => {
+    //     setStatus('idle')
+    //   }, 2000)
+    // }, 2000)
+    fetch(`/chat/${chatId}/chat.html`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'clientsideUpdate', contentAsJSON: newJSON }),
+    }).then((res) => {
+      if (!res.ok) {
+        alert(`L'histoire n'a pas pu être sauvegardée`)
+        setStatus('error')
+        return
+      }
+      setStatus('saved')
+      setLatestHTML(newJSON)
+      setLastUpdated(Date.now() as Epoch)
+      setTimeout(() => {
+        setStatus('idle')
+      }, 2000)
+    })
+  }
+
+  const debouncedSave = useCallback(debounce(save, 3000), [])
+
+  useEffect(() => {
+    // console.log('autosave useEffect 1')
+    const insideSave = () => {
+      const newHTML = editor?.getHTML()
+      console.log('editor on update', latestHTML, newHTML)
+      if (newHTML && latestHTML !== newHTML) debouncedSave(editor?.getJSON())
+    }
+
+    if (editor) {
+      // console.log('autosave adding editor onupdate')
+      editor.on('update', insideSave)
+    }
+
+    return () => {
+      // console.log('autosave removing editor onupdate')
+      editor?.off('update', insideSave)
+    }
+  }, [editor, latestHTML])
+
+  useEffect(() => {
+    // console.log('autosave useEffect 2')
+    if (editor) {
+      const newHTML = editor.getHTML()
+      // console.log('autosave setting latest html', latestHTML, newHTML)
+      setLatestHTML(newHTML)
+    }
+  }, [editor, latestHTML])
+
+  return { status, lastUpdated }
+}
+
 type RichTextEditorProps = {
   content: Content
+  chatId: UUID
+  lastUpdated: Epoch | undefined
 }
 
 type RichTextEditorRef = {
   getContents: () => JSONContent
 }
-
 const RichTextEditor = fixedForwardRef<RichTextEditorRef, RichTextEditorProps>((props, ref) => {
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
         paragraph: {
           HTMLAttributes: {
-            class:
-              'sm:ml-6 max-w-2xl px-4 py-4 text-gray-800 text-lg bg-white border  border-gray-300 border-x-white sm:border-x-gray-300 shadow-sm whitespace-pre-wrap [&+p]:-mt-1 [&+p]:border-t-0 [&+p]:pt-0',
+            class: ' px-4 py-4 text-gray-800 text-lg  whitespace-pre-wrap [&+p]:-mt-1 [&+p]:border-t-0 [&+p]:pt-0',
           },
         },
       }),
@@ -192,6 +280,8 @@ const RichTextEditor = fixedForwardRef<RichTextEditorRef, RichTextEditorProps>((
       },
     },
   })
+
+  const { status, lastUpdated } = useAutosaveEditor(editor, props.chatId, props.lastUpdated)
 
   const photoUploadForm = React.useRef<HTMLFormElement>(null)
 
@@ -248,20 +338,30 @@ const RichTextEditor = fixedForwardRef<RichTextEditorRef, RichTextEditorProps>((
           }}
         />
       </form>
-      <FloatingMenu editor={editor} tippyOptions={{ duration: 100 }}>
-        <span
-          onClick={() => {
-            if (photoUploadForm.current) {
-              // @ts-ignore
-              photoUploadForm.current.elements.photo.click()
-            }
-          }}
-          className={`ml-5 pl-3 border border-y-0 border-r-0 border-l border-l-gray-300 cursor-pointer inline-flex items-center text-indigo-600 hover:underline hover:underline-offset-2`}>
-          <PhotoIcon className={`${buttonIconStyles} h-4 w-4`} aria-hidden='true' />
-          Insérer une photo
-        </span>
-      </FloatingMenu>
-      <EditorContent editor={editor} />
+      <div className='sm:ml-6 max-w-2xl relative bg-white border  border-gray-300 border-x-white sm:border-x-gray-300 shadow-sm'>
+        <EditorContent editor={editor} />
+        <FloatingMenu editor={editor} tippyOptions={{ duration: 100 }}>
+          <span
+            onClick={() => {
+              if (photoUploadForm.current) {
+                // @ts-ignore
+                photoUploadForm.current.elements.photo.click()
+              }
+            }}
+            className={`ml-5 pl-3 border border-y-0 border-r-0 border-l border-l-gray-300 cursor-pointer inline-flex items-center text-indigo-600 hover:underline hover:underline-offset-2`}>
+            <PhotoIcon className={`${buttonIconStyles} h-4 w-4`} aria-hidden='true' />
+            Insérer une photo
+          </span>
+        </FloatingMenu>
+        <div className='absolute top-4 right-2'>
+          <StatusIndicator status={status} />
+        </div>
+      </div>
+      {!!lastUpdated ? (
+        <div className='mt-2 ml-2 sm:ml-6 italic text-gray-500'>
+          Dernière mise à jour {formatRelative(lastUpdated, Date.now(), { locale: fr })}
+        </div>
+      ) : null}
     </>
   )
 })
@@ -365,3 +465,52 @@ const InsertPhotoMarker = Node.create({
     return ['insert-photo-here', mergeAttributes(HTMLAttributes)]
   },
 })
+
+function StatusIndicator({ status }: { status: AutosaveStatus }) {
+  return (
+    <>
+      {status === 'saving' ? (
+        <svg
+          className='animate-spin h-5 w-5 text-indigo-500'
+          xmlns='http://www.w3.org/2000/svg'
+          fill='none'
+          viewBox='0 0 24 24'>
+          <circle className='opacity-25' cx={12} cy={12} r={10} stroke='currentColor' strokeWidth={4} />
+          <path
+            className='opacity-75'
+            fill='currentColor'
+            d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z'
+          />
+        </svg>
+      ) : status === 'saved' ? (
+        <svg
+          xmlns='http://www.w3.org/2000/svg'
+          fill='none'
+          viewBox='0 0 24 24'
+          strokeWidth={1.5}
+          stroke='currentColor'
+          className='animate-bounce h-6 w-6 text-green-500'>
+          <path
+            strokeLinecap='round'
+            strokeLinejoin='round'
+            d='M6.633 10.5c.806 0 1.533-.446 2.031-1.08a9.041 9.041 0 012.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 00.322-1.672V3a.75.75 0 01.75-.75A2.25 2.25 0 0116.5 4.5c0 1.152-.26 2.243-.723 3.218-.266.558.107 1.282.725 1.282h3.126c1.026 0 1.945.694 2.054 1.715.045.422.068.85.068 1.285a11.95 11.95 0 01-2.649 7.521c-.388.482-.987.729-1.605.729H13.48c-.483 0-.964-.078-1.423-.23l-3.114-1.04a4.501 4.501 0 00-1.423-.23H5.904M14.25 9h2.25M5.904 18.75c.083.205.173.405.27.602.197.4-.078.898-.523.898h-.908c-.889 0-1.713-.518-1.972-1.368a12 12 0 01-.521-3.507c0-1.553.295-3.036.831-4.398C3.387 10.203 4.167 9.75 5 9.75h1.053c.472 0 .745.556.5.96a8.958 8.958 0 00-1.302 4.665c0 1.194.232 2.333.654 3.375z'
+          />
+        </svg>
+      ) : status === 'error' ? (
+        <svg
+          xmlns='http://www.w3.org/2000/svg'
+          fill='none'
+          viewBox='0 0 24 24'
+          strokeWidth={1.5}
+          stroke='currentColor'
+          className='w-6 h-6 text-red-500'>
+          <path
+            strokeLinecap='round'
+            strokeLinejoin='round'
+            d='M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z'
+          />
+        </svg>
+      ) : null}
+    </>
+  )
+}

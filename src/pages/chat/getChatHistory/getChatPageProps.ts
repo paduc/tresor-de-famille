@@ -6,6 +6,7 @@ import { FaceIgnoredInPhoto } from '../../../events/onboarding/FaceIgnoredInPhot
 import { OnboardingUserStartedFirstThread } from '../../../events/onboarding/OnboardingUserStartedFirstThread'
 import { UserNamedPersonInPhoto } from '../../../events/onboarding/UserNamedPersonInPhoto'
 import { UserRecognizedPersonInPhoto } from '../../../events/onboarding/UserRecognizedPersonInPhoto'
+import { Epoch } from '../../../libs/typeguards'
 import { getPersonById, getPersonByIdOrThrow } from '../../_getPersonById'
 import { getPersonIdsForFaceId } from '../../_getPersonsIdsForFaceId'
 import { UserAddedCaptionToPhoto } from '../../photo/UserAddedCaptionToPhoto'
@@ -72,6 +73,7 @@ export const getChatPageProps = async ({ chatId, userId }: { chatId: UUID; userI
     return {
       chatId,
       contentAsJSON,
+      lastUpdated: latestEvent.occurredAt.getTime() as Epoch,
       title: title || '',
     }
   }
@@ -130,6 +132,7 @@ export const getChatPageProps = async ({ chatId, userId }: { chatId: UUID; userI
   return {
     chatId,
     contentAsJSON,
+    lastUpdated: latestEvent?.occurredAt.getTime() as Epoch,
     title: title || '',
   }
 }

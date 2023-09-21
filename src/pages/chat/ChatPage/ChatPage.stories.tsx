@@ -5,6 +5,7 @@ import { ChatEvent, ChatPage } from './ChatPage'
 import { UUID } from '../../../domain'
 
 import { getUuid } from '../../../libs/getUuid'
+import { Epoch } from '../../../libs/typeguards'
 
 export default {
   title: 'Histoires et anecdotes',
@@ -107,6 +108,7 @@ export const AvecUnePhotoEtUneDescription = () => (
 export const AvecUnMelangeDePhotoEtMessage = () => (
   <ChatPage
     chatId={getUuid()}
+    lastUpdated={1695465388129 as Epoch}
     contentAsJSON={{
       type: 'doc',
       content: [
@@ -115,54 +117,54 @@ export const AvecUnMelangeDePhotoEtMessage = () => (
           content: [
             {
               type: 'text',
-              text: 'Premier message',
+              text: 'Message',
             },
           ],
         },
-        {
-          type: 'photoNode',
-          attrs: {
-            chatId: getUuid(),
-            photoId: 'photo123' as UUID,
-            url: 'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=500&h=500&q=80',
-            description: 'Ici la description',
-            personsInPhoto: encodeURIComponent(JSON.stringify(['Jean', 'Marie', 'Philippe', 'Joseph', 'Helicopter', 'Banane'])),
-            unrecognizedFacesInPhoto: 0,
-          },
-        },
-        {
-          type: 'paragraph',
-          content: [
-            {
-              type: 'text',
-              text: 'Second message',
-            },
-          ],
-        },
-        {
-          type: 'paragraph',
-          content: [
-            {
-              type: 'text',
-              text: 'Third message',
-            },
-          ],
-        },
-        {
-          type: 'photoNode',
-          attrs: {
-            chatId: getUuid(),
-            photoId: 'photo123' as UUID,
-            url: 'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=500&h=500&q=80',
-            description: '',
-            personsInPhoto: encodeURIComponent(JSON.stringify([])),
-            unrecognizedFacesInPhoto: 10,
-          },
-        },
-        {
-          type: 'paragraph',
-          content: [],
-        },
+        // {
+        //   type: 'photoNode',
+        //   attrs: {
+        //     chatId: getUuid(),
+        //     photoId: 'photo123' as UUID,
+        //     url: 'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=500&h=500&q=80',
+        //     description: 'Ici la description',
+        //     personsInPhoto: encodeURIComponent(JSON.stringify(['Jean', 'Marie', 'Philippe', 'Joseph', 'Helicopter', 'Banane'])),
+        //     unrecognizedFacesInPhoto: 0,
+        //   },
+        // },
+        // {
+        //   type: 'paragraph',
+        //   content: [
+        //     {
+        //       type: 'text',
+        //       text: 'Second message',
+        //     },
+        //   ],
+        // },
+        // {
+        //   type: 'paragraph',
+        //   content: [
+        //     {
+        //       type: 'text',
+        //       text: 'Third message',
+        //     },
+        //   ],
+        // },
+        // {
+        //   type: 'photoNode',
+        //   attrs: {
+        //     chatId: getUuid(),
+        //     photoId: 'photo123' as UUID,
+        //     url: 'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=500&h=500&q=80',
+        //     description: '',
+        //     personsInPhoto: encodeURIComponent(JSON.stringify([])),
+        //     unrecognizedFacesInPhoto: 10,
+        //   },
+        // },
+        // {
+        //   type: 'paragraph',
+        //   content: [],
+        // },
       ],
     }}
   />

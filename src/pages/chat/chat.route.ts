@@ -74,7 +74,15 @@ pageRouter
     const { chatId } = z.object({ chatId: zIsUUID }).parse(request.params)
 
     const { action } = z
-      .object({ action: z.enum(['setTitle', 'newMessage', 'saveRichContentsAsJSON', 'insertPhotoAtMarker']) })
+      .object({
+        action: z.enum([
+          'clientsideTitleUpdate',
+          'newMessage',
+          'saveRichContentsAsJSON',
+          'insertPhotoAtMarker',
+          'clientsideUpdate',
+        ]),
+      })
       .parse(request.body)
 
     if (action === 'newMessage') {
@@ -107,7 +115,24 @@ pageRouter
       } catch (error) {
         console.error('Impossible to parse the contentAsJSON payload that was sent by the client.')
       }
-    } else if (action === 'setTitle') {
+    } else if (action === 'clientsideUpdate') {
+      try {
+        const { contentAsJSON } = z.object({ contentAsJSON: z.any() }).parse(request.body)
+
+        await addToHistory(
+          UserUpdatedThreadAsRichText({
+            chatId,
+            contentAsJSON,
+            userId,
+          })
+        )
+        return response.status(200).send('ok')
+      } catch (error) {
+        console.error('Impossible to save UserThread')
+      }
+
+      return response.status(500).send('Oops')
+    } else if (action === 'clientsideTitleUpdate') {
       const { title } = z.object({ title: z.string() }).parse(request.body)
 
       await addToHistory(
