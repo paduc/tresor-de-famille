@@ -19,7 +19,9 @@ export const AddVideoPage = withBrowserBundle(({ error, success }: AddVideoProps
     <AppLayout>
       <div className='bg-white p-6'>
         <SuccessError success={success} error={error} />
+
         <form action='/addVideo.html' method='post' className='space-y-8 divide-y divide-gray-200 max-w-lg'>
+          <input type='file' id='videoFile' capture='environment' accept='video/*' />
           <div className='space-y-8 divide-y divide-gray-200 sm:space-y-5'>
             <div className='space-y-6 sm:space-y-5'>
               <div>
