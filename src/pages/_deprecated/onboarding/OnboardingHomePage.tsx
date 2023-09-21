@@ -797,11 +797,11 @@ export const FirstThreadStep = ({ step }: FirstThreadStepProps) => {
         </Paragraph>
 
         <Paragraph>
-          Vous trouverez tous vos fils de souvenirs, dans le menu{' '}
+          Vous trouverez tous vos souvenirs, dans le menu{' '}
           <a
             className='hover:text-indigo-600 text-xl border-dashed hover:border-solid border-b border-b-indigo-600'
             href={'/threads.html'}>
-            fils de souvenir
+            histoires et anecdotes
           </a>
           .
         </Paragraph>

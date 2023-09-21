@@ -4,7 +4,7 @@ import { ThreadListPage } from './ThreadListPage'
 import { getUuid } from '../../libs/getUuid'
 
 export default {
-  title: 'Lister les fils',
+  title: 'Lister les anecdotes',
   component: ThreadListPage,
   parameters: { layout: 'fullscreen' },
   decorators: [
@@ -19,6 +19,7 @@ export default {
             arePhotosEnabled: true,
             areThreadsEnabled: true,
             areVideosEnabled: true,
+            arePersonsEnabled: true,
           }}>
           <Story />
         </SessionContext.Provider>

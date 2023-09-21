@@ -3,10 +3,9 @@ import * as React from 'react'
 import { PlusIcon } from '@heroicons/react/24/outline'
 import { UUID } from '../../domain'
 import { withBrowserBundle } from '../../libs/ssr/withBrowserBundle'
+import { primaryButtonStyles } from '../_components/Button'
 import { SuccessError } from '../_components/SuccessError'
 import { AppLayout } from '../_components/layout/AppLayout'
-import { ChatBubbleLeftIconOutline } from '../chat/ChatPage/ChatBubbleLeftIconOutline'
-import { primaryButtonStyles } from '../_components/Button'
 
 // @ts-ignore
 function classNames(...classes) {
@@ -30,7 +29,7 @@ export const ThreadListPage = withBrowserBundle(({ error, success, threads }: Th
         <SuccessError success={success} error={error} />
         {threads.length ? (
           <>
-            <h3 className='text-lg font-medium leading-6 mb-1 text-gray-900'>Fils de souvenirs</h3>
+            <h3 className='text-lg font-medium leading-6 mb-1 text-gray-900'>Histoires et anecdotes</h3>
             <ul role='list' className='divide-y divide-gray-100'>
               {threads.map((thread) => {
                 const chatPageUrl = '/chat/' + thread.threadId + '/chat.html'
@@ -74,7 +73,7 @@ export const ThreadListPage = withBrowserBundle(({ error, success, threads }: Th
             </ul>
             <p className='mt-5 max-w-2xl'>
               <a href='/chat.html' className={`${primaryButtonStyles}`}>
-                Démarrer un nouveau fil
+                Démarrer une nouvelle anecdote
               </a>
             </p>
           </>
@@ -94,14 +93,14 @@ export const ThreadListPage = withBrowserBundle(({ error, success, threads }: Th
                 d='M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z'
               />
             </svg>
-            <h3 className='mt-2 text-lg font-semibold text-gray-900'>Nous n'avons trouvé aucun fil de souvenir ?!</h3>
+            <h3 className='mt-2 text-lg font-semibold text-gray-900'>Nous n'avons trouvé aucune anecdote ?!</h3>
             <p className='mt-1 text-sm text-gray-500'>Lancez-vous !</p>
             <div className='mt-6'>
               <a
                 href='/chat.html'
                 className='button inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600'>
                 <PlusIcon className='-ml-0.5 mr-1.5 h-5 w-5' aria-hidden='true' />
-                Démarrer un nouveau fil
+                Démarrer une nouvelle anecdote
               </a>
             </div>
           </div>

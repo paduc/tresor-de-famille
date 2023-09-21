@@ -7,7 +7,7 @@ import { UUID } from '../../../domain'
 import { getUuid } from '../../../libs/getUuid'
 
 export default {
-  title: 'Fil de souvenir',
+  title: 'Histoires et anecdotes',
   component: ChatPage,
   parameters: {
     layout: 'fullscreen',

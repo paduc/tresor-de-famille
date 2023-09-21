@@ -71,7 +71,7 @@ export default function AdaptiveLayout({ children }: AdaptiveLayoutProps) {
     },
     // { name: 'Videos', href: '/videos.html', icon: VideoCameraIcon },
     {
-      name: 'Fils de souvenir',
+      name: 'Histoires et anecdotes',
       href: '/threads.html',
       icon: BookOpenIcon,
       condition: () => areThreadsEnabled,
@@ -159,7 +159,7 @@ export default function AdaptiveLayout({ children }: AdaptiveLayoutProps) {
                                   href='/chat.html'
                                   className='button inline-flex items-center gap-x-1.5 rounded-md  px-2.5 py-1.5 text-sm text-white border-1 ring-1 ring-inset ring-indigo-200 shadow-sm hover:bg-white/20'>
                                   <PlusSmallIcon className='-ml-0.5 h-5 w-5' aria-hidden='true' />
-                                  Nouveau fil
+                                  Nouvelle anecdote
                                 </a>
                               </li>
                             ) : null}
@@ -176,7 +176,7 @@ export default function AdaptiveLayout({ children }: AdaptiveLayoutProps) {
                           </ul>
                         </li>
                         {/* <li>
-                          <div className='text-xs font-semibold leading-6 text-indigo-200'>Vos fils récents</div>
+                          <div className='text-xs font-semibold leading-6 text-indigo-200'>Vos anecdotes récentes</div>
                           <ul role='list' className='-mx-2 mt-2 space-y-1'>
                             {teams.map((team) => (
                               <li key={team.name}>
@@ -270,7 +270,7 @@ export default function AdaptiveLayout({ children }: AdaptiveLayoutProps) {
                           href='/chat.html'
                           className='button inline-flex items-center gap-x-1.5 rounded-md  px-2.5 py-1.5 text-sm text-white border-1 ring-1 ring-inset ring-indigo-200 shadow-sm hover:bg-white/20'>
                           <PlusSmallIcon className='-ml-0.5 h-5 w-5' aria-hidden='true' />
-                          Nouveau fil
+                          Nouvelle anecdote
                         </a>
                       </li>
                     ) : null}
@@ -287,7 +287,7 @@ export default function AdaptiveLayout({ children }: AdaptiveLayoutProps) {
                   </ul>
                 </li>
                 {/* <li>
-                  <div className='text-xs font-semibold leading-6 text-indigo-200'>Vos fils récents</div>
+                  <div className='text-xs font-semibold leading-6 text-indigo-200'>Vos anecdotes récentes</div>
                   <ul role='list' className='-mx-2 mt-2 space-y-1'>
                     {teams.map((team) => (
                       <li key={team.name}>
