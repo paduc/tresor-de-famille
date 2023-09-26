@@ -107,8 +107,8 @@ export const AvecUnePhotoEtUneDescription = () => (
 
 export const AvecUnMelangeDePhotoEtMessage = () => (
   <ChatPage
-    chatId={getUuid()}
-    lastUpdated={1695465388129 as Epoch}
+    chatId={'01HB84HGH09ENWGWMQ0RB8DDMQ' as UUID}
+    lastUpdated={1695712152310 as Epoch}
     contentAsJSON={{
       type: 'doc',
       content: [

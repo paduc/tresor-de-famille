@@ -63,42 +63,59 @@ export type ChatPageProps = {
   chatId: UUID
 }
 
-export const ChatPage = withBrowserBundle(({ title, contentAsJSON, lastUpdated, chatId }: ChatPageProps) => {
-  const newMessageAreaRef = React.useRef<HTMLTextAreaElement>(null)
+export const ChatPage = withBrowserBundle(
+  ({ title, contentAsJSON: contentAsJSONFromServer, lastUpdated, chatId }: ChatPageProps) => {
+    const newMessageAreaRef = React.useRef<HTMLTextAreaElement>(null)
 
-  const richTextEditorRef = React.useRef<RichTextEditorRef>(null)
+    const richTextEditorRef = React.useRef<RichTextEditorRef>(null)
 
-  if (contentAsJSON.content.at(-1)?.type !== 'paragraph') {
-    // @ts-ignore
-    contentAsJSON.content.push({ type: 'paragraph' })
+    let contentAsJSON = contentAsJSONFromServer
+    if (localStorage.getItem(chatId)) {
+      try {
+        const { timestamp, contentAsJSON: contentAsJSONFromLocalStorage } = JSON.parse(localStorage.getItem(chatId)!)
+        // console.log({ lastUpdated, timestamp })
+
+        if (!lastUpdated || timestamp > lastUpdated) {
+          // console.log('Using version in localStorage')
+          contentAsJSON = contentAsJSONFromLocalStorage
+        }
+      } catch (error) {
+        console.error('Failed to parse contents of localStorage')
+      }
+    }
+
+    if (contentAsJSON.content.at(-1)?.type !== 'paragraph') {
+      // @ts-ignore
+      contentAsJSON.content.push({ type: 'paragraph' })
+    }
+
+    return (
+      <AppLayout>
+        <div className='pt-2 overflow-hidden pb-40'>
+          <Title title={title} chatId={chatId} />
+          <div className='mt-4 mb-4'>
+            <RichTextEditor ref={richTextEditorRef} content={contentAsJSON} chatId={chatId} lastUpdated={lastUpdated} />
+          </div>
+          <div className='ml-4 sm:ml-6 mt-3'>
+            <InlinePhotoUploadBtn formAction='/add-photo.html' formKey='addNewPhotoToChat' hiddenFields={{ chatId }}>
+              <span
+                className={`${secondaryButtonStyles}`}
+                onClick={(e) => {
+                  if (newMessageAreaRef.current !== null && newMessageAreaRef.current.value !== '') {
+                    e.preventDefault()
+                    alert("Merci d'envoyer votre souvenir avant d'ajouter une photo.")
+                  }
+                }}>
+                <PhotoIcon className={`${buttonIconStyles}`} aria-hidden='true' />
+                Ajouter une photo
+              </span>
+            </InlinePhotoUploadBtn>
+          </div>
+        </div>
+      </AppLayout>
+    )
   }
-
-  return (
-    <AppLayout>
-      <div className='pt-2 overflow-hidden pb-40'>
-        <Title title={title} chatId={chatId} />
-        <div className='mt-4 mb-4'>
-          <RichTextEditor ref={richTextEditorRef} content={contentAsJSON} chatId={chatId} lastUpdated={lastUpdated} />
-        </div>
-        <div className='ml-4 sm:ml-6 mt-3'>
-          <InlinePhotoUploadBtn formAction='/add-photo.html' formKey='addNewPhotoToChat' hiddenFields={{ chatId }}>
-            <span
-              className={`${secondaryButtonStyles}`}
-              onClick={(e) => {
-                if (newMessageAreaRef.current !== null && newMessageAreaRef.current.value !== '') {
-                  e.preventDefault()
-                  alert("Merci d'envoyer votre souvenir avant d'ajouter une photo.")
-                }
-              }}>
-              <PhotoIcon className={`${buttonIconStyles}`} aria-hidden='true' />
-              Ajouter une photo
-            </span>
-          </InlinePhotoUploadBtn>
-        </div>
-      </div>
-    </AppLayout>
-  )
-})
+)
 
 const PhotoItem = (props: PhotoItemProps) => {
   const { description, url, personsInPhoto, unrecognizedFacesInPhoto } = props
@@ -198,13 +215,13 @@ const useAutosaveEditor = (
     //     setStatus('idle')
     //   }, 2000)
     // }, 2000)
+    localStorage.setItem(chatId, JSON.stringify({ timestamp: Date.now(), contentAsJSON: newJSON }))
     fetch(`/chat/${chatId}/chat.html`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action: 'clientsideUpdate', contentAsJSON: newJSON }),
     }).then((res) => {
       if (!res.ok) {
-        alert(`L'histoire n'a pas pu être sauvegardée`)
         setStatus('error')
         return
       }
@@ -223,7 +240,7 @@ const useAutosaveEditor = (
     // console.log('autosave useEffect 1')
     const insideSave = () => {
       const newHTML = editor?.getHTML()
-      console.log('editor on update', latestHTML, newHTML)
+      // console.log('editor on update', latestHTML, newHTML)
       if (newHTML && latestHTML !== newHTML) debouncedSave(editor?.getJSON())
     }
 
@@ -503,7 +520,12 @@ function StatusIndicator({ status }: { status: AutosaveStatus }) {
           viewBox='0 0 24 24'
           strokeWidth={1.5}
           stroke='currentColor'
-          className='w-6 h-6 text-red-500'>
+          className='w-6 h-6 text-red-500'
+          onClick={() => {
+            alert(
+              `L'histoire n'a pas pu être sauvegardée sur le serveur, sans doute à cause d'un problème de connexion.\n\nElle est toutefois sauvegardée sur ce navigateur.\n\nVous pourrez la sauvegarder plus tard en revenant sur cette page.`
+            )
+          }}>
           <path
             strokeLinecap='round'
             strokeLinejoin='round'
