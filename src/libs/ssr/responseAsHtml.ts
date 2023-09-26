@@ -16,6 +16,7 @@ import { UserUploadedPhotoToChat } from '../../pages/chat/uploadPhotoToChat/User
 import { withContext } from './withContext'
 import { UserNamedPersonInPhoto } from '../../events/onboarding/UserNamedPersonInPhoto'
 import { OnboardingUserUploadedPhotoOfThemself } from '../../events/onboarding/OnboardingUserUploadedPhotoOfThemself'
+import { getProfilePicUrlForUser } from '../../pages/_getProfilePicUrlForUser'
 
 const html = String.raw
 
@@ -115,22 +116,6 @@ async function getSession(request: Request): Promise<Session> {
   }
 
   return { isLoggedIn: false }
-}
-
-const getProfilePicUrlForUser = async (userId: UUID): Promise<string | null> => {
-  const person = await getSingleEvent<UserNamedThemself>(['UserNamedThemself'], { userId })
-
-  if (!person) return null
-
-  const { personId } = person.payload
-
-  const faceEvent = await getSingleEvent<UserConfirmedHisFace>(['UserConfirmedHisFace'], { personId })
-
-  if (!faceEvent) return null
-
-  const { photoId, faceId } = faceEvent.payload
-
-  return `/photo/${photoId}/face/${faceId}`
 }
 
 type BundleInfo =

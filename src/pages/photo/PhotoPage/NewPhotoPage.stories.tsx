@@ -31,6 +31,7 @@ export default {
             arePhotosEnabled: true,
             areThreadsEnabled: false,
             areVideosEnabled: false,
+            arePersonsEnabled: true,
           }}>
           <PersonSearchContext.Provider value={{ search: fakePersonSearch } as unknown as SearchIndex}>
             <Story />
