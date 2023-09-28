@@ -140,6 +140,7 @@ const PersonNode = ({
   data,
   isConnectable,
   selected,
+  dragging,
   targetPosition = Position.Top,
   sourcePosition = Position.Bottom,
 }: NodeProps<{
@@ -154,7 +155,7 @@ const PersonNode = ({
   return (
     <div className='text-center relative' key={`personNode_${id}`}>
       {/* <Handle type='target' position={targetPosition} isConnectable={isConnectable} /> */}
-      {(data.hovered || selected) && (
+      {(data.hovered || selected) && !dragging && (
         <>
           {/* Bottom */}
           <DonutSection
