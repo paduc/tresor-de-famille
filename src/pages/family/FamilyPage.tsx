@@ -10,6 +10,8 @@ import ReactFlow, {
   Position,
   NodeProps,
   Handle,
+  ReactFlowInstance,
+  ReactFlowProvider,
 } from 'reactflow'
 
 import { withBrowserBundle } from '../../libs/ssr/withBrowserBundle'
@@ -100,20 +102,20 @@ const PersonNode = ({
 }: NodeProps<{
   label: string
   profilePicUrl: string
-  isSelected: boolean
   hovered: 'N' | 'S' | 'W' | 'E' | false
-  isTarget: boolean
 }>) => {
   const containerSize = 200
+
+  // console.log('PersonNode render', id, data)
 
   return (
     <div className='text-center relative' key={`personNode_${id}`}>
       {/* <Handle type='target' position={targetPosition} isConnectable={isConnectable} /> */}
-      {data.isTarget && (
+      {data.hovered && (
         <>
           {/* Bottom */}
           <DonutSection
-            className=''
+            className={``}
             style={{
               top: BubbleR - containerSize / 2,
               left: BubbleR - containerSize / 2,
@@ -197,13 +199,15 @@ export type FamilyPageProps = {
 
 export const FamilyPage = withBrowserBundle(({ persons, defaultSelectedPersonId }: FamilyPageProps) => {
   const dragRef = useRef<Node | null>(null)
+  const reactFlowWrapper = useRef<HTMLDivElement | null>(null)
+  const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance | null>(null)
 
   const selectedPerson = persons.find((person) => person.personId === defaultSelectedPersonId)!
 
   const selectedPersonNode: Node = {
     id: selectedPerson.personId,
     type: 'person',
-    data: { label: selectedPerson.name, profilePicUrl: selectedPerson.profilePicUrl, isSelected: true, hovered: false },
+    data: { label: selectedPerson.name, profilePicUrl: selectedPerson.profilePicUrl, hovered: false },
     position: { x: 0, y: 0 },
     selectable: false,
     draggable: false,
@@ -238,7 +242,7 @@ export const FamilyPage = withBrowserBundle(({ persons, defaultSelectedPersonId 
     setNodes((nodes) =>
       nodes.map((node) => {
         if (node.id === defaultSelectedPersonId) {
-          node.data = { ...node.data, hovered: false, isTarget: true }
+          node.data = { ...node.data, hovered: false }
         }
         return node
       })
@@ -308,24 +312,152 @@ export const FamilyPage = withBrowserBundle(({ persons, defaultSelectedPersonId 
 
   // const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges)
 
+  const onDragOver: React.DragEventHandler = useCallback(
+    (event) => {
+      event.preventDefault()
+      event.dataTransfer.dropEffect = 'move'
+
+      if (!reactFlowWrapper.current) {
+        console.error('wrapper not current')
+        return
+      }
+
+      if (!reactFlowInstance) {
+        console.error('reactFlowInstance not ok')
+        return
+      }
+
+      const reactFlowBounds = reactFlowWrapper.current.getBoundingClientRect()
+      const position = reactFlowInstance.project({
+        x: event.clientX - reactFlowBounds.left,
+        y: event.clientY - reactFlowBounds.top,
+      })
+
+      const centerX = position.x
+      const centerY = position.y
+
+      setNodes((nodes) => {
+        // console.log('onDragOver setNodes')
+        return nodes.map((node) => {
+          // console.log('setNodes looking at ', node.id, defaultSelectedPersonId)
+          if (node.id === defaultSelectedPersonId) {
+            const targetCenterX = node.position.x + node.width! / 2
+            const targetCenterY = node.position.y + node.height! / 2
+            if (
+              centerX > targetCenterX + OuterDonutRadius + BubbleR ||
+              centerX < targetCenterX - OuterDonutRadius - BubbleR ||
+              centerY > targetCenterY + OuterDonutRadius + BubbleR ||
+              centerY < targetCenterY - OuterDonutRadius - BubbleR
+            ) {
+              node.data = { ...node.data, hovered: false }
+            } else {
+              if (centerX > targetCenterX - 30 && centerX < targetCenterX + 30) {
+                if (centerY > targetCenterY) {
+                  node.data = { ...node.data, hovered: 'S' }
+                } else {
+                  node.data = { ...node.data, hovered: 'N' }
+                }
+              } else {
+                if (centerX > targetCenterX) {
+                  node.data = { ...node.data, hovered: 'E' }
+                } else {
+                  node.data = { ...node.data, hovered: 'W' }
+                }
+              }
+            }
+          }
+
+          return node
+        })
+      })
+    },
+    [reactFlowInstance]
+  )
+
+  const cleanUp = useCallback(() => {
+    setNodes((nodes) =>
+      nodes.map((node) => {
+        if (!!node.data.hovered) {
+          node.data = { ...node.data, hovered: false }
+        }
+        return node
+      })
+    )
+  }, [])
+
+  const onDrop: React.DragEventHandler = useCallback(
+    (event) => {
+      event.preventDefault()
+
+      const newNodeDataEncoded = event.dataTransfer.getData('application/reactflow')
+
+      // check if the dropped element is valid
+      if (typeof newNodeDataEncoded === 'undefined' || !newNodeDataEncoded) {
+        return
+      }
+
+      try {
+        const newNodeData: Person = JSON.parse(newNodeDataEncoded)
+        const { personId, name, profilePicUrl } = newNodeData
+
+        setNodes((nodes) => {
+          const targettedNode = nodes.find((node) => !!node.data.hovered)
+
+          if (targettedNode && targettedNode.data.hovered !== false) {
+            const { hovered } = targettedNode.data
+            const newNode = {
+              id: personId,
+              type: 'person',
+              position: {
+                x: ['N', 'S'].includes(hovered) ? 0 : hovered === 'W' ? -100 : 100,
+                y: ['E', 'W'].includes(hovered) ? 0 : hovered === 'N' ? -100 : 100,
+              }, // TODO
+              data: { label: name, profilePicUrl, hovered: false },
+            }
+
+            // targettedNode.data = { ...targettedNode.data, hovered: false }
+
+            const newNodes = [...nodes, newNode]
+            // console.log('onDrop newNodes', newNodes)
+
+            return newNodes
+          }
+
+          return nodes
+        })
+
+        // Barbaric fix to have the hovered nodes pass to unhovered
+        setTimeout(cleanUp, 100)
+      } catch (error) {
+        console.error('could not parse the newNodeData', error)
+      }
+    },
+    [reactFlowInstance]
+  )
+
   return (
     <AppLayout>
       <UnattachedPersonList persons={otherPersons} />
-      <div className='w-full h-screen relative'>
-        <ReactFlow
-          nodes={nodes}
-          // edges={edges}
-          onNodesChange={onNodesChange}
-          // onEdgesChange={onEdgesChange}
-          // onConnect={onConnect}
-          onNodeDrag={onNodeDrag}
-          onNodeDragStart={onNodeDragStart}
-          onNodeDragStop={onNodeDragStop}
-          nodeTypes={nodeTypes}
-          fitView>
-          <Background />
-        </ReactFlow>
-      </div>
+      <ReactFlowProvider>
+        <div className='w-full h-screen relative' ref={reactFlowWrapper}>
+          <ReactFlow
+            nodes={nodes}
+            // edges={edges}
+            onNodesChange={onNodesChange}
+            // onEdgesChange={onEdgesChange}
+            // onConnect={onConnect}
+            onInit={setReactFlowInstance}
+            // onNodeDrag={onNodeDrag}
+            // onNodeDragStart={onNodeDragStart}
+            // onNodeDragStop={onNodeDragStop}
+            onDragOver={onDragOver}
+            onDrop={onDrop}
+            nodeTypes={nodeTypes}
+            fitView>
+            <Background />
+          </ReactFlow>
+        </div>
+      </ReactFlowProvider>
     </AppLayout>
   )
 })
@@ -336,10 +468,15 @@ type UnattachedPersonListProps = {
 
 function UnattachedPersonList({ persons }: UnattachedPersonListProps) {
   const [newPersons, setNewPersons] = useState<Person[]>([])
+  const onDragStart = (event: React.DragEvent, person: Person) => {
+    // console.log('DragStart')
+    event.dataTransfer.setData('application/reactflow', JSON.stringify(person))
+    event.dataTransfer.effectAllowed = 'move'
+  }
 
   return (
     <div className='h-24 bg-gray-800/10 pl-3 fixed bottom-0 z-50 overflow-x-scroll flex gap-2 items-center'>
-      <div
+      {/* <div
         className={`flex items-center justify-center cursor-pointer rounded-full h-14 w-14 shadow-sm  bg-indigo-600/60 hover:bg-indigo-600`}
         onClick={(e) => {
           const name = prompt('Quel est le nom de cette nouvelle personne ?')
@@ -366,8 +503,8 @@ function UnattachedPersonList({ persons }: UnattachedPersonListProps) {
           key={`newPerson${personId}`}>
           {name}
         </div>
-      ))}
-      {persons.map(({ profilePicUrl, personId }) => (
+      ))} */}
+      {persons.map(({ profilePicUrl, personId, name }) => (
         <img
           key={`unrelated_${personId}`}
           src={
@@ -375,6 +512,8 @@ function UnattachedPersonList({ persons }: UnattachedPersonListProps) {
             'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80'
           }
           className={`cursor-pointer inline-block rounded-full h-14 w-14 ring-2 shadow-sm`}
+          draggable
+          onDragStart={(event) => onDragStart(event, { personId, profilePicUrl, name })}
         />
       ))}
     </div>
