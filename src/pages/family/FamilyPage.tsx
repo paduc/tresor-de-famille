@@ -437,7 +437,7 @@ export const FamilyPage = withBrowserBundle(({ persons, defaultSelectedPersonId 
 
   return (
     <AppLayout>
-      <UnattachedPersonList persons={otherPersons} />
+      <UnattachedPersonList persons={persons} nodes={nodes} />
       <ReactFlowProvider>
         <div className='w-full h-screen relative' ref={reactFlowWrapper}>
           <ReactFlow
@@ -464,18 +464,21 @@ export const FamilyPage = withBrowserBundle(({ persons, defaultSelectedPersonId 
 
 type UnattachedPersonListProps = {
   persons: Person[]
+  nodes: Node[]
 }
 
-function UnattachedPersonList({ persons }: UnattachedPersonListProps) {
-  const [newPersons, setNewPersons] = useState<Person[]>([])
+function UnattachedPersonList({ persons, nodes }: UnattachedPersonListProps) {
   const onDragStart = (event: React.DragEvent, person: Person) => {
     // console.log('DragStart')
     event.dataTransfer.setData('application/reactflow', JSON.stringify(person))
     event.dataTransfer.effectAllowed = 'move'
   }
 
+  const nodeIdSet = new Set(nodes.map((node) => node.id))
+  const otherPersons = persons.filter((person) => !nodeIdSet.has(person.personId))
+  console.log({ persons, nodes })
   return (
-    <div className='h-24 bg-gray-800/10 pl-3 fixed bottom-0 z-50 overflow-x-scroll flex gap-2 items-center'>
+    <div className='h-28 bg-gray-800/10 pl-3 fixed bottom-0 z-50 w-full overflow-x-scroll flex gap-2 items-center'>
       {/* <div
         className={`flex items-center justify-center cursor-pointer rounded-full h-14 w-14 shadow-sm  bg-indigo-600/60 hover:bg-indigo-600`}
         onClick={(e) => {
@@ -504,14 +507,14 @@ function UnattachedPersonList({ persons }: UnattachedPersonListProps) {
           {name}
         </div>
       ))} */}
-      {persons.map(({ profilePicUrl, personId, name }) => (
+      {otherPersons.map(({ profilePicUrl, personId, name }) => (
         <img
           key={`unrelated_${personId}`}
           src={
             profilePicUrl ||
             'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80'
           }
-          className={`cursor-pointer inline-block rounded-full h-14 w-14 ring-2 shadow-sm`}
+          className={`cursor-pointer inline-block rounded-full h-20 w-20 ring-2 shadow-sm`}
           draggable
           onDragStart={(event) => onDragStart(event, { personId, profilePicUrl, name })}
         />

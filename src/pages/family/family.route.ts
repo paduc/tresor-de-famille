@@ -10,7 +10,7 @@ import { FamilyPage } from './FamilyPage'
 pageRouter.route(FamilyPageURL()).get(requireAuth(), async (request, response) => {
   // const { personId } = z.object({ personId: zIsUUID }).parse(request.params)
 
-  const props = await getFamilyPageProps('personId' as UUID)
+  const props = await getFamilyPageProps(request.session.user!.id)
 
   responseAsHtml(request, response, FamilyPage(props))
 })
