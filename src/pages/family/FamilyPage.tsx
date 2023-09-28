@@ -28,63 +28,106 @@ function classNames(...classes) {
 
 type DonutProps = {
   containerSize: number
-  sliceStartAngle: number
-  sliceStopAngle: number
-  innerDonutRadius: number
-  outerDonutRadius: number
+  position: 'top' | 'left' | 'right' | 'bottom'
+  hovered?: 'top' | 'left' | 'right' | 'bottom' | false
   className?: string
   style?: React.CSSProperties
-  isHovered: boolean
+  svgStyle?: React.CSSProperties
+  label?: string
+  onClick?: () => unknown
 }
 
-const DonutSection = ({
-  containerSize,
-  sliceStartAngle,
-  sliceStopAngle,
-  innerDonutRadius,
-  outerDonutRadius,
-  className,
-  style,
-  isHovered,
-}: DonutProps) => {
+const DonutSection = ({ containerSize, position, className, style, svgStyle, hovered, label, onClick }: DonutProps) => {
+  const isActive = hovered === position
+  const [isHovered, setHovered] = useState<boolean>(false)
+
   // Calculate the center of the container
   const cx = containerSize / 2
   const cy = containerSize / 2
+
+  let sliceStartAngle = 0
+  let sliceStopAngle = 0
+  let textLeft = 0
+  let textTop = 0
+  switch (position) {
+    case 'top':
+      sliceStartAngle = 227
+      sliceStopAngle = 313
+      textLeft = cx - 35
+      textTop = cy - 72
+      break
+    case 'left':
+      sliceStartAngle = 137
+      sliceStopAngle = 223
+      textLeft = cx - 120
+      textTop = cy
+      break
+    case 'right':
+      sliceStartAngle = 317
+      sliceStopAngle = 43
+      textLeft = cx + 60
+      textTop = cy - 10
+      break
+    case 'bottom':
+      sliceStartAngle = 47
+      sliceStopAngle = 133
+      textLeft = cx - 35
+      textTop = cy + 58
+      break
+  }
 
   // Convert angles to radians
   const startAngle = (Math.PI * sliceStartAngle) / 180
   const stopAngle = (Math.PI * sliceStopAngle) / 180
 
   // Calculate the starting and stopping coordinates for the inner and outer arcs
-  const xOuterStart = cx + outerDonutRadius * Math.cos(startAngle)
-  const yOuterStart = cy + outerDonutRadius * Math.sin(startAngle)
-  const xOuterStop = cx + outerDonutRadius * Math.cos(stopAngle)
-  const yOuterStop = cy + outerDonutRadius * Math.sin(stopAngle)
+  const xOuterStart = cx + OuterDonutRadius * Math.cos(startAngle)
+  const yOuterStart = cy + OuterDonutRadius * Math.sin(startAngle)
+  const xOuterStop = cx + OuterDonutRadius * Math.cos(stopAngle)
+  const yOuterStop = cy + OuterDonutRadius * Math.sin(stopAngle)
 
-  const xInnerStart = cx + innerDonutRadius * Math.cos(startAngle)
-  const yInnerStart = cy + innerDonutRadius * Math.sin(startAngle)
-  const xInnerStop = cx + innerDonutRadius * Math.cos(stopAngle)
-  const yInnerStop = cy + innerDonutRadius * Math.sin(stopAngle)
+  const xInnerStart = cx + InnerDonutRadius * Math.cos(startAngle)
+  const yInnerStart = cy + InnerDonutRadius * Math.sin(startAngle)
+  const xInnerStop = cx + InnerDonutRadius * Math.cos(stopAngle)
+  const yInnerStop = cy + InnerDonutRadius * Math.sin(stopAngle)
 
   // Create the SVG path using the calculated coordinates
   const pathData = `
         M ${xOuterStart},${yOuterStart}
-        A ${outerDonutRadius},${outerDonutRadius} 0 ${stopAngle - startAngle > Math.PI ? 1 : 0},1 ${xOuterStop},${yOuterStop}
+        A ${OuterDonutRadius},${OuterDonutRadius} 0 ${stopAngle - startAngle > Math.PI ? 1 : 0},1 ${xOuterStop},${yOuterStop}
         L ${xInnerStop},${yInnerStop}
-        A ${innerDonutRadius},${innerDonutRadius} 0 ${stopAngle - startAngle > Math.PI ? 1 : 0},0 ${xInnerStart},${yInnerStart}
+        A ${InnerDonutRadius},${InnerDonutRadius} 0 ${stopAngle - startAngle > Math.PI ? 1 : 0},0 ${xInnerStart},${yInnerStart}
         Z
     `
 
   // Construct the SVG element
   return (
-    <svg
-      className={`absolute ${className}`}
-      style={style}
-      width={`${containerSize}px`}
-      height={`${containerSize}px`}
-      viewBox={`0 0 ${containerSize} ${containerSize}`}>
-      <path d={`${pathData.trim()}`} fill={`${isHovered ? '#FF0000' : '#D3D3D3'}`} />
-    </svg>
+    <div
+      className={`absolute pointer-events-none ${className}`}
+      style={{
+        top: BubbleR - containerSize / 2,
+        left: BubbleR - containerSize / 2,
+        ...style,
+      }}>
+      <svg
+        style={svgStyle}
+        width={`${containerSize}px`}
+        height={`${containerSize}px`}
+        viewBox={`0 0 ${containerSize} ${containerSize}`}>
+        <path
+          className='pointer-events-auto'
+          onMouseOver={() => setHovered(true)}
+          onMouseOut={() => setHovered(false)}
+          d={`${pathData.trim()}`}
+          fill={`${isActive || isHovered ? '#FF0000' : '#D3D3D3'}`}
+        />
+      </svg>
+      {!!label && (isActive || isHovered) && (
+        <div className='absolute' style={{ fontSize: 8, top: textTop, left: textLeft }} onClick={onClick}>
+          {label}
+        </div>
+      )}
+    </div>
   )
 }
 
@@ -102,7 +145,7 @@ const PersonNode = ({
 }: NodeProps<{
   label: string
   profilePicUrl: string
-  hovered: 'N' | 'S' | 'W' | 'E' | false
+  hovered: 'top' | 'bottom' | 'left' | 'right' | false
 }>) => {
   const containerSize = 200
 
@@ -111,67 +154,43 @@ const PersonNode = ({
   return (
     <div className='text-center relative' key={`personNode_${id}`}>
       {/* <Handle type='target' position={targetPosition} isConnectable={isConnectable} /> */}
-      {data.hovered && (
+      {(data.hovered || selected) && (
         <>
           {/* Bottom */}
           <DonutSection
-            className={``}
-            style={{
-              top: BubbleR - containerSize / 2,
-              left: BubbleR - containerSize / 2,
-              fill: 'red',
-            }}
+            position='bottom'
+            label='Ajouter un enfant'
+            onClick={() => alert('rajouter un enfant')}
             containerSize={containerSize}
-            sliceStartAngle={47}
-            sliceStopAngle={133}
-            innerDonutRadius={InnerDonutRadius}
-            outerDonutRadius={OuterDonutRadius}
-            isHovered={data.hovered === 'S'}
+            hovered={data.hovered}
           />
           {/* Left */}
           <DonutSection
-            className=''
-            style={{
-              top: BubbleR - containerSize / 2,
-              left: BubbleR - containerSize / 2,
-            }}
             containerSize={containerSize}
-            sliceStartAngle={137}
-            sliceStopAngle={223}
-            innerDonutRadius={InnerDonutRadius}
-            outerDonutRadius={OuterDonutRadius}
-            isHovered={data.hovered === 'W'}
+            label='Ajouter un ami'
+            onClick={() => alert('rajouter un ami')}
+            position='left'
+            hovered={data.hovered}
           />
           {/* Top */}
           <DonutSection
-            className=''
-            style={{
-              top: BubbleR - containerSize / 2,
-              left: BubbleR - containerSize / 2,
-            }}
             containerSize={containerSize}
-            sliceStartAngle={227}
-            sliceStopAngle={313}
-            innerDonutRadius={InnerDonutRadius}
-            outerDonutRadius={OuterDonutRadius}
-            isHovered={data.hovered === 'N'}
+            label='Ajouter un parent'
+            onClick={() => alert('rajouter un parent')}
+            position='top'
+            hovered={data.hovered}
           />
           {/* Right */}
           <DonutSection
-            className=''
-            style={{
-              top: BubbleR - containerSize / 2,
-              left: BubbleR - containerSize / 2,
-            }}
             containerSize={containerSize}
-            sliceStartAngle={317}
-            sliceStopAngle={43}
-            innerDonutRadius={InnerDonutRadius}
-            outerDonutRadius={OuterDonutRadius}
-            isHovered={data.hovered === 'E'}
+            label='Ajouter un compagnon / époux'
+            onClick={() => alert('rajouter un époux')}
+            position='right'
+            hovered={data.hovered}
           />
         </>
       )}
+
       <img
         src={data.profilePicUrl}
         className={`inline-block rounded-full h-14 w-14 ring-2 ${selected ? 'ring-red-500' : 'ring-white'} shadow-sm`}
@@ -209,7 +228,7 @@ export const FamilyPage = withBrowserBundle(({ persons, defaultSelectedPersonId 
     type: 'person',
     data: { label: selectedPerson.name, profilePicUrl: selectedPerson.profilePicUrl, hovered: false },
     position: { x: 0, y: 0 },
-    selectable: false,
+    selectable: true,
     draggable: false,
   }
 
@@ -269,15 +288,15 @@ export const FamilyPage = withBrowserBundle(({ persons, defaultSelectedPersonId 
           } else {
             if (centerX > targetCenterX - 30 && centerX < targetCenterX + 30) {
               if (centerY > targetCenterY) {
-                node.data = { ...node.data, hovered: 'S' }
+                node.data = { ...node.data, hovered: 'bottom' }
               } else {
-                node.data = { ...node.data, hovered: 'N' }
+                node.data = { ...node.data, hovered: 'top' }
               }
             } else {
               if (centerX > targetCenterX) {
-                node.data = { ...node.data, hovered: 'E' }
+                node.data = { ...node.data, hovered: 'right' }
               } else {
-                node.data = { ...node.data, hovered: 'W' }
+                node.data = { ...node.data, hovered: 'left' }
               }
             }
           }
@@ -353,15 +372,15 @@ export const FamilyPage = withBrowserBundle(({ persons, defaultSelectedPersonId 
             } else {
               if (centerX > targetCenterX - 30 && centerX < targetCenterX + 30) {
                 if (centerY > targetCenterY) {
-                  node.data = { ...node.data, hovered: 'S' }
+                  node.data = { ...node.data, hovered: 'bottom' }
                 } else {
-                  node.data = { ...node.data, hovered: 'N' }
+                  node.data = { ...node.data, hovered: 'top' }
                 }
               } else {
                 if (centerX > targetCenterX) {
-                  node.data = { ...node.data, hovered: 'E' }
+                  node.data = { ...node.data, hovered: 'right' }
                 } else {
-                  node.data = { ...node.data, hovered: 'W' }
+                  node.data = { ...node.data, hovered: 'left' }
                 }
               }
             }
@@ -409,8 +428,8 @@ export const FamilyPage = withBrowserBundle(({ persons, defaultSelectedPersonId 
               id: personId,
               type: 'person',
               position: {
-                x: ['N', 'S'].includes(hovered) ? 0 : hovered === 'W' ? -100 : 100,
-                y: ['E', 'W'].includes(hovered) ? 0 : hovered === 'N' ? -100 : 100,
+                x: ['top', 'bottom'].includes(hovered) ? 0 : hovered === 'left' ? -100 : 100,
+                y: ['right', 'left'].includes(hovered) ? 0 : hovered === 'top' ? -100 : 100,
               }, // TODO
               data: { label: name, profilePicUrl, hovered: false },
             }
