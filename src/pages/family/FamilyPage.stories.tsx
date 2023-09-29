@@ -5,12 +5,16 @@ import { getUuid } from '../../libs/getUuid'
 import { SearchIndex } from 'algoliasearch'
 import { PersonSearchContext } from '../_components/usePersonSearch'
 
+const fakePerson1Id = getUuid()
+const fakePerson2Id = getUuid()
+const fakePerson3Id = getUuid()
+
 const fakePersonSearch = async (query: string) => {
   return {
     hits: [
-      { objectID: getUuid(), name: 'John Doe' },
-      { objectID: getUuid(), name: 'John Doe' },
-      { objectID: getUuid(), name: 'John Doe' },
+      { objectID: fakePerson1Id, name: 'John Doe' },
+      { objectID: fakePerson2Id, name: 'Zelda Moroney' },
+      { objectID: fakePerson3Id, name: 'Claire Politi' },
     ],
   }
 }
@@ -90,9 +94,9 @@ export const PlusieursPersonnes = () => {
       <FamilyPage
         persons={[
           { personId: selectedPersonId, name: 'Pierrot', profilePicUrl: fakeProfilePicUrl },
-          { personId: getUuid(), name: 'Prénom Nom', profilePicUrl: fakePhoto() },
-          { personId: getUuid(), name: 'Prénom Nom', profilePicUrl: fakePhoto() },
-          { personId: getUuid(), name: 'Prénom Nom', profilePicUrl: fakePhoto() },
+          { personId: fakePerson1Id, name: 'John Doe', profilePicUrl: fakePhoto() },
+          { personId: fakePerson2Id, name: 'Zelda Moroney', profilePicUrl: fakePhoto() },
+          { personId: fakePerson3Id, name: 'Claire Politi', profilePicUrl: fakePhoto() },
           { personId: getUuid(), name: 'Prénom Nom', profilePicUrl: fakePhoto() },
           { personId: getUuid(), name: 'Prénom Nom', profilePicUrl: fakePhoto() },
           { personId: getUuid(), name: 'Prénom Nom', profilePicUrl: fakePhoto() },

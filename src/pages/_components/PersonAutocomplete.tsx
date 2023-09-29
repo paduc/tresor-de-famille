@@ -11,7 +11,7 @@ type SearchPersonHitDTO = {
   sex?: 'M' | 'F'
 }
 
-type PersonAutocompleteProps = {
+export type PersonAutocompleteProps = {
   onPersonSelected: (person: { type: 'known'; personId: UUID } | { type: 'unknown'; name: string }) => unknown
   className?: string
   presentPerson?: { name: string; personId: UUID }

@@ -12,32 +12,41 @@ import ReactFlow, {
   Handle,
   ReactFlowInstance,
   ReactFlowProvider,
+  Panel,
 } from 'reactflow'
 
 import { withBrowserBundle } from '../../libs/ssr/withBrowserBundle'
 import { AppLayout } from '../_components/layout/AppLayout'
 import { UUID } from '../../domain'
 import { useCallback, useRef, useState } from 'react'
-import { PlusIcon } from '@heroicons/react/24/outline'
+import { ExclamationTriangleIcon, PlusIcon, XMarkIcon } from '@heroicons/react/24/outline'
 import { getUuid } from '../../libs/getUuid'
+import { PersonAutocomplete, PersonAutocompleteProps } from '../_components/PersonAutocomplete'
+import { Transition, Dialog } from '@headlessui/react'
 
 // @ts-ignore
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ')
 }
+
+const fakeProfilePicUrl =
+  'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80'
+
+const NodeListenerContext = React.createContext<((nodeId: string, position: DonutPosition) => void) | null>(null)
+
 const BubbleR = 28
 const InnerDonutRadius = BubbleR + 3
 const OuterDonutRadius = 60
 const ContainerSize = 200
 
 type DonutProps = {
-  position: 'top' | 'left' | 'right' | 'bottom'
-  hovered?: 'top' | 'left' | 'right' | 'bottom' | false
+  position: DonutPosition
+  hovered?: DonutPosition | false
   className?: string
   style?: React.CSSProperties
   svgStyle?: React.CSSProperties
   label?: string
-  onClick?: () => unknown
+  onClick?: (position: DonutPosition) => unknown
 }
 
 const DonutSection = ({ position, className, style, svgStyle, hovered, label, onClick }: DonutProps) => {
@@ -155,16 +164,19 @@ const DonutSection = ({ position, className, style, svgStyle, hovered, label, on
           onMouseOut={() => setHovered(false)}
           d={`${pathData.trim()}`}
           fill='rgba(0,0,0,0)'
+          onClick={() => onClick && onClick(position)}
         />
       </svg>
       {!!label && (isActive || isHovered) && (
-        <div className='absolute' style={{ fontSize: 8, top: textTop, left: textLeft }} onClick={onClick}>
+        <div className='absolute' style={{ fontSize: 8, top: textTop, left: textLeft }}>
           {label}
         </div>
       )}
     </div>
   )
 }
+
+type DonutPosition = 'top' | 'bottom' | 'left' | 'right'
 
 const PersonNode = ({
   id,
@@ -177,40 +189,39 @@ const PersonNode = ({
 }: NodeProps<{
   label: string
   profilePicUrl: string
-  hovered: 'top' | 'bottom' | 'left' | 'right' | false
+  hovered: DonutPosition | false
 }>) => {
   // console.log('PersonNode render', id, data)
+  const onNodeEvent = React.useContext(NodeListenerContext)
+
+  const handleDonutClick = useCallback(
+    (position: DonutPosition) => {
+      console.log('handleDonutClick')
+      if (onNodeEvent) onNodeEvent(id, position)
+    },
+    [onNodeEvent]
+  )
 
   return (
     <div className='text-center relative' key={`personNode_${id}`}>
-      {/* <Handle type='target' position={targetPosition} isConnectable={isConnectable} /> */}
+      {/* <Handle type='source' position={Position.Top} />
+      <Handle type='target' position={Position.Bottom} /> */}
+      <Handle id='top' type='target' position={Position.Top} />
+      <Handle id='bottom' type='source' position={Position.Bottom} />
+      <Handle id='left' type='target' position={Position.Left} />
+      <Handle id='right' type='source' position={Position.Right} />
       {(data.hovered || selected) && !dragging && (
         <>
           {/* Bottom */}
-          <DonutSection
-            position='bottom'
-            label='Ajouter un enfant'
-            onClick={() => alert('rajouter un enfant')}
-            hovered={data.hovered}
-          />
+          <DonutSection position='bottom' label='Ajouter un enfant' onClick={handleDonutClick} hovered={data.hovered} />
           {/* Left */}
-          <DonutSection
-            label='Ajouter un ami'
-            onClick={() => alert('rajouter un ami')}
-            position='left'
-            hovered={data.hovered}
-          />
+          <DonutSection label='Ajouter un ami' onClick={handleDonutClick} position='left' hovered={data.hovered} />
           {/* Top */}
-          <DonutSection
-            label='Ajouter un parent'
-            onClick={() => alert('rajouter un parent')}
-            position='top'
-            hovered={data.hovered}
-          />
+          <DonutSection label='Ajouter un parent' onClick={handleDonutClick} position='top' hovered={data.hovered} />
           {/* Right */}
           <DonutSection
             label='Ajouter un compagnon / époux'
-            onClick={() => alert('rajouter un époux')}
+            onClick={handleDonutClick}
             position='right'
             hovered={data.hovered}
           />
@@ -276,6 +287,8 @@ export const FamilyPage = withBrowserBundle(({ persons, defaultSelectedPersonId 
     //   }
     // }),
   ])
+
+  const [edges, setEdges, onEdgesChange] = useEdgesState([])
 
   const [origX, setOrigX] = useState<number | undefined>()
   const [origY, setOrigY] = useState<number | undefined>()
@@ -419,7 +432,7 @@ export const FamilyPage = withBrowserBundle(({ persons, defaultSelectedPersonId 
     [reactFlowInstance]
   )
 
-  const cleanUp = useCallback(() => {
+  const removeHoveredState = useCallback(() => {
     setNodes((nodes) =>
       nodes.map((node) => {
         if (!!node.data.hovered) {
@@ -472,7 +485,7 @@ export const FamilyPage = withBrowserBundle(({ persons, defaultSelectedPersonId 
         })
 
         // Barbaric fix to have the hovered nodes pass to unhovered
-        setTimeout(cleanUp, 100)
+        setTimeout(removeHoveredState, 100)
       } catch (error) {
         console.error('could not parse the newNodeData', error)
       }
@@ -480,32 +493,246 @@ export const FamilyPage = withBrowserBundle(({ persons, defaultSelectedPersonId 
     [reactFlowInstance]
   )
 
+  const [isSearchPanelVisible, showSearchPanel] = useState<boolean>(false)
+
+  const [currentNodeRelationship, setCurrentNodeRelationship] = useState<PendingNodeRelationship | null>(null)
+
+  const onNodeEvent = useCallback((nodeId: string, position: DonutPosition) => {
+    console.log('top level onNodeEvent', nodeId, position)
+    // Show search panel
+    showSearchPanel(true)
+    // Remember the nodeId and the position
+    setCurrentNodeRelationship({ nodeId, position })
+  }, [])
+
+  const onPersonSelected = useCallback<PersonAutocompleteProps['onPersonSelected']>(
+    (person) => {
+      console.log('onPersonSelected', person, currentNodeRelationship)
+
+      if (!currentNodeRelationship) return
+
+      const { position, nodeId } = currentNodeRelationship
+
+      let newNode: Node | null = null
+      // TODO: add node + edge
+      setNodes((nodes) => {
+        const currentNode = nodes.find((node) => node.id === nodeId)
+
+        if (!currentNode) return nodes
+        const currentNodePosition = currentNode.position
+
+        const profilePicUrl =
+          person.type === 'known' ? persons.find((p) => p.personId === person.personId)!.profilePicUrl : fakeProfilePicUrl
+
+        const name = person.type === 'known' ? persons.find((p) => p.personId === person.personId)!.name : person.name
+
+        newNode = {
+          id: person.type === 'known' ? person.personId : getUuid(),
+          type: 'person',
+          position: {
+            // TODO: set position vis à vis of currentNode position
+            x: ['top', 'bottom'].includes(position)
+              ? currentNodePosition.x
+              : position === 'left'
+              ? currentNodePosition.x - 100
+              : currentNodePosition.x + 100,
+            y: ['right', 'left'].includes(position)
+              ? currentNodePosition.y
+              : position === 'top'
+              ? currentNodePosition.y - 100
+              : currentNodePosition.y + 100,
+          },
+          data: { label: name, profilePicUrl, hovered: false },
+        }
+
+        const newNodes = [...nodes, newNode]
+        // console.log('onDrop newNodes', newNodes)
+
+        return newNodes
+      })
+      // setEdges((edges) => edges.concat({ id: '1998', source: nodeId, target: newNode!.id }))
+      setEdges((edges) => {
+        if (newNode) {
+          let sourceHandle = ''
+          let targetHandle = ''
+          let source = ''
+          let target = ''
+          switch (position) {
+            case 'bottom': {
+              source = nodeId
+              target = newNode.id
+              sourceHandle = Position.Bottom
+              targetHandle = Position.Top
+              break
+            }
+            case 'top': {
+              // On est obligés d'inverser l'ordre
+              source = newNode.id
+              target = nodeId
+              sourceHandle = Position.Bottom
+              targetHandle = Position.Top
+              break
+            }
+            case 'left': {
+              // Inversion
+              source = newNode.id
+              target = nodeId
+              sourceHandle = Position.Right
+              targetHandle = Position.Left
+              break
+            }
+            case 'right': {
+              source = nodeId
+              target = newNode.id
+              sourceHandle = Position.Right
+              targetHandle = Position.Left
+              break
+            }
+          }
+          const newEdge: Edge = {
+            id: getUuid(), // TODO, concat both ids
+            source,
+            target,
+            sourceHandle,
+
+            targetHandle,
+          }
+
+          return [...edges, newEdge]
+        }
+        return edges
+      })
+    },
+    [currentNodeRelationship, reactFlowInstance]
+  )
+
   return (
     <AppLayout>
-      <UnattachedPersonList persons={persons} nodes={nodes} />
-      <ReactFlowProvider>
-        <div className='w-full h-screen relative' ref={reactFlowWrapper}>
-          <ReactFlow
-            nodes={nodes}
-            // edges={edges}
-            onNodesChange={onNodesChange}
-            // onEdgesChange={onEdgesChange}
-            // onConnect={onConnect}
-            onInit={setReactFlowInstance}
-            // onNodeDrag={onNodeDrag}
-            // onNodeDragStart={onNodeDragStart}
-            // onNodeDragStop={onNodeDragStop}
-            onDragOver={onDragOver}
-            onDrop={onDrop}
-            nodeTypes={nodeTypes}
-            fitView>
-            <Background />
-          </ReactFlow>
-        </div>
-      </ReactFlowProvider>
+      <NodeListenerContext.Provider value={onNodeEvent}>
+        <UnattachedPersonList persons={persons} nodes={nodes} />
+        <ReactFlowProvider>
+          <div className='w-full h-screen relative' ref={reactFlowWrapper}>
+            <ReactFlow
+              nodes={nodes}
+              edges={edges}
+              onNodesChange={onNodesChange}
+              onEdgesChange={onEdgesChange}
+              // onConnect={onConnect}
+              onInit={setReactFlowInstance}
+              // onNodeDrag={onNodeDrag}
+              // onNodeDragStart={onNodeDragStart}
+              // onNodeDragStop={onNodeDragStop}
+              onDragOver={onDragOver}
+              onDrop={onDrop}
+              nodeTypes={nodeTypes}
+              fitView>
+              <Background />
+              <Panel position='top-center'>
+                <SearchPanel
+                  open={isSearchPanelVisible}
+                  setOpen={showSearchPanel}
+                  onPersonSelected={onPersonSelected}
+                  currentNodeRelationship={currentNodeRelationship}
+                />
+              </Panel>
+            </ReactFlow>
+          </div>
+        </ReactFlowProvider>
+      </NodeListenerContext.Provider>
     </AppLayout>
   )
 })
+
+type PendingNodeRelationship = {
+  nodeId: string
+  position: DonutPosition
+}
+
+type SearchPanelProps = {
+  open: boolean
+  setOpen: (open: boolean) => void
+  onPersonSelected: PersonAutocompleteProps['onPersonSelected']
+  currentNodeRelationship: PendingNodeRelationship | null
+}
+
+function SearchPanel({ open, setOpen, onPersonSelected, currentNodeRelationship }: SearchPanelProps) {
+  return (
+    <Transition.Root show={open} as={React.Fragment}>
+      <Dialog as='div' className='relative z-50' onClose={setOpen}>
+        <Transition.Child
+          as={React.Fragment}
+          enter='ease-out duration-300'
+          enterFrom='opacity-0'
+          enterTo='opacity-100'
+          leave='ease-in duration-200'
+          leaveFrom='opacity-100'
+          leaveTo='opacity-0'>
+          <div className='fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity' />
+        </Transition.Child>
+
+        <div className='fixed inset-0 z-10 w-screen overflow-y-auto'>
+          <div className='flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0'>
+            <Transition.Child
+              as={React.Fragment}
+              enter='ease-out duration-300'
+              enterFrom='opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95'
+              enterTo='opacity-100 translate-y-0 sm:scale-100'
+              leave='ease-in duration-200'
+              leaveFrom='opacity-100 translate-y-0 sm:scale-100'
+              leaveTo='opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95'>
+              <Dialog.Panel className='relative transform overflow-visible rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6'>
+                <div className='absolute right-0 top-0 hidden pr-4 pt-4 sm:block'>
+                  <button
+                    type='button'
+                    className='rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2'
+                    onClick={() => setOpen(false)}>
+                    <span className='sr-only'>Close</span>
+                    <XMarkIcon className='h-6 w-6' aria-hidden='true' />
+                  </button>
+                </div>
+                <div className='sm:flex sm:items-start'>
+                  <div className='mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10'>
+                    <ExclamationTriangleIcon className='h-6 w-6 text-red-600' aria-hidden='true' />
+                  </div>
+                  <div className='mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left'>
+                    <Dialog.Title as='h3' className='text-base font-semibold leading-6 text-gray-900'>
+                      {(() => {
+                        if (!currentNodeRelationship) return 'Ajouter un parent'
+                        switch (currentNodeRelationship.position) {
+                          case 'top': {
+                            return 'Ajouter un père ou une mère'
+                          }
+                          case 'bottom': {
+                            return 'Ajouter un fils ou une fille'
+                          }
+                          case 'left': {
+                            return 'Ajouter un ami ou une connaissance'
+                          }
+                          case 'right': {
+                            return 'Ajouter un compagne, un époux, ...'
+                          }
+                        }
+                      })()}
+                    </Dialog.Title>
+                    <div className='mt-2'>
+                      <PersonAutocomplete
+                        onPersonSelected={(props) => {
+                          setOpen(false)
+                          onPersonSelected(props)
+                        }}
+                        className='max-w-xl text-gray-800'
+                      />
+                    </div>
+                  </div>
+                </div>
+              </Dialog.Panel>
+            </Transition.Child>
+          </div>
+        </div>
+      </Dialog>
+    </Transition.Root>
+  )
+}
 
 type UnattachedPersonListProps = {
   persons: Person[]
