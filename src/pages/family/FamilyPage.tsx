@@ -25,9 +25,12 @@ import { getUuid } from '../../libs/getUuid'
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ')
 }
+const BubbleR = 28
+const InnerDonutRadius = BubbleR + 3
+const OuterDonutRadius = 60
+const ContainerSize = 200
 
 type DonutProps = {
-  containerSize: number
   position: 'top' | 'left' | 'right' | 'bottom'
   hovered?: 'top' | 'left' | 'right' | 'bottom' | false
   className?: string
@@ -37,42 +40,56 @@ type DonutProps = {
   onClick?: () => unknown
 }
 
-const DonutSection = ({ containerSize, position, className, style, svgStyle, hovered, label, onClick }: DonutProps) => {
+const DonutSection = ({ position, className, style, svgStyle, hovered, label, onClick }: DonutProps) => {
   const isActive = hovered === position
   const [isHovered, setHovered] = useState<boolean>(false)
 
   // Calculate the center of the container
-  const cx = containerSize / 2
-  const cy = containerSize / 2
+  const cx = ContainerSize / 2
+  const cy = ContainerSize / 2
+
+  const circleR = 3
+  const circlePadding = 10
+  const circleDistance = BubbleR / 2 + circleR / 2 + 10 + circlePadding
 
   let sliceStartAngle = 0
   let sliceStopAngle = 0
   let textLeft = 0
   let textTop = 0
+  let circleLeft = 0
+  let circleTop = 0
   switch (position) {
     case 'top':
       sliceStartAngle = 227
       sliceStopAngle = 313
       textLeft = cx - 35
       textTop = cy - 72
+      circleLeft = cx
+      circleTop = cy - circleDistance
       break
     case 'left':
       sliceStartAngle = 137
       sliceStopAngle = 223
       textLeft = cx - 120
       textTop = cy
+      circleLeft = cx - circleDistance
+      circleTop = cy
       break
     case 'right':
       sliceStartAngle = 317
       sliceStopAngle = 43
       textLeft = cx + 60
       textTop = cy - 10
+      circleLeft = cx + circleDistance
+      circleTop = cy
       break
     case 'bottom':
       sliceStartAngle = 47
       sliceStopAngle = 133
       textLeft = cx - 35
       textTop = cy + 58
+      circleLeft = cx
+      circleTop = cy + circleDistance
       break
   }
 
@@ -100,26 +117,44 @@ const DonutSection = ({ containerSize, position, className, style, svgStyle, hov
         Z
     `
 
+  const maskId = `mask-${position}`
+
   // Construct the SVG element
   return (
     <div
+      key={`donut_${position}`}
       className={`absolute pointer-events-none ${className}`}
       style={{
-        top: BubbleR - containerSize / 2,
-        left: BubbleR - containerSize / 2,
+        top: BubbleR - ContainerSize / 2,
+        left: BubbleR - ContainerSize / 2,
         ...style,
       }}>
       <svg
         style={svgStyle}
-        width={`${containerSize}px`}
-        height={`${containerSize}px`}
-        viewBox={`0 0 ${containerSize} ${containerSize}`}>
+        width={`${ContainerSize}px`}
+        height={`${ContainerSize}px`}
+        viewBox={`0 0 ${ContainerSize} ${ContainerSize}`}
+        className={`pointer-events-none`}>
+        {/** the mask is there to transition from a circle to the donut slice */}
+        <mask id={maskId}>
+          <path d={`${pathData.trim()}`} fill='white' />
+        </mask>
+        <circle
+          className='transition-all duration-700 ease-in-out'
+          cx={circleLeft}
+          cy={circleTop}
+          r={`${isActive || isHovered ? ContainerSize / 2 : circleR}`}
+          mask={`url(#${maskId})`}
+          fill={`${isActive || isHovered ? '#FF0000' : '#D3D3D3'}`}
+        />
+
+        {/** this is an invisible path to catch mouse events */}
         <path
           className='pointer-events-auto'
           onMouseOver={() => setHovered(true)}
           onMouseOut={() => setHovered(false)}
           d={`${pathData.trim()}`}
-          fill={`${isActive || isHovered ? '#FF0000' : '#D3D3D3'}`}
+          fill='rgba(0,0,0,0)'
         />
       </svg>
       {!!label && (isActive || isHovered) && (
@@ -130,10 +165,6 @@ const DonutSection = ({ containerSize, position, className, style, svgStyle, hov
     </div>
   )
 }
-
-const BubbleR = 28
-const InnerDonutRadius = BubbleR + 3
-const OuterDonutRadius = 60
 
 const PersonNode = ({
   id,
@@ -148,8 +179,6 @@ const PersonNode = ({
   profilePicUrl: string
   hovered: 'top' | 'bottom' | 'left' | 'right' | false
 }>) => {
-  const containerSize = 200
-
   // console.log('PersonNode render', id, data)
 
   return (
@@ -162,12 +191,10 @@ const PersonNode = ({
             position='bottom'
             label='Ajouter un enfant'
             onClick={() => alert('rajouter un enfant')}
-            containerSize={containerSize}
             hovered={data.hovered}
           />
           {/* Left */}
           <DonutSection
-            containerSize={containerSize}
             label='Ajouter un ami'
             onClick={() => alert('rajouter un ami')}
             position='left'
@@ -175,7 +202,6 @@ const PersonNode = ({
           />
           {/* Top */}
           <DonutSection
-            containerSize={containerSize}
             label='Ajouter un parent'
             onClick={() => alert('rajouter un parent')}
             position='top'
@@ -183,7 +209,6 @@ const PersonNode = ({
           />
           {/* Right */}
           <DonutSection
-            containerSize={containerSize}
             label='Ajouter un compagnon / époux'
             onClick={() => alert('rajouter un époux')}
             position='right'
@@ -496,7 +521,6 @@ function UnattachedPersonList({ persons, nodes }: UnattachedPersonListProps) {
 
   const nodeIdSet = new Set(nodes.map((node) => node.id))
   const otherPersons = persons.filter((person) => !nodeIdSet.has(person.personId))
-  console.log({ persons, nodes })
   return (
     <div className='h-28 bg-gray-800/10 pl-3 fixed bottom-0 z-50 w-full overflow-x-scroll flex gap-2 items-center'>
       {/* <div
