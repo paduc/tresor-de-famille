@@ -99,16 +99,6 @@ export const PlusieursPersonnes = () => {
           { personId: fakePerson3Id, name: 'Claire Politi', profilePicUrl: fakePhoto() },
           { personId: getUuid(), name: 'Prénom Nom', profilePicUrl: fakePhoto() },
           { personId: getUuid(), name: 'Prénom Nom', profilePicUrl: fakePhoto() },
-          { personId: getUuid(), name: 'Prénom Nom', profilePicUrl: fakePhoto() },
-          { personId: getUuid(), name: 'Prénom Nom', profilePicUrl: fakePhoto() },
-          { personId: getUuid(), name: 'Prénom Nom', profilePicUrl: fakePhoto() },
-          { personId: getUuid(), name: 'Prénom Nom', profilePicUrl: fakePhoto() },
-          { personId: getUuid(), name: 'Prénom Nom', profilePicUrl: fakePhoto() },
-          { personId: getUuid(), name: 'Prénom Nom', profilePicUrl: fakePhoto() },
-          { personId: getUuid(), name: 'Prénom Nom', profilePicUrl: fakePhoto() },
-          { personId: getUuid(), name: 'Prénom Nom', profilePicUrl: fakePhoto() },
-          { personId: getUuid(), name: 'Prénom Nom', profilePicUrl: fakePhoto() },
-          { personId: getUuid(), name: 'Prénom Nom', profilePicUrl: fakePhoto() },
         ]}
         defaultSelectedPersonId={selectedPersonId}
       />

@@ -168,12 +168,12 @@ const DonutSection = ({ position, className, style, svgStyle, hovered, label, on
           cy={circleTop}
           r={`${isActive || isHovered ? ContainerSize / 2 : circleR}`}
           mask={`url(#${maskId})`}
-          fill={`${isActive || isHovered ? '#FF0000' : '#D3D3D3'}`}
+          fill={`${isActive || isHovered ? 'rgb(79 70 229)' : '#D3D3D3'}`}
         />
 
         {/** this is an invisible path to catch mouse events */}
         <path
-          className='pointer-events-auto'
+          className='pointer-events-auto bg-indigo'
           onMouseOver={() => setHovered(true)}
           onMouseOut={() => setHovered(false)}
           d={`${pathData.trim()}`}
@@ -241,10 +241,10 @@ const PersonNode = ({
     <div className='text-center relative' key={`personNode_${id}`}>
       {/* <Handle type='source' position={Position.Top} />
       <Handle type='target' position={Position.Bottom} /> */}
-      <Handle id='parents' type='target' position={Position.Top} />
-      <Handle id='children' type='source' position={Position.Bottom} />
-      <Handle id='friends-spouses-left' type='target' position={Position.Left} />
-      <Handle id='friends-spouses-right' type='source' position={Position.Right} />
+      <Handle id='parents' type='target' style={{ opacity: 0 }} position={Position.Top} />
+      <Handle id='children' type='source' style={{ opacity: 0 }} position={Position.Bottom} />
+      <Handle id='friends-spouses-left' type='target' style={{ opacity: 0 }} position={Position.Left} />
+      <Handle id='friends-spouses-right' type='source' style={{ opacity: 0 }} position={Position.Right} />
       {(data.hovered || selected) && !dragging && (
         <>
           {/* Bottom */}
@@ -265,7 +265,7 @@ const PersonNode = ({
 
       <img
         src={data.profilePicUrl}
-        className={`inline-block rounded-full h-14 w-14 ring-2 ${selected ? 'ring-red-500' : 'ring-white'} shadow-sm`}
+        className={`inline-block rounded-full h-14 w-14 ring-2 ${selected ? 'ring-indigo-500' : 'ring-white'} shadow-sm`}
       />
       {/* {<div>{data?.label}</div>} */}
       {/* <Handle type='source' position={sourcePosition} isConnectable={isConnectable} /> */}
@@ -602,7 +602,20 @@ function addRelationship({
   setEdges,
 }: AddRelationshipArgs) {
   let newNode: Node | null = null
-  setNodes((nodes) => {
+
+  let relationAlreadyExistedForTargetId: string | false = false
+
+  setNodes((initialNodes) => {
+    let nodes = initialNodes
+
+    const targetNode = targetPerson.type === 'known' && nodes.find((node) => node.id === targetPerson.personId)
+
+    if (targetNode) {
+      relationAlreadyExistedForTargetId = targetNode.id
+      // remove the old node
+      nodes.splice(nodes.findIndex((node) => node.id === targetPerson.personId) + 1)
+    }
+
     const currentNode = nodes.find((node) => node.id === sourcePersonId)
 
     if (!currentNode) return nodes
@@ -638,9 +651,17 @@ function addRelationship({
     return [...nodes, newNode]
   })
 
-  setEdges((edges) => {
+  setEdges((initialEdges) => {
+    let edges = [...initialEdges]
+
     if (!newNode) {
       return edges
+    }
+
+    if (relationAlreadyExistedForTargetId) {
+      edges = edges.filter(
+        ({ source, target }) => source !== relationAlreadyExistedForTargetId && target !== relationAlreadyExistedForTargetId
+      )
     }
 
     let sourceHandle = ''
