@@ -32,7 +32,21 @@ function classNames(...classes) {
 const fakeProfilePicUrl =
   'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80'
 
-const NodeListenerContext = React.createContext<((nodeId: string, position: DonutPosition) => void) | null>(null)
+type Person = {
+  profilePicUrl: string | null
+  name: string
+  personId: UUID
+}
+
+type NewRelationshipAction = 'addChild' | 'addParent' | 'addFriend' | 'addSpouse'
+type PendingNodeRelationshipAction = {
+  personId: UUID
+  relationshipAction: NewRelationshipAction
+}
+
+const NodeListenerContext = React.createContext<((nodeId: string, relationshipAction: NewRelationshipAction) => void) | null>(
+  null
+)
 
 const BubbleR = 28
 const InnerDonutRadius = BubbleR + 3
@@ -192,24 +206,45 @@ const PersonNode = ({
   hovered: DonutPosition | false
 }>) => {
   // console.log('PersonNode render', id, data)
-  const onNodeEvent = React.useContext(NodeListenerContext)
+  const onNodeButtonPressed = React.useContext(NodeListenerContext)
 
   const handleDonutClick = useCallback(
     (position: DonutPosition) => {
-      console.log('handleDonutClick')
-      if (onNodeEvent) onNodeEvent(id, position)
+      // Remember the nodeId and the position
+      let newRelationshipAction: NewRelationshipAction | null = null
+
+      switch (position) {
+        case 'top': {
+          newRelationshipAction = 'addParent'
+          break
+        }
+        case 'bottom': {
+          newRelationshipAction = 'addChild'
+          break
+        }
+        case 'left': {
+          newRelationshipAction = 'addFriend'
+          break
+        }
+        case 'right': {
+          newRelationshipAction = 'addSpouse'
+          break
+        }
+      }
+
+      if (onNodeButtonPressed) onNodeButtonPressed(id, newRelationshipAction)
     },
-    [onNodeEvent]
+    [onNodeButtonPressed]
   )
 
   return (
     <div className='text-center relative' key={`personNode_${id}`}>
       {/* <Handle type='source' position={Position.Top} />
       <Handle type='target' position={Position.Bottom} /> */}
-      <Handle id='top' type='target' position={Position.Top} />
-      <Handle id='bottom' type='source' position={Position.Bottom} />
-      <Handle id='left' type='target' position={Position.Left} />
-      <Handle id='right' type='source' position={Position.Right} />
+      <Handle id='parents' type='target' position={Position.Top} />
+      <Handle id='children' type='source' position={Position.Bottom} />
+      <Handle id='friends-spouses-left' type='target' position={Position.Left} />
+      <Handle id='friends-spouses-right' type='source' position={Position.Right} />
       {(data.hovered || selected) && !dragging && (
         <>
           {/* Bottom */}
@@ -240,12 +275,6 @@ const PersonNode = ({
 
 const nodeTypes = {
   person: PersonNode,
-}
-
-type Person = {
-  profilePicUrl: string | null
-  name: string
-  personId: UUID
 }
 
 export type FamilyPageProps = {
@@ -495,120 +524,32 @@ export const FamilyPage = withBrowserBundle(({ persons, defaultSelectedPersonId 
 
   const [isSearchPanelVisible, showSearchPanel] = useState<boolean>(false)
 
-  const [currentNodeRelationship, setCurrentNodeRelationship] = useState<PendingNodeRelationship | null>(null)
+  const [pendingRelationshipAction, setPendingRelationshipAction] = useState<PendingNodeRelationshipAction | null>(null)
 
-  const onNodeEvent = useCallback((nodeId: string, position: DonutPosition) => {
-    console.log('top level onNodeEvent', nodeId, position)
-    // Show search panel
+  const onNodeButtonPressed = useCallback((nodeId: string, newRelationshipAction: NewRelationshipAction) => {
+    // console.log('top level onNodeButtonPressed', nodeId, newRelationshipAction)
+    // Open search panel
     showSearchPanel(true)
-    // Remember the nodeId and the position
-    setCurrentNodeRelationship({ nodeId, position })
+
+    // Move the nodeId and the action to state
+    setPendingRelationshipAction({ personId: nodeId as UUID, relationshipAction: newRelationshipAction })
   }, [])
 
   const onPersonSelected = useCallback<PersonAutocompleteProps['onPersonSelected']>(
     (person) => {
-      console.log('onPersonSelected', person, currentNodeRelationship)
+      // console.log('onPersonSelected', person, pendingRelationshipAction)
 
-      if (!currentNodeRelationship) return
+      if (!pendingRelationshipAction) return
 
-      const { position, nodeId } = currentNodeRelationship
-
-      let newNode: Node | null = null
-      // TODO: add node + edge
-      setNodes((nodes) => {
-        const currentNode = nodes.find((node) => node.id === nodeId)
-
-        if (!currentNode) return nodes
-        const currentNodePosition = currentNode.position
-
-        const profilePicUrl =
-          person.type === 'known' ? persons.find((p) => p.personId === person.personId)!.profilePicUrl : fakeProfilePicUrl
-
-        const name = person.type === 'known' ? persons.find((p) => p.personId === person.personId)!.name : person.name
-
-        newNode = {
-          id: person.type === 'known' ? person.personId : getUuid(),
-          type: 'person',
-          position: {
-            // TODO: set position vis à vis of currentNode position
-            x: ['top', 'bottom'].includes(position)
-              ? currentNodePosition.x
-              : position === 'left'
-              ? currentNodePosition.x - 100
-              : currentNodePosition.x + 100,
-            y: ['right', 'left'].includes(position)
-              ? currentNodePosition.y
-              : position === 'top'
-              ? currentNodePosition.y - 100
-              : currentNodePosition.y + 100,
-          },
-          data: { label: name, profilePicUrl, hovered: false },
-        }
-
-        const newNodes = [...nodes, newNode]
-        // console.log('onDrop newNodes', newNodes)
-
-        return newNodes
-      })
-      // setEdges((edges) => edges.concat({ id: '1998', source: nodeId, target: newNode!.id }))
-      setEdges((edges) => {
-        if (newNode) {
-          let sourceHandle = ''
-          let targetHandle = ''
-          let source = ''
-          let target = ''
-          switch (position) {
-            case 'bottom': {
-              source = nodeId
-              target = newNode.id
-              sourceHandle = Position.Bottom
-              targetHandle = Position.Top
-              break
-            }
-            case 'top': {
-              // On est obligés d'inverser l'ordre
-              source = newNode.id
-              target = nodeId
-              sourceHandle = Position.Bottom
-              targetHandle = Position.Top
-              break
-            }
-            case 'left': {
-              // Inversion
-              source = newNode.id
-              target = nodeId
-              sourceHandle = Position.Right
-              targetHandle = Position.Left
-              break
-            }
-            case 'right': {
-              source = nodeId
-              target = newNode.id
-              sourceHandle = Position.Right
-              targetHandle = Position.Left
-              break
-            }
-          }
-          const newEdge: Edge = {
-            id: getUuid(), // TODO, concat both ids
-            source,
-            target,
-            sourceHandle,
-
-            targetHandle,
-          }
-
-          return [...edges, newEdge]
-        }
-        return edges
-      })
+      const { relationshipAction, personId } = pendingRelationshipAction
+      addRelationship({ sourcePersonId: personId, targetPerson: person, relationshipAction, persons, setNodes, setEdges })
     },
-    [currentNodeRelationship, reactFlowInstance]
+    [pendingRelationshipAction, reactFlowInstance]
   )
 
   return (
     <AppLayout>
-      <NodeListenerContext.Provider value={onNodeEvent}>
+      <NodeListenerContext.Provider value={onNodeButtonPressed}>
         <UnattachedPersonList persons={persons} nodes={nodes} />
         <ReactFlowProvider>
           <div className='w-full h-screen relative' ref={reactFlowWrapper}>
@@ -632,7 +573,7 @@ export const FamilyPage = withBrowserBundle(({ persons, defaultSelectedPersonId 
                   open={isSearchPanelVisible}
                   setOpen={showSearchPanel}
                   onPersonSelected={onPersonSelected}
-                  currentNodeRelationship={currentNodeRelationship}
+                  pendingRelationshipAction={pendingRelationshipAction}
                 />
               </Panel>
             </ReactFlow>
@@ -643,19 +584,121 @@ export const FamilyPage = withBrowserBundle(({ persons, defaultSelectedPersonId 
   )
 })
 
-type PendingNodeRelationship = {
-  nodeId: string
-  position: DonutPosition
+type AddRelationshipArgs = {
+  sourcePersonId: UUID // the person that is selected
+  targetPerson: { type: 'known'; personId: UUID } | { type: 'unknown'; name: string } // The person that is added to the graph
+  relationshipAction: NewRelationshipAction
+  persons: Person[]
+  setNodes: (nodes: React.SetStateAction<Node[]>) => void
+  setEdges: (edges: React.SetStateAction<Edge[]>) => void
+}
+
+function addRelationship({
+  sourcePersonId,
+  targetPerson,
+  relationshipAction,
+  persons,
+  setNodes,
+  setEdges,
+}: AddRelationshipArgs) {
+  let newNode: Node | null = null
+  setNodes((nodes) => {
+    const currentNode = nodes.find((node) => node.id === sourcePersonId)
+
+    if (!currentNode) return nodes
+
+    const currentNodePosition = currentNode.position
+
+    const profilePicUrl =
+      targetPerson.type === 'known'
+        ? persons.find((p) => p.personId === targetPerson.personId)!.profilePicUrl
+        : fakeProfilePicUrl
+
+    const name =
+      targetPerson.type === 'known' ? persons.find((p) => p.personId === targetPerson.personId)!.name : targetPerson.name
+
+    newNode = {
+      id: targetPerson.type === 'known' ? targetPerson.personId : getUuid(),
+      type: 'person',
+      position: {
+        x: ['addParent', 'addChild'].includes(relationshipAction)
+          ? currentNodePosition.x
+          : relationshipAction === 'addFriend'
+          ? currentNodePosition.x - 100
+          : currentNodePosition.x + 100,
+        y: ['addFriend', 'addSpouse'].includes(relationshipAction)
+          ? currentNodePosition.y
+          : relationshipAction === 'addParent'
+          ? currentNodePosition.y - 100
+          : currentNodePosition.y + 100,
+      },
+      data: { label: name, profilePicUrl, hovered: false },
+    }
+
+    return [...nodes, newNode]
+  })
+
+  setEdges((edges) => {
+    if (!newNode) {
+      return edges
+    }
+
+    let sourceHandle = ''
+    let targetHandle = ''
+    let source = ''
+    let target = ''
+    switch (relationshipAction) {
+      case 'addChild': {
+        source = sourcePersonId
+        target = newNode.id
+        sourceHandle = 'children'
+        targetHandle = 'parents'
+        break
+      }
+      case 'addParent': {
+        // On est obligés d'inverser l'ordre
+        source = newNode.id
+        target = sourcePersonId
+        sourceHandle = 'children'
+        targetHandle = 'parents'
+        break
+      }
+      case 'addFriend': {
+        // Inversion
+        source = newNode.id
+        target = sourcePersonId
+        sourceHandle = 'friends-spouses-right'
+        targetHandle = 'friends-spouses-left'
+        break
+      }
+      case 'addSpouse': {
+        source = sourcePersonId
+        target = newNode.id
+        sourceHandle = 'friends-spouses-right'
+        targetHandle = 'friends-spouses-left'
+        break
+      }
+    }
+    const newEdge: Edge = {
+      id: getUuid(),
+      source,
+      target,
+      sourceHandle,
+      targetHandle,
+    }
+
+    return [...edges, newEdge]
+  })
 }
 
 type SearchPanelProps = {
   open: boolean
   setOpen: (open: boolean) => void
   onPersonSelected: PersonAutocompleteProps['onPersonSelected']
-  currentNodeRelationship: PendingNodeRelationship | null
+  pendingRelationshipAction: PendingNodeRelationshipAction | null
 }
 
-function SearchPanel({ open, setOpen, onPersonSelected, currentNodeRelationship }: SearchPanelProps) {
+function SearchPanel({ open, setOpen, onPersonSelected, pendingRelationshipAction }: SearchPanelProps) {
   return (
     <Transition.Root show={open} as={React.Fragment}>
       <Dialog as='div' className='relative z-50' onClose={setOpen}>
@@ -697,18 +740,18 @@ function SearchPanel({ open, setOpen, onPersonSelected, currentNodeRelationship 
                   <div className='mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left'>
                     <Dialog.Title as='h3' className='text-base font-semibold leading-6 text-gray-900'>
                       {(() => {
-                        if (!currentNodeRelationship) return 'Ajouter un parent'
-                        switch (currentNodeRelationship.position) {
-                          case 'top': {
+                        if (!pendingRelationshipAction) return 'Ajouter un parent'
+                        switch (pendingRelationshipAction.relationshipAction) {
+                          case 'addParent': {
                             return 'Ajouter un père ou une mère'
                           }
-                          case 'bottom': {
+                          case 'addChild': {
                             return 'Ajouter un fils ou une fille'
                           }
-                          case 'left': {
+                          case 'addFriend': {
                             return 'Ajouter un ami ou une connaissance'
                           }
-                          case 'right': {
+                          case 'addSpouse': {
                             return 'Ajouter un compagne, un époux, ...'
                           }
                         }
