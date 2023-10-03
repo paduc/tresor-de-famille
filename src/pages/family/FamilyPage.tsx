@@ -61,6 +61,14 @@ type NodesEdges = {
   edges: Edge[]
 }
 
+const Y_OFFSET = 100
+const X_OFFSET = 100
+
+const BUBBLE_RADIUS = 28
+const INNER_DONUT_RADIUS = BUBBLE_RADIUS + 3
+const OUTER_DONUT_RADIUS = 60
+const ContainerSize = 200
+
 /**
  * Transform a list of persons and relationship to a list of nodes and edges.
  * Reactive function to be executed each time persons/relationships change (to repaint the graph).
@@ -118,7 +126,10 @@ function transferFn({ originPersonId, persons, relationships }: PersonsRelations
       id: childId,
       type: 'person',
       data: { label: name, profilePicUrl, hovered: false },
-      position: { x: children.length === 1 ? currentX : index ? currentX - 100 : currentX + 100, y: currentY + 100 },
+      position: {
+        x: children.length === 1 ? currentX : index ? currentX - X_OFFSET : currentX + X_OFFSET,
+        y: currentY + Y_OFFSET,
+      },
       selectable: true,
       draggable: false,
     }))
@@ -165,34 +176,117 @@ function transferFn({ originPersonId, persons, relationships }: PersonsRelations
       return
     }
 
-    const xOffset = 100 / (level + 1)
+    const localXOffset = X_OFFSET / (level + 1)
 
     const parents = parentRelationships.map((rel) => getPersonById(rel.parentId))
 
-    const parentNodes = parents.map(({ personId, name, profilePicUrl }, index, parents) => ({
-      id: personId,
-      type: 'person',
-      data: { label: name, profilePicUrl, hovered: false },
-      position: {
-        x: parents.length === 1 ? currentX : index ? currentX - xOffset : currentX + xOffset,
-        y: currentY - 100,
-      },
-      selectable: true,
-      draggable: false,
-    }))
+    const parentNodes = parents.map(({ personId }, index, parents) =>
+      makeNode(personId, {
+        x: parents.length === 1 ? currentX : index ? currentX - localXOffset : currentX + localXOffset,
+        y: currentY - Y_OFFSET,
+      })
+    )
     nodes = nodes.concat(parentNodes)
 
-    const parentEdges = parents.map(({ personId: parentId }) => ({
-      id: `${parentId}isParentOf${personId}`,
-      source: parentId,
-      target: personId,
-      sourceHandle: 'children',
-      targetHandle: 'parents',
-    }))
-    edges = edges.concat(parentEdges)
+    // Check for siblings
+    let hasSiblings = false
+    if (level === 0 && parents.length === 2) {
+      // Get all unique children of a parent
+      // TODO: check if both parents are the parents of the siblings
+      const siblingIds = Array.from(
+        new Set(
+          relationships
+            .filter(
+              (rel): rel is Relationship & { type: 'parent' } =>
+                rel.type === 'parent' && parents.map((p) => p.personId).includes(rel.parentId)
+            )
+            .map((rel) => rel.childId)
+        )
+      )
+
+      if (siblingIds.length) {
+        hasSiblings = true
+        let counter = 0
+        personNode.position.x += siblingIds.length * 20
+
+        const spouse1Node = parentNodes[0]
+        const spouse1Id = parentNodes[0].id
+        const spouse2Node = parentNodes[1]
+        const spouse2Id = parentNodes[1].id
+
+        const x = (spouse1Node.position.x + spouse2Node.position.x) / 2 + BUBBLE_RADIUS
+        const coupleNode = {
+          id: `${spouse1Id}_coupled_${spouse2Id}`,
+          type: 'couple',
+          data: {},
+          position: {
+            x,
+            y: spouse1Node.position.y + BUBBLE_RADIUS,
+          },
+        }
+        nodes.push(coupleNode)
+
+        const coupleEdge1 = {
+          id: `${spouse1Id}isSpouseOf${spouse2Id}`,
+          source: coupleNode.id,
+          target: spouse1Node.id,
+          sourceHandle: 'couple-right',
+          targetHandle: 'person-left',
+          //  person-left
+        }
+        edges.push(coupleEdge1)
+
+        const coupleEdge2 = {
+          id: `${spouse2Id}isSpouseOf${spouse1Id}`,
+          source: spouse2Node.id,
+          target: coupleNode.id,
+          sourceHandle: 'person-right',
+          targetHandle: 'couple-left',
+        }
+        edges.push(coupleEdge2)
+
+        for (const siblingId of siblingIds) {
+          const siblingNode = makeNode(siblingId, {
+            x: personNode.position.x - 80 * counter++,
+            y: personNode.position.y,
+          })
+          nodes.push(siblingNode)
+          edges.push({
+            id: `${coupleNode.id}isParentOf${siblingId}`,
+            source: coupleNode.id,
+            target: siblingId,
+            sourceHandle: 'children',
+            targetHandle: 'parents',
+          })
+        }
+      }
+    }
+
+    if (!hasSiblings) {
+      const parentEdges = parents.map(({ personId: parentId }) => ({
+        id: `${parentId}isParentOf${personId}`,
+        source: parentId,
+        target: personId,
+        sourceHandle: 'children',
+        targetHandle: 'parents',
+      }))
+      edges = edges.concat(parentEdges)
+    }
 
     for (const parent of parents) {
       addParents(parent.personId, level + 1)
+    }
+  }
+
+  function makeNode(personId: UUID, position: { x: number; y: number }) {
+    const person = getPersonById(personId)
+    return {
+      id: personId,
+      type: 'person',
+      data: { label: person.name, profilePicUrl: person.profilePicUrl, hovered: false },
+      position,
+      selectable: true,
+      draggable: false,
     }
   }
 
@@ -218,6 +312,7 @@ const NodeListenerContext = React.createContext<((nodeId: string, relationshipAc
 
 const nodeTypes = {
   person: PersonNode,
+  couple: CoupleNode,
 }
 
 export type FamilyPageProps = {
@@ -366,10 +461,10 @@ export const FamilyPage = withBrowserBundle(({ initialPersons, initialRelationsh
             const targetCenterX = node.position.x + node.width! / 2
             const targetCenterY = node.position.y + node.height! / 2
             if (
-              centerX > targetCenterX + OuterDonutRadius + BubbleR ||
-              centerX < targetCenterX - OuterDonutRadius - BubbleR ||
-              centerY > targetCenterY + OuterDonutRadius + BubbleR ||
-              centerY < targetCenterY - OuterDonutRadius - BubbleR
+              centerX > targetCenterX + OUTER_DONUT_RADIUS + BUBBLE_RADIUS ||
+              centerX < targetCenterX - OUTER_DONUT_RADIUS - BUBBLE_RADIUS ||
+              centerY > targetCenterY + OUTER_DONUT_RADIUS + BUBBLE_RADIUS ||
+              centerY < targetCenterY - OUTER_DONUT_RADIUS - BUBBLE_RADIUS
             ) {
               node.data = { ...node.data, hovered: false }
             } else {
@@ -621,15 +716,15 @@ function addRelationship({
         // Inversion
         source = newNode.id
         target = sourcePersonId
-        sourceHandle = 'friends-spouses-right'
-        targetHandle = 'friends-spouses-left'
+        sourceHandle = 'person-right'
+        targetHandle = 'person-left'
         break
       }
       case 'addSpouse': {
         source = sourcePersonId
         target = newNode.id
-        sourceHandle = 'friends-spouses-right'
-        targetHandle = 'friends-spouses-left'
+        sourceHandle = 'person-right'
+        targetHandle = 'person-left'
         break
       }
     }
@@ -791,11 +886,6 @@ function UnattachedPersonList({ persons, nodes }: UnattachedPersonListProps) {
   )
 }
 
-const BubbleR = 28
-const InnerDonutRadius = BubbleR + 3
-const OuterDonutRadius = 60
-const ContainerSize = 200
-
 type DonutProps = {
   position: DonutPosition
   hovered?: DonutPosition | false
@@ -817,7 +907,7 @@ const DonutSection = ({ position, className, style, svgStyle, hovered, label, on
 
   const circleR = 3
   const circlePadding = 10
-  const circleDistance = BubbleR / 2 + circleR / 2 + 10 + circlePadding
+  const circleDistance = BUBBLE_RADIUS / 2 + circleR / 2 + 10 + circlePadding
 
   let sliceStartAngle = 0
   let sliceStopAngle = 0
@@ -865,22 +955,26 @@ const DonutSection = ({ position, className, style, svgStyle, hovered, label, on
   const stopAngle = (Math.PI * sliceStopAngle) / 180
 
   // Calculate the starting and stopping coordinates for the inner and outer arcs
-  const xOuterStart = cx + OuterDonutRadius * Math.cos(startAngle)
-  const yOuterStart = cy + OuterDonutRadius * Math.sin(startAngle)
-  const xOuterStop = cx + OuterDonutRadius * Math.cos(stopAngle)
-  const yOuterStop = cy + OuterDonutRadius * Math.sin(stopAngle)
+  const xOuterStart = cx + OUTER_DONUT_RADIUS * Math.cos(startAngle)
+  const yOuterStart = cy + OUTER_DONUT_RADIUS * Math.sin(startAngle)
+  const xOuterStop = cx + OUTER_DONUT_RADIUS * Math.cos(stopAngle)
+  const yOuterStop = cy + OUTER_DONUT_RADIUS * Math.sin(stopAngle)
 
-  const xInnerStart = cx + InnerDonutRadius * Math.cos(startAngle)
-  const yInnerStart = cy + InnerDonutRadius * Math.sin(startAngle)
-  const xInnerStop = cx + InnerDonutRadius * Math.cos(stopAngle)
-  const yInnerStop = cy + InnerDonutRadius * Math.sin(stopAngle)
+  const xInnerStart = cx + INNER_DONUT_RADIUS * Math.cos(startAngle)
+  const yInnerStart = cy + INNER_DONUT_RADIUS * Math.sin(startAngle)
+  const xInnerStop = cx + INNER_DONUT_RADIUS * Math.cos(stopAngle)
+  const yInnerStop = cy + INNER_DONUT_RADIUS * Math.sin(stopAngle)
 
   // Create the SVG path using the calculated coordinates
   const pathData = `
         M ${xOuterStart},${yOuterStart}
-        A ${OuterDonutRadius},${OuterDonutRadius} 0 ${stopAngle - startAngle > Math.PI ? 1 : 0},1 ${xOuterStop},${yOuterStop}
+        A ${OUTER_DONUT_RADIUS},${OUTER_DONUT_RADIUS} 0 ${
+    stopAngle - startAngle > Math.PI ? 1 : 0
+  },1 ${xOuterStop},${yOuterStop}
         L ${xInnerStop},${yInnerStop}
-        A ${InnerDonutRadius},${InnerDonutRadius} 0 ${stopAngle - startAngle > Math.PI ? 1 : 0},0 ${xInnerStart},${yInnerStart}
+        A ${INNER_DONUT_RADIUS},${INNER_DONUT_RADIUS} 0 ${
+    stopAngle - startAngle > Math.PI ? 1 : 0
+  },0 ${xInnerStart},${yInnerStart}
         Z
     `
 
@@ -892,8 +986,8 @@ const DonutSection = ({ position, className, style, svgStyle, hovered, label, on
       key={`donut_${position}`}
       className={`absolute pointer-events-none ${className}`}
       style={{
-        top: BubbleR - ContainerSize / 2,
-        left: BubbleR - ContainerSize / 2,
+        top: BUBBLE_RADIUS - ContainerSize / 2,
+        left: BUBBLE_RADIUS - ContainerSize / 2,
         ...style,
       }}>
       <svg
@@ -945,6 +1039,25 @@ const DonutSection = ({ position, className, style, svgStyle, hovered, label, on
 const fakeProfilePicUrl =
   'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80'
 
+function CoupleNode({
+  id,
+  data,
+  isConnectable,
+  selected,
+  dragging,
+  targetPosition = Position.Top,
+  sourcePosition = Position.Bottom,
+}: NodeProps<{}>) {
+  return (
+    <>
+      <Handle id='couple-left' type='target' style={{ opacity: 0, left: 5 }} position={Position.Left} />
+      <Handle id='couple-right' type='source' style={{ opacity: 0, right: 5 }} position={Position.Right} />
+      <Handle id='children' type='source' style={{ opacity: 0, bottom: 5 }} position={Position.Bottom} />
+      <div className='h-3 w-3 rounded-full bg-gray-50 border border-grey-700' />
+    </>
+  )
+}
+
 function PersonNode({
   id,
   data,
@@ -992,12 +1105,10 @@ function PersonNode({
 
   return (
     <div className='text-center relative' key={`personNode_${id}`}>
-      {/* <Handle type='source' position={Position.Top} />
-      <Handle type='target' position={Position.Bottom} /> */}
       <Handle id='parents' type='target' style={{ opacity: 0 }} position={Position.Top} />
       <Handle id='children' type='source' style={{ opacity: 0 }} position={Position.Bottom} />
-      <Handle id='friends-spouses-left' type='target' style={{ opacity: 0 }} position={Position.Left} />
-      <Handle id='friends-spouses-right' type='source' style={{ opacity: 0 }} position={Position.Right} />
+      <Handle id='person-left' type='target' style={{ opacity: 0 }} position={Position.Left} />
+      <Handle id='person-right' type='source' style={{ opacity: 0 }} position={Position.Right} />
       {(data.hovered || selected) && !dragging && (
         <>
           {/* Bottom */}
