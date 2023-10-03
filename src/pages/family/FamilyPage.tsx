@@ -29,13 +29,181 @@ function classNames(...classes) {
   return classes.filter(Boolean).join(' ')
 }
 
-const fakeProfilePicUrl =
-  'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80'
-
 type Person = {
   profilePicUrl: string | null
   name: string
   personId: UUID
+}
+
+type Relationship =
+  | {
+      type: 'parent'
+      parentId: UUID
+      childId: UUID
+    }
+  | {
+      type: 'spouses'
+      spouseIds: [UUID, UUID] // in which order ? alphabetical on UUID ?
+    }
+  | {
+      type: 'friends'
+      friendIds: [UUID, UUID]
+    }
+
+type PersonsRelationships = {
+  originPersonId: UUID
+  persons: Person[]
+  relationships: Relationship[]
+}
+
+type NodesEdges = {
+  nodes: Node[]
+  edges: Edge[]
+}
+
+/**
+ * Transform a list of persons and relationship to a list of nodes and edges.
+ * Reactive function to be executed each time persons/relationships change (to repaint the graph).
+ * @param props persons and relationsip
+ * @returns nodes and edges
+ */
+function transferFn({ originPersonId, persons, relationships }: PersonsRelationships): NodesEdges {
+  let nodes: Node[] = []
+  let edges: Edge[] = []
+
+  // Create a node for the originPerson
+  const originPerson = persons.find((person) => person.personId === originPersonId)
+
+  if (!originPerson) throw new Error('Could not find origin person in list of persons')
+
+  let currentX = 0
+  let currentY = 0
+
+  const originNode = {
+    id: originPersonId,
+    type: 'person',
+    data: { label: originPerson.name, profilePicUrl: originPerson.profilePicUrl, hovered: false },
+    position: { x: currentX, y: currentY },
+    selectable: true,
+    draggable: false,
+  }
+  nodes.push(originNode)
+
+  addParents(originPersonId)
+  addChildren(originPersonId)
+
+  function addChildren(personId: UUID, level: number = 0) {
+    const CHILDREN = 1 as const
+    const GRAND_CHILDREN = 2 as const
+    const MAX_CHILD_LEVEL: number = GRAND_CHILDREN
+    if (level >= MAX_CHILD_LEVEL) return
+
+    const personNode = nodes.find((node) => node.id === personId)
+    if (!personNode) return
+
+    const { x: currentX, y: currentY } = personNode.position
+
+    // Look for the persons children
+    const childRelationships = relationships.filter(
+      (rel): rel is Relationship & { type: 'parent' } => rel.type === 'parent' && rel.parentId === personId
+    )
+
+    if (!childRelationships.length) {
+      return
+    }
+
+    const children = childRelationships.map((rel) => getPersonById(rel.childId))
+
+    const childNodes = children.map(({ personId: childId, name, profilePicUrl }, index, children) => ({
+      id: childId,
+      type: 'person',
+      data: { label: name, profilePicUrl, hovered: false },
+      position: { x: children.length === 1 ? currentX : index ? currentX - 100 : currentX + 100, y: currentY + 100 },
+      selectable: true,
+      draggable: false,
+    }))
+    nodes = nodes.concat(childNodes)
+
+    const childEdges = children.map(({ personId: childId }) => ({
+      id: `${personId}isParentOf${childId}`,
+      source: personId,
+      target: childId,
+      sourceHandle: 'children',
+      targetHandle: 'parents',
+    }))
+    edges = edges.concat(childEdges)
+
+    for (const child of children) {
+      addChildren(child.personId, level + 1)
+    }
+  }
+
+  // Ideas to make this nicer:
+  // - Do not try to make a fully recursive version, it's overly complex and not interesting, ex: for huge families, you have to put a huge distance between couples
+  // - Stay focused on interesting use-cases (quick look at a persons family - as defined statically (children, grand-children, parents, grand-parents), path between two persons, ...)
+  // - You can gather information by traversing the graph a first time _before_ traversing to add nodes (when you know what levels have what, choices are easier)
+  // - use the user's context (is he a child, parent, grand-parents ? show branches that are adapted, for instance grand-parents think more of their grand-children than of their grand-parents)
+  // - open/close branches (auto-close open branches when exploring another branch, makes it easier)
+  // - make it possible to traverse by selecting a node (the initial node and the path to it should remain visible - like breadcrumbs)
+  function addParents(personId: UUID, level: number = 0) {
+    const PARENTS = 1 as const
+    const GRAND_PARENTS = 2 as const
+    const MAX_PARENT_LEVEL: number = GRAND_PARENTS
+    if (level >= MAX_PARENT_LEVEL) return
+
+    const personNode = nodes.find((node) => node.id === personId)
+    if (!personNode) return
+
+    const { x: currentX, y: currentY } = personNode.position
+
+    // Look for the persons parents
+    const parentRelationships = relationships.filter(
+      (rel): rel is Relationship & { type: 'parent' } => rel.type === 'parent' && rel.childId === personId
+    )
+
+    if (!parentRelationships.length) {
+      return
+    }
+
+    const xOffset = 100 / (level + 1)
+
+    const parents = parentRelationships.map((rel) => getPersonById(rel.parentId))
+
+    const parentNodes = parents.map(({ personId, name, profilePicUrl }, index, parents) => ({
+      id: personId,
+      type: 'person',
+      data: { label: name, profilePicUrl, hovered: false },
+      position: {
+        x: parents.length === 1 ? currentX : index ? currentX - xOffset : currentX + xOffset,
+        y: currentY - 100,
+      },
+      selectable: true,
+      draggable: false,
+    }))
+    nodes = nodes.concat(parentNodes)
+
+    const parentEdges = parents.map(({ personId: parentId }) => ({
+      id: `${parentId}isParentOf${personId}`,
+      source: parentId,
+      target: personId,
+      sourceHandle: 'children',
+      targetHandle: 'parents',
+    }))
+    edges = edges.concat(parentEdges)
+
+    for (const parent of parents) {
+      addParents(parent.personId, level + 1)
+    }
+  }
+
+  function getPersonById(personId: UUID): Person {
+    const person = persons.find((person) => person.personId === personId)
+    if (!person) throw new Error('Could not find personId in list of persons')
+
+    return person
+  }
+
+  return { nodes, edges }
 }
 
 type NewRelationshipAction = 'addChild' | 'addParent' | 'addFriend' | 'addSpouse'
@@ -48,263 +216,23 @@ const NodeListenerContext = React.createContext<((nodeId: string, relationshipAc
   null
 )
 
-const BubbleR = 28
-const InnerDonutRadius = BubbleR + 3
-const OuterDonutRadius = 60
-const ContainerSize = 200
-
-type DonutProps = {
-  position: DonutPosition
-  hovered?: DonutPosition | false
-  className?: string
-  style?: React.CSSProperties
-  svgStyle?: React.CSSProperties
-  label?: string
-  onClick?: (position: DonutPosition) => unknown
-}
-
-const DonutSection = ({ position, className, style, svgStyle, hovered, label, onClick }: DonutProps) => {
-  const isActive = hovered === position
-  const [isHovered, setHovered] = useState<boolean>(false)
-
-  // Calculate the center of the container
-  const cx = ContainerSize / 2
-  const cy = ContainerSize / 2
-
-  const circleR = 3
-  const circlePadding = 10
-  const circleDistance = BubbleR / 2 + circleR / 2 + 10 + circlePadding
-
-  let sliceStartAngle = 0
-  let sliceStopAngle = 0
-  let textLeft = 0
-  let textTop = 0
-  let circleLeft = 0
-  let circleTop = 0
-  switch (position) {
-    case 'top':
-      sliceStartAngle = 227
-      sliceStopAngle = 313
-      textLeft = cx - 35
-      textTop = cy - 72
-      circleLeft = cx
-      circleTop = cy - circleDistance
-      break
-    case 'left':
-      sliceStartAngle = 137
-      sliceStopAngle = 223
-      textLeft = cx - 120
-      textTop = cy
-      circleLeft = cx - circleDistance
-      circleTop = cy
-      break
-    case 'right':
-      sliceStartAngle = 317
-      sliceStopAngle = 43
-      textLeft = cx + 60
-      textTop = cy - 10
-      circleLeft = cx + circleDistance
-      circleTop = cy
-      break
-    case 'bottom':
-      sliceStartAngle = 47
-      sliceStopAngle = 133
-      textLeft = cx - 35
-      textTop = cy + 58
-      circleLeft = cx
-      circleTop = cy + circleDistance
-      break
-  }
-
-  // Convert angles to radians
-  const startAngle = (Math.PI * sliceStartAngle) / 180
-  const stopAngle = (Math.PI * sliceStopAngle) / 180
-
-  // Calculate the starting and stopping coordinates for the inner and outer arcs
-  const xOuterStart = cx + OuterDonutRadius * Math.cos(startAngle)
-  const yOuterStart = cy + OuterDonutRadius * Math.sin(startAngle)
-  const xOuterStop = cx + OuterDonutRadius * Math.cos(stopAngle)
-  const yOuterStop = cy + OuterDonutRadius * Math.sin(stopAngle)
-
-  const xInnerStart = cx + InnerDonutRadius * Math.cos(startAngle)
-  const yInnerStart = cy + InnerDonutRadius * Math.sin(startAngle)
-  const xInnerStop = cx + InnerDonutRadius * Math.cos(stopAngle)
-  const yInnerStop = cy + InnerDonutRadius * Math.sin(stopAngle)
-
-  // Create the SVG path using the calculated coordinates
-  const pathData = `
-        M ${xOuterStart},${yOuterStart}
-        A ${OuterDonutRadius},${OuterDonutRadius} 0 ${stopAngle - startAngle > Math.PI ? 1 : 0},1 ${xOuterStop},${yOuterStop}
-        L ${xInnerStop},${yInnerStop}
-        A ${InnerDonutRadius},${InnerDonutRadius} 0 ${stopAngle - startAngle > Math.PI ? 1 : 0},0 ${xInnerStart},${yInnerStart}
-        Z
-    `
-
-  const maskId = `mask-${position}`
-
-  // Construct the SVG element
-  return (
-    <div
-      key={`donut_${position}`}
-      className={`absolute pointer-events-none ${className}`}
-      style={{
-        top: BubbleR - ContainerSize / 2,
-        left: BubbleR - ContainerSize / 2,
-        ...style,
-      }}>
-      <svg
-        style={svgStyle}
-        width={`${ContainerSize}px`}
-        height={`${ContainerSize}px`}
-        viewBox={`0 0 ${ContainerSize} ${ContainerSize}`}
-        className={`pointer-events-none`}>
-        {/** the mask is there to transition from a circle to the donut slice */}
-        <mask id={maskId}>
-          <path d={`${pathData.trim()}`} fill='white' />
-        </mask>
-        <circle
-          className='transition-all duration-700 ease-in-out'
-          cx={circleLeft}
-          cy={circleTop}
-          r={`${isActive || isHovered ? ContainerSize / 2 : circleR}`}
-          mask={`url(#${maskId})`}
-          fill={`${isActive || isHovered ? 'rgb(79 70 229)' : '#D3D3D3'}`}
-        />
-
-        {/** this is an invisible path to catch mouse events */}
-        <path
-          className='pointer-events-auto bg-indigo'
-          onMouseOver={() => setHovered(true)}
-          onMouseOut={() => setHovered(false)}
-          d={`${pathData.trim()}`}
-          fill='rgba(0,0,0,0)'
-          onClick={() => onClick && onClick(position)}
-        />
-      </svg>
-      {!!label && (isActive || isHovered) && (
-        <div className='absolute' style={{ fontSize: 8, top: textTop, left: textLeft }}>
-          {label}
-        </div>
-      )}
-    </div>
-  )
-}
-
-type DonutPosition = 'top' | 'bottom' | 'left' | 'right'
-
-const PersonNode = ({
-  id,
-  data,
-  isConnectable,
-  selected,
-  dragging,
-  targetPosition = Position.Top,
-  sourcePosition = Position.Bottom,
-}: NodeProps<{
-  label: string
-  profilePicUrl: string
-  hovered: DonutPosition | false
-}>) => {
-  // console.log('PersonNode render', id, data)
-  const onNodeButtonPressed = React.useContext(NodeListenerContext)
-
-  const handleDonutClick = useCallback(
-    (position: DonutPosition) => {
-      // Remember the nodeId and the position
-      let newRelationshipAction: NewRelationshipAction | null = null
-
-      switch (position) {
-        case 'top': {
-          newRelationshipAction = 'addParent'
-          break
-        }
-        case 'bottom': {
-          newRelationshipAction = 'addChild'
-          break
-        }
-        case 'left': {
-          newRelationshipAction = 'addFriend'
-          break
-        }
-        case 'right': {
-          newRelationshipAction = 'addSpouse'
-          break
-        }
-      }
-
-      if (onNodeButtonPressed) onNodeButtonPressed(id, newRelationshipAction)
-    },
-    [onNodeButtonPressed]
-  )
-
-  return (
-    <div className='text-center relative' key={`personNode_${id}`}>
-      {/* <Handle type='source' position={Position.Top} />
-      <Handle type='target' position={Position.Bottom} /> */}
-      <Handle id='parents' type='target' style={{ opacity: 0 }} position={Position.Top} />
-      <Handle id='children' type='source' style={{ opacity: 0 }} position={Position.Bottom} />
-      <Handle id='friends-spouses-left' type='target' style={{ opacity: 0 }} position={Position.Left} />
-      <Handle id='friends-spouses-right' type='source' style={{ opacity: 0 }} position={Position.Right} />
-      {(data.hovered || selected) && !dragging && (
-        <>
-          {/* Bottom */}
-          <DonutSection position='bottom' label='Ajouter un enfant' onClick={handleDonutClick} hovered={data.hovered} />
-          {/* Left */}
-          <DonutSection label='Ajouter un ami' onClick={handleDonutClick} position='left' hovered={data.hovered} />
-          {/* Top */}
-          <DonutSection label='Ajouter un parent' onClick={handleDonutClick} position='top' hovered={data.hovered} />
-          {/* Right */}
-          <DonutSection
-            label='Ajouter un compagnon / époux'
-            onClick={handleDonutClick}
-            position='right'
-            hovered={data.hovered}
-          />
-        </>
-      )}
-
-      <img
-        src={data.profilePicUrl}
-        className={`inline-block rounded-full h-14 w-14 ring-2 ${selected ? 'ring-indigo-500' : 'ring-white'} shadow-sm`}
-      />
-      {/* {<div>{data?.label}</div>} */}
-      {/* <Handle type='source' position={sourcePosition} isConnectable={isConnectable} /> */}
-    </div>
-  )
-}
-
 const nodeTypes = {
   person: PersonNode,
 }
 
 export type FamilyPageProps = {
-  persons: Person[]
-  defaultSelectedPersonId: UUID
+  initialPersons: Person[]
+  initialRelationships: Relationship[]
+  originPersonId: UUID
 }
 
-export const FamilyPage = withBrowserBundle(({ persons, defaultSelectedPersonId }: FamilyPageProps) => {
+export const FamilyPage = withBrowserBundle(({ initialPersons, initialRelationships, originPersonId }: FamilyPageProps) => {
   const dragRef = useRef<Node | null>(null)
   const reactFlowWrapper = useRef<HTMLDivElement | null>(null)
   const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance | null>(null)
 
-  const selectedPerson = persons.find((person) => person.personId === defaultSelectedPersonId)!
-
-  const selectedPersonNode: Node = {
-    id: selectedPerson.personId,
-    type: 'person',
-    data: { label: selectedPerson.name, profilePicUrl: selectedPerson.profilePicUrl, hovered: false },
-    position: { x: 0, y: 0 },
-    selectable: true,
-    draggable: false,
-  }
-
-  const otherPersons = persons.filter((person) => person !== selectedPerson)
-
-  const otherPersonCount = otherPersons.length
-  const distance = otherPersonCount > 1 ? Math.max(100, Math.ceil(((otherPersonCount - 1) * 60) / Math.PI)) : 100
-
   const [nodes, setNodes, onNodesChange] = useNodesState([
-    selectedPersonNode,
+    // selectedPersonNode,
     // ...otherPersons.map<Node>(({ profilePicUrl, name, personId }, index) => {
     //   const angle = otherPersonCount > 1 ? (Math.PI / (otherPersonCount - 1)) * (index + 0) : 0
     //   return {
@@ -316,86 +244,93 @@ export const FamilyPage = withBrowserBundle(({ persons, defaultSelectedPersonId 
     //   }
     // }),
   ])
-
   const [edges, setEdges, onEdgesChange] = useEdgesState([])
+  const [persons, setPersons] = useState(initialPersons)
+  const [relationships, setRelationships] = useState(initialRelationships)
+
+  React.useEffect(() => {
+    const { nodes, edges } = transferFn({ persons, relationships, originPersonId })
+    setNodes(nodes)
+    setEdges(edges)
+  }, [persons, relationships, reactFlowInstance])
 
   const [origX, setOrigX] = useState<number | undefined>()
   const [origY, setOrigY] = useState<number | undefined>()
 
-  const onNodeDragStart = useCallback((e: React.MouseEvent, node: Node) => {
-    dragRef.current = node
-    setOrigX(node.position.x)
-    setOrigY(node.position.y)
-    setNodes((nodes) =>
-      nodes.map((node) => {
-        if (node.id === defaultSelectedPersonId) {
-          node.data = { ...node.data, hovered: false }
-        }
-        return node
-      })
-    )
-  }, [])
+  // const onNodeDragStart = useCallback((e: React.MouseEvent, node: Node) => {
+  //   dragRef.current = node
+  //   setOrigX(node.position.x)
+  //   setOrigY(node.position.y)
+  //   setNodes((nodes) =>
+  //     nodes.map((node) => {
+  //       if (node.id === originPersonId) {
+  //         node.data = { ...node.data, hovered: false }
+  //       }
+  //       return node
+  //     })
+  //   )
+  // }, [])
 
-  const onNodeDrag = useCallback((evt: React.MouseEvent, draggedNode: Node) => {
-    // calculate the center point of the node from position and dimensions
-    const centerX = draggedNode.position.x + draggedNode.width! / 2
-    const centerY = draggedNode.position.y + draggedNode.height! / 2
+  // const onNodeDrag = useCallback((evt: React.MouseEvent, draggedNode: Node) => {
+  //   // calculate the center point of the node from position and dimensions
+  //   const centerX = draggedNode.position.x + draggedNode.width! / 2
+  //   const centerY = draggedNode.position.y + draggedNode.height! / 2
 
-    setNodes((nodes) =>
-      nodes.map((node) => {
-        if (node.id === defaultSelectedPersonId) {
-          const targetCenterX = node.position.x + node.width! / 2
-          const targetCenterY = node.position.y + node.height! / 2
-          if (
-            centerX > targetCenterX + OuterDonutRadius + BubbleR ||
-            centerX < targetCenterX - OuterDonutRadius - BubbleR ||
-            centerY > targetCenterY + OuterDonutRadius + BubbleR ||
-            centerY < targetCenterY - OuterDonutRadius - BubbleR
-          ) {
-            node.data = { ...node.data, hovered: false }
-          } else {
-            if (centerX > targetCenterX - 30 && centerX < targetCenterX + 30) {
-              if (centerY > targetCenterY) {
-                node.data = { ...node.data, hovered: 'bottom' }
-              } else {
-                node.data = { ...node.data, hovered: 'top' }
-              }
-            } else {
-              if (centerX > targetCenterX) {
-                node.data = { ...node.data, hovered: 'right' }
-              } else {
-                node.data = { ...node.data, hovered: 'left' }
-              }
-            }
-          }
-        }
-        return node
-      })
-    )
+  //   setNodes((nodes) =>
+  //     nodes.map((node) => {
+  //       if (node.id === originPersonId) {
+  //         const targetCenterX = node.position.x + node.width! / 2
+  //         const targetCenterY = node.position.y + node.height! / 2
+  //         if (
+  //           centerX > targetCenterX + OuterDonutRadius + BubbleR ||
+  //           centerX < targetCenterX - OuterDonutRadius - BubbleR ||
+  //           centerY > targetCenterY + OuterDonutRadius + BubbleR ||
+  //           centerY < targetCenterY - OuterDonutRadius - BubbleR
+  //         ) {
+  //           node.data = { ...node.data, hovered: false }
+  //         } else {
+  //           if (centerX > targetCenterX - 30 && centerX < targetCenterX + 30) {
+  //             if (centerY > targetCenterY) {
+  //               node.data = { ...node.data, hovered: 'bottom' }
+  //             } else {
+  //               node.data = { ...node.data, hovered: 'top' }
+  //             }
+  //           } else {
+  //             if (centerX > targetCenterX) {
+  //               node.data = { ...node.data, hovered: 'right' }
+  //             } else {
+  //               node.data = { ...node.data, hovered: 'left' }
+  //             }
+  //           }
+  //         }
+  //       }
+  //       return node
+  //     })
+  //   )
 
-    // Find on which pad it is hovering
-  }, [])
+  //   // Find on which pad it is hovering
+  // }, [])
 
-  const onNodeDragStop = useCallback(
-    (evt: React.MouseEvent, draggedNode: Node) => {
-      // on drag stop, either create a relationship or not
-      setNodes((nodes) =>
-        nodes.map((node) => {
-          if (node.id === defaultSelectedPersonId) {
-            node.data = { ...node.data, hovered: false }
-          }
+  // const onNodeDragStop = useCallback(
+  //   (evt: React.MouseEvent, draggedNode: Node) => {
+  //     // on drag stop, either create a relationship or not
+  //     setNodes((nodes) =>
+  //       nodes.map((node) => {
+  //         if (node.id === originPersonId) {
+  //           node.data = { ...node.data, hovered: false }
+  //         }
 
-          if (node.id === draggedNode.id) {
-            node.position = { x: origX!, y: origY! }
-          }
-          return node
-        })
-      )
+  //         if (node.id === draggedNode.id) {
+  //           node.position = { x: origX!, y: origY! }
+  //         }
+  //         return node
+  //       })
+  //     )
 
-      dragRef.current = null
-    },
-    [origX, origY]
-  )
+  //     dragRef.current = null
+  //   },
+  //   [origX, origY]
+  // )
 
   // const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges)
 
@@ -426,8 +361,8 @@ export const FamilyPage = withBrowserBundle(({ persons, defaultSelectedPersonId 
       setNodes((nodes) => {
         // console.log('onDragOver setNodes')
         return nodes.map((node) => {
-          // console.log('setNodes looking at ', node.id, defaultSelectedPersonId)
-          if (node.id === defaultSelectedPersonId) {
+          // console.log('setNodes looking at ', node.id, originPersonId)
+          if (node.id === originPersonId) {
             const targetCenterX = node.position.x + node.width! / 2
             const targetCenterY = node.position.y + node.height! / 2
             if (
@@ -550,7 +485,7 @@ export const FamilyPage = withBrowserBundle(({ persons, defaultSelectedPersonId 
   return (
     <AppLayout>
       <NodeListenerContext.Provider value={onNodeButtonPressed}>
-        <UnattachedPersonList persons={persons} nodes={nodes} />
+        {/* <UnattachedPersonList persons={persons} nodes={nodes} /> */}
         <ReactFlowProvider>
           <div className='w-full h-screen relative' ref={reactFlowWrapper}>
             <ReactFlow
@@ -623,9 +558,7 @@ function addRelationship({
     const currentNodePosition = currentNode.position
 
     const profilePicUrl =
-      targetPerson.type === 'known'
-        ? persons.find((p) => p.personId === targetPerson.personId)!.profilePicUrl
-        : fakeProfilePicUrl
+      targetPerson.type === 'known' ? persons.find((p) => p.personId === targetPerson.personId)!.profilePicUrl : null
 
     const name =
       targetPerson.type === 'known' ? persons.find((p) => p.personId === targetPerson.personId)!.name : targetPerson.name
@@ -856,4 +789,262 @@ function UnattachedPersonList({ persons, nodes }: UnattachedPersonListProps) {
       ))}
     </div>
   )
+}
+
+const BubbleR = 28
+const InnerDonutRadius = BubbleR + 3
+const OuterDonutRadius = 60
+const ContainerSize = 200
+
+type DonutProps = {
+  position: DonutPosition
+  hovered?: DonutPosition | false
+  className?: string
+  style?: React.CSSProperties
+  svgStyle?: React.CSSProperties
+  label?: string
+  onClick?: (position: DonutPosition) => unknown
+}
+type DonutPosition = 'top' | 'bottom' | 'left' | 'right'
+
+const DonutSection = ({ position, className, style, svgStyle, hovered, label, onClick }: DonutProps) => {
+  const isActive = hovered === position
+  const [isHovered, setHovered] = useState<boolean>(false)
+
+  // Calculate the center of the container
+  const cx = ContainerSize / 2
+  const cy = ContainerSize / 2
+
+  const circleR = 3
+  const circlePadding = 10
+  const circleDistance = BubbleR / 2 + circleR / 2 + 10 + circlePadding
+
+  let sliceStartAngle = 0
+  let sliceStopAngle = 0
+  let textLeft = 0
+  let textTop = 0
+  let circleLeft = 0
+  let circleTop = 0
+  switch (position) {
+    case 'top':
+      sliceStartAngle = 227
+      sliceStopAngle = 313
+      textLeft = cx - 35
+      textTop = cy - 72
+      circleLeft = cx
+      circleTop = cy - circleDistance
+      break
+    case 'left':
+      sliceStartAngle = 137
+      sliceStopAngle = 223
+      textLeft = cx - 120
+      textTop = cy
+      circleLeft = cx - circleDistance
+      circleTop = cy
+      break
+    case 'right':
+      sliceStartAngle = 317
+      sliceStopAngle = 43
+      textLeft = cx + 60
+      textTop = cy - 10
+      circleLeft = cx + circleDistance
+      circleTop = cy
+      break
+    case 'bottom':
+      sliceStartAngle = 47
+      sliceStopAngle = 133
+      textLeft = cx - 35
+      textTop = cy + 58
+      circleLeft = cx
+      circleTop = cy + circleDistance
+      break
+  }
+
+  // Convert angles to radians
+  const startAngle = (Math.PI * sliceStartAngle) / 180
+  const stopAngle = (Math.PI * sliceStopAngle) / 180
+
+  // Calculate the starting and stopping coordinates for the inner and outer arcs
+  const xOuterStart = cx + OuterDonutRadius * Math.cos(startAngle)
+  const yOuterStart = cy + OuterDonutRadius * Math.sin(startAngle)
+  const xOuterStop = cx + OuterDonutRadius * Math.cos(stopAngle)
+  const yOuterStop = cy + OuterDonutRadius * Math.sin(stopAngle)
+
+  const xInnerStart = cx + InnerDonutRadius * Math.cos(startAngle)
+  const yInnerStart = cy + InnerDonutRadius * Math.sin(startAngle)
+  const xInnerStop = cx + InnerDonutRadius * Math.cos(stopAngle)
+  const yInnerStop = cy + InnerDonutRadius * Math.sin(stopAngle)
+
+  // Create the SVG path using the calculated coordinates
+  const pathData = `
+        M ${xOuterStart},${yOuterStart}
+        A ${OuterDonutRadius},${OuterDonutRadius} 0 ${stopAngle - startAngle > Math.PI ? 1 : 0},1 ${xOuterStop},${yOuterStop}
+        L ${xInnerStop},${yInnerStop}
+        A ${InnerDonutRadius},${InnerDonutRadius} 0 ${stopAngle - startAngle > Math.PI ? 1 : 0},0 ${xInnerStart},${yInnerStart}
+        Z
+    `
+
+  const maskId = `mask-${position}`
+
+  // Construct the SVG element
+  return (
+    <div
+      key={`donut_${position}`}
+      className={`absolute pointer-events-none ${className}`}
+      style={{
+        top: BubbleR - ContainerSize / 2,
+        left: BubbleR - ContainerSize / 2,
+        ...style,
+      }}>
+      <svg
+        style={svgStyle}
+        width={`${ContainerSize}px`}
+        height={`${ContainerSize}px`}
+        viewBox={`0 0 ${ContainerSize} ${ContainerSize}`}
+        className={`pointer-events-none`}>
+        {/** the mask is there to transition from a circle to the donut slice */}
+        <mask id={maskId}>
+          <path d={pathData.trim()} fill='white' />
+        </mask>
+        <circle
+          className='transition-all duration-700 ease-in-out'
+          cx={circleLeft}
+          cy={circleTop}
+          r={`${isActive || isHovered ? ContainerSize / 2 : circleR}`}
+          mask={`url(#${maskId})`}
+          fill={`${isActive || isHovered ? 'rgb(79 70 229)' : '#D3D3D3'}`}
+        />
+
+        {/** this is an invisible path to catch mouse events */}
+        <path
+          className='pointer-events-auto bg-indigo'
+          onMouseOver={() => setHovered(true)}
+          onMouseOut={() => setHovered(false)}
+          d={`${pathData.trim()}`}
+          fill='rgba(0,0,0,0)'
+          onClick={() => onClick?.(position)}
+        />
+      </svg>
+      {!!label && (isActive || isHovered) && (
+        <div
+          className='absolute'
+          style={{
+            color: 'black',
+            textShadow: '0.5px 0.5px 0px white',
+            fontSize: 8,
+            top: textTop,
+            left: textLeft,
+          }}>
+          {label}
+        </div>
+      )}
+    </div>
+  )
+}
+
+const fakeProfilePicUrl =
+  'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80'
+
+function PersonNode({
+  id,
+  data,
+  isConnectable,
+  selected,
+  dragging,
+  targetPosition = Position.Top,
+  sourcePosition = Position.Bottom,
+}: NodeProps<{
+  label: string
+  profilePicUrl: string
+  hovered: DonutPosition | false
+}>) {
+  // console.log('PersonNode render', id, data)
+  const onNodeButtonPressed = React.useContext(NodeListenerContext)
+
+  const handleDonutClick = useCallback(
+    (position: DonutPosition) => {
+      // Remember the nodeId and the position
+      let newRelationshipAction: NewRelationshipAction | null = null
+
+      switch (position) {
+        case 'top': {
+          newRelationshipAction = 'addParent'
+          break
+        }
+        case 'bottom': {
+          newRelationshipAction = 'addChild'
+          break
+        }
+        case 'left': {
+          newRelationshipAction = 'addFriend'
+          break
+        }
+        case 'right': {
+          newRelationshipAction = 'addSpouse'
+          break
+        }
+      }
+
+      if (onNodeButtonPressed) onNodeButtonPressed(id, newRelationshipAction)
+    },
+    [onNodeButtonPressed]
+  )
+
+  return (
+    <div className='text-center relative' key={`personNode_${id}`}>
+      {/* <Handle type='source' position={Position.Top} />
+      <Handle type='target' position={Position.Bottom} /> */}
+      <Handle id='parents' type='target' style={{ opacity: 0 }} position={Position.Top} />
+      <Handle id='children' type='source' style={{ opacity: 0 }} position={Position.Bottom} />
+      <Handle id='friends-spouses-left' type='target' style={{ opacity: 0 }} position={Position.Left} />
+      <Handle id='friends-spouses-right' type='source' style={{ opacity: 0 }} position={Position.Right} />
+      {(data.hovered || selected) && !dragging && (
+        <>
+          {/* Bottom */}
+          <DonutSection position='bottom' label='Ajouter un enfant' onClick={handleDonutClick} hovered={data.hovered} />
+          {/* Left */}
+          <DonutSection label='Ajouter un ami' onClick={handleDonutClick} position='left' hovered={data.hovered} />
+          {/* Top */}
+          <DonutSection label='Ajouter un parent' onClick={handleDonutClick} position='top' hovered={data.hovered} />
+          {/* Right */}
+          <DonutSection
+            label='Ajouter un compagnon / époux'
+            onClick={handleDonutClick}
+            position='right'
+            hovered={data.hovered}
+          />
+        </>
+      )}
+
+      {!!data.profilePicUrl ? (
+        <img
+          src={data.profilePicUrl}
+          className={`inline-block rounded-full h-14 w-14 ring-2 ${selected ? 'ring-indigo-500' : 'ring-white'} shadow-sm`}
+        />
+      ) : (
+        <span className='inline-flex h-14 w-14 items-center justify-center rounded-full bg-gray-500'>
+          <span className='text-xl font-medium leading-none text-white'>{getInitials(data.label)}</span>
+        </span>
+      )}
+      {/* {<div>{data?.label}</div>} */}
+      {/* <Handle type='source' position={sourcePosition} isConnectable={isConnectable} /> */}
+    </div>
+  )
+}
+
+function getInitials(name: string): string {
+  // Split the name into words using whitespace or hyphen as separators
+  const words = name.split(/\s|-/)
+
+  // Initialize an empty string to store the initials
+  let initials = ''
+
+  // Iterate through the words and append the first character of each word to the initials string
+  for (const word of words) {
+    if (word.length > 0) {
+      initials += word[0].toUpperCase()
+    }
+  }
+
+  return initials
 }
