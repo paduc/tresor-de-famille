@@ -96,6 +96,7 @@ function transferFn({ originPersonId, persons, relationships }: PersonsRelations
     position: { x: currentX, y: currentY },
     selectable: true,
     draggable: false,
+    selected: true,
   }
   nodes.push(originNode)
 
@@ -152,7 +153,7 @@ function transferFn({ originPersonId, persons, relationships }: PersonsRelations
     const childNodes = children.map(({ personId: childId }, index, children) => {
       let x = 0
       if (children.length === 1) {
-        x = centerX
+        x = currentX
       } else {
         const count = children.length
         const childrenContainerWidth = (count - 1) * X_OFFSET
@@ -351,29 +352,18 @@ export type FamilyPageProps = {
 }
 
 export const FamilyPage = withBrowserBundle(({ initialPersons, initialRelationships, originPersonId }: FamilyPageProps) => {
-  const dragRef = useRef<Node | null>(null)
   const reactFlowWrapper = useRef<HTMLDivElement | null>(null)
   const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance | null>(null)
 
-  const [nodes, setNodes, onNodesChange] = useNodesState([
-    // selectedPersonNode,
-    // ...otherPersons.map<Node>(({ profilePicUrl, name, personId }, index) => {
-    //   const angle = otherPersonCount > 1 ? (Math.PI / (otherPersonCount - 1)) * (index + 0) : 0
-    //   return {
-    //     id: personId,
-    //     type: 'person',
-    //     data: { label: index + 1, profilePicUrl },
-    //     position: { x: Math.round(distance * Math.cos(angle)), y: Math.round(distance * Math.sin(angle)) },
-    //     selectable: true,
-    //   }
-    // }),
-  ])
+  const [nodes, setNodes, onNodesChange] = useNodesState([])
   const [edges, setEdges, onEdgesChange] = useEdgesState([])
   const [persons, setPersons] = useState(initialPersons)
   const [relationships, setRelationships] = useState(initialRelationships)
 
   React.useEffect(() => {
+    console.log('useEffect on persons, relationships', persons, relationships)
     const { nodes, edges } = transferFn({ persons, relationships, originPersonId })
+    console.log('useEffect returned', nodes, edges)
     setNodes(nodes)
     setEdges(edges)
   }, [persons, relationships, reactFlowInstance])
@@ -458,128 +448,128 @@ export const FamilyPage = withBrowserBundle(({ initialPersons, initialRelationsh
 
   // const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges)
 
-  const onDragOver: React.DragEventHandler = useCallback(
-    (event) => {
-      event.preventDefault()
-      event.dataTransfer.dropEffect = 'move'
+  // const onDragOver: React.DragEventHandler = useCallback(
+  //   (event) => {
+  //     event.preventDefault()
+  //     event.dataTransfer.dropEffect = 'move'
 
-      if (!reactFlowWrapper.current) {
-        console.error('wrapper not current')
-        return
-      }
+  //     if (!reactFlowWrapper.current) {
+  //       console.error('wrapper not current')
+  //       return
+  //     }
 
-      if (!reactFlowInstance) {
-        console.error('reactFlowInstance not ok')
-        return
-      }
+  //     if (!reactFlowInstance) {
+  //       console.error('reactFlowInstance not ok')
+  //       return
+  //     }
 
-      const reactFlowBounds = reactFlowWrapper.current.getBoundingClientRect()
-      const position = reactFlowInstance.project({
-        x: event.clientX - reactFlowBounds.left,
-        y: event.clientY - reactFlowBounds.top,
-      })
+  //     const reactFlowBounds = reactFlowWrapper.current.getBoundingClientRect()
+  //     const position = reactFlowInstance.project({
+  //       x: event.clientX - reactFlowBounds.left,
+  //       y: event.clientY - reactFlowBounds.top,
+  //     })
 
-      const centerX = position.x
-      const centerY = position.y
+  //     const centerX = position.x
+  //     const centerY = position.y
 
-      setNodes((nodes) => {
-        // console.log('onDragOver setNodes')
-        return nodes.map((node) => {
-          // console.log('setNodes looking at ', node.id, originPersonId)
-          if (node.id === originPersonId) {
-            const targetCenterX = node.position.x + node.width! / 2
-            const targetCenterY = node.position.y + node.height! / 2
-            if (
-              centerX > targetCenterX + OUTER_DONUT_RADIUS + BUBBLE_RADIUS ||
-              centerX < targetCenterX - OUTER_DONUT_RADIUS - BUBBLE_RADIUS ||
-              centerY > targetCenterY + OUTER_DONUT_RADIUS + BUBBLE_RADIUS ||
-              centerY < targetCenterY - OUTER_DONUT_RADIUS - BUBBLE_RADIUS
-            ) {
-              node.data = { ...node.data, hovered: false }
-            } else {
-              if (centerX > targetCenterX - 30 && centerX < targetCenterX + 30) {
-                if (centerY > targetCenterY) {
-                  node.data = { ...node.data, hovered: 'bottom' }
-                } else {
-                  node.data = { ...node.data, hovered: 'top' }
-                }
-              } else {
-                if (centerX > targetCenterX) {
-                  node.data = { ...node.data, hovered: 'right' }
-                } else {
-                  node.data = { ...node.data, hovered: 'left' }
-                }
-              }
-            }
-          }
+  //     setNodes((nodes) => {
+  //       // console.log('onDragOver setNodes')
+  //       return nodes.map((node) => {
+  //         // console.log('setNodes looking at ', node.id, originPersonId)
+  //         if (node.id === originPersonId) {
+  //           const targetCenterX = node.position.x + node.width! / 2
+  //           const targetCenterY = node.position.y + node.height! / 2
+  //           if (
+  //             centerX > targetCenterX + OUTER_DONUT_RADIUS + BUBBLE_RADIUS ||
+  //             centerX < targetCenterX - OUTER_DONUT_RADIUS - BUBBLE_RADIUS ||
+  //             centerY > targetCenterY + OUTER_DONUT_RADIUS + BUBBLE_RADIUS ||
+  //             centerY < targetCenterY - OUTER_DONUT_RADIUS - BUBBLE_RADIUS
+  //           ) {
+  //             node.data = { ...node.data, hovered: false }
+  //           } else {
+  //             if (centerX > targetCenterX - 30 && centerX < targetCenterX + 30) {
+  //               if (centerY > targetCenterY) {
+  //                 node.data = { ...node.data, hovered: 'bottom' }
+  //               } else {
+  //                 node.data = { ...node.data, hovered: 'top' }
+  //               }
+  //             } else {
+  //               if (centerX > targetCenterX) {
+  //                 node.data = { ...node.data, hovered: 'right' }
+  //               } else {
+  //                 node.data = { ...node.data, hovered: 'left' }
+  //               }
+  //             }
+  //           }
+  //         }
 
-          return node
-        })
-      })
-    },
-    [reactFlowInstance]
-  )
+  //         return node
+  //       })
+  //     })
+  //   },
+  //   [reactFlowInstance]
+  // )
 
-  const removeHoveredState = useCallback(() => {
-    setNodes((nodes) =>
-      nodes.map((node) => {
-        if (!!node.data.hovered) {
-          node.data = { ...node.data, hovered: false }
-        }
-        return node
-      })
-    )
-  }, [])
+  // const removeHoveredState = useCallback(() => {
+  //   setNodes((nodes) =>
+  //     nodes.map((node) => {
+  //       if (!!node.data.hovered) {
+  //         node.data = { ...node.data, hovered: false }
+  //       }
+  //       return node
+  //     })
+  //   )
+  // }, [])
 
-  const onDrop: React.DragEventHandler = useCallback(
-    (event) => {
-      event.preventDefault()
+  // const onDrop: React.DragEventHandler = useCallback(
+  //   (event) => {
+  //     event.preventDefault()
 
-      const newNodeDataEncoded = event.dataTransfer.getData('application/reactflow')
+  //     const newNodeDataEncoded = event.dataTransfer.getData('application/reactflow')
 
-      // check if the dropped element is valid
-      if (typeof newNodeDataEncoded === 'undefined' || !newNodeDataEncoded) {
-        return
-      }
+  //     // check if the dropped element is valid
+  //     if (typeof newNodeDataEncoded === 'undefined' || !newNodeDataEncoded) {
+  //       return
+  //     }
 
-      try {
-        const newNodeData: Person = JSON.parse(newNodeDataEncoded)
-        const { personId, name, profilePicUrl } = newNodeData
+  //     try {
+  //       const newNodeData: Person = JSON.parse(newNodeDataEncoded)
+  //       const { personId, name, profilePicUrl } = newNodeData
 
-        setNodes((nodes) => {
-          const targettedNode = nodes.find((node) => !!node.data.hovered)
+  //       setNodes((nodes) => {
+  //         const targettedNode = nodes.find((node) => !!node.data.hovered)
 
-          if (targettedNode && targettedNode.data.hovered !== false) {
-            const { hovered } = targettedNode.data
-            const newNode = {
-              id: personId,
-              type: 'person',
-              position: {
-                x: ['top', 'bottom'].includes(hovered) ? 0 : hovered === 'left' ? -100 : 100,
-                y: ['right', 'left'].includes(hovered) ? 0 : hovered === 'top' ? -100 : 100,
-              }, // TODO
-              data: { label: name, profilePicUrl, hovered: false },
-            }
+  //         if (targettedNode && targettedNode.data.hovered !== false) {
+  //           const { hovered } = targettedNode.data
+  //           const newNode = {
+  //             id: personId,
+  //             type: 'person',
+  //             position: {
+  //               x: ['top', 'bottom'].includes(hovered) ? 0 : hovered === 'left' ? -100 : 100,
+  //               y: ['right', 'left'].includes(hovered) ? 0 : hovered === 'top' ? -100 : 100,
+  //             }, // TODO
+  //             data: { label: name, profilePicUrl, hovered: false },
+  //           }
 
-            // targettedNode.data = { ...targettedNode.data, hovered: false }
+  //           // targettedNode.data = { ...targettedNode.data, hovered: false }
 
-            const newNodes = [...nodes, newNode]
-            // console.log('onDrop newNodes', newNodes)
+  //           const newNodes = [...nodes, newNode]
+  //           // console.log('onDrop newNodes', newNodes)
 
-            return newNodes
-          }
+  //           return newNodes
+  //         }
 
-          return nodes
-        })
+  //         return nodes
+  //       })
 
-        // Barbaric fix to have the hovered nodes pass to unhovered
-        setTimeout(removeHoveredState, 100)
-      } catch (error) {
-        console.error('could not parse the newNodeData', error)
-      }
-    },
-    [reactFlowInstance]
-  )
+  //       // Barbaric fix to have the hovered nodes pass to unhovered
+  //       setTimeout(removeHoveredState, 100)
+  //     } catch (error) {
+  //       console.error('could not parse the newNodeData', error)
+  //     }
+  //   },
+  //   [reactFlowInstance]
+  // )
 
   const [isSearchPanelVisible, showSearchPanel] = useState<boolean>(false)
 
@@ -600,8 +590,34 @@ export const FamilyPage = withBrowserBundle(({ initialPersons, initialRelationsh
 
       if (!pendingRelationshipAction) return
 
-      const { relationshipAction, personId } = pendingRelationshipAction
-      addRelationship({ sourcePersonId: personId, targetPerson: person, relationshipAction, persons, setNodes, setEdges })
+      const { relationshipAction, personId: targetPersonId } = pendingRelationshipAction
+
+      const newPerson = person.type === 'unknown' ? { personId: getUuid(), name: person.name } : undefined
+
+      const newPersonId = newPerson?.personId || pendingRelationshipAction.personId
+
+      // Add Node if new person (call setPersons)
+      setPersons((persons) => {
+        if (newPerson) {
+          return [...persons, newPerson as Person]
+        }
+
+        return persons
+      })
+
+      // Add Relationship
+      setRelationships((relationships) => {
+        switch (relationshipAction) {
+          case 'addChild':
+            return [...relationships, { type: 'parent', childId: newPersonId, parentId: targetPersonId }]
+          case 'addParent':
+            return [...relationships, { type: 'parent', childId: targetPersonId, parentId: newPersonId }]
+          case 'addFriend':
+            return [...relationships, { type: 'friends', friendIds: [newPersonId, targetPersonId] }]
+          case 'addSpouse':
+            return [...relationships, { type: 'spouses', spouseIds: [newPersonId, targetPersonId] }]
+        }
+      })
     },
     [pendingRelationshipAction, reactFlowInstance]
   )
@@ -622,8 +638,8 @@ export const FamilyPage = withBrowserBundle(({ initialPersons, initialRelationsh
               // onNodeDrag={onNodeDrag}
               // onNodeDragStart={onNodeDragStart}
               // onNodeDragStop={onNodeDragStop}
-              onDragOver={onDragOver}
-              onDrop={onDrop}
+              // onDragOver={onDragOver}
+              // onDrop={onDrop}
               nodeTypes={nodeTypes}
               fitView>
               <Background />
@@ -1163,25 +1179,25 @@ function PersonNode({
         </>
       )}
 
-      {data.profilePicUrl ? (
-        <div className='relative'>
+      <div className='relative'>
+        {data.profilePicUrl ? (
           <img
             src={data.profilePicUrl}
             className={`inline-block rounded-full h-14 w-14 ring-2 ${selected ? 'ring-indigo-500' : 'ring-white'} shadow-sm`}
           />
-          <div className='absolute w-full -mt-1 pointer-events-none z-10'>
-            <span
-              style={{ fontSize: 8 }}
-              className='inline-flex  items-center rounded-md bg-indigo-50 px-1 py-0.5   text-gray-600 ring-1 ring-inset ring-gray-500/10'>
-              {data.label}
-            </span>
-          </div>
+        ) : (
+          <span className='inline-flex h-14 w-14 items-center justify-center rounded-full bg-gray-500'>
+            <span className='text-xl font-medium leading-none text-white'>{getInitials(data.label)}</span>
+          </span>
+        )}
+        <div className='absolute w-full -mt-1 pointer-events-none z-10'>
+          <span
+            style={{ fontSize: 8 }}
+            className='inline-flex  items-center rounded-md bg-indigo-50 px-1 py-0.5   text-gray-600 ring-1 ring-inset ring-gray-500/10'>
+            {data.label}
+          </span>
         </div>
-      ) : (
-        <span className='inline-flex h-14 w-14 items-center justify-center rounded-full bg-gray-500'>
-          <span className='text-xl font-medium leading-none text-white'>{getInitials(data.label)}</span>
-        </span>
-      )}
+      </div>
       {/* {<div>{data?.label}</div>} */}
       {/* <Handle type='source' position={sourcePosition} isConnectable={isConnectable} /> */}
     </div>
