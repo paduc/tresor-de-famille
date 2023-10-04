@@ -62,9 +62,10 @@ type NodesEdges = {
 }
 
 const Y_OFFSET = 100
-const X_OFFSET = 100
 
 const BUBBLE_RADIUS = 28
+const X_OFFSET = 3 * BUBBLE_RADIUS
+const COUPLE_NODE_RADIUS = 6
 const INNER_DONUT_RADIUS = BUBBLE_RADIUS + 3
 const OUTER_DONUT_RADIUS = 60
 const ContainerSize = 200
@@ -78,6 +79,7 @@ const ContainerSize = 200
 function transferFn({ originPersonId, persons, relationships }: PersonsRelationships): NodesEdges {
   let nodes: Node[] = []
   let edges: Edge[] = []
+  type PersonId = UUID
 
   // Create a node for the originPerson
   const originPerson = persons.find((person) => person.personId === originPersonId)
@@ -97,17 +99,40 @@ function transferFn({ originPersonId, persons, relationships }: PersonsRelations
   }
   nodes.push(originNode)
 
-  addParents(originPersonId)
-  addChildren(originPersonId)
+  // Add spouse
+  const spouseRel = relationships.find(
+    (rel): rel is Relationship & { type: 'spouses' } => rel.type === 'spouses' && rel.spouseIds.includes(originPersonId)
+  )
+  let coupleNode: Node | null = null
+  if (spouseRel) {
+    const spouseId = spouseRel.spouseIds.find((personId) => personId !== originPersonId)!
 
-  function addChildren(personId: UUID, level: number = 0) {
-    const CHILDREN = 1 as const
-    const GRAND_CHILDREN = 2 as const
-    const MAX_CHILD_LEVEL: number = GRAND_CHILDREN
-    if (level >= MAX_CHILD_LEVEL) return
+    const spouseNode = makePersonNode(spouseId, {
+      x: currentX + X_OFFSET,
+      y: currentY,
+    })
+    nodes.push(spouseNode)
 
-    const personNode = nodes.find((node) => node.id === personId)
-    if (!personNode) return
+    coupleNode = makeCoupleNode(originNode, spouseNode)
+    nodes.push(coupleNode)
+
+    const coupleEdges = makeCoupleEdges(coupleNode, originNode, spouseNode)
+    edges = edges.concat(coupleEdges)
+  }
+
+  // Add parents
+  const parents = addParents(originNode)
+
+  // Add grand-parents
+  for (const parent of parents) {
+    addParents(parent, 1)
+  }
+
+  // Add children
+  addChildren(coupleNode || originNode, originPersonId)
+
+  function addChildren(personNode: Node, personId: string): Node[] {
+    if (!personNode) return []
 
     const { x: currentX, y: currentY } = personNode.position
 
@@ -117,31 +142,39 @@ function transferFn({ originPersonId, persons, relationships }: PersonsRelations
     )
 
     if (!childRelationships.length) {
-      return
+      return []
     }
 
     const children = childRelationships.map((rel) => getPersonById(rel.childId))
 
-    const childNodes = children.map(({ personId: childId, name, profilePicUrl }, index, children) =>
-      makeNode(childId, {
-        x: children.length === 1 ? currentX : index ? currentX - X_OFFSET / 2 : currentX + X_OFFSET / 2,
+    const centerX = currentX - BUBBLE_RADIUS + COUPLE_NODE_RADIUS
+
+    const childNodes = children.map(({ personId: childId }, index, children) => {
+      let x = 0
+      if (children.length === 1) {
+        x = centerX
+      } else {
+        const count = children.length
+        const childrenContainerWidth = (count - 1) * X_OFFSET
+        x = centerX - childrenContainerWidth / 2 + index * X_OFFSET
+      }
+      return makePersonNode(childId, {
+        x,
         y: currentY + Y_OFFSET,
       })
-    )
+    })
     nodes = nodes.concat(childNodes)
 
     const childEdges = children.map(({ personId: childId }) => ({
       id: `${personId}isParentOf${childId}`,
-      source: personId,
+      source: personNode.id,
       target: childId,
       sourceHandle: 'children',
       targetHandle: 'parents',
     }))
     edges = edges.concat(childEdges)
 
-    for (const child of children) {
-      addChildren(child.personId, level + 1)
-    }
+    return childNodes
   }
 
   // Ideas to make this nicer:
@@ -151,14 +184,10 @@ function transferFn({ originPersonId, persons, relationships }: PersonsRelations
   // - use the user's context (is he a child, parent, grand-parents ? show branches that are adapted, for instance grand-parents think more of their grand-children than of their grand-parents)
   // - open/close branches (auto-close open branches when exploring another branch, makes it easier)
   // - make it possible to traverse by selecting a node (the initial node and the path to it should remain visible - like breadcrumbs)
-  function addParents(personId: UUID, level: number = 0) {
-    const PARENTS = 1 as const
-    const GRAND_PARENTS = 2 as const
-    const MAX_PARENT_LEVEL: number = GRAND_PARENTS
-    if (level >= MAX_PARENT_LEVEL) return
+  function addParents(personNode: Node, level: number = 0): Node[] {
+    if (!personNode) return []
 
-    const personNode = nodes.find((node) => node.id === personId)
-    if (!personNode) return
+    const personId = personNode.id
 
     const { x: currentX, y: currentY } = personNode.position
 
@@ -168,7 +197,7 @@ function transferFn({ originPersonId, persons, relationships }: PersonsRelations
     )
 
     if (!parentRelationships.length) {
-      return
+      return []
     }
 
     const localXOffset = X_OFFSET / (level + 1)
@@ -176,7 +205,7 @@ function transferFn({ originPersonId, persons, relationships }: PersonsRelations
     const parents = parentRelationships.map((rel) => getPersonById(rel.parentId))
 
     const parentNodes = parents.map(({ personId }, index, parents) =>
-      makeNode(personId, {
+      makePersonNode(personId, {
         x: parents.length === 1 ? currentX : index ? currentX - localXOffset : currentX + localXOffset,
         y: currentY - Y_OFFSET,
       })
@@ -185,7 +214,7 @@ function transferFn({ originPersonId, persons, relationships }: PersonsRelations
 
     // Check for siblings
     let hasSiblings = false
-    if (level === 0 && parents.length === 2) {
+    if (parents.length === 2) {
       // Get all unique children of a parent
       // TODO: check if both parents are the parents of the siblings
       const siblingIds = Array.from(
@@ -202,46 +231,18 @@ function transferFn({ originPersonId, persons, relationships }: PersonsRelations
       if (siblingIds.length) {
         hasSiblings = true
         let counter = 0
-        personNode.position.x += siblingIds.length * 20
 
         const spouse1Node = parentNodes[0]
-        const spouse1Id = parentNodes[0].id
         const spouse2Node = parentNodes[1]
-        const spouse2Id = parentNodes[1].id
 
-        const x = (spouse1Node.position.x + spouse2Node.position.x) / 2 + BUBBLE_RADIUS
-        const coupleNode = {
-          id: `${spouse1Id}_coupled_${spouse2Id}`,
-          type: 'couple',
-          data: {},
-          position: {
-            x,
-            y: spouse1Node.position.y + BUBBLE_RADIUS,
-          },
-        }
+        const coupleNode = makeCoupleNode(spouse1Node, spouse2Node)
         nodes.push(coupleNode)
 
-        const coupleEdge1 = {
-          id: `${spouse1Id}isSpouseOf${spouse2Id}`,
-          source: coupleNode.id,
-          target: spouse1Node.id,
-          sourceHandle: 'couple-right',
-          targetHandle: 'person-left',
-          //  person-left
-        }
-        edges.push(coupleEdge1)
-
-        const coupleEdge2 = {
-          id: `${spouse2Id}isSpouseOf${spouse1Id}`,
-          source: spouse2Node.id,
-          target: coupleNode.id,
-          sourceHandle: 'person-right',
-          targetHandle: 'couple-left',
-        }
-        edges.push(coupleEdge2)
+        const coupleEdges = makeCoupleEdges(coupleNode, spouse1Node, spouse2Node)
+        edges = edges.concat(coupleEdges)
 
         for (const siblingId of siblingIds) {
-          const siblingNode = makeNode(siblingId, {
+          const siblingNode = makePersonNode(siblingId, {
             x: personNode.position.x - 80 * counter++,
             y: personNode.position.y,
           })
@@ -268,12 +269,10 @@ function transferFn({ originPersonId, persons, relationships }: PersonsRelations
       edges = edges.concat(parentEdges)
     }
 
-    for (const parent of parents) {
-      addParents(parent.personId, level + 1)
-    }
+    return parentNodes
   }
 
-  function makeNode(personId: UUID, position: { x: number; y: number }) {
+  function makePersonNode(personId: UUID, position: { x: number; y: number }) {
     const person = getPersonById(personId)
     return {
       id: personId,
@@ -283,6 +282,41 @@ function transferFn({ originPersonId, persons, relationships }: PersonsRelations
       selectable: true,
       draggable: false,
     }
+  }
+
+  function makeCoupleNode(spouse1Node: Node, spouse2Node: Node): Node {
+    return {
+      id: `${spouse1Node.id}_coupled_${spouse2Node.id}`,
+      type: 'couple',
+      data: {},
+      position: {
+        x: (spouse1Node.position.x + spouse2Node.position.x) / 2 + BUBBLE_RADIUS - COUPLE_NODE_RADIUS,
+        y: spouse1Node.position.y + BUBBLE_RADIUS - COUPLE_NODE_RADIUS + 2,
+      },
+    }
+  }
+
+  function makeCoupleEdges(coupleNode: Node, spouse1Node: Node, spouse2Node: Node) {
+    const leftSpouse = spouse1Node.position.x < spouse2Node.position.x ? spouse1Node : spouse2Node
+    const rightSpouse = spouse1Node.position.x > spouse2Node.position.x ? spouse1Node : spouse2Node
+
+    const coupleToRightSpouse = {
+      id: `${rightSpouse.id}isSpouseOf${leftSpouse.id}`,
+      source: coupleNode.id,
+      target: rightSpouse.id,
+      sourceHandle: 'couple-right',
+      targetHandle: 'person-left',
+    }
+
+    const coupleToLeftSpouse = {
+      id: `${leftSpouse.id}isSpouseOf${rightSpouse.id}`,
+      source: leftSpouse.id,
+      target: coupleNode.id,
+      sourceHandle: 'person-right',
+      targetHandle: 'couple-left',
+    }
+
+    return [coupleToRightSpouse, coupleToLeftSpouse]
   }
 
   function getPersonById(personId: UUID): Person {
@@ -1045,9 +1079,9 @@ function CoupleNode({
 }: NodeProps<{}>) {
   return (
     <>
-      <Handle id='couple-left' type='target' style={{ opacity: 0, left: 5 }} position={Position.Left} />
-      <Handle id='couple-right' type='source' style={{ opacity: 0, right: 5 }} position={Position.Right} />
-      <Handle id='children' type='source' style={{ opacity: 0, bottom: 5 }} position={Position.Bottom} />
+      <Handle id='couple-left' type='target' style={{ opacity: 0, left: 3 }} position={Position.Left} />
+      <Handle id='couple-right' type='source' style={{ opacity: 0, right: 3 }} position={Position.Right} />
+      <Handle id='children' type='source' style={{ opacity: 0, bottom: 3 }} position={Position.Bottom} />
       <div className='h-3 w-3 rounded-full bg-gray-50 border border-grey-700' />
     </>
   )
