@@ -76,6 +76,12 @@ export default function AdaptiveLayout({ children }: AdaptiveLayoutProps) {
       icon: BookOpenIcon,
       condition: () => areThreadsEnabled,
     },
+    {
+      name: 'Ma famille (alpha)',
+      href: '/family.html',
+      icon: BookOpenIcon,
+      condition: () => areThreadsEnabled,
+    },
   ]
 
   const sidebarAccessible = navigation.some((link) => link.condition())
