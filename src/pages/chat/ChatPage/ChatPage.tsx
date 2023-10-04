@@ -63,6 +63,8 @@ export type ChatPageProps = {
   chatId: UUID
 }
 
+const isBrowserContext = typeof window !== 'undefined'
+
 export const ChatPage = withBrowserBundle(
   ({ title, contentAsJSON: contentAsJSONFromServer, lastUpdated, chatId }: ChatPageProps) => {
     const newMessageAreaRef = React.useRef<HTMLTextAreaElement>(null)
@@ -70,7 +72,8 @@ export const ChatPage = withBrowserBundle(
     const richTextEditorRef = React.useRef<RichTextEditorRef>(null)
 
     let contentAsJSON = contentAsJSONFromServer
-    if (localStorage.getItem(chatId)) {
+
+    if (isBrowserContext && localStorage.getItem(chatId)) {
       try {
         const { timestamp, contentAsJSON: contentAsJSONFromLocalStorage } = JSON.parse(localStorage.getItem(chatId)!)
         // console.log({ lastUpdated, timestamp })
