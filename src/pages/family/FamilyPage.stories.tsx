@@ -133,7 +133,7 @@ export const PlusieursPersonnes = () => {
           { type: 'parent', childId: broId, parentId: mamaId },
           { type: 'parent', childId: sisId, parentId: papaId },
           { type: 'parent', childId: fille1Id, parentId: originPersonId },
-          { type: 'parent', childId: fille2Id, parentId: originPersonId },
+          // { type: 'parent', childId: fille2Id, parentId: originPersonId },
           { type: 'parent', childId: fils1Id, parentId: originPersonId },
           { type: 'parent', childId: petiteFille1Id, parentId: fille2Id },
           { type: 'parent', childId: papaId, parentId: bonPapaId },

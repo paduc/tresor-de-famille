@@ -949,14 +949,14 @@ const DonutSection = ({ position, className, style, svgStyle, hovered, label, on
       sliceStartAngle = 227
       sliceStopAngle = 313
       textLeft = cx - 35
-      textTop = cy - 72
+      textTop = cy - 55
       circleLeft = cx
       circleTop = cy - circleDistance
       break
     case 'left':
       sliceStartAngle = 137
       sliceStopAngle = 223
-      textLeft = cx - 120
+      textLeft = cx - 110
       textTop = cy
       circleLeft = cx - circleDistance
       circleTop = cy
@@ -964,7 +964,7 @@ const DonutSection = ({ position, className, style, svgStyle, hovered, label, on
     case 'right':
       sliceStartAngle = 317
       sliceStopAngle = 43
-      textLeft = cx + 60
+      textLeft = cx + 35
       textTop = cy - 10
       circleLeft = cx + circleDistance
       circleTop = cy
@@ -973,7 +973,7 @@ const DonutSection = ({ position, className, style, svgStyle, hovered, label, on
       sliceStartAngle = 47
       sliceStopAngle = 133
       textLeft = cx - 35
-      textTop = cy + 58
+      textTop = cy + 38
       circleLeft = cx
       circleTop = cy + circleDistance
       break
@@ -1052,13 +1052,13 @@ const DonutSection = ({ position, className, style, svgStyle, hovered, label, on
         <div
           className='absolute'
           style={{
-            color: 'black',
-            textShadow: '0.5px 0.5px 0px white',
             fontSize: 8,
             top: textTop,
             left: textLeft,
           }}>
-          {label}
+          <span className='inline-flex items-center rounded-full bg-indigo-50 px-2 py-1 text-indigo-700 ring-1 ring-inset ring-indigo-700/10'>
+            {label}
+          </span>
         </div>
       )}
     </div>
@@ -1139,10 +1139,16 @@ function PersonNode({
       <Handle id='children' type='source' style={{ opacity: 0 }} position={Position.Bottom} />
       <Handle id='person-left' type='target' style={{ opacity: 0 }} position={Position.Left} />
       <Handle id='person-right' type='source' style={{ opacity: 0 }} position={Position.Right} />
-      {(data.hovered || selected) && !dragging && (
+      {(data.hovered || selected) && (
         <>
           {/* Bottom */}
-          <DonutSection position='bottom' label='Ajouter un enfant' onClick={handleDonutClick} hovered={data.hovered} />
+          <DonutSection
+            position='bottom'
+            label='Ajouter un enfant'
+            onClick={handleDonutClick}
+            hovered={data.hovered}
+            className='z-20' // To go over the name label
+          />
           {/* Left */}
           <DonutSection label='Ajouter un ami' onClick={handleDonutClick} position='left' hovered={data.hovered} />
           {/* Top */}
@@ -1157,11 +1163,20 @@ function PersonNode({
         </>
       )}
 
-      {!!data.profilePicUrl ? (
-        <img
-          src={data.profilePicUrl}
-          className={`inline-block rounded-full h-14 w-14 ring-2 ${selected ? 'ring-indigo-500' : 'ring-white'} shadow-sm`}
-        />
+      {data.profilePicUrl ? (
+        <div className='relative'>
+          <img
+            src={data.profilePicUrl}
+            className={`inline-block rounded-full h-14 w-14 ring-2 ${selected ? 'ring-indigo-500' : 'ring-white'} shadow-sm`}
+          />
+          <div className='absolute w-full -mt-1 pointer-events-none z-10'>
+            <span
+              style={{ fontSize: 8 }}
+              className='inline-flex  items-center rounded-md bg-indigo-50 px-1 py-0.5   text-gray-600 ring-1 ring-inset ring-gray-500/10'>
+              {data.label}
+            </span>
+          </div>
+        </div>
       ) : (
         <span className='inline-flex h-14 w-14 items-center justify-center rounded-full bg-gray-500'>
           <span className='text-xl font-medium leading-none text-white'>{getInitials(data.label)}</span>
