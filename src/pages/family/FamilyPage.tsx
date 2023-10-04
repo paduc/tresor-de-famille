@@ -122,17 +122,12 @@ function transferFn({ originPersonId, persons, relationships }: PersonsRelations
 
     const children = childRelationships.map((rel) => getPersonById(rel.childId))
 
-    const childNodes = children.map(({ personId: childId, name, profilePicUrl }, index, children) => ({
-      id: childId,
-      type: 'person',
-      data: { label: name, profilePicUrl, hovered: false },
-      position: {
-        x: children.length === 1 ? currentX : index ? currentX - X_OFFSET : currentX + X_OFFSET,
+    const childNodes = children.map(({ personId: childId, name, profilePicUrl }, index, children) =>
+      makeNode(childId, {
+        x: children.length === 1 ? currentX : index ? currentX - X_OFFSET / 2 : currentX + X_OFFSET / 2,
         y: currentY + Y_OFFSET,
-      },
-      selectable: true,
-      draggable: false,
-    }))
+      })
+    )
     nodes = nodes.concat(childNodes)
 
     const childEdges = children.map(({ personId: childId }) => ({
@@ -1070,6 +1065,7 @@ function PersonNode({
   label: string
   profilePicUrl: string
   hovered: DonutPosition | false
+  isOriginPerson?: true
 }>) {
   // console.log('PersonNode render', id, data)
   const onNodeButtonPressed = React.useContext(NodeListenerContext)
