@@ -23,6 +23,7 @@ import { ExclamationTriangleIcon, PlusIcon, XMarkIcon } from '@heroicons/react/2
 import { getUuid } from '../../libs/getUuid'
 import { PersonAutocomplete, PersonAutocompleteProps } from '../_components/PersonAutocomplete'
 import { Transition, Dialog } from '@headlessui/react'
+import { ClientOnly } from '../_components/ClientOnly'
 
 // @ts-ignore
 function classNames(...classes) {
@@ -351,7 +352,15 @@ export type FamilyPageProps = {
   originPersonId: UUID
 }
 
-export const FamilyPage = withBrowserBundle(({ initialPersons, initialRelationships, originPersonId }: FamilyPageProps) => {
+export const FamilyPage = withBrowserBundle((props: FamilyPageProps) => {
+  return (
+    <ClientOnly>
+      <ClientOnlyFamilyPage {...props} />
+    </ClientOnly>
+  )
+})
+
+const ClientOnlyFamilyPage = ({ initialPersons, initialRelationships, originPersonId }: FamilyPageProps) => {
   const reactFlowWrapper = useRef<HTMLDivElement | null>(null)
   const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance | null>(null)
 
@@ -361,11 +370,20 @@ export const FamilyPage = withBrowserBundle(({ initialPersons, initialRelationsh
   const [relationships, setRelationships] = useState(initialRelationships)
 
   React.useEffect(() => {
-    console.log('useEffect on persons, relationships', persons, relationships)
     const { nodes, edges } = transferFn({ persons, relationships, originPersonId })
-    console.log('useEffect returned', nodes, edges)
-    setNodes(nodes)
-    setEdges(edges)
+
+    console.log('useEffect', { persons, relationships, nodes, edges })
+
+    const uniqueNodes = new Map<string, Node>()
+    for (const node of nodes) {
+      uniqueNodes.set(node.id, node)
+    }
+    const uniqueEdges = new Map<string, Edge>()
+    for (const edge of edges) {
+      uniqueEdges.set(edge.id, edge)
+    }
+    setNodes(Array.from(uniqueNodes.values()))
+    setEdges(Array.from(uniqueEdges.values()))
   }, [persons, relationships, reactFlowInstance])
 
   const [origX, setOrigX] = useState<number | undefined>()
@@ -590,16 +608,18 @@ export const FamilyPage = withBrowserBundle(({ initialPersons, initialRelationsh
 
       if (!pendingRelationshipAction) return
 
-      const { relationshipAction, personId: targetPersonId } = pendingRelationshipAction
+      const { relationshipAction, personId: sourcePersonId } = pendingRelationshipAction
 
-      const newPerson = person.type === 'unknown' ? { personId: getUuid(), name: person.name } : undefined
+      const targetPerson = person.type === 'unknown' ? { personId: getUuid(), name: person.name } : person
 
-      const newPersonId = newPerson?.personId || pendingRelationshipAction.personId
+      const newPersonId = targetPerson.personId
+
+      // console.log('onPersonSelected', { newPersonId, sourcePersonId })
 
       // Add Node if new person (call setPersons)
       setPersons((persons) => {
-        if (newPerson) {
-          return [...persons, newPerson as Person]
+        if (targetPerson) {
+          return [...persons, targetPerson as Person]
         }
 
         return persons
@@ -609,13 +629,13 @@ export const FamilyPage = withBrowserBundle(({ initialPersons, initialRelationsh
       setRelationships((relationships) => {
         switch (relationshipAction) {
           case 'addChild':
-            return [...relationships, { type: 'parent', childId: newPersonId, parentId: targetPersonId }]
+            return [...relationships, { type: 'parent', childId: newPersonId, parentId: sourcePersonId }]
           case 'addParent':
-            return [...relationships, { type: 'parent', childId: targetPersonId, parentId: newPersonId }]
+            return [...relationships, { type: 'parent', childId: sourcePersonId, parentId: newPersonId }]
           case 'addFriend':
-            return [...relationships, { type: 'friends', friendIds: [newPersonId, targetPersonId] }]
+            return [...relationships, { type: 'friends', friendIds: [newPersonId, sourcePersonId] }]
           case 'addSpouse':
-            return [...relationships, { type: 'spouses', spouseIds: [newPersonId, targetPersonId] }]
+            return [...relationships, { type: 'spouses', spouseIds: [newPersonId, sourcePersonId] }]
         }
       })
     },
@@ -657,7 +677,7 @@ export const FamilyPage = withBrowserBundle(({ initialPersons, initialRelationsh
       </NodeListenerContext.Provider>
     </AppLayout>
   )
-})
+}
 
 type AddRelationshipArgs = {
   sourcePersonId: UUID // the person that is selected
@@ -1193,7 +1213,7 @@ function PersonNode({
         <div className='absolute w-full -mt-1 pointer-events-none z-10'>
           <span
             style={{ fontSize: 8 }}
-            className='inline-flex  items-center rounded-md bg-indigo-50 px-1 py-0.5   text-gray-600 ring-1 ring-inset ring-gray-500/10'>
+            className='inline-flex  items-center rounded-md bg-gray-50 px-1 py-0.5   text-gray-600 ring-1 ring-inset ring-gray-500/10'>
             {data.label}
           </span>
         </div>

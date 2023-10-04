@@ -120,9 +120,9 @@ export const PlusieursPersonnes = () => {
           // { personId: fille2Id, name: 'Fille 2', profilePicUrl: fakePhoto('women') },
           // { personId: fils1Id, name: 'Fils 1', profilePicUrl: fakePhoto('men') },
           // { personId: petiteFille1Id, name: 'Petite-fille 1', profilePicUrl: fakePhoto('women') },
-          // { personId: fakePerson1Id, name: 'John Doe', profilePicUrl: fakePhoto() },
-          // { personId: fakePerson2Id, name: 'Zelda Moroney', profilePicUrl: fakePhoto() },
-          // { personId: fakePerson3Id, name: 'Claire Politi', profilePicUrl: fakePhoto() },
+          { personId: fakePerson1Id, name: 'John Doe', profilePicUrl: fakePhoto('men') },
+          { personId: fakePerson2Id, name: 'Zelda Moroney', profilePicUrl: fakePhoto('women') },
+          { personId: fakePerson3Id, name: 'Claire Politi', profilePicUrl: fakePhoto('women') },
           // { personId: getUuid(), name: 'Prénom Nom', profilePicUrl: fakePhoto() },
           // { personId: getUuid(), name: 'Prénom Nom', profilePicUrl: fakePhoto() },
         ]}
