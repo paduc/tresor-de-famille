@@ -120,10 +120,23 @@ function transferFn({ originPersonId, persons, relationships }: PersonsRelations
   }
 
   // Add parents
-  const parents = addParents(originNode)
+  const parentNodes = addParents(originNode)
+
+  // Add siblings
+  const siblingsCount = addSiblings(originNode, parentNodes)
+  if (!siblingsCount) {
+    const parentEdges = parentNodes.map(({ id: parentId }) => ({
+      id: `${parentId}isParentOf${originPersonId}`,
+      source: parentId,
+      target: originPersonId,
+      sourceHandle: 'children',
+      targetHandle: 'parents',
+    }))
+    edges = edges.concat(parentEdges)
+  }
 
   // Add grand-parents
-  for (const parent of parents) {
+  for (const parent of parentNodes) {
     addParents(parent, 1)
   }
 
@@ -186,7 +199,7 @@ function transferFn({ originPersonId, persons, relationships }: PersonsRelations
   // - use the user's context (is he a child, parent, grand-parents ? show branches that are adapted, for instance grand-parents think more of their grand-children than of their grand-parents)
   // - open/close branches (auto-close open branches when exploring another branch, makes it easier)
   // - make it possible to traverse by selecting a node (the initial node and the path to it should remain visible - like breadcrumbs)
-  function addParents(personNode: Node, level: number = 0): Node[] {
+  function addParents(personNode: Node, level: number = 0): [] | [Node] | [Node, Node] {
     if (!personNode) return []
 
     const personId = personNode.id
@@ -194,64 +207,111 @@ function transferFn({ originPersonId, persons, relationships }: PersonsRelations
     const { x: currentX, y: currentY } = personNode.position
 
     // Look for the persons parents
-    const parentRelationships = relationships.filter(
-      (rel): rel is Relationship & { type: 'parent' } => rel.type === 'parent' && rel.childId === personId
-    )
+    const parentIds = relationships
+      .filter((rel): rel is Relationship & { type: 'parent' } => rel.type === 'parent' && rel.childId === personId)
+      .map((rel) => rel.parentId)
 
-    if (!parentRelationships.length) {
-      return []
-    }
+    if (!parentIds.length) return []
+
+    const [parent1Id, parent2Id] = new Set(parentIds)
 
     const localXOffset = X_OFFSET / (level + 1)
 
-    const parents = parentRelationships.map((rel) => getPersonById(rel.parentId))
+    const singleParent = !parent2Id
+    const parent1Node = makePersonNode(parent1Id, {
+      x: singleParent ? currentX : currentX - localXOffset,
+      y: currentY - Y_OFFSET,
+    })
+    nodes.push(parent1Node)
 
-    const parentNodes = parents.map(({ personId }, index, parents) =>
-      makePersonNode(personId, {
-        x: parents.length === 1 ? currentX : index ? currentX - localXOffset : currentX + localXOffset,
+    if (!singleParent) {
+      const parent2Node = makePersonNode(parent2Id, {
+        x: currentX + localXOffset,
         y: currentY - Y_OFFSET,
       })
+      nodes.push(parent2Node)
+
+      // Make couple node here
+      const coupleNode = makeCoupleNode(parent1Node, parent2Node)
+      nodes.push(coupleNode)
+
+      const coupleEdges = makeCoupleEdges(coupleNode, parent1Node, parent2Node)
+      edges = edges.concat(coupleEdges)
+
+      // Edge from the person to his parents' couple node
+      edges.push({
+        id: `${coupleNode.id}isParentOf${personId}`,
+        source: coupleNode.id,
+        target: personId,
+        sourceHandle: 'children',
+        targetHandle: 'parents',
+      })
+
+      return [parent1Node, parent2Node]
+    }
+
+    // Edge from the person to his single parent node
+    edges.push({
+      id: `${parent1Node.id}isParentOf${personId}`,
+      source: parent1Node.id,
+      target: personId,
+      sourceHandle: 'children',
+      targetHandle: 'parents',
+    })
+    return [parent1Node]
+  }
+
+  function addSiblings(personNode: Node, parentNodes: ReturnType<typeof addParents>): number {
+    const personId = personNode.id
+
+    const { x: currentX, y: currentY } = personNode.position
+
+    const [parent1Id, parent2Id] = parentNodes.map((node) => node.id)
+
+    // Look for persons with the same relationships
+    const siblingParentRelationships = relationships.filter(
+      (rel): rel is Relationship & { type: 'parent' } =>
+        rel.type === 'parent' && rel.childId !== personId && (rel.parentId === parent1Id || rel.parentId === parent2Id)
     )
-    nodes = nodes.concat(parentNodes)
 
-    // Check for siblings
-    let hasSiblings = false
-    if (parents.length === 2) {
-      // Get all unique children of a parent
-      // TODO: check if both parents are the parents of the siblings
-      const siblingIds = Array.from(
-        new Set(
-          relationships
-            .filter(
-              (rel): rel is Relationship & { type: 'parent' } =>
-                rel.type === 'parent' && parents.map((p) => p.personId).includes(rel.parentId)
-            )
-            .map((rel) => rel.childId)
+    type SiblingId = string
+    type ParentId = string
+
+    // Group by siblingId and unique parentIds
+    const siblingParentMap = new Map<SiblingId, Set<ParentId>>()
+    for (const rel of siblingParentRelationships) {
+      if (!siblingParentMap.has(rel.childId)) {
+        siblingParentMap.set(rel.childId, new Set())
+      }
+
+      siblingParentMap.get(rel.childId)?.add(rel.parentId)
+    }
+
+    // Determine the true siblings (=same parents)
+    const trueSiblings = new Set<string>()
+    for (const [childId, parentIdSet] of siblingParentMap.entries()) {
+      if (parentIdSet.has(parent1Id) && (!parent2Id || parentIdSet.has(parent2Id))) {
+        trueSiblings.add(childId)
+      }
+    }
+
+    if (trueSiblings.size) {
+      if (parent2Id) {
+        // Two parents
+        // Look for couple node
+        const coupleNode = nodes.find(
+          (node) => node.type === 'couple' && node.id.includes(parent1Id) && node.id.includes(parent2Id)
         )
-      )
 
-      if (siblingIds.length) {
-        hasSiblings = true
+        if (!coupleNode) return 0
+
         let counter = 0
-
-        const spouse1Node = parentNodes[0]
-        const spouse2Node = parentNodes[1]
-
-        const coupleNode = makeCoupleNode(spouse1Node, spouse2Node)
-        nodes.push(coupleNode)
-
-        const coupleEdges = makeCoupleEdges(coupleNode, spouse1Node, spouse2Node)
-        edges = edges.concat(coupleEdges)
-
-        for (const siblingId of siblingIds) {
-          let siblingNode = personNode
-          if (siblingId !== personId) {
-            siblingNode = makePersonNode(siblingId, {
-              x: personNode.position.x - 80 * counter++,
-              y: personNode.position.y,
-            })
-            nodes.push(siblingNode)
-          }
+        for (const siblingId of trueSiblings) {
+          const siblingNode = makePersonNode(siblingId as UUID, {
+            x: personNode.position.x - 80 * ++counter,
+            y: personNode.position.y,
+          })
+          nodes.push(siblingNode)
           edges.push({
             id: `${coupleNode.id}isParentOf${siblingId}`,
             source: coupleNode.id,
@@ -260,21 +320,32 @@ function transferFn({ originPersonId, persons, relationships }: PersonsRelations
             targetHandle: 'parents',
           })
         }
+
+        return trueSiblings.size
       }
+
+      // One parent
+      // use the parent node
+      let counter = 0
+      for (const siblingId of trueSiblings) {
+        const siblingNode = makePersonNode(siblingId as UUID, {
+          x: personNode.position.x - 80 * ++counter,
+          y: personNode.position.y,
+        })
+        nodes.push(siblingNode)
+        edges.push({
+          id: `${parent1Id}isParentOf${siblingId}`,
+          source: parent1Id,
+          target: siblingId,
+          sourceHandle: 'children',
+          targetHandle: 'parents',
+        })
+      }
+
+      return trueSiblings.size
     }
 
-    if (!hasSiblings) {
-      const parentEdges = parents.map(({ personId: parentId }) => ({
-        id: `${parentId}isParentOf${personId}`,
-        source: parentId,
-        target: personId,
-        sourceHandle: 'children',
-        targetHandle: 'parents',
-      }))
-      edges = edges.concat(parentEdges)
-    }
-
-    return parentNodes
+    return 0
   }
 
   function makePersonNode(personId: UUID, position: { x: number; y: number }) {
