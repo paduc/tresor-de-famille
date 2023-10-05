@@ -107,7 +107,7 @@ export const PlusieursPersonnes = () => {
       <FamilyPage
         initialPersons={[
           { personId: originPersonId, name: 'Pierrot', profilePicUrl: fakeProfilePicUrl },
-          // { personId: wifeId, name: 'Anne-Sophie', profilePicUrl: fakePhoto('women') },
+          { personId: wifeId, name: 'Anne-Sophie', profilePicUrl: fakePhoto('women') },
           // { personId: papaId, name: 'Papa', profilePicUrl: fakePhoto('men') },
           // { personId: bonPapaId, name: 'Bon-Papa', profilePicUrl: fakePhoto('men') },
           // { personId: bonneMamieId, name: 'Bonne-Mamie', profilePicUrl: fakePhoto('women') },
@@ -116,7 +116,7 @@ export const PlusieursPersonnes = () => {
           // { personId: mamaId, name: 'Maman', profilePicUrl: fakePhoto('women') },
           // { personId: broId, name: 'Frérot', profilePicUrl: fakePhoto('men') },
           // { personId: sisId, name: 'Soeurette', profilePicUrl: fakePhoto('women') },
-          // { personId: fille1Id, name: 'Fille 1', profilePicUrl: fakePhoto('women') },
+          { personId: fille1Id, name: 'Fille 1', profilePicUrl: fakePhoto('women') },
           // { personId: fille2Id, name: 'Fille 2', profilePicUrl: fakePhoto('women') },
           // { personId: fils1Id, name: 'Fils 1', profilePicUrl: fakePhoto('men') },
           // { personId: petiteFille1Id, name: 'Petite-fille 1', profilePicUrl: fakePhoto('women') },
@@ -126,23 +126,21 @@ export const PlusieursPersonnes = () => {
           // { personId: getUuid(), name: 'Prénom Nom', profilePicUrl: fakePhoto() },
           // { personId: getUuid(), name: 'Prénom Nom', profilePicUrl: fakePhoto() },
         ]}
-        initialRelationships={
-          [
-            // { type: 'spouses', spouseIds: [originPersonId, wifeId] },
-            // { type: 'parent', childId: originPersonId, parentId: papaId },
-            // { type: 'parent', childId: originPersonId, parentId: mamaId },
-            // { type: 'parent', childId: broId, parentId: mamaId },
-            // { type: 'parent', childId: sisId, parentId: papaId },
-            // { type: 'parent', childId: fille1Id, parentId: originPersonId },
-            // { type: 'parent', childId: fille2Id, parentId: originPersonId },
-            // { type: 'parent', childId: fils1Id, parentId: originPersonId },
-            // { type: 'parent', childId: petiteFille1Id, parentId: fille2Id },
-            // { type: 'parent', childId: papaId, parentId: bonPapaId },
-            // { type: 'parent', childId: papaId, parentId: bonneMamieId },
-            // { type: 'parent', childId: mamaId, parentId: papyId },
-            // { type: 'parent', childId: mamaId, parentId: mamyId },
-          ]
-        }
+        initialRelationships={[
+          // { type: 'spouses', spouseIds: [originPersonId, wifeId] },
+          // { type: 'parent', childId: originPersonId, parentId: papaId },
+          // { type: 'parent', childId: originPersonId, parentId: mamaId },
+          // { type: 'parent', childId: broId, parentId: mamaId },
+          // { type: 'parent', childId: sisId, parentId: papaId },
+          { type: 'parent', childId: fille1Id, parentId: originPersonId },
+          // { type: 'parent', childId: fille2Id, parentId: originPersonId },
+          // { type: 'parent', childId: fils1Id, parentId: originPersonId },
+          // { type: 'parent', childId: petiteFille1Id, parentId: fille2Id },
+          // { type: 'parent', childId: papaId, parentId: bonPapaId },
+          // { type: 'parent', childId: papaId, parentId: bonneMamieId },
+          // { type: 'parent', childId: mamaId, parentId: papyId },
+          // { type: 'parent', childId: mamaId, parentId: mamyId },
+        ]}
         originPersonId={originPersonId}
       />
     </SessionContext.Provider>

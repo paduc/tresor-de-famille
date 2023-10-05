@@ -10,7 +10,5 @@ pageRouter.route(FamilyPageURL()).get(requireAuth(), async (request, response) =
 
   const props = await getFamilyPageProps(request.session.user!.id)
 
-  console.log({ props })
-
   responseAsHtml(request, response, FamilyPage(props))
 })

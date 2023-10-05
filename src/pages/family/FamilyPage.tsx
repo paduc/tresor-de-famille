@@ -80,7 +80,6 @@ const ContainerSize = 200
 function transferFn({ originPersonId, persons, relationships }: PersonsRelationships): NodesEdges {
   let nodes: Node[] = []
   let edges: Edge[] = []
-  type PersonId = UUID
 
   // Create a node for the originPerson
   const originPerson = persons.find((person) => person.personId === originPersonId)
@@ -131,9 +130,9 @@ function transferFn({ originPersonId, persons, relationships }: PersonsRelations
   }
 
   // Add children
-  addChildren(coupleNode || originNode, originPersonId)
+  addChildren(coupleNode || originNode, originPersonId, !!coupleNode)
 
-  function addChildren(personNode: Node, personId: string): Node[] {
+  function addChildren(personNode: Node, personId: string, areParentsCouple: boolean): Node[] {
     if (!personNode) return []
 
     const { x: currentX, y: currentY } = personNode.position
@@ -155,6 +154,9 @@ function transferFn({ originPersonId, persons, relationships }: PersonsRelations
       let x = 0
       if (children.length === 1) {
         x = currentX
+        if (areParentsCouple) {
+          x -= BUBBLE_RADIUS - COUPLE_NODE_RADIUS
+        }
       } else {
         const count = children.length
         const childrenContainerWidth = (count - 1) * X_OFFSET
@@ -642,6 +644,38 @@ const ClientOnlyFamilyPage = ({ initialPersons, initialRelationships, originPers
     [pendingRelationshipAction, reactFlowInstance]
   )
 
+  const unselectableIds = React.useMemo(() => {
+    if (!pendingRelationshipAction) return []
+
+    const { relationshipAction, personId } = pendingRelationshipAction
+
+    switch (relationshipAction) {
+      case 'addChild':
+        return relationships
+          .filter((rel): rel is Relationship & { type: 'parent' } => rel.type === 'parent' && rel.parentId === personId)
+          .map((rel) => rel.childId)
+      case 'addParent':
+        return relationships
+          .filter((rel): rel is Relationship & { type: 'parent' } => rel.type === 'parent' && rel.childId === personId)
+          .map((rel) => rel.parentId)
+      case 'addFriend':
+        return relationships
+          .filter(
+            (rel): rel is Relationship & { type: 'friends' } => rel.type === 'friends' && rel.friendIds.includes(personId)
+          )
+          .flatMap((rel) => rel.friendIds.filter((fId) => fId !== personId))
+      case 'addSpouse':
+      case 'addFriend':
+        return relationships
+          .filter(
+            (rel): rel is Relationship & { type: 'spouses' } => rel.type === 'spouses' && rel.spouseIds.includes(personId)
+          )
+          .flatMap((rel) => rel.spouseIds.filter((sId) => sId !== personId))
+    }
+
+    return []
+  }, [pendingRelationshipAction, relationships])
+
   return (
     <AppLayout>
       <NodeListenerContext.Provider value={onNodeButtonPressed}>
@@ -669,6 +703,7 @@ const ClientOnlyFamilyPage = ({ initialPersons, initialRelationships, originPers
                   setOpen={showSearchPanel}
                   onPersonSelected={onPersonSelected}
                   pendingRelationshipAction={pendingRelationshipAction}
+                  unselectableIds={unselectableIds}
                 />
               </Panel>
             </ReactFlow>
@@ -810,9 +845,16 @@ type SearchPanelProps = {
   setOpen: (open: boolean) => void
   onPersonSelected: PersonAutocompleteProps['onPersonSelected']
   pendingRelationshipAction: PendingNodeRelationshipAction | null
+  unselectableIds: string[]
 }
 
-function SearchPanel({ open, setOpen, onPersonSelected, pendingRelationshipAction }: SearchPanelProps) {
+function SearchPanel({
+  open,
+  setOpen,
+  onPersonSelected,
+  pendingRelationshipAction,
+  unselectableIds: nodeIds,
+}: SearchPanelProps) {
   return (
     <Transition.Root show={open} as={React.Fragment}>
       <Dialog as='div' className='relative z-50' onClose={setOpen}>
@@ -877,6 +919,7 @@ function SearchPanel({ open, setOpen, onPersonSelected, pendingRelationshipActio
                           setOpen(false)
                           onPersonSelected(props)
                         }}
+                        unselectableIds={nodeIds}
                         className='max-w-xl text-gray-800'
                       />
                     </div>

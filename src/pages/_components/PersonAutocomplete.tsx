@@ -15,6 +15,7 @@ export type PersonAutocompleteProps = {
   onPersonSelected: (person: { type: 'known'; personId: UUID } | { type: 'unknown'; name: string }) => unknown
   className?: string
   presentPerson?: { name: string; personId: UUID }
+  unselectableIds?: string[]
 }
 
 // @ts-ignore
@@ -22,7 +23,12 @@ function classNames(...classes) {
   return classes.filter(Boolean).join(' ')
 }
 
-export const PersonAutocomplete = ({ onPersonSelected, className, presentPerson }: PersonAutocompleteProps) => {
+export const PersonAutocomplete = ({
+  onPersonSelected,
+  className,
+  presentPerson,
+  unselectableIds,
+}: PersonAutocompleteProps) => {
   const [query, setQuery] = useState('Jo')
 
   const index = usePersonSearch()
@@ -39,7 +45,8 @@ export const PersonAutocomplete = ({ onPersonSelected, className, presentPerson 
         return
       }
       const { hits } = await index.search(query)
-      setHits(hits as SearchPersonHitDTO[])
+      const selectableHits = unselectableIds ? hits.filter((hit) => !unselectableIds.includes(hit.objectID)) : hits
+      setHits(selectableHits as SearchPersonHitDTO[])
     }
 
     fetchResults()
