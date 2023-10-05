@@ -12,7 +12,7 @@ export const getFamilyPageProps = async (userId: UUID): Promise<FamilyPageProps>
 
   const persons = await getUserFamilyPersonIds(userId)
 
-  return { initialPersons: persons, initialRelationships: [], originPersonId: userPersonId }
+  return { initialPersons: persons, initialRelationships: [], initialOriginPersonId: userPersonId }
 }
 
 type Person = FamilyPageProps['initialPersons'][number]

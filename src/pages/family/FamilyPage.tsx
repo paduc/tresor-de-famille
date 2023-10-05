@@ -92,10 +92,8 @@ function transferFn({ originPersonId, persons, relationships }: PersonsRelations
   const originNode = {
     id: originPersonId,
     type: 'person',
-    data: { label: originPerson.name, profilePicUrl: originPerson.profilePicUrl, hovered: false },
+    data: { label: originPerson.name, profilePicUrl: originPerson.profilePicUrl },
     position: { x: currentX, y: currentY },
-    selectable: true,
-    draggable: false,
     selected: true,
   }
   nodes.push(originNode)
@@ -246,11 +244,14 @@ function transferFn({ originPersonId, persons, relationships }: PersonsRelations
         edges = edges.concat(coupleEdges)
 
         for (const siblingId of siblingIds) {
-          const siblingNode = makePersonNode(siblingId, {
-            x: personNode.position.x - 80 * counter++,
-            y: personNode.position.y,
-          })
-          nodes.push(siblingNode)
+          let siblingNode = personNode
+          if (siblingId !== personId) {
+            siblingNode = makePersonNode(siblingId, {
+              x: personNode.position.x - 80 * counter++,
+              y: personNode.position.y,
+            })
+            nodes.push(siblingNode)
+          }
           edges.push({
             id: `${coupleNode.id}isParentOf${siblingId}`,
             source: coupleNode.id,
@@ -351,7 +352,7 @@ const nodeTypes = {
 export type FamilyPageProps = {
   initialPersons: Person[]
   initialRelationships: Relationship[]
-  originPersonId: UUID
+  initialOriginPersonId: UUID
 }
 
 export const FamilyPage = withBrowserBundle((props: FamilyPageProps) => {
@@ -362,7 +363,7 @@ export const FamilyPage = withBrowserBundle((props: FamilyPageProps) => {
   )
 })
 
-const ClientOnlyFamilyPage = ({ initialPersons, initialRelationships, originPersonId }: FamilyPageProps) => {
+const ClientOnlyFamilyPage = ({ initialPersons, initialRelationships, initialOriginPersonId }: FamilyPageProps) => {
   const reactFlowWrapper = useRef<HTMLDivElement | null>(null)
   const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance | null>(null)
 
@@ -370,6 +371,7 @@ const ClientOnlyFamilyPage = ({ initialPersons, initialRelationships, originPers
   const [edges, setEdges, onEdgesChange] = useEdgesState([])
   const [persons, setPersons] = useState(initialPersons)
   const [relationships, setRelationships] = useState(initialRelationships)
+  const [originPersonId, setOriginPersonId] = useState(initialOriginPersonId)
 
   React.useEffect(() => {
     const { nodes, edges } = transferFn({ persons, relationships, originPersonId })
@@ -386,7 +388,7 @@ const ClientOnlyFamilyPage = ({ initialPersons, initialRelationships, originPers
     }
     setNodes(Array.from(uniqueNodes.values()))
     setEdges(Array.from(uniqueEdges.values()))
-  }, [persons, relationships, reactFlowInstance])
+  }, [persons, relationships, originPersonId, reactFlowInstance])
 
   // const [origX, setOrigX] = useState<number | undefined>()
   // const [origY, setOrigY] = useState<number | undefined>()
@@ -676,6 +678,15 @@ const ClientOnlyFamilyPage = ({ initialPersons, initialRelationships, originPers
     return []
   }, [pendingRelationshipAction, relationships])
 
+  const onSelectionChange = useCallback(
+    ({ nodes, edges }: { nodes: Node[]; edges: Edge[] }) => {
+      if (nodes.length === 1) {
+        setOriginPersonId(nodes[0].id as UUID)
+      }
+    },
+    [reactFlowInstance]
+  )
+
   return (
     <AppLayout>
       <NodeListenerContext.Provider value={onRelationshipButtonPressed}>
@@ -694,7 +705,7 @@ const ClientOnlyFamilyPage = ({ initialPersons, initialRelationships, originPers
               // onNodeDragStop={onNodeDragStop}
               // onDragOver={onDragOver}
               // onDrop={onDrop}
-
+              onSelectionChange={onSelectionChange}
               nodeTypes={nodeTypes}
               fitView>
               <Background />
@@ -880,8 +891,7 @@ type DonutProps = {
 }
 type DonutPosition = 'top' | 'bottom' | 'left' | 'right'
 
-const DonutSection = ({ position, className, style, svgStyle, hovered, label, onClick }: DonutProps) => {
-  const isActive = hovered === position
+const DonutSection = ({ position, className, style, svgStyle, label, onClick }: DonutProps) => {
   const [isHovered, setHovered] = useState<boolean>(false)
 
   // Calculate the center of the container
@@ -987,9 +997,9 @@ const DonutSection = ({ position, className, style, svgStyle, hovered, label, on
           className='transition-all duration-700 ease-in-out'
           cx={circleLeft}
           cy={circleTop}
-          r={`${isActive || isHovered ? ContainerSize / 2 : circleR}`}
+          r={`${isHovered ? ContainerSize / 2 : circleR}`}
           mask={`url(#${maskId})`}
-          fill={`${isActive || isHovered ? 'rgb(79 70 229)' : '#D3D3D3'}`}
+          fill={`${isHovered ? 'rgb(79 70 229)' : '#D3D3D3'}`}
         />
 
         {/** this is an invisible path to catch mouse events */}
@@ -1002,7 +1012,7 @@ const DonutSection = ({ position, className, style, svgStyle, hovered, label, on
           onClick={() => onClick?.(position)}
         />
       </svg>
-      {!!label && (isActive || isHovered) && (
+      {!!label && isHovered && (
         <div
           className='absolute'
           style={{
@@ -1055,7 +1065,6 @@ function PersonNode({
   hovered: DonutPosition | false
   isOriginPerson?: true
 }>) {
-  // console.log('PersonNode render', id, data)
   const onNodeButtonPressed = React.useContext(NodeListenerContext)
 
   const handleDonutClick = useCallback(
@@ -1093,27 +1102,21 @@ function PersonNode({
       <Handle id='children' type='source' style={{ opacity: 0 }} position={Position.Bottom} />
       <Handle id='person-left' type='target' style={{ opacity: 0 }} position={Position.Left} />
       <Handle id='person-right' type='source' style={{ opacity: 0 }} position={Position.Right} />
-      {(data.hovered || selected) && (
+      {selected && (
         <>
           {/* Bottom */}
           <DonutSection
             position='bottom'
             label='Ajouter un enfant'
             onClick={handleDonutClick}
-            hovered={data.hovered}
             className='z-20' // To go over the name label
           />
           {/* Left */}
-          <DonutSection label='Ajouter un ami' onClick={handleDonutClick} position='left' hovered={data.hovered} />
+          <DonutSection label='Ajouter un ami' onClick={handleDonutClick} position='left' />
           {/* Top */}
-          <DonutSection label='Ajouter un parent' onClick={handleDonutClick} position='top' hovered={data.hovered} />
+          <DonutSection label='Ajouter un parent' onClick={handleDonutClick} position='top' />
           {/* Right */}
-          <DonutSection
-            label='Ajouter un compagnon / époux'
-            onClick={handleDonutClick}
-            position='right'
-            hovered={data.hovered}
-          />
+          <DonutSection label='Ajouter un compagnon / époux' onClick={handleDonutClick} position='right' />
         </>
       )}
 
