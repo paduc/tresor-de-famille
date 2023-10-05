@@ -374,7 +374,7 @@ const ClientOnlyFamilyPage = ({ initialPersons, initialRelationships, originPers
   React.useEffect(() => {
     const { nodes, edges } = transferFn({ persons, relationships, originPersonId })
 
-    console.log('useEffect', { persons, relationships, nodes, edges })
+    // console.log('useEffect', { persons, relationships, nodes, edges })
 
     const uniqueNodes = new Map<string, Node>()
     for (const node of nodes) {
@@ -388,8 +388,8 @@ const ClientOnlyFamilyPage = ({ initialPersons, initialRelationships, originPers
     setEdges(Array.from(uniqueEdges.values()))
   }, [persons, relationships, reactFlowInstance])
 
-  const [origX, setOrigX] = useState<number | undefined>()
-  const [origY, setOrigY] = useState<number | undefined>()
+  // const [origX, setOrigX] = useState<number | undefined>()
+  // const [origY, setOrigY] = useState<number | undefined>()
 
   // const onNodeDragStart = useCallback((e: React.MouseEvent, node: Node) => {
   //   dragRef.current = node
@@ -595,7 +595,7 @@ const ClientOnlyFamilyPage = ({ initialPersons, initialRelationships, originPers
 
   const [pendingRelationshipAction, setPendingRelationshipAction] = useState<PendingNodeRelationshipAction | null>(null)
 
-  const onNodeButtonPressed = useCallback((nodeId: string, newRelationshipAction: NewRelationshipAction) => {
+  const onRelationshipButtonPressed = useCallback((nodeId: string, newRelationshipAction: NewRelationshipAction) => {
     // console.log('top level onNodeButtonPressed', nodeId, newRelationshipAction)
     // Open search panel
     showSearchPanel(true)
@@ -604,7 +604,7 @@ const ClientOnlyFamilyPage = ({ initialPersons, initialRelationships, originPers
     setPendingRelationshipAction({ personId: nodeId as UUID, relationshipAction: newRelationshipAction })
   }, [])
 
-  const onPersonSelected = useCallback<PersonAutocompleteProps['onPersonSelected']>(
+  const onSearchPersonSelected = useCallback<PersonAutocompleteProps['onPersonSelected']>(
     (person) => {
       // console.log('onPersonSelected', person, pendingRelationshipAction)
 
@@ -678,7 +678,7 @@ const ClientOnlyFamilyPage = ({ initialPersons, initialRelationships, originPers
 
   return (
     <AppLayout>
-      <NodeListenerContext.Provider value={onNodeButtonPressed}>
+      <NodeListenerContext.Provider value={onRelationshipButtonPressed}>
         {/* <UnattachedPersonList persons={persons} nodes={nodes} /> */}
         <ReactFlowProvider>
           <div className='w-full h-screen relative' ref={reactFlowWrapper}>
@@ -694,6 +694,7 @@ const ClientOnlyFamilyPage = ({ initialPersons, initialRelationships, originPers
               // onNodeDragStop={onNodeDragStop}
               // onDragOver={onDragOver}
               // onDrop={onDrop}
+
               nodeTypes={nodeTypes}
               fitView>
               <Background />
@@ -701,7 +702,7 @@ const ClientOnlyFamilyPage = ({ initialPersons, initialRelationships, originPers
                 <SearchPanel
                   open={isSearchPanelVisible}
                   setOpen={showSearchPanel}
-                  onPersonSelected={onPersonSelected}
+                  onPersonSelected={onSearchPersonSelected}
                   pendingRelationshipAction={pendingRelationshipAction}
                   unselectableIds={unselectableIds}
                 />
@@ -712,132 +713,6 @@ const ClientOnlyFamilyPage = ({ initialPersons, initialRelationships, originPers
       </NodeListenerContext.Provider>
     </AppLayout>
   )
-}
-
-type AddRelationshipArgs = {
-  sourcePersonId: UUID // the person that is selected
-  targetPerson: { type: 'known'; personId: UUID } | { type: 'unknown'; name: string } // The person that is added to the graph
-  relationshipAction: NewRelationshipAction
-  persons: Person[]
-  setNodes: (nodes: React.SetStateAction<Node[]>) => void
-  setEdges: (edges: React.SetStateAction<Edge[]>) => void
-}
-
-function addRelationship({
-  sourcePersonId,
-  targetPerson,
-  relationshipAction,
-  persons,
-  setNodes,
-  setEdges,
-}: AddRelationshipArgs) {
-  let newNode: Node | null = null
-
-  let relationAlreadyExistedForTargetId: string | false = false
-
-  setNodes((initialNodes) => {
-    let nodes = initialNodes
-
-    const targetNode = targetPerson.type === 'known' && nodes.find((node) => node.id === targetPerson.personId)
-
-    if (targetNode) {
-      relationAlreadyExistedForTargetId = targetNode.id
-      // remove the old node
-      nodes.splice(nodes.findIndex((node) => node.id === targetPerson.personId) + 1)
-    }
-
-    const currentNode = nodes.find((node) => node.id === sourcePersonId)
-
-    if (!currentNode) return nodes
-
-    const currentNodePosition = currentNode.position
-
-    const profilePicUrl =
-      targetPerson.type === 'known' ? persons.find((p) => p.personId === targetPerson.personId)!.profilePicUrl : null
-
-    const name =
-      targetPerson.type === 'known' ? persons.find((p) => p.personId === targetPerson.personId)!.name : targetPerson.name
-
-    newNode = {
-      id: targetPerson.type === 'known' ? targetPerson.personId : getUuid(),
-      type: 'person',
-      position: {
-        x: ['addParent', 'addChild'].includes(relationshipAction)
-          ? currentNodePosition.x
-          : relationshipAction === 'addFriend'
-          ? currentNodePosition.x - 100
-          : currentNodePosition.x + 100,
-        y: ['addFriend', 'addSpouse'].includes(relationshipAction)
-          ? currentNodePosition.y
-          : relationshipAction === 'addParent'
-          ? currentNodePosition.y - 100
-          : currentNodePosition.y + 100,
-      },
-      data: { label: name, profilePicUrl, hovered: false },
-    }
-
-    return [...nodes, newNode]
-  })
-
-  setEdges((initialEdges) => {
-    let edges = [...initialEdges]
-
-    if (!newNode) {
-      return edges
-    }
-
-    if (relationAlreadyExistedForTargetId) {
-      edges = edges.filter(
-        ({ source, target }) => source !== relationAlreadyExistedForTargetId && target !== relationAlreadyExistedForTargetId
-      )
-    }
-
-    let sourceHandle = ''
-    let targetHandle = ''
-    let source = ''
-    let target = ''
-    switch (relationshipAction) {
-      case 'addChild': {
-        source = sourcePersonId
-        target = newNode.id
-        sourceHandle = 'children'
-        targetHandle = 'parents'
-        break
-      }
-      case 'addParent': {
-        // On est obligés d'inverser l'ordre
-        source = newNode.id
-        target = sourcePersonId
-        sourceHandle = 'children'
-        targetHandle = 'parents'
-        break
-      }
-      case 'addFriend': {
-        // Inversion
-        source = newNode.id
-        target = sourcePersonId
-        sourceHandle = 'person-right'
-        targetHandle = 'person-left'
-        break
-      }
-      case 'addSpouse': {
-        source = sourcePersonId
-        target = newNode.id
-        sourceHandle = 'person-right'
-        targetHandle = 'person-left'
-        break
-      }
-    }
-    const newEdge: Edge = {
-      id: getUuid(),
-      source,
-      target,
-      sourceHandle,
-      targetHandle,
-    }
-
-    return [...edges, newEdge]
-  })
 }
 
 type SearchPanelProps = {
