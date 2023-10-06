@@ -98,6 +98,7 @@ function transferFn({ origin, persons, relationships }: PersonsRelationships): N
     data: { label: originPerson.name, profilePicUrl: originPerson.profilePicUrl },
     position: { x: currentX, y: currentY },
     selected: true,
+    draggable: false,
   }
   nodes.push(originNode)
 
@@ -762,7 +763,6 @@ const ClientOnlyFamilyPage = ({ initialPersons, initialRelationships, initialOri
         const selectedNode = nodes[0]
         const { x, y } = selectedNode.position
         setOrigin({ personId: selectedNode.id as UUID, x, y })
-        reactFlowInstance?.setCenter(x, y)
       }
     },
     [reactFlowInstance]
@@ -1177,29 +1177,45 @@ function PersonNode({
     [onNodeButtonPressed]
   )
 
+  const handleMobileButtonClick = useCallback(
+    (newRelationshipAction: NewRelationshipAction) => () => {
+      // Remember the nodeId and the position
+
+      if (onNodeButtonPressed) onNodeButtonPressed(id, newRelationshipAction)
+    },
+    [onNodeButtonPressed]
+  )
+
+  const addChildLabel = 'Ajouter un enfant'
+  const addFriendLabel = 'Ajouter un ami'
+  const addParentLabel = 'Ajouter un parent'
+  const addSpouseLabel = 'Ajouter un compagnon / époux'
   return (
     <div className='text-center relative' key={`personNode_${id}`}>
       <Handle id='parents' type='target' style={{ opacity: 0 }} position={Position.Top} />
       <Handle id='children' type='source' style={{ opacity: 0 }} position={Position.Bottom} />
       <Handle id='person-left' type='target' style={{ opacity: 0 }} position={Position.Left} />
       <Handle id='person-right' type='source' style={{ opacity: 0 }} position={Position.Right} />
-      {selected && (
-        <>
-          {/* Bottom */}
-          <DonutSection
-            position='bottom'
-            label='Ajouter un enfant'
-            onClick={handleDonutClick}
-            className='z-20' // To go over the name label
-          />
-          {/* Left */}
-          <DonutSection label='Ajouter un ami' onClick={handleDonutClick} position='left' />
-          {/* Top */}
-          <DonutSection label='Ajouter un parent' onClick={handleDonutClick} position='top' />
-          {/* Right */}
-          <DonutSection label='Ajouter un compagnon / époux' onClick={handleDonutClick} position='right' />
-        </>
-      )}
+
+      <div className='invisible sm:visible'>
+        {selected && (
+          <>
+            {/* Bottom */}
+            <DonutSection
+              position='bottom'
+              label={addChildLabel}
+              onClick={handleDonutClick}
+              className='z-20' // To go over the name label
+            />
+            {/* Left */}
+            <DonutSection label={addFriendLabel} onClick={handleDonutClick} position='left' />
+            {/* Top */}
+            <DonutSection label={addParentLabel} onClick={handleDonutClick} position='top' />
+            {/* Right */}
+            <DonutSection label={addSpouseLabel} onClick={handleDonutClick} position='right' />
+          </>
+        )}
+      </div>
 
       <div className='relative'>
         {data.profilePicUrl ? (
@@ -1219,9 +1235,56 @@ function PersonNode({
             {data.label}
           </span>
         </div>
+        <div className={`${selected ? 'focus:visible' : 'invisible'} sm:invisible`}>
+          <ActionLabel
+            label={addParentLabel}
+            position={{ bottom: BUBBLE_RADIUS * 2 + 5 }}
+            onClick={handleMobileButtonClick('addParent')}
+          />
+          <ActionLabel
+            label={addSpouseLabel}
+            position={{ left: BUBBLE_RADIUS * 2 + 5, top: BUBBLE_RADIUS - 20 }}
+            onClick={handleMobileButtonClick('addSpouse')}
+          />
+          <ActionLabel
+            label={addChildLabel}
+            position={{ top: BUBBLE_RADIUS * 2 + 15 }}
+            onClick={handleMobileButtonClick('addChild')}
+          />
+          <ActionLabel
+            label={addFriendLabel}
+            position={{ right: BUBBLE_RADIUS * 2 + 5, top: BUBBLE_RADIUS - 15 }}
+            onClick={handleMobileButtonClick('addFriend')}
+          />
+        </div>
       </div>
-      {/* {<div>{data?.label}</div>} */}
-      {/* <Handle type='source' position={sourcePosition} isConnectable={isConnectable} /> */}
+    </div>
+  )
+}
+
+type ActionLabelProps = {
+  label: string
+  position: {
+    top?: number | string
+    bottom?: number | string
+    left?: number | string
+    right?: number | string
+  }
+  onClick?: () => void
+}
+
+function ActionLabel({ label, position, onClick }: ActionLabelProps) {
+  return (
+    <div
+      className='absolute'
+      style={{
+        fontSize: 8,
+        ...position,
+      }}
+      onClick={onClick}>
+      <span className='inline-flex items-center rounded-full bg-indigo-50 px-2 py-1 text-indigo-700 ring-1 ring-inset ring-indigo-700/10'>
+        {label}
+      </span>
     </div>
   )
 }
