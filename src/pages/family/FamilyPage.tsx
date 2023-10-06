@@ -97,7 +97,7 @@ function transferFn({ origin, persons, relationships }: PersonsRelationships): N
     type: 'person',
     data: { label: originPerson.name, profilePicUrl: originPerson.profilePicUrl, isOriginPerson: true },
     position: { x: currentX, y: currentY },
-    selected: true,
+    selected: false,
     draggable: false,
   }
   nodes.push(originNode)
@@ -761,11 +761,12 @@ const ClientOnlyFamilyPage = ({ initialPersons, initialRelationships, initialOri
     ({ nodes, edges }: { nodes: Node[]; edges: Edge[] }) => {
       if (nodes.length === 1) {
         const selectedNode = nodes[0]
+        if (selectedNode.id === origin.personId) return
         const { x, y } = selectedNode.position
         setOrigin({ personId: selectedNode.id as UUID, x, y })
       }
     },
-    [reactFlowInstance]
+    [reactFlowInstance, origin]
   )
 
   return (
@@ -1236,11 +1237,13 @@ function PersonNode({
         <div className='absolute w-full -mt-1 pointer-events-none z-10'>
           <span
             style={{ fontSize: 8 }}
-            className='inline-flex  items-center rounded-md bg-gray-50 px-1 py-0.5   text-gray-600 ring-1 ring-inset ring-gray-500/10'>
+            className={`inline-flex  items-center rounded-md bg-gray-50 px-1 py-0.5    ring-1 ring-inset ${
+              selected || data.isOriginPerson ? 'text-indigo-700 ring-indigo-500/50' : 'ring-gray-500/10 text-gray-600'
+            } `}>
             {data.label}
           </span>
         </div>
-        <div className={`${selected ? 'focus:visible' : 'invisible'} sm:invisible`}>
+        <div className={`${selected ? 'focus:visible' : 'invisible'} sm:invisible z-20`}>
           <ActionLabel
             label={addParentLabel}
             position={{ bottom: BUBBLE_RADIUS * 2 + 5 }}
@@ -1253,7 +1256,7 @@ function PersonNode({
           />
           <ActionLabel
             label={addChildLabel}
-            position={{ top: BUBBLE_RADIUS * 2 + 15 }}
+            position={{ top: BUBBLE_RADIUS * 2 + 5 }}
             onClick={handleMobileButtonClick('addChild')}
           />
           <ActionLabel
@@ -1281,7 +1284,7 @@ type ActionLabelProps = {
 function ActionLabel({ label, position, onClick }: ActionLabelProps) {
   return (
     <div
-      className='absolute'
+      className='absolute z-20'
       style={{
         fontSize: 8,
         ...position,
