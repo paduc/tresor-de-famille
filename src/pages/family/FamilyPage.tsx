@@ -95,7 +95,7 @@ function transferFn({ origin, persons, relationships }: PersonsRelationships): N
   const originNode = {
     id: originPersonId,
     type: 'person',
-    data: { label: originPerson.name, profilePicUrl: originPerson.profilePicUrl },
+    data: { label: originPerson.name, profilePicUrl: originPerson.profilePicUrl, isOriginPerson: true },
     position: { x: currentX, y: currentY },
     selected: true,
     draggable: false,
@@ -1221,10 +1221,15 @@ function PersonNode({
         {data.profilePicUrl ? (
           <img
             src={data.profilePicUrl}
-            className={`inline-block rounded-full h-14 w-14 ring-2 ${selected ? 'ring-indigo-500' : 'ring-white'} shadow-sm`}
+            className={`inline-block rounded-full h-14 w-14 ring-2 ${
+              selected || data.isOriginPerson ? 'ring-indigo-500' : 'ring-white'
+            } shadow-sm`}
           />
         ) : (
-          <span className='inline-flex h-14 w-14 items-center justify-center rounded-full bg-gray-500'>
+          <span
+            className={`inline-flex h-14 w-14 items-center justify-center rounded-full bg-gray-500 ring-2 ${
+              selected || data.isOriginPerson ? 'ring-indigo-500' : 'ring-white'
+            } shadow-sm`}>
             <span className='text-xl font-medium leading-none text-white'>{getInitials(data.label)}</span>
           </span>
         )}
