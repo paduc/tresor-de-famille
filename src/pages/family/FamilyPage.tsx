@@ -52,7 +52,11 @@ type Relationship =
     }
 
 type PersonsRelationships = {
-  originPersonId: UUID
+  origin: {
+    personId: UUID
+    x: number
+    y: number
+  }
   persons: Person[]
   relationships: Relationship[]
 }
@@ -77,7 +81,9 @@ const ContainerSize = 200
  * @param props persons and relationsip
  * @returns nodes and edges
  */
-function transferFn({ originPersonId, persons, relationships }: PersonsRelationships): NodesEdges {
+function transferFn({ origin, persons, relationships }: PersonsRelationships): NodesEdges {
+  const { personId: originPersonId, x: currentX, y: currentY } = origin
+
   let nodes: Node[] = []
   let edges: Edge[] = []
 
@@ -85,9 +91,6 @@ function transferFn({ originPersonId, persons, relationships }: PersonsRelations
   const originPerson = persons.find((person) => person.personId === originPersonId)
 
   if (!originPerson) throw new Error('Could not find origin person in list of persons')
-
-  let currentX = 0
-  let currentY = 0
 
   const originNode = {
     id: originPersonId,
@@ -442,10 +445,14 @@ const ClientOnlyFamilyPage = ({ initialPersons, initialRelationships, initialOri
   const [edges, setEdges, onEdgesChange] = useEdgesState([])
   const [persons, setPersons] = useState(initialPersons)
   const [relationships, setRelationships] = useState(initialRelationships)
-  const [originPersonId, setOriginPersonId] = useState(initialOriginPersonId)
+  const [origin, setOrigin] = useState<{ personId: UUID; x: number; y: number }>({
+    personId: initialOriginPersonId,
+    x: 0,
+    y: 0,
+  })
 
   React.useEffect(() => {
-    const { nodes, edges } = transferFn({ persons, relationships, originPersonId })
+    const { nodes, edges } = transferFn({ persons, relationships, origin })
 
     // console.log('useEffect', { persons, relationships, nodes, edges })
 
@@ -459,7 +466,7 @@ const ClientOnlyFamilyPage = ({ initialPersons, initialRelationships, initialOri
     }
     setNodes(Array.from(uniqueNodes.values()))
     setEdges(Array.from(uniqueEdges.values()))
-  }, [persons, relationships, originPersonId, reactFlowInstance])
+  }, [persons, relationships, origin, reactFlowInstance])
 
   // const [origX, setOrigX] = useState<number | undefined>()
   // const [origY, setOrigY] = useState<number | undefined>()
@@ -752,7 +759,10 @@ const ClientOnlyFamilyPage = ({ initialPersons, initialRelationships, initialOri
   const onSelectionChange = useCallback(
     ({ nodes, edges }: { nodes: Node[]; edges: Edge[] }) => {
       if (nodes.length === 1) {
-        setOriginPersonId(nodes[0].id as UUID)
+        const selectedNode = nodes[0]
+        const { x, y } = selectedNode.position
+        setOrigin({ personId: selectedNode.id as UUID, x, y })
+        reactFlowInstance?.setCenter(x, y)
       }
     },
     [reactFlowInstance]
