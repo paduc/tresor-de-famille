@@ -803,34 +803,53 @@ const ClientOnlyFamilyPage = ({ initialPersons, initialRelationships, initialOri
 
       const { relationshipAction, personId: sourcePersonId } = pendingRelationshipAction
 
-      const targetPerson = person.type === 'unknown' ? { personId: getUuid(), name: person.name } : person
-
-      const newPersonId = targetPerson.personId
-
       // console.log('onPersonSelected', { newPersonId, sourcePersonId })
+
+      const { newPerson, targetPersonId } = getNewPerson()
 
       // Add Node if new person (call setPersons)
       setPersons((persons) => {
-        if (targetPerson) {
-          return [...persons, targetPerson as Person]
+        if (newPerson) {
+          return [...persons, newPerson as Person]
         }
 
         return persons
       })
 
+      const newRelationship = getNewRelationship()
+
       // Add Relationship
       setRelationships((relationships) => {
+        return [...relationships, newRelationship]
+      })
+
+      // TODO: if error, revert change
+      saveNewRelationship({ newPerson, relationship: newRelationship })
+
+      function getNewPerson(): { newPerson?: Person; targetPersonId: UUID } {
+        if (person.type === 'unknown') {
+          const newPersonId = getUuid()
+          return {
+            newPerson: { personId: newPersonId, name: person.name, profilePicUrl: null },
+            targetPersonId: newPersonId,
+          }
+        }
+
+        return { targetPersonId: person.personId }
+      }
+
+      function getNewRelationship(): Relationship {
         switch (relationshipAction) {
           case 'addChild':
-            return [...relationships, { type: 'parent', childId: newPersonId, parentId: sourcePersonId }]
+            return { type: 'parent', childId: targetPersonId, parentId: sourcePersonId }
           case 'addParent':
-            return [...relationships, { type: 'parent', childId: sourcePersonId, parentId: newPersonId }]
+            return { type: 'parent', childId: sourcePersonId, parentId: targetPersonId }
           case 'addFriend':
-            return [...relationships, { type: 'friends', friendIds: [newPersonId, sourcePersonId] }]
+            return { type: 'friends', friendIds: [targetPersonId, sourcePersonId] }
           case 'addSpouse':
-            return [...relationships, { type: 'spouses', spouseIds: [newPersonId, sourcePersonId] }]
+            return { type: 'spouses', spouseIds: [targetPersonId, sourcePersonId] }
         }
-      })
+      }
     },
     [pendingRelationshipAction, reactFlowInstance]
   )
@@ -1422,4 +1441,29 @@ function getInitials(name: string): string {
   }
 
   return initials
+}
+
+type SaveNewRelationshipArgs = {
+  newPerson?: Person
+  relationship: Relationship
+}
+
+const saveNewRelationship = ({ newPerson, relationship }: SaveNewRelationshipArgs) => {
+  // setStatus('saving')
+  fetch(`/family/saveNewRelationship`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ newPerson, relationship }),
+  }).then((res) => {
+    if (!res.ok) {
+      alert("La nouvelle relation n'a pas pu être sauvegardée.")
+      // setStatus('error')
+      return
+    }
+    // setStatus('saved')
+    // setLatestTitle(newTitle)
+    // setTimeout(() => {
+    //   setStatus('idle')
+    // }, 2000)
+  })
 }
