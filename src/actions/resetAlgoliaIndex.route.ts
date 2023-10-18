@@ -5,6 +5,7 @@ import { personsIndex } from '../dependencies/search'
 import { GedcomImported } from '../events'
 import { UserNamedPersonInPhoto } from '../events/onboarding/UserNamedPersonInPhoto'
 import { UserNamedThemself } from '../events/onboarding/UserNamedThemself'
+import { UserCreatedRelationshipWithNewPerson } from '../pages/family/UserCreatedRelationshipWithNewPerson'
 import { PhotoAnnotatedUsingOpenAI } from '../pages/photo/annotatePhotoUsingOpenAI/PhotoAnnotatedUsingOpenAI'
 import { PhotoAnnotationConfirmed } from '../pages/photo/confirmPhotoAnnotation/PhotoAnnotationConfirmed'
 import { actionsRouter } from './actionsRouter'
@@ -47,6 +48,14 @@ actionsRouter.get('/resetAlgoliaIndex', requireAuth(), async (request, response)
     response.send(error.message).status(400)
   }
 
+  try {
+    await indexPersonCreatedWithRelationship()
+  } catch (error) {
+    console.error(error)
+    // @ts-ignore
+    response.send(error.message).status(400)
+  }
+
   response.send('Everything is OK: algolia persons index has been rebuilt')
 })
 
@@ -62,6 +71,22 @@ async function indexUserNamedThemself() {
       id: personId,
       name,
       visible_by: [`person/${personId}`, `user/${onboardedPerson.payload.userId}`],
+    })
+  }
+}
+
+async function indexPersonCreatedWithRelationship() {
+  const { rows: newPersons } = await postgres.query<UserCreatedRelationshipWithNewPerson>(
+    "SELECT * FROM history WHERE type = 'UserCreatedRelationshipWithNewPerson'"
+  )
+
+  for (const newPerson of newPersons) {
+    const { personId, name } = newPerson.payload.newPerson
+    await personsIndex.saveObject({
+      objectID: personId,
+      id: personId,
+      name,
+      visible_by: [`person/${personId}`, `user/${newPerson.payload.userId}`],
     })
   }
 }

@@ -9,6 +9,7 @@ import { zIsUUID } from '../../domain'
 import { addToHistory } from '../../dependencies/addToHistory'
 import { UserCreatedRelationshipWithNewPerson } from './UserCreatedRelationshipWithNewPerson'
 import { UserCreatedNewRelationship } from './UserCreatedNewRelationship'
+import { personsIndex } from '../../dependencies/search'
 
 pageRouter.route(FamilyPageURL()).get(requireAuth(), async (request, response) => {
   // const { personId } = z.object({ personId: zIsUUID }).parse(request.params)
@@ -39,6 +40,18 @@ pageRouter.route('/family/saveNewRelationship').post(requireAuth(), async (reque
         userId,
       })
     )
+
+    try {
+      const { personId, name } = newPerson
+      await personsIndex.saveObject({
+        objectID: personId,
+        personId,
+        name,
+        visible_by: [`person/${personId}`, `user/${userId}`],
+      })
+    } catch (error) {
+      console.error('Could not add new family member to algolia index', error)
+    }
   } else {
     await addToHistory(
       UserCreatedNewRelationship({

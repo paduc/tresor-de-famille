@@ -5,6 +5,7 @@ import { UserNamedPersonInPhoto } from '../events/onboarding/UserNamedPersonInPh
 import { UserNamedThemself } from '../events/onboarding/UserNamedThemself'
 
 import { OpenAIMadeDeductions } from './chat/sendToOpenAIForDeductions/OpenAIMadeDeductions'
+import { UserCreatedRelationshipWithNewPerson } from './family/UserCreatedRelationshipWithNewPerson'
 import { PhotoAnnotatedUsingOpenAI } from './photo/annotatePhotoUsingOpenAI/PhotoAnnotatedUsingOpenAI'
 
 type OpenAIDeductionPerson = { name: string }
@@ -74,6 +75,19 @@ export const getPersonById = async (personId: UUID): Promise<PersonById | null> 
     for (const personNamed of personsNamedDuringOnboarding) {
       const person = personNamed.payload
       addOrMerge(person.personId, { name: person.name })
+    }
+  }
+
+  const { rows: personsAddedWithNewRelationship } = await postgres.query<UserCreatedRelationshipWithNewPerson>(
+    "SELECT * FROM history WHERE type = 'UserCreatedRelationshipWithNewPerson'"
+  )
+
+  if (personsAddedWithNewRelationship.length) {
+    for (const relWithNewPerson of personsAddedWithNewRelationship) {
+      const {
+        newPerson: { personId, name },
+      } = relWithNewPerson.payload
+      addOrMerge(personId, { name })
     }
   }
 
