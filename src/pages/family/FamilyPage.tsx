@@ -883,7 +883,7 @@ function PersonNode({
       <Handle id='person-left' type='target' style={{ opacity: 0, left: 5 }} position={Position.Left} />
       <Handle id='person-right' type='source' style={{ opacity: 0, right: 5 }} position={Position.Right} />
 
-      <div className='relative'>
+      <div className='relative z-10'>
         {data.profilePicUrl ? (
           <img
             src={data.profilePicUrl}
@@ -910,22 +910,18 @@ function PersonNode({
         <div className={`${selected ? 'focus:visible' : 'invisible'} z-20 relative`}>
           <ActionLabel
             label={addParentLabel}
-            position={{ bottom: BUBBLE_RADIUS * 2 + 5 }}
+            position={{ bottom: BUBBLE_RADIUS * 2 + 5, left: 0 }}
             onClick={handleButtonPress('addParent')}
           />
           <ActionLabel
             label={addSpouseLabel}
-            position={{ left: BUBBLE_RADIUS * 2 + 5, top: BUBBLE_RADIUS - 20 }}
+            position={{ bottom: BUBBLE_RADIUS - 20, left: BUBBLE_RADIUS * 2 + 5 }}
             onClick={handleButtonPress('addSpouse')}
           />
-          <ActionLabel
-            label={addChildLabel}
-            position={{ top: BUBBLE_RADIUS * 2 + 5 }}
-            onClick={handleButtonPress('addChild')}
-          />
+          <ActionLabel label={addChildLabel} position={{ bottom: -70, left: 0 }} onClick={handleButtonPress('addChild')} />
           <ActionLabel
             label={addFriendLabel}
-            position={{ right: BUBBLE_RADIUS * 2 + 5, top: BUBBLE_RADIUS - 15 }}
+            position={{ bottom: BUBBLE_RADIUS - 20, right: BUBBLE_RADIUS * 2 + 5 }}
             onClick={handleButtonPress('addFriend')}
           />
         </div>
@@ -946,23 +942,9 @@ type ActionLabelProps = {
 }
 
 function ActionLabel({ label, position, onClick }: ActionLabelProps) {
-  // return (
-  //   <div
-  //     className='absolute z-20'
-  //     style={{
-  //       fontSize: 8,
-  //       ...position,
-  //     }}
-  //     onClick={onClick}>
-  //     <span className='inline-flex items-center rounded-full bg-indigo-50 px-2 py-1 text-indigo-700 ring-1 ring-inset ring-indigo-700/10'>
-  //       {label}
-  //     </span>
-  //   </div>
-  // )
-
   return (
     <span
-      className={`absolute z-20 ${primaryButtonStyles}`}
+      className={`absolute ${primaryButtonStyles} whitespace-nowrap`}
       style={{
         ...position,
       }}
