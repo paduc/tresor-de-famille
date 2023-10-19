@@ -19,12 +19,19 @@ import { withBrowserBundle } from '../../libs/ssr/withBrowserBundle'
 import { AppLayout } from '../_components/layout/AppLayout'
 import { UUID } from '../../domain'
 import { useCallback, useRef, useState } from 'react'
-import { ExclamationTriangleIcon, PhotoIcon, PlusIcon, XMarkIcon } from '@heroicons/react/24/outline'
+import { UserPlusIcon, PhotoIcon, PlusIcon, XMarkIcon } from '@heroicons/react/24/outline'
 import { getUuid } from '../../libs/getUuid'
 import { PersonAutocomplete, PersonAutocompleteProps } from '../_components/PersonAutocomplete'
 import { Transition, Dialog } from '@headlessui/react'
 import { ClientOnly } from '../_components/ClientOnly'
-import { secondaryButtonStyles, buttonIconStyles, primaryButtonStyles } from '../_components/Button'
+import {
+  secondaryButtonStyles,
+  buttonIconStyles,
+  primaryButtonStyles,
+  secondaryRedButtonStyles,
+  smallButtonStyles,
+  smallButtonIconStyles,
+} from '../_components/Button'
 
 // @ts-ignore
 function classNames(...classes) {
@@ -37,7 +44,7 @@ type Person = {
   personId: UUID
 }
 
-type Relationship =
+type Relationship = { id: UUID } & (
   | {
       type: 'parent'
       parentId: UUID
@@ -51,6 +58,7 @@ type Relationship =
       type: 'friends'
       friendIds: [UUID, UUID]
     }
+)
 
 type PersonsRelationships = {
   origin: {
@@ -561,6 +569,8 @@ const ClientOnlyFamilyPage = ({ initialPersons, initialRelationships, initialOri
     y: 0,
   })
 
+  const [pendingRelationshipAction, setPendingRelationshipAction] = useState<PendingNodeRelationshipAction | null>(null)
+
   React.useEffect(() => {
     const { nodes, edges } = transferFn({ persons, relationships, origin })
 
@@ -578,15 +588,13 @@ const ClientOnlyFamilyPage = ({ initialPersons, initialRelationships, initialOri
     setEdges(Array.from(uniqueEdges.values()))
   }, [persons, relationships, origin, reactFlowInstance])
 
-  const [pendingRelationshipAction, setPendingRelationshipAction] = useState<PendingNodeRelationshipAction | null>(null)
-
   const onRelationshipButtonPressed = useCallback((nodeId: string, newRelationshipAction: NewRelationshipAction) => {
     // Move the nodeId and the action to state
     setPendingRelationshipAction({ personId: nodeId as UUID, relationshipAction: newRelationshipAction })
   }, [])
 
   const onSearchPersonSelected = useCallback<SearchPanelProps['onPersonSelected']>(
-    (args) => {
+    async (args) => {
       if (args === null) {
         setPendingRelationshipAction(null)
         return
@@ -598,26 +606,28 @@ const ClientOnlyFamilyPage = ({ initialPersons, initialRelationships, initialOri
 
       const { newPerson, targetPersonId } = getNewPerson(selectedPerson)
 
-      // Add Node if new person (call setPersons)
-      setPersons((persons) => {
-        if (newPerson) {
-          return [...persons, newPerson as Person]
-        }
+      try {
+        const newRelationship = getNewRelationship()
 
-        return persons
-      })
+        // TODO: display loading state
+        await saveNewRelationship({ newPerson, relationship: newRelationship })
 
-      const newRelationship = getNewRelationship()
+        // Add Node if new person (call setPersons)
+        setPersons((persons) => {
+          if (newPerson) {
+            return [...persons, newPerson as Person]
+          }
 
-      // Add Relationship
-      setRelationships((relationships) => {
-        return [...relationships, newRelationship]
-      })
+          return persons
+        })
 
-      // TODO: if error, revert change
-      saveNewRelationship({ newPerson, relationship: newRelationship })
+        // Add Relationship
+        setRelationships((relationships) => {
+          return [...relationships, newRelationship]
+        })
 
-      setPendingRelationshipAction(null)
+        setPendingRelationshipAction(null)
+      } catch (error) {}
 
       function getNewPerson(person: Exclude<typeof selectedPerson, null>): { newPerson?: Person; targetPersonId: UUID } {
         if (person.type === 'unknown') {
@@ -634,59 +644,38 @@ const ClientOnlyFamilyPage = ({ initialPersons, initialRelationships, initialOri
       function getNewRelationship(): Relationship {
         switch (relationshipAction) {
           case 'addChild':
-            return { type: 'parent', childId: targetPersonId, parentId: sourcePersonId }
+            return { id: getUuid(), type: 'parent', childId: targetPersonId, parentId: sourcePersonId }
           case 'addParent':
-            return { type: 'parent', childId: sourcePersonId, parentId: targetPersonId }
+            return { id: getUuid(), type: 'parent', childId: sourcePersonId, parentId: targetPersonId }
           case 'addFriend':
-            return { type: 'friends', friendIds: [targetPersonId, sourcePersonId] }
+            return { id: getUuid(), type: 'friends', friendIds: [targetPersonId, sourcePersonId] }
           case 'addSpouse':
-            return { type: 'spouses', spouseIds: [targetPersonId, sourcePersonId] }
+            return { id: getUuid(), type: 'spouses', spouseIds: [targetPersonId, sourcePersonId] }
         }
       }
     },
     [reactFlowInstance]
   )
 
-  const unselectableIds = React.useMemo(() => {
-    if (!pendingRelationshipAction) return []
-
-    const { relationshipAction, personId } = pendingRelationshipAction
-
-    switch (relationshipAction) {
-      case 'addChild':
-        return relationships
-          .filter((rel): rel is Relationship & { type: 'parent' } => rel.type === 'parent' && rel.parentId === personId)
-          .map((rel) => rel.childId)
-      case 'addParent':
-        return relationships
-          .filter((rel): rel is Relationship & { type: 'parent' } => rel.type === 'parent' && rel.childId === personId)
-          .map((rel) => rel.parentId)
-      case 'addFriend':
-        return relationships
-          .filter(
-            (rel): rel is Relationship & { type: 'friends' } => rel.type === 'friends' && rel.friendIds.includes(personId)
-          )
-          .flatMap((rel) => rel.friendIds.filter((fId) => fId !== personId))
-      case 'addSpouse':
-      case 'addFriend':
-        return relationships
-          .filter(
-            (rel): rel is Relationship & { type: 'spouses' } => rel.type === 'spouses' && rel.spouseIds.includes(personId)
-          )
-          .flatMap((rel) => rel.spouseIds.filter((sId) => sId !== personId))
-    }
-
-    return []
-  }, [pendingRelationshipAction, relationships])
+  const onRemoveRelationship = useCallback(
+    async (relationshipId: UUID) => {
+      try {
+        // TODO: display loading state
+        await removeRelationship({ relationshipId })
+        setRelationships((rels) => rels.filter((rel) => rel.id !== relationshipId))
+      } catch (error) {}
+    },
+    [reactFlowInstance]
+  )
 
   const onSelectionChange = useCallback(
     ({ nodes, edges }: { nodes: Node[]; edges: Edge[] }) => {
-      if (nodes.length === 1) {
-        const selectedNode = nodes[0]
-        if (selectedNode.id === origin.personId) return
-        const { x, y } = selectedNode.position
-        setOrigin({ personId: selectedNode.id as UUID, x, y })
-      }
+      if (nodes.length !== 1) return
+
+      const selectedNode = nodes[0]
+      if (selectedNode.id === origin.personId) return
+      const { x, y } = selectedNode.position
+      setOrigin({ personId: selectedNode.id as UUID, x, y })
     },
     [reactFlowInstance, origin]
   )
@@ -701,13 +690,7 @@ const ClientOnlyFamilyPage = ({ initialPersons, initialRelationships, initialOri
               edges={edges}
               onNodesChange={onNodesChange}
               onEdgesChange={onEdgesChange}
-              // onConnect={onConnect}
               onInit={setReactFlowInstance}
-              // onNodeDrag={onNodeDrag}
-              // onNodeDragStart={onNodeDragStart}
-              // onNodeDragStop={onNodeDragStop}
-              // onDragOver={onDragOver}
-              // onDrop={onDrop}
               onSelectionChange={onSelectionChange}
               nodeTypes={nodeTypes}
               fitView>
@@ -715,8 +698,10 @@ const ClientOnlyFamilyPage = ({ initialPersons, initialRelationships, initialOri
               <Panel position='top-center'>
                 <SearchPanel
                   onPersonSelected={onSearchPersonSelected}
+                  onRemoveRelationship={onRemoveRelationship}
                   pendingRelationshipAction={pendingRelationshipAction}
-                  unselectableIds={unselectableIds}
+                  relationships={relationships}
+                  persons={persons}
                 />
               </Panel>
             </ReactFlow>
@@ -735,12 +720,49 @@ type SearchPanelProps = {
       relationshipAction: NewRelationshipAction
     } | null
   ) => unknown
+  onRemoveRelationship: (relationshipId: UUID) => unknown
   pendingRelationshipAction: PendingNodeRelationshipAction | null
-  unselectableIds: string[]
+  relationships: Relationship[]
+  persons: Person[]
 }
 
-function SearchPanel({ onPersonSelected, pendingRelationshipAction, unselectableIds: nodeIds }: SearchPanelProps) {
+function SearchPanel({
+  onPersonSelected,
+  onRemoveRelationship,
+  pendingRelationshipAction,
+  relationships,
+  persons,
+}: SearchPanelProps) {
   const close = () => onPersonSelected(null)
+
+  const relativeIdsWithThisRelationship: { personId: UUID; relationship: Relationship }[] = React.useMemo(() => {
+    if (!pendingRelationshipAction) return []
+
+    const { relationshipAction, personId } = pendingRelationshipAction
+
+    switch (relationshipAction) {
+      case 'addChild':
+        return relationships
+          .filter((rel): rel is Relationship & { type: 'parent' } => rel.type === 'parent' && rel.parentId === personId)
+          .map((relationship) => ({ personId: relationship.childId, relationship }))
+      case 'addParent':
+        return relationships
+          .filter((rel): rel is Relationship & { type: 'parent' } => rel.type === 'parent' && rel.childId === personId)
+          .map((relationship) => ({ personId: relationship.parentId, relationship }))
+      case 'addFriend':
+        return relationships
+          .filter(
+            (rel): rel is Relationship & { type: 'friends' } => rel.type === 'friends' && rel.friendIds.includes(personId)
+          )
+          .map((relationship) => ({ personId: relationship.friendIds.find((fId) => fId !== personId)!, relationship }))
+      case 'addSpouse':
+        return relationships
+          .filter(
+            (rel): rel is Relationship & { type: 'spouses' } => rel.type === 'spouses' && rel.spouseIds.includes(personId)
+          )
+          .map((relationship) => ({ personId: relationship.spouseIds.find((fId) => fId !== personId)!, relationship }))
+    }
+  }, [pendingRelationshipAction, relationships])
 
   return (
     <Transition.Root show={!!pendingRelationshipAction} as={React.Fragment}>
@@ -776,46 +798,85 @@ function SearchPanel({ onPersonSelected, pendingRelationshipAction, unselectable
                     <XMarkIcon className='h-6 w-6' aria-hidden='true' />
                   </button>
                 </div>
-                <div className='sm:flex sm:items-start'>
-                  <div className='mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10'>
-                    <ExclamationTriangleIcon className='h-6 w-6 text-red-600' aria-hidden='true' />
-                  </div>
-                  <div className='mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left'>
-                    <Dialog.Title as='h3' className='text-base font-semibold leading-6 text-gray-900'>
-                      {(() => {
-                        if (!pendingRelationshipAction) return 'Ajouter un parent'
-                        switch (pendingRelationshipAction.relationshipAction) {
-                          case 'addParent': {
-                            return 'Ajouter un père ou une mère'
+                <div className='divide-y divider-gray-200'>
+                  <div className='sm:flex sm:items-start pb-5'>
+                    <div className='mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-indigo-100 sm:mx-0 sm:h-10 sm:w-10'>
+                      <UserPlusIcon className='h-6 w-6 text-indigo-600' aria-hidden='true' />
+                    </div>
+                    <div className='mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left'>
+                      <Dialog.Title as='h3' className='text-base font-semibold leading-6 text-gray-900'>
+                        {(() => {
+                          if (!pendingRelationshipAction) return 'Ajouter un parent'
+                          switch (pendingRelationshipAction.relationshipAction) {
+                            case 'addParent': {
+                              return 'Ajouter un père ou une mère'
+                            }
+                            case 'addChild': {
+                              return 'Ajouter un fils ou une fille'
+                            }
+                            case 'addFriend': {
+                              return 'Ajouter un ami ou une connaissance'
+                            }
+                            case 'addSpouse': {
+                              return 'Ajouter un compagne, un époux, ...'
+                            }
                           }
-                          case 'addChild': {
-                            return 'Ajouter un fils ou une fille'
-                          }
-                          case 'addFriend': {
-                            return 'Ajouter un ami ou une connaissance'
-                          }
-                          case 'addSpouse': {
-                            return 'Ajouter un compagne, un époux, ...'
-                          }
-                        }
-                      })()}
-                    </Dialog.Title>
-                    <div className='mt-2'>
-                      <PersonAutocomplete
-                        onPersonSelected={(person) => {
-                          if (!pendingRelationshipAction) return
-                          const { personId, relationshipAction } = pendingRelationshipAction
-                          onPersonSelected({
-                            selectedPerson: person,
-                            sourcePersonId: personId,
-                            relationshipAction,
-                          })
-                        }}
-                        unselectableIds={nodeIds}
-                        className='max-w-xl text-gray-800'
-                      />
+                        })()}
+                      </Dialog.Title>
+                      <div className='mt-2'>
+                        <PersonAutocomplete
+                          onPersonSelected={(person) => {
+                            if (!pendingRelationshipAction) return
+                            const { personId, relationshipAction } = pendingRelationshipAction
+                            onPersonSelected({
+                              selectedPerson: person,
+                              sourcePersonId: personId,
+                              relationshipAction,
+                            })
+                          }}
+                          unselectableIds={relativeIdsWithThisRelationship.map((rel) => rel.personId)}
+                          className='max-w-xl text-gray-800'
+                        />
+                      </div>
                     </div>
                   </div>
+                  {relativeIdsWithThisRelationship.length ? (
+                    <div className='pt-5'>
+                      <div>Actuellement, vous avez indiqué :</div>
+                      <ul role='list' className='divide-y divide-gray-100'>
+                        {relativeIdsWithThisRelationship.map(({ personId, relationship }) => {
+                          const person = persons.find((person) => person.personId === personId)
+                          if (!person) return null
+                          return (
+                            <li key={personId} className='flex items-center justify-between gap-x-6 py-5'>
+                              {person.profilePicUrl ? (
+                                <img
+                                  className='h-12 w-12 flex-none rounded-full bg-gray-50 shadow-md border border-gray-200'
+                                  src={person.profilePicUrl}
+                                  alt=''
+                                />
+                              ) : (
+                                <span className={`inline-flex h-12 w-12 items-center justify-center rounded-full bg-gray-500`}>
+                                  <span className='text-xl font-medium leading-none text-white'>
+                                    {getInitials(person.name)}
+                                  </span>
+                                </span>
+                              )}
+                              <div className='min-w-0 flex-auto'>
+                                <p className='text-base'>{person.name}</p>
+                              </div>
+                              <button
+                                onClick={() => onRemoveRelationship(relationship.id)}
+                                className={`${secondaryButtonStyles} ${smallButtonStyles}`}>
+                                <XMarkIcon className={smallButtonIconStyles} />
+                                Retirer
+                              </button>
+                            </li>
+                          )
+                        })}
+                      </ul>
+                    </div>
+                  ) : null}
                 </div>
               </Dialog.Panel>
             </Transition.Child>
@@ -976,9 +1037,9 @@ type SaveNewRelationshipArgs = {
   relationship: Relationship
 }
 
-const saveNewRelationship = ({ newPerson, relationship }: SaveNewRelationshipArgs) => {
+const saveNewRelationship = async ({ newPerson, relationship }: SaveNewRelationshipArgs) => {
   // setStatus('saving')
-  fetch(`/family/saveNewRelationship`, {
+  return fetch(`/family/saveNewRelationship`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ newPerson, relationship }),
@@ -986,12 +1047,30 @@ const saveNewRelationship = ({ newPerson, relationship }: SaveNewRelationshipArg
     if (!res.ok) {
       alert("La nouvelle relation n'a pas pu être sauvegardée.")
       // setStatus('error')
-      return
+      throw new Error('saving of new relationship failed')
     }
     // setStatus('saved')
     // setLatestTitle(newTitle)
     // setTimeout(() => {
     //   setStatus('idle')
     // }, 2000)
+  })
+}
+
+type RemoveRelationshipArgs = {
+  relationshipId: UUID
+}
+const removeRelationship = async ({ relationshipId }: RemoveRelationshipArgs) => {
+  // setStatus('saving')
+  return fetch(`/family/removeRelationship`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ relationshipId }),
+  }).then((res) => {
+    if (!res.ok) {
+      alert("Le retrait de la relation n'a pas pu être sauvegardée.")
+      // setStatus('error')
+      throw new Error('removal of relationship failed')
+    }
   })
 }

@@ -1,7 +1,7 @@
 import { UUID } from '../../domain'
 import { DomainEvent, makeDomainEvent } from '../../dependencies/DomainEvent'
 
-type Relationship =
+export type Relationship = { id: UUID } & (
   | {
       type: 'parent'
       parentId: UUID
@@ -15,6 +15,7 @@ type Relationship =
       type: 'friends'
       friendIds: [UUID, UUID]
     }
+)
 
 export type UserCreatedNewRelationship = DomainEvent<
   'UserCreatedNewRelationship',

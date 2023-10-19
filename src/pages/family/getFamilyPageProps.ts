@@ -9,12 +9,16 @@ import { getProfilePicUrlForPerson } from '../_getProfilePicUrlForPerson'
 import { FamilyPageProps } from './FamilyPage'
 import { UserCreatedNewRelationship } from './UserCreatedNewRelationship'
 import { UserCreatedRelationshipWithNewPerson } from './UserCreatedRelationshipWithNewPerson'
+import { UserRemovedRelationship } from './UserRemovedRelationship'
 
 export const getFamilyPageProps = async (userId: UUID): Promise<FamilyPageProps> => {
   const userPersonId = await getPersonIdForUserId(userId)
 
   const persons = await getUserFamilyPersonIds(userId)
-  const relationships = await getFamilyRelationships(persons.map((p) => p.personId))
+  const relationships = await getFamilyRelationships(
+    persons.map((p) => p.personId),
+    userId
+  )
 
   return { initialPersons: persons, initialRelationships: relationships, initialOriginPersonId: userPersonId }
 }
@@ -40,8 +44,12 @@ async function getUserFamilyPersonIds(userId: UUID): Promise<Person[]> {
 }
 
 type Relationship = FamilyPageProps['initialRelationships'][number]
-async function getFamilyRelationships(personIds: UUID[]): Promise<Relationship[]> {
+async function getFamilyRelationships(personIds: UUID[], userId: UUID): Promise<Relationship[]> {
   const relationships: Relationship[] = []
+
+  const removedRelationshipIds = (await getEventList<UserRemovedRelationship>('UserRemovedRelationship', { userId })).map(
+    (event) => event.payload.relationshipId
+  )
 
   for (const personId of personIds) {
     const parentRelWithNewPerson = await postgres.query<UserCreatedRelationshipWithNewPerson | UserCreatedNewRelationship>(
@@ -50,10 +58,10 @@ async function getFamilyRelationships(personIds: UUID[]): Promise<Relationship[]
     )
 
     for (const rel of parentRelWithNewPerson.rows) {
-      const { type } = rel.payload.relationship
-      if (type === 'parent') {
+      const { id, type } = rel.payload.relationship
+      if (type === 'parent' && !removedRelationshipIds.includes(id)) {
         const { parentId, childId } = rel.payload.relationship
-        relationships.push({ type: 'parent', parentId, childId })
+        relationships.push({ id, type: 'parent', parentId, childId })
       }
     }
 
@@ -63,10 +71,10 @@ async function getFamilyRelationships(personIds: UUID[]): Promise<Relationship[]
     )
 
     for (const rel of spouseRelWithNewPerson.rows) {
-      const { type } = rel.payload.relationship
-      if (type === 'spouses') {
+      const { id, type } = rel.payload.relationship
+      if (type === 'spouses' && !removedRelationshipIds.includes(id)) {
         const { spouseIds } = rel.payload.relationship
-        relationships.push({ type: 'spouses', spouseIds })
+        relationships.push({ id, type: 'spouses', spouseIds })
       }
     }
 
@@ -76,10 +84,10 @@ async function getFamilyRelationships(personIds: UUID[]): Promise<Relationship[]
     )
 
     for (const rel of friendRelWithNewPerson.rows) {
-      const { type } = rel.payload.relationship
-      if (type === 'friends') {
+      const { id, type } = rel.payload.relationship
+      if (type === 'friends' && !removedRelationshipIds.includes(id)) {
         const { friendIds } = rel.payload.relationship
-        relationships.push({ type: 'friends', friendIds })
+        relationships.push({ id, type: 'friends', friendIds })
       }
     }
   }

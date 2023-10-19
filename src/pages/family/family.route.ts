@@ -5,11 +5,15 @@ import { pageRouter } from '../pageRouter'
 import { FamilyPage } from './FamilyPage'
 import { FamilyPageURL } from './FamilyPageURL'
 import { getFamilyPageProps } from './getFamilyPageProps'
-import { zIsUUID } from '../../domain'
+import { UUID, zIsUUID } from '../../domain'
 import { addToHistory } from '../../dependencies/addToHistory'
 import { UserCreatedRelationshipWithNewPerson } from './UserCreatedRelationshipWithNewPerson'
 import { UserCreatedNewRelationship } from './UserCreatedNewRelationship'
 import { personsIndex } from '../../dependencies/search'
+import { getSingleEvent } from '../../dependencies/getSingleEvent'
+import { getUuid } from '../../libs/getUuid'
+import { getEventList } from '../../dependencies/getEventList'
+import { UserRemovedRelationship } from './UserRemovedRelationship'
 
 pageRouter.route(FamilyPageURL()).get(requireAuth(), async (request, response) => {
   // const { personId } = z.object({ personId: zIsUUID }).parse(request.params)
@@ -19,18 +23,32 @@ pageRouter.route(FamilyPageURL()).get(requireAuth(), async (request, response) =
   responseAsHtml(request, response, FamilyPage(props))
 })
 
+const zIsRelationship = z
+  .object({
+    id: zIsUUID,
+  })
+  .and(
+    z.discriminatedUnion('type', [
+      z.object({ type: z.literal('parent'), parentId: zIsUUID, childId: zIsUUID }),
+      z.object({ type: z.literal('spouses'), spouseIds: z.tuple([zIsUUID, zIsUUID]) }),
+      z.object({ type: z.literal('friends'), friendIds: z.tuple([zIsUUID, zIsUUID]) }),
+    ])
+  )
+
+type Relationship = z.infer<typeof zIsRelationship>
+
 pageRouter.route('/family/saveNewRelationship').post(requireAuth(), async (request, response) => {
   const userId = request.session.user!.id
   const { newPerson, relationship } = z
     .object({
       newPerson: z.object({ personId: zIsUUID, name: z.string() }).optional(),
-      relationship: z.discriminatedUnion('type', [
-        z.object({ type: z.literal('parent'), parentId: zIsUUID, childId: zIsUUID }),
-        z.object({ type: z.literal('spouses'), spouseIds: z.tuple([zIsUUID, zIsUUID]) }),
-        z.object({ type: z.literal('friends'), friendIds: z.tuple([zIsUUID, zIsUUID]) }),
-      ]),
+      relationship: zIsRelationship,
     })
     .parse(request.body)
+
+  if (await relationshipExists({ userId, relationshipId: relationship.id })) {
+    return response.status(403).send()
+  }
 
   if (newPerson) {
     await addToHistory(
@@ -63,3 +81,29 @@ pageRouter.route('/family/saveNewRelationship').post(requireAuth(), async (reque
 
   return response.status(200).send()
 })
+
+pageRouter.route('/family/removeRelationship').post(requireAuth(), async (request, response) => {
+  const userId = request.session.user!.id
+  const { relationshipId } = z
+    .object({
+      relationshipId: zIsUUID,
+    })
+    .parse(request.body)
+
+  if (await relationshipExists({ userId, relationshipId })) {
+    await addToHistory(UserRemovedRelationship({ relationshipId, userId }))
+  }
+
+  return response.status(200).send()
+})
+
+async function relationshipExists({ userId, relationshipId }: { userId: UUID; relationshipId: UUID }) {
+  const existingRelationships = await getEventList<UserCreatedNewRelationship | UserCreatedRelationshipWithNewPerson>(
+    ['UserCreatedNewRelationship', 'UserCreatedRelationshipWithNewPerson'],
+    { userId }
+  )
+
+  const existingRelationshipWithId = existingRelationships.find(({ payload }) => payload.relationship.id === relationshipId)
+
+  return !!existingRelationshipWithId
+}

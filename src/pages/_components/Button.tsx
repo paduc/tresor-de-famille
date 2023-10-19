@@ -3,6 +3,8 @@ import React from 'react'
 const sharedButtonStyles =
   'cursor-pointer inline-flex items-center px-3 py-1.5 border border-transparent text-md font-medium rounded-full shadow-sm'
 
+export const smallButtonStyles = '-px-3 px-2 -py-1.5 py-1 text-sm'
+
 export const primaryButtonStyles = `${sharedButtonStyles} text-white bg-indigo-600 hover:bg-indigo-700`
 
 export const primaryGreenButtonStyles = `${sharedButtonStyles} text-white bg-green-600 hover:bg-green-700`
@@ -16,5 +18,6 @@ export const secondaryGreenButtonStyles = `${sharedButtonStyles} ${sharedSeconda
 export const secondaryRedButtonStyles = `${sharedButtonStyles} ${sharedSecondaryButtonStyles} text-red-600 bg-white hover:bg-red-600 ring-red-600`
 
 export const buttonIconStyles = '-ml-0.5 mr-2 h-6 w-6'
+export const smallButtonIconStyles = '-ml-0.5 mr-1 h-4 w-4'
 
 export const linkStyles = 'font-medium text-indigo-600 hover:text-indigo-500 cursor-pointer inline-flex items-center text-md'
