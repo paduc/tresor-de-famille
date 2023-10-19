@@ -657,131 +657,6 @@ const ClientOnlyFamilyPage = ({ initialPersons, initialRelationships, initialOri
   //   [origX, origY]
   // )
 
-  // const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges)
-
-  // const onDragOver: React.DragEventHandler = useCallback(
-  //   (event) => {
-  //     event.preventDefault()
-  //     event.dataTransfer.dropEffect = 'move'
-
-  //     if (!reactFlowWrapper.current) {
-  //       console.error('wrapper not current')
-  //       return
-  //     }
-
-  //     if (!reactFlowInstance) {
-  //       console.error('reactFlowInstance not ok')
-  //       return
-  //     }
-
-  //     const reactFlowBounds = reactFlowWrapper.current.getBoundingClientRect()
-  //     const position = reactFlowInstance.project({
-  //       x: event.clientX - reactFlowBounds.left,
-  //       y: event.clientY - reactFlowBounds.top,
-  //     })
-
-  //     const centerX = position.x
-  //     const centerY = position.y
-
-  //     setNodes((nodes) => {
-  //       // console.log('onDragOver setNodes')
-  //       return nodes.map((node) => {
-  //         // console.log('setNodes looking at ', node.id, originPersonId)
-  //         if (node.id === originPersonId) {
-  //           const targetCenterX = node.position.x + node.width! / 2
-  //           const targetCenterY = node.position.y + node.height! / 2
-  //           if (
-  //             centerX > targetCenterX + OUTER_DONUT_RADIUS + BUBBLE_RADIUS ||
-  //             centerX < targetCenterX - OUTER_DONUT_RADIUS - BUBBLE_RADIUS ||
-  //             centerY > targetCenterY + OUTER_DONUT_RADIUS + BUBBLE_RADIUS ||
-  //             centerY < targetCenterY - OUTER_DONUT_RADIUS - BUBBLE_RADIUS
-  //           ) {
-  //             node.data = { ...node.data, hovered: false }
-  //           } else {
-  //             if (centerX > targetCenterX - 30 && centerX < targetCenterX + 30) {
-  //               if (centerY > targetCenterY) {
-  //                 node.data = { ...node.data, hovered: 'bottom' }
-  //               } else {
-  //                 node.data = { ...node.data, hovered: 'top' }
-  //               }
-  //             } else {
-  //               if (centerX > targetCenterX) {
-  //                 node.data = { ...node.data, hovered: 'right' }
-  //               } else {
-  //                 node.data = { ...node.data, hovered: 'left' }
-  //               }
-  //             }
-  //           }
-  //         }
-
-  //         return node
-  //       })
-  //     })
-  //   },
-  //   [reactFlowInstance]
-  // )
-
-  // const removeHoveredState = useCallback(() => {
-  //   setNodes((nodes) =>
-  //     nodes.map((node) => {
-  //       if (!!node.data.hovered) {
-  //         node.data = { ...node.data, hovered: false }
-  //       }
-  //       return node
-  //     })
-  //   )
-  // }, [])
-
-  // const onDrop: React.DragEventHandler = useCallback(
-  //   (event) => {
-  //     event.preventDefault()
-
-  //     const newNodeDataEncoded = event.dataTransfer.getData('application/reactflow')
-
-  //     // check if the dropped element is valid
-  //     if (typeof newNodeDataEncoded === 'undefined' || !newNodeDataEncoded) {
-  //       return
-  //     }
-
-  //     try {
-  //       const newNodeData: Person = JSON.parse(newNodeDataEncoded)
-  //       const { personId, name, profilePicUrl } = newNodeData
-
-  //       setNodes((nodes) => {
-  //         const targettedNode = nodes.find((node) => !!node.data.hovered)
-
-  //         if (targettedNode && targettedNode.data.hovered !== false) {
-  //           const { hovered } = targettedNode.data
-  //           const newNode = {
-  //             id: personId,
-  //             type: 'person',
-  //             position: {
-  //               x: ['top', 'bottom'].includes(hovered) ? 0 : hovered === 'left' ? -100 : 100,
-  //               y: ['right', 'left'].includes(hovered) ? 0 : hovered === 'top' ? -100 : 100,
-  //             }, // TODO
-  //             data: { label: name, profilePicUrl, hovered: false },
-  //           }
-
-  //           // targettedNode.data = { ...targettedNode.data, hovered: false }
-
-  //           const newNodes = [...nodes, newNode]
-  //           // console.log('onDrop newNodes', newNodes)
-
-  //           return newNodes
-  //         }
-
-  //         return nodes
-  //       })
-
-  //       // Barbaric fix to have the hovered nodes pass to unhovered
-  //       setTimeout(removeHoveredState, 100)
-  //     } catch (error) {
-  //       console.error('could not parse the newNodeData', error)
-  //     }
-  //   },
-  //   [reactFlowInstance]
-  // )
-
   const [pendingRelationshipAction, setPendingRelationshipAction] = useState<PendingNodeRelationshipAction | null>(null)
 
   const onRelationshipButtonPressed = useCallback((nodeId: string, newRelationshipAction: NewRelationshipAction) => {
@@ -898,7 +773,6 @@ const ClientOnlyFamilyPage = ({ initialPersons, initialRelationships, initialOri
   return (
     <AppLayout>
       <NodeListenerContext.Provider value={onRelationshipButtonPressed}>
-        {/* <UnattachedPersonList persons={persons} nodes={nodes} /> */}
         <ReactFlowProvider>
           <div className='w-full h-screen relative' ref={reactFlowWrapper}>
             <ReactFlow
@@ -1028,66 +902,6 @@ function SearchPanel({ onPersonSelected, pendingRelationshipAction, unselectable
         </div>
       </Dialog>
     </Transition.Root>
-  )
-}
-
-type UnattachedPersonListProps = {
-  persons: Person[]
-  nodes: Node[]
-}
-
-function UnattachedPersonList({ persons, nodes }: UnattachedPersonListProps) {
-  const onDragStart = (event: React.DragEvent, person: Person) => {
-    // console.log('DragStart')
-    event.dataTransfer.setData('application/reactflow', JSON.stringify(person))
-    event.dataTransfer.effectAllowed = 'move'
-  }
-
-  const nodeIdSet = new Set(nodes.map((node) => node.id))
-  const otherPersons = persons.filter((person) => !nodeIdSet.has(person.personId))
-  return (
-    <div className='h-28 bg-gray-800/10 pl-3 fixed bottom-0 z-50 w-full overflow-x-scroll flex gap-2 items-center'>
-      {/* <div
-        className={`flex items-center justify-center cursor-pointer rounded-full h-14 w-14 shadow-sm  bg-indigo-600/60 hover:bg-indigo-600`}
-        onClick={(e) => {
-          const name = prompt('Quel est le nom de cette nouvelle personne ?')
-
-          if (name) {
-            setNewPersons((newPersons) => [...newPersons, { personId: getUuid(), name, profilePicUrl: '' }])
-          }
-        }}>
-        <svg
-          xmlns='http://www.w3.org/2000/svg'
-          fill='none'
-          viewBox='0 0 24 24'
-          strokeWidth='1.5'
-          stroke='currentColor'
-          aria-hidden='true'
-          className='h-6 w-6 text-white'>
-          <path strokeLinecap='round' strokeLinejoin='round' d='M12 4.5v15m7.5-7.5h-15' />
-        </svg>
-      </div>
-
-      {newPersons.map(({ name, personId }) => (
-        <div
-          className='cursor-pointer flex items-center justify-center rounded-full h-14 w-14 ring-2 shadow-sm overflow-hidden'
-          key={`newPerson${personId}`}>
-          {name}
-        </div>
-      ))} */}
-      {otherPersons.map(({ profilePicUrl, personId, name }) => (
-        <img
-          key={`unrelated_${personId}`}
-          src={
-            profilePicUrl ||
-            'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80'
-          }
-          className={`cursor-pointer inline-block rounded-full h-20 w-20 ring-2 shadow-sm`}
-          draggable
-          onDragStart={(event) => onDragStart(event, { personId, profilePicUrl, name })}
-        />
-      ))}
-    </div>
   )
 }
 
