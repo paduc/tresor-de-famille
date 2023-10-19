@@ -94,25 +94,27 @@ export const ChatPage = withBrowserBundle(
 
     return (
       <AppLayout>
-        <div className='pt-2 overflow-hidden pb-40'>
-          <Title title={title} chatId={chatId} />
-          <div className='mt-4 mb-4'>
-            <RichTextEditor ref={richTextEditorRef} content={contentAsJSON} chatId={chatId} lastUpdated={lastUpdated} />
-          </div>
-          <div className='ml-4 sm:ml-6 mt-3'>
-            <InlinePhotoUploadBtn formAction='/add-photo.html' formKey='addNewPhotoToChat' hiddenFields={{ chatId }}>
-              <span
-                className={`${secondaryButtonStyles}`}
-                onClick={(e) => {
-                  if (newMessageAreaRef.current !== null && newMessageAreaRef.current.value !== '') {
-                    e.preventDefault()
-                    alert("Merci d'envoyer votre souvenir avant d'ajouter une photo.")
-                  }
-                }}>
-                <PhotoIcon className={`${buttonIconStyles}`} aria-hidden='true' />
-                Ajouter une photo
-              </span>
-            </InlinePhotoUploadBtn>
+        <div className='w-full sm:ml-6 max-w-2xl pt-3 pb-40'>
+          <div className='divide-y divide-gray-200 overflow-hidden sm:rounded-lg bg-white shadow'>
+            <Title title={title} chatId={chatId} />
+            <div className=''>
+              <RichTextEditor ref={richTextEditorRef} content={contentAsJSON} chatId={chatId} lastUpdated={lastUpdated} />
+            </div>
+            <div className='bg-gray-50 px-4 py-4 sm:px-6'>
+              <InlinePhotoUploadBtn formAction='/add-photo.html' formKey='addNewPhotoToChat' hiddenFields={{ chatId }}>
+                <span
+                  className={`${secondaryButtonStyles}`}
+                  onClick={(e) => {
+                    if (newMessageAreaRef.current !== null && newMessageAreaRef.current.value !== '') {
+                      e.preventDefault()
+                      alert("Merci d'envoyer votre souvenir avant d'ajouter une photo.")
+                    }
+                  }}>
+                  <PhotoIcon className={`${buttonIconStyles}`} aria-hidden='true' />
+                  Ajouter une photo
+                </span>
+              </InlinePhotoUploadBtn>
+            </div>
           </div>
         </div>
       </AppLayout>
@@ -127,14 +129,14 @@ const PhotoItem = (props: PhotoItemProps) => {
   const photoPageUrl = `/photo/${props.photoId}/photo.html?threadId=${props.chatId}`
 
   return (
-    <div className='grid grid-cols-1 w-full px-4 sm:px-8 py-2'>
+    <div className='grid grid-cols-1 w-full px-4 sm:px-0 py-2'>
       <div className='mb-2'>
         <a href={photoPageUrl}>
           <img src={url} className='max-w-full max-h-[50vh] border border-gray-300 shadow-sm' />
         </a>
       </div>
 
-      <div className='sm:px-2'>
+      <div className=''>
         <p className='text-md text-gray-600 mb-1 whitespace-pre-wrap'>{description}</p>
         {descriptionOfPeople ? <p className='text-md text-gray-600 mb-1'>avec {descriptionOfPeople}</p> : null}
         {!(description || description?.length) && unrecognizedFacesInPhoto ? (
@@ -183,7 +185,7 @@ const Title = ({ title, chatId }: { title: string | undefined; chatId: UUID }) =
       <input
         type='text'
         name='title'
-        className='w-full sm:ml-6 max-w-2xl px-4 py-4 text-gray-800 text-xl bg-white border  border-gray-300 border-x-white sm:border-x-gray-300 shadow-sm'
+        className='w-full px-4 py-5 sm:px-6 text-gray-800 text-xl border-none'
         placeholder='Titre (optionnel)'
         onChange={(e) => {
           const newTitle = e.target.value
@@ -285,7 +287,7 @@ const RichTextEditor = fixedForwardRef<RichTextEditorRef, RichTextEditorProps>((
       StarterKit.configure({
         paragraph: {
           HTMLAttributes: {
-            class: ' px-4 py-4 text-gray-800 text-lg  whitespace-pre-wrap [&+p]:-mt-1 [&+p]:border-t-0 [&+p]:pt-0',
+            class: 'px-4 sm:px-0 py-4 text-gray-800 text-lg  whitespace-pre-wrap [&+p]:-mt-1 [&+p]:border-t-0 [&+p]:pt-0',
           },
         },
       }),
@@ -358,7 +360,7 @@ const RichTextEditor = fixedForwardRef<RichTextEditorRef, RichTextEditorProps>((
           }}
         />
       </form>
-      <div className='sm:ml-6 max-w-2xl relative bg-white border  border-gray-300 border-x-white sm:border-x-gray-300 shadow-sm'>
+      <div className='sm:ml-6 max-w-2xl relative'>
         <EditorContent editor={editor} />
         <FloatingMenu editor={editor} tippyOptions={{ duration: 100 }}>
           <span
@@ -378,7 +380,7 @@ const RichTextEditor = fixedForwardRef<RichTextEditorRef, RichTextEditorProps>((
         </div>
       </div>
       {!!lastUpdated ? (
-        <div className='mt-2 ml-2 sm:ml-6 italic text-gray-500'>
+        <div className='my-2 pl-4 pt-2 sm:pl-6 italic text-gray-500 border-t border-gray-200'>
           Dernière mise à jour {formatRelative(lastUpdated, Date.now(), { locale: fr })}
         </div>
       ) : null}
