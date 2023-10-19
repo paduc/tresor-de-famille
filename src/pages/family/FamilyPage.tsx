@@ -782,30 +782,25 @@ const ClientOnlyFamilyPage = ({ initialPersons, initialRelationships, initialOri
   //   [reactFlowInstance]
   // )
 
-  const [isSearchPanelVisible, showSearchPanel] = useState<boolean>(false)
-
   const [pendingRelationshipAction, setPendingRelationshipAction] = useState<PendingNodeRelationshipAction | null>(null)
 
   const onRelationshipButtonPressed = useCallback((nodeId: string, newRelationshipAction: NewRelationshipAction) => {
-    // console.log('top level onNodeButtonPressed', nodeId, newRelationshipAction)
-    // Open search panel
-    showSearchPanel(true)
-
     // Move the nodeId and the action to state
     setPendingRelationshipAction({ personId: nodeId as UUID, relationshipAction: newRelationshipAction })
   }, [])
 
-  const onSearchPersonSelected = useCallback<PersonAutocompleteProps['onPersonSelected']>(
-    (person) => {
-      // console.log('onPersonSelected', person, pendingRelationshipAction)
+  const onSearchPersonSelected = useCallback<SearchPanelProps['onPersonSelected']>(
+    (args) => {
+      if (args === null) {
+        setPendingRelationshipAction(null)
+        return
+      }
 
-      if (!pendingRelationshipAction) return
-
-      const { relationshipAction, personId: sourcePersonId } = pendingRelationshipAction
+      const { selectedPerson, sourcePersonId, relationshipAction } = args
 
       // console.log('onPersonSelected', { newPersonId, sourcePersonId })
 
-      const { newPerson, targetPersonId } = getNewPerson()
+      const { newPerson, targetPersonId } = getNewPerson(selectedPerson)
 
       // Add Node if new person (call setPersons)
       setPersons((persons) => {
@@ -826,7 +821,9 @@ const ClientOnlyFamilyPage = ({ initialPersons, initialRelationships, initialOri
       // TODO: if error, revert change
       saveNewRelationship({ newPerson, relationship: newRelationship })
 
-      function getNewPerson(): { newPerson?: Person; targetPersonId: UUID } {
+      setPendingRelationshipAction(null)
+
+      function getNewPerson(person: Exclude<typeof selectedPerson, null>): { newPerson?: Person; targetPersonId: UUID } {
         if (person.type === 'unknown') {
           const newPersonId = getUuid()
           return {
@@ -851,7 +848,7 @@ const ClientOnlyFamilyPage = ({ initialPersons, initialRelationships, initialOri
         }
       }
     },
-    [pendingRelationshipAction, reactFlowInstance]
+    [reactFlowInstance]
   )
 
   const unselectableIds = React.useMemo(() => {
@@ -922,8 +919,6 @@ const ClientOnlyFamilyPage = ({ initialPersons, initialRelationships, initialOri
               <Background />
               <Panel position='top-center'>
                 <SearchPanel
-                  open={isSearchPanelVisible}
-                  setOpen={showSearchPanel}
                   onPersonSelected={onSearchPersonSelected}
                   pendingRelationshipAction={pendingRelationshipAction}
                   unselectableIds={unselectableIds}
@@ -938,23 +933,23 @@ const ClientOnlyFamilyPage = ({ initialPersons, initialRelationships, initialOri
 }
 
 type SearchPanelProps = {
-  open: boolean
-  setOpen: (open: boolean) => void
-  onPersonSelected: PersonAutocompleteProps['onPersonSelected']
+  onPersonSelected: (
+    args: {
+      selectedPerson: { type: 'known'; personId: UUID } | { type: 'unknown'; name: string }
+      sourcePersonId: UUID
+      relationshipAction: NewRelationshipAction
+    } | null
+  ) => unknown
   pendingRelationshipAction: PendingNodeRelationshipAction | null
   unselectableIds: string[]
 }
 
-function SearchPanel({
-  open,
-  setOpen,
-  onPersonSelected,
-  pendingRelationshipAction,
-  unselectableIds: nodeIds,
-}: SearchPanelProps) {
+function SearchPanel({ onPersonSelected, pendingRelationshipAction, unselectableIds: nodeIds }: SearchPanelProps) {
+  const close = () => onPersonSelected(null)
+
   return (
-    <Transition.Root show={open} as={React.Fragment}>
-      <Dialog as='div' className='relative z-50' onClose={setOpen}>
+    <Transition.Root show={!!pendingRelationshipAction} as={React.Fragment}>
+      <Dialog as='div' className='relative z-50' onClose={close}>
         <Transition.Child
           as={React.Fragment}
           enter='ease-out duration-300'
@@ -981,7 +976,7 @@ function SearchPanel({
                   <button
                     type='button'
                     className='rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2'
-                    onClick={() => setOpen(false)}>
+                    onClick={close}>
                     <span className='sr-only'>Close</span>
                     <XMarkIcon className='h-6 w-6' aria-hidden='true' />
                   </button>
@@ -1012,9 +1007,14 @@ function SearchPanel({
                     </Dialog.Title>
                     <div className='mt-2'>
                       <PersonAutocomplete
-                        onPersonSelected={(props) => {
-                          setOpen(false)
-                          onPersonSelected(props)
+                        onPersonSelected={(person) => {
+                          if (!pendingRelationshipAction) return
+                          const { personId, relationshipAction } = pendingRelationshipAction
+                          onPersonSelected({
+                            selectedPerson: person,
+                            sourcePersonId: personId,
+                            relationshipAction,
+                          })
                         }}
                         unselectableIds={nodeIds}
                         className='max-w-xl text-gray-800'
