@@ -1363,10 +1363,10 @@ function PersonNode({
             <span className='text-xl font-medium leading-none text-white'>{getInitials(data.label)}</span>
           </span>
         )}
-        <div className='absolute w-full -mt-1 pointer-events-none z-10'>
+        <div className='absolute w-full top-full -mt-1 pointer-events-none z-10'>
           <span
             style={{ fontSize: 8 }}
-            className={`inline-flex  items-center rounded-md bg-gray-50 px-1 py-0.5    ring-1 ring-inset ${
+            className={`inline-flex  items-center rounded-md bg-white/70 px-1 py-0.5    ring-1 ring-inset ${
               selected || data.isOriginPerson ? 'text-indigo-700 ring-indigo-500/50' : 'ring-gray-500/10 text-gray-600'
             } `}>
             {data.label}
