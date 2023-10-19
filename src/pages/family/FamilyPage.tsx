@@ -19,11 +19,12 @@ import { withBrowserBundle } from '../../libs/ssr/withBrowserBundle'
 import { AppLayout } from '../_components/layout/AppLayout'
 import { UUID } from '../../domain'
 import { useCallback, useRef, useState } from 'react'
-import { ExclamationTriangleIcon, PlusIcon, XMarkIcon } from '@heroicons/react/24/outline'
+import { ExclamationTriangleIcon, PhotoIcon, PlusIcon, XMarkIcon } from '@heroicons/react/24/outline'
 import { getUuid } from '../../libs/getUuid'
 import { PersonAutocomplete, PersonAutocompleteProps } from '../_components/PersonAutocomplete'
 import { Transition, Dialog } from '@headlessui/react'
 import { ClientOnly } from '../_components/ClientOnly'
+import { secondaryButtonStyles, buttonIconStyles, primaryButtonStyles } from '../_components/Button'
 
 // @ts-ignore
 function classNames(...classes) {
@@ -66,14 +67,11 @@ type NodesEdges = {
   edges: Edge[]
 }
 
-const Y_OFFSET = 100
+const BUBBLE_RADIUS = 72
 
-const BUBBLE_RADIUS = 28
-const X_OFFSET = 3 * BUBBLE_RADIUS
+const Y_OFFSET = 4 * BUBBLE_RADIUS
+const X_OFFSET = 2.5 * BUBBLE_RADIUS
 const COUPLE_NODE_RADIUS = 6
-const INNER_DONUT_RADIUS = BUBBLE_RADIUS + 3
-const OUTER_DONUT_RADIUS = 60
-const ContainerSize = 200
 
 /**
  * Transform a list of persons and relationship to a list of nodes and edges.
@@ -102,6 +100,8 @@ function transferFn({ origin, persons, relationships }: PersonsRelationships): N
   }
   nodes.push(originNode)
 
+  const COUPLE_OFFSET = X_OFFSET * 1.15
+
   // Add spouse
   const spouseRel = relationships.find(
     (rel): rel is Relationship & { type: 'spouses' } => rel.type === 'spouses' && rel.spouseIds.includes(originPersonId)
@@ -112,7 +112,7 @@ function transferFn({ origin, persons, relationships }: PersonsRelationships): N
     const spouseId = spouseRel.spouseIds.find((personId) => personId !== originPersonId)!
 
     const spouseNode = makePersonNode(spouseId, {
-      x: currentX + X_OFFSET,
+      x: currentX + COUPLE_OFFSET,
       y: currentY,
     })
     nodes.push(spouseNode)
@@ -180,9 +180,8 @@ function transferFn({ origin, persons, relationships }: PersonsRelationships): N
         nodes.push(coupleNode)
         nodes.push(parent2Node)
 
-        parent2Node.position.x =
-          parentNode.position.x + (uniqueParentIds.size - 1) * (BUBBLE_RADIUS * 2 + COUPLE_NODE_RADIUS * 2 + 20)
-        coupleNode.position.x = parent2Node.position.x - (COUPLE_NODE_RADIUS * 2 + 10)
+        parent2Node.position.x = parentNode.position.x + (uniqueParentIds.size - 1) * COUPLE_OFFSET
+        coupleNode.position.x = parent2Node.position.x - BUBBLE_RADIUS / 2
       }
       if (newEdges && newEdges.length) {
         edges = edges.concat(newEdges)
@@ -398,7 +397,7 @@ function transferFn({ origin, persons, relationships }: PersonsRelationships): N
 
         for (const siblingId of trueSiblings) {
           const siblingNode = makePersonNode(siblingId as UUID, {
-            x: personNode.position.x - 80 * ++counter,
+            x: personNode.position.x - X_OFFSET * ++counter,
             y: personNode.position.y,
           })
           nodes.push(siblingNode)
@@ -415,7 +414,7 @@ function transferFn({ origin, persons, relationships }: PersonsRelationships): N
       if (halfSiblings.size) {
         for (const [siblingId, parentId] of halfSiblings) {
           const siblingNode = makePersonNode(siblingId as UUID, {
-            x: personNode.position.x - 80 * ++counter,
+            x: personNode.position.x - X_OFFSET * ++counter,
             y: personNode.position.y,
           })
           nodes.push(siblingNode)
@@ -436,7 +435,7 @@ function transferFn({ origin, persons, relationships }: PersonsRelationships): N
     // use the parent node
     for (const siblingId of trueSiblings) {
       const siblingNode = makePersonNode(siblingId as UUID, {
-        x: personNode.position.x - 80 * ++counter,
+        x: personNode.position.x - X_OFFSET * ++counter,
         y: personNode.position.y,
       })
       nodes.push(siblingNode)
@@ -888,13 +887,13 @@ function PersonNode({
         {data.profilePicUrl ? (
           <img
             src={data.profilePicUrl}
-            className={`inline-block rounded-full h-14 w-14 ring-2 ${
+            className={`inline-block rounded-full h-36 w-36 ring-2 ${
               selected || data.isOriginPerson ? 'ring-indigo-500' : 'ring-white'
             } shadow-sm`}
           />
         ) : (
           <span
-            className={`inline-flex h-14 w-14 items-center justify-center rounded-full bg-gray-500 ring-2 ${
+            className={`inline-flex h-36 w-36 items-center justify-center rounded-full bg-gray-500 ring-2 ${
               selected || data.isOriginPerson ? 'ring-indigo-500' : 'ring-white'
             } shadow-sm`}>
             <span className='text-xl font-medium leading-none text-white'>{getInitials(data.label)}</span>
@@ -902,14 +901,13 @@ function PersonNode({
         )}
         <div className='absolute w-full top-full -mt-1 pointer-events-none z-10'>
           <span
-            style={{ fontSize: 8 }}
-            className={`inline-flex  items-center rounded-md bg-white/70 px-1 py-0.5    ring-1 ring-inset ${
+            className={`inline-flex items-center rounded-lg bg-white/70 px-3 py-1    ring-1 ring-inset ${
               selected || data.isOriginPerson ? 'text-indigo-700 ring-indigo-500/50' : 'ring-gray-500/10 text-gray-600'
             } `}>
             {data.label}
           </span>
         </div>
-        <div className={`${selected ? 'focus:visible' : 'invisible'} z-20`}>
+        <div className={`${selected ? 'focus:visible' : 'invisible'} z-20 relative`}>
           <ActionLabel
             label={addParentLabel}
             position={{ bottom: BUBBLE_RADIUS * 2 + 5 }}
@@ -948,18 +946,29 @@ type ActionLabelProps = {
 }
 
 function ActionLabel({ label, position, onClick }: ActionLabelProps) {
+  // return (
+  //   <div
+  //     className='absolute z-20'
+  //     style={{
+  //       fontSize: 8,
+  //       ...position,
+  //     }}
+  //     onClick={onClick}>
+  //     <span className='inline-flex items-center rounded-full bg-indigo-50 px-2 py-1 text-indigo-700 ring-1 ring-inset ring-indigo-700/10'>
+  //       {label}
+  //     </span>
+  //   </div>
+  // )
+
   return (
-    <div
-      className='absolute z-20'
+    <span
+      className={`absolute z-20 ${primaryButtonStyles}`}
       style={{
-        fontSize: 8,
         ...position,
       }}
       onClick={onClick}>
-      <span className='inline-flex items-center rounded-full bg-indigo-50 px-2 py-1 text-indigo-700 ring-1 ring-inset ring-indigo-700/10'>
-        {label}
-      </span>
-    </div>
+      {label}
+    </span>
   )
 }
 
