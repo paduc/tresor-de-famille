@@ -827,155 +827,6 @@ function SearchPanel({ onPersonSelected, pendingRelationshipAction, unselectable
   )
 }
 
-type DonutProps = {
-  position: DonutPosition
-  hovered?: DonutPosition | false
-  className?: string
-  style?: React.CSSProperties
-  svgStyle?: React.CSSProperties
-  label?: string
-  onClick?: (position: DonutPosition) => unknown
-}
-type DonutPosition = 'top' | 'bottom' | 'left' | 'right'
-
-const DonutSection = ({ position, className, style, svgStyle, label, onClick }: DonutProps) => {
-  const [isHovered, setHovered] = useState<boolean>(false)
-
-  // Calculate the center of the container
-  const cx = ContainerSize / 2
-  const cy = ContainerSize / 2
-
-  const circleR = 3
-  const circlePadding = 10
-  const circleDistance = BUBBLE_RADIUS / 2 + circleR / 2 + 10 + circlePadding
-
-  let sliceStartAngle = 0
-  let sliceStopAngle = 0
-  let textLeft = 0
-  let textTop = 0
-  let circleLeft = 0
-  let circleTop = 0
-  switch (position) {
-    case 'top':
-      sliceStartAngle = 227
-      sliceStopAngle = 313
-      textLeft = cx - 35
-      textTop = cy - 55
-      circleLeft = cx
-      circleTop = cy - circleDistance
-      break
-    case 'left':
-      sliceStartAngle = 137
-      sliceStopAngle = 223
-      textLeft = cx - 110
-      textTop = cy
-      circleLeft = cx - circleDistance
-      circleTop = cy
-      break
-    case 'right':
-      sliceStartAngle = 317
-      sliceStopAngle = 43
-      textLeft = cx + 35
-      textTop = cy - 10
-      circleLeft = cx + circleDistance
-      circleTop = cy
-      break
-    case 'bottom':
-      sliceStartAngle = 47
-      sliceStopAngle = 133
-      textLeft = cx - 35
-      textTop = cy + 38
-      circleLeft = cx
-      circleTop = cy + circleDistance
-      break
-  }
-
-  // Convert angles to radians
-  const startAngle = (Math.PI * sliceStartAngle) / 180
-  const stopAngle = (Math.PI * sliceStopAngle) / 180
-
-  // Calculate the starting and stopping coordinates for the inner and outer arcs
-  const xOuterStart = cx + OUTER_DONUT_RADIUS * Math.cos(startAngle)
-  const yOuterStart = cy + OUTER_DONUT_RADIUS * Math.sin(startAngle)
-  const xOuterStop = cx + OUTER_DONUT_RADIUS * Math.cos(stopAngle)
-  const yOuterStop = cy + OUTER_DONUT_RADIUS * Math.sin(stopAngle)
-
-  const xInnerStart = cx + INNER_DONUT_RADIUS * Math.cos(startAngle)
-  const yInnerStart = cy + INNER_DONUT_RADIUS * Math.sin(startAngle)
-  const xInnerStop = cx + INNER_DONUT_RADIUS * Math.cos(stopAngle)
-  const yInnerStop = cy + INNER_DONUT_RADIUS * Math.sin(stopAngle)
-
-  // Create the SVG path using the calculated coordinates
-  const pathData = `
-        M ${xOuterStart},${yOuterStart}
-        A ${OUTER_DONUT_RADIUS},${OUTER_DONUT_RADIUS} 0 ${
-    stopAngle - startAngle > Math.PI ? 1 : 0
-  },1 ${xOuterStop},${yOuterStop}
-        L ${xInnerStop},${yInnerStop}
-        A ${INNER_DONUT_RADIUS},${INNER_DONUT_RADIUS} 0 ${
-    stopAngle - startAngle > Math.PI ? 1 : 0
-  },0 ${xInnerStart},${yInnerStart}
-        Z
-    `
-
-  const maskId = `mask-${position}`
-
-  // Construct the SVG element
-  return (
-    <div
-      key={`donut_${position}`}
-      className={`absolute pointer-events-none ${className}`}
-      style={{
-        top: BUBBLE_RADIUS - ContainerSize / 2,
-        left: BUBBLE_RADIUS - ContainerSize / 2,
-        ...style,
-      }}>
-      <svg
-        style={svgStyle}
-        width={`${ContainerSize}px`}
-        height={`${ContainerSize}px`}
-        viewBox={`0 0 ${ContainerSize} ${ContainerSize}`}
-        className={`pointer-events-none`}>
-        {/** the mask is there to transition from a circle to the donut slice */}
-        <mask id={maskId}>
-          <path d={pathData.trim()} fill='white' />
-        </mask>
-        <circle
-          className='transition-all duration-700 ease-in-out'
-          cx={circleLeft}
-          cy={circleTop}
-          r={`${isHovered ? ContainerSize / 2 : circleR}`}
-          mask={`url(#${maskId})`}
-          fill={`${isHovered ? 'rgb(79 70 229)' : '#D3D3D3'}`}
-        />
-
-        {/** this is an invisible path to catch mouse events */}
-        <path
-          className='pointer-events-auto bg-indigo'
-          onMouseOver={() => setHovered(true)}
-          onMouseOut={() => setHovered(false)}
-          d={`${pathData.trim()}`}
-          fill='rgba(0,0,0,0)'
-          onClick={() => onClick?.(position)}
-        />
-      </svg>
-      {!!label && isHovered && (
-        <div
-          className='absolute'
-          style={{
-            fontSize: 8,
-            top: textTop,
-            left: textLeft,
-          }}>
-          <span className='inline-flex items-center rounded-full bg-indigo-50 px-2 py-1 text-indigo-700 ring-1 ring-inset ring-indigo-700/10'>
-            {label}
-          </span>
-        </div>
-      )}
-    </div>
-  )
-}
-
 const fakeProfilePicUrl =
   'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80'
 
@@ -1009,47 +860,17 @@ function PersonNode({
 }: NodeProps<{
   label: string
   profilePicUrl: string
-  hovered: DonutPosition | false
   isOriginPerson?: true
 }>) {
-  const onNodeButtonPressed = React.useContext(NodeListenerContext)
+  const onRelationshipButtonPressed = React.useContext(NodeListenerContext)
 
-  const handleDonutClick = useCallback(
-    (position: DonutPosition) => {
-      // Remember the nodeId and the position
-      let newRelationshipAction: NewRelationshipAction | null = null
-
-      switch (position) {
-        case 'top': {
-          newRelationshipAction = 'addParent'
-          break
-        }
-        case 'bottom': {
-          newRelationshipAction = 'addChild'
-          break
-        }
-        case 'left': {
-          newRelationshipAction = 'addFriend'
-          break
-        }
-        case 'right': {
-          newRelationshipAction = 'addSpouse'
-          break
-        }
-      }
-
-      if (onNodeButtonPressed) onNodeButtonPressed(id, newRelationshipAction)
-    },
-    [onNodeButtonPressed]
-  )
-
-  const handleMobileButtonClick = useCallback(
+  const handleButtonPress = useCallback(
     (newRelationshipAction: NewRelationshipAction) => () => {
       // Remember the nodeId and the position
 
-      if (onNodeButtonPressed) onNodeButtonPressed(id, newRelationshipAction)
+      if (onRelationshipButtonPressed) onRelationshipButtonPressed(id, newRelationshipAction)
     },
-    [onNodeButtonPressed]
+    [onRelationshipButtonPressed]
   )
 
   const addChildLabel = 'Ajouter un enfant'
@@ -1062,26 +883,6 @@ function PersonNode({
       <Handle id='children' type='source' style={{ opacity: 0, bottom: 5 }} position={Position.Bottom} />
       <Handle id='person-left' type='target' style={{ opacity: 0, left: 5 }} position={Position.Left} />
       <Handle id='person-right' type='source' style={{ opacity: 0, right: 5 }} position={Position.Right} />
-
-      <div className='invisible sm:visible'>
-        {selected && (
-          <>
-            {/* Bottom */}
-            <DonutSection
-              position='bottom'
-              label={addChildLabel}
-              onClick={handleDonutClick}
-              className='z-20' // To go over the name label
-            />
-            {/* Left */}
-            <DonutSection label={addFriendLabel} onClick={handleDonutClick} position='left' />
-            {/* Top */}
-            <DonutSection label={addParentLabel} onClick={handleDonutClick} position='top' />
-            {/* Right */}
-            <DonutSection label={addSpouseLabel} onClick={handleDonutClick} position='right' />
-          </>
-        )}
-      </div>
 
       <div className='relative'>
         {data.profilePicUrl ? (
@@ -1108,26 +909,26 @@ function PersonNode({
             {data.label}
           </span>
         </div>
-        <div className={`${selected ? 'focus:visible' : 'invisible'} sm:invisible z-20`}>
+        <div className={`${selected ? 'focus:visible' : 'invisible'} z-20`}>
           <ActionLabel
             label={addParentLabel}
             position={{ bottom: BUBBLE_RADIUS * 2 + 5 }}
-            onClick={handleMobileButtonClick('addParent')}
+            onClick={handleButtonPress('addParent')}
           />
           <ActionLabel
             label={addSpouseLabel}
             position={{ left: BUBBLE_RADIUS * 2 + 5, top: BUBBLE_RADIUS - 20 }}
-            onClick={handleMobileButtonClick('addSpouse')}
+            onClick={handleButtonPress('addSpouse')}
           />
           <ActionLabel
             label={addChildLabel}
             position={{ top: BUBBLE_RADIUS * 2 + 5 }}
-            onClick={handleMobileButtonClick('addChild')}
+            onClick={handleButtonPress('addChild')}
           />
           <ActionLabel
             label={addFriendLabel}
             position={{ right: BUBBLE_RADIUS * 2 + 5, top: BUBBLE_RADIUS - 15 }}
-            onClick={handleMobileButtonClick('addFriend')}
+            onClick={handleButtonPress('addFriend')}
           />
         </div>
       </div>
