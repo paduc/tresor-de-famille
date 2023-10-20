@@ -18,7 +18,7 @@ import ReactFlow, {
 import { withBrowserBundle } from '../../libs/ssr/withBrowserBundle'
 import { AppLayout } from '../_components/layout/AppLayout'
 import { UUID } from '../../domain'
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 import { UserPlusIcon, PhotoIcon, PlusIcon, XMarkIcon } from '@heroicons/react/24/outline'
 import { getUuid } from '../../libs/getUuid'
 import { PersonAutocomplete, PersonAutocompleteProps } from '../_components/PersonAutocomplete'
@@ -594,17 +594,22 @@ const ClientOnlyFamilyPage = ({ initialPersons, initialRelationships, initialOri
         return
       }
 
-      const { selectedPerson, sourcePersonId, relationshipAction } = args
+      const { selectedPerson, sourcePersonId, secondarySourcePersonId, relationshipAction } = args
 
       // console.log('onPersonSelected', { newPersonId, sourcePersonId })
 
       const { newPerson, targetPersonId } = getNewPerson(selectedPerson)
 
       try {
-        const newRelationship = getNewRelationship()
+        const newRelationship = getNewRelationship(sourcePersonId)
+        let newSecondaryRelationship: Relationship | undefined
+
+        if (secondarySourcePersonId) {
+          newSecondaryRelationship = getNewRelationship(secondarySourcePersonId)
+        }
 
         // TODO: display loading state
-        await saveNewRelationship({ newPerson, relationship: newRelationship })
+        await saveNewRelationship({ newPerson, relationship: newRelationship, secondaryRelationship: newSecondaryRelationship })
 
         // Add Node if new person (call setPersons)
         setPersons((persons) => {
@@ -617,7 +622,11 @@ const ClientOnlyFamilyPage = ({ initialPersons, initialRelationships, initialOri
 
         // Add Relationship
         setRelationships((relationships) => {
-          return [...relationships, newRelationship]
+          const newRelationships = [newRelationship]
+          if (newSecondaryRelationship) {
+            newRelationships.push(newSecondaryRelationship)
+          }
+          return [...relationships, ...newRelationships]
         })
 
         setPendingRelationshipAction(null)
@@ -635,7 +644,7 @@ const ClientOnlyFamilyPage = ({ initialPersons, initialRelationships, initialOri
         return { targetPersonId: person.personId }
       }
 
-      function getNewRelationship(): Relationship {
+      function getNewRelationship(sourcePersonId: UUID): Relationship {
         switch (relationshipAction) {
           case 'addChild':
             return { id: getUuid(), type: 'parent', childId: targetPersonId, parentId: sourcePersonId }
@@ -712,6 +721,7 @@ type SearchPanelProps = {
     args: {
       selectedPerson: { type: 'known'; personId: UUID } | { type: 'unknown'; name: string }
       sourcePersonId: UUID
+      secondarySourcePersonId: UUID | undefined
       relationshipAction: NewRelationshipAction
     } | null
   ) => unknown
@@ -758,6 +768,36 @@ function SearchPanel({
           .map((relationship) => ({ personId: relationship.spouseIds.find((fId) => fId !== personId)!, relationship }))
     }
   }, [pendingRelationshipAction, relationships])
+
+  const [otherRelationshipIsAccepted, setOtherRelationshipIsAccepted] = useState<boolean>(true)
+
+  // Reset the checkbox on each open/close
+  React.useEffect(() => {
+    setOtherRelationshipIsAccepted(true)
+  }, [pendingRelationshipAction])
+
+  const otherSourcePerson = useMemo<Person | null>(() => {
+    // If addChild and there is a single spouse, offer to add it to her as well
+    if (pendingRelationshipAction) {
+      const { relationshipAction, personId: sourcePersonId } = pendingRelationshipAction!
+      if (relationshipAction === 'addChild') {
+        // Single coparent
+        const [coparent, ...otherCoparents] = getCoparents(sourcePersonId, { relationships, persons })
+        if (coparent && !otherCoparents.length) {
+          return coparent
+        }
+
+        // Single spouse
+        const [spouse, ...otherSpouses] = getSpousesOf(sourcePersonId, { relationships, persons })
+
+        if (spouse && !otherSpouses.length) {
+          return spouse
+        }
+      }
+    }
+
+    return null
+  }, [pendingRelationshipAction])
 
   return (
     <Transition.Root show={!!pendingRelationshipAction} as={React.Fragment}>
@@ -826,12 +866,39 @@ function SearchPanel({
                             onPersonSelected({
                               selectedPerson: person,
                               sourcePersonId: personId,
+                              secondarySourcePersonId: otherRelationshipIsAccepted ? otherSourcePerson?.personId : undefined,
                               relationshipAction,
                             })
                           }}
                           unselectableIds={relativeIdsWithThisRelationship.map((rel) => rel.personId)}
                           className='max-w-xl text-gray-800'
                         />
+                        {otherSourcePerson ? (
+                          <div className='flex items-center justify-between mt-2'>
+                            <input
+                              type='checkbox'
+                              className='mr-2'
+                              checked={otherRelationshipIsAccepted}
+                              onChange={() => setOtherRelationshipIsAccepted((state) => !state)}
+                            />
+                            {otherSourcePerson.profilePicUrl ? (
+                              <img
+                                className='h-12 w-12 flex-none rounded-full bg-gray-50 shadow-md border border-gray-200'
+                                src={otherSourcePerson.profilePicUrl}
+                                alt=''
+                              />
+                            ) : (
+                              <span className={`inline-flex h-12 w-12 items-center justify-center rounded-full bg-gray-500`}>
+                                <span className='text-5xl font-medium leading-none text-white'>
+                                  {getInitials(otherSourcePerson.name)}
+                                </span>
+                              </span>
+                            )}
+                            <div className='mx-2 min-w-0 flex-auto'>
+                              <p className='text-base'>{otherSourcePerson.name} est l'autre parent.</p>
+                            </div>
+                          </div>
+                        ) : null}
                       </div>
                     </div>
                   </div>
@@ -884,6 +951,45 @@ function SearchPanel({
 
 const fakeProfilePicUrl =
   'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80'
+
+function getSpousesOf(sourcePersonId: UUID, args: { relationships: Relationship[]; persons: Person[] }) {
+  const spouseRels = args.relationships.filter(
+    (rel): rel is Relationship & { type: 'spouses' } => rel.type === 'spouses' && rel.spouseIds.includes(sourcePersonId)
+  )
+
+  const uniqueSpouseIds = new Set<UUID>()
+  for (const spouseRel of spouseRels) {
+    const spouseId = spouseRel.spouseIds.find((id) => id !== sourcePersonId)
+    if (spouseId) uniqueSpouseIds.add(spouseId)
+  }
+
+  return Array.from(uniqueSpouseIds)
+    .map((spouseId) => args.persons.find((person) => person.personId === spouseId))
+    .filter((item): item is Person => !!item)
+}
+
+function getCoparents(sourcePersonId: UUID, args: { relationships: Relationship[]; persons: Person[] }) {
+  const { relationships } = args
+  const childIds = new Set(
+    relationships
+      .filter((rel): rel is Relationship & { type: 'parent' } => rel.type === 'parent' && rel.parentId === sourcePersonId)
+      .map((rel) => rel.childId)
+  )
+
+  const coparentIds = new Set<UUID>()
+  for (const childId of childIds) {
+    const otherParent = relationships.find(
+      (rel): rel is Relationship & { type: 'parent' } =>
+        rel.type === 'parent' && rel.childId === childId && rel.parentId !== sourcePersonId
+    )?.parentId
+
+    if (otherParent) coparentIds.add(otherParent)
+  }
+
+  return Array.from(coparentIds)
+    .map((coparentId) => args.persons.find((person) => person.personId === coparentId))
+    .filter((item): item is Person => !!item)
+}
 
 function CoupleNode({
   id,
@@ -952,7 +1058,7 @@ function PersonNode({
             className={`inline-flex h-36 w-36 items-center justify-center rounded-full bg-gray-500 ring-2 ${
               selected || data.isOriginPerson ? 'ring-indigo-500' : 'ring-white'
             } shadow-sm`}>
-            <span className='text-xl font-medium leading-none text-white'>{getInitials(data.label)}</span>
+            <span className='text-5xl font-medium leading-none text-white'>{getInitials(data.label)}</span>
           </span>
         )}
         <div className='absolute w-full top-full -mt-1 pointer-events-none z-10'>
@@ -1024,20 +1130,21 @@ function getInitials(name: string): string {
     }
   }
 
-  return initials
+  return initials.substring(0, 3)
 }
 
 type SaveNewRelationshipArgs = {
   newPerson?: Person
   relationship: Relationship
+  secondaryRelationship?: Relationship
 }
 
-const saveNewRelationship = async ({ newPerson, relationship }: SaveNewRelationshipArgs) => {
+const saveNewRelationship = async ({ newPerson, relationship, secondaryRelationship }: SaveNewRelationshipArgs) => {
   // setStatus('saving')
   return fetch(`/family/saveNewRelationship`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ newPerson, relationship }),
+    body: JSON.stringify({ newPerson, relationship, secondaryRelationship }),
   }).then((res) => {
     if (!res.ok) {
       alert("La nouvelle relation n'a pas pu être sauvegardée.")
