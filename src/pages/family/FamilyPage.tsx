@@ -693,7 +693,8 @@ const ClientOnlyFamilyPage = ({ initialPersons, initialRelationships, initialOri
               onInit={setReactFlowInstance}
               onSelectionChange={onSelectionChange}
               nodeTypes={nodeTypes}
-              fitView>
+              fitView
+              maxZoom={1}>
               <Background />
               <Panel position='top-center'>
                 <SearchPanel
