@@ -173,7 +173,10 @@ function transferFn({ origin, persons, relationships }: PersonsRelationships): N
     const coupleChildren = new Map<CoupleNodeId, ChildId[]>()
     for (const childId of childIds) {
       const parents = getParents(childId)
-      const [parent1Id, parent2Id] = parents
+      const parentsAsArray = Array.from(parents)
+      const parent1Id = parentsAsArray.find((parentId) => parentId === personId)!
+      const parent2Id = parentsAsArray.find((parentId) => parentId !== personId)
+
       parent1Id && uniqueParentIds.add(parent1Id)
       parent2Id && uniqueParentIds.add(parent2Id)
       const { coupleNode, edges: newEdges, parent2Node } = getCoupleNode(parent1Id, parent2Id)
@@ -187,7 +190,7 @@ function transferFn({ origin, persons, relationships }: PersonsRelationships): N
         }
         coupleNode.position.x = parent2Node.position.x - BUBBLE_RADIUS / 2
       }
-      if (newEdges && newEdges.length) {
+      if (newEdges) {
         insertEdges(newEdges)
       }
       if (!coupleChildren.has(coupleNode.id)) {
@@ -239,6 +242,7 @@ function transferFn({ origin, persons, relationships }: PersonsRelationships): N
 
     const parent1Node = findPersonNode(parent1Id)
     if (!parent1Node) {
+      console.error({ parent1Id, parent2Id })
       throw new Error('getCoupleNode could not find parent1Node')
     }
 

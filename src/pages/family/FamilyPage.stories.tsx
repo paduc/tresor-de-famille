@@ -138,8 +138,8 @@ export const PlusieursPersonnes = () => {
           // { personId: getUuid(), name: 'Prénom Nom', profilePicUrl: fakePhoto() },
         ]}
         initialRelationships={[
-          { id: getUuid(), type: 'spouses', spouseIds: [originPersonId, wifeId] },
-          { id: getUuid(), type: 'spouses', spouseIds: [papaId, mamaId] },
+          // { id: getUuid(), type: 'spouses', spouseIds: [originPersonId, wifeId] },
+          // { id: getUuid(), type: 'spouses', spouseIds: [papaId, mamaId] },
           { id: getUuid(), type: 'parent', childId: originPersonId, parentId: papaId },
           { id: getUuid(), type: 'parent', childId: originPersonId, parentId: mamaId },
           { id: getUuid(), type: 'parent', childId: halfBroId, parentId: papaId },
@@ -161,7 +161,7 @@ export const PlusieursPersonnes = () => {
           { id: getUuid(), type: 'parent', childId: mamaId, parentId: papyId },
           { id: getUuid(), type: 'parent', childId: mamaId, parentId: mamyId },
         ]}
-        initialOriginPersonId={papaId}
+        initialOriginPersonId={originPersonId}
       />
     </SessionContext.Provider>
   )
