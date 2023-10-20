@@ -94,18 +94,9 @@ function transferFn({ origin, persons, relationships }: PersonsRelationships): N
   let edges: Edge[] = []
 
   // Create a node for the originPerson
-  const originPerson = persons.find((person) => person.personId === originPersonId)
 
-  if (!originPerson) throw new Error('Could not find origin person in list of persons')
-
-  const originNode = {
-    id: originPersonId,
-    type: 'person',
-    data: { label: originPerson.name, profilePicUrl: originPerson.profilePicUrl, isOriginPerson: true },
-    position: { x: currentX, y: currentY },
-    selected: false,
-    draggable: false,
-  }
+  const originNode = makePersonNode(originPersonId, { x: currentX, y: currentY })
+  originNode.data.isOriginPerson = true
   nodes.push(originNode)
 
   const COUPLE_OFFSET = X_OFFSET * 1.15
@@ -146,10 +137,12 @@ function transferFn({ origin, persons, relationships }: PersonsRelationships): N
   }
 
   // Add children
-  addChildren(originNode, originPersonId)
+  addChildren(originNode)
 
-  function addChildren(parentNode: Node, personId: string) {
+  function addChildren(parentNode: Node) {
     if (!parentNode) return []
+
+    const personId = parentNode.id
 
     const { x: currentX, y: currentY } = parentNode.position
 
@@ -200,8 +193,6 @@ function transferFn({ origin, persons, relationships }: PersonsRelationships): N
       coupleChildren.get(coupleNode.id)!.push(childId)
     }
 
-    // Il y a un probleme dans le sort pour le cas en core
-
     const couplesSortedByX: [string, UUID[]][] = Array.from(coupleChildren.keys())
       .sort((a, b) => {
         const nodeA = findNode(a)
@@ -230,7 +221,6 @@ function transferFn({ origin, persons, relationships }: PersonsRelationships): N
     }
 
     nodes = nodes.concat(childNodes)
-    // }
 
     return
   }
@@ -328,25 +318,13 @@ function transferFn({ origin, persons, relationships }: PersonsRelationships): N
       const coupleEdges = makeCoupleEdges(coupleNode, parent1Node, parent2Node)
       edges = edges.concat(coupleEdges)
 
-      edges.push({
-        id: `${coupleNode.id}isParentOf${personId}`,
-        source: coupleNode.id,
-        target: personId,
-        sourceHandle: 'children',
-        targetHandle: 'parents',
-      })
+      edges.push(makeParentChildEdge(coupleNode.id, personId))
 
       return [parent1Node, parent2Node]
     }
 
     // Edge from the person to his single parent node
-    edges.push({
-      id: `${parent1Node.id}isParentOf${personId}`,
-      source: parent1Node.id,
-      target: personId,
-      sourceHandle: 'children',
-      targetHandle: 'parents',
-    })
+    edges.push(makeParentChildEdge(parent1Id, personId))
     return [parent1Node]
   }
 
@@ -409,13 +387,7 @@ function transferFn({ origin, persons, relationships }: PersonsRelationships): N
             y: personNode.position.y,
           })
           nodes.push(siblingNode)
-          edges.push({
-            id: `${coupleNode.id}isParentOf${siblingId}`,
-            source: coupleNode.id,
-            target: siblingId,
-            sourceHandle: 'children',
-            targetHandle: 'parents',
-          })
+          edges.push(makeParentChildEdge(coupleNode.id, siblingId))
         }
       }
 
@@ -426,13 +398,7 @@ function transferFn({ origin, persons, relationships }: PersonsRelationships): N
             y: personNode.position.y,
           })
           nodes.push(siblingNode)
-          edges.push({
-            id: `${parentId}isParentOf${siblingId}`,
-            source: parentId,
-            target: siblingId,
-            sourceHandle: 'children',
-            targetHandle: 'parents',
-          })
+          edges.push(makeParentChildEdge(parent1Id, siblingId))
         }
       }
 
@@ -447,13 +413,7 @@ function transferFn({ origin, persons, relationships }: PersonsRelationships): N
         y: personNode.position.y,
       })
       nodes.push(siblingNode)
-      edges.push({
-        id: `${parent1Id}isParentOf${siblingId}`,
-        source: parent1Id,
-        target: siblingId,
-        sourceHandle: 'children',
-        targetHandle: 'parents',
-      })
+      edges.push(makeParentChildEdge(parent1Id, siblingId))
     }
 
     return trueSiblings.size
@@ -464,7 +424,7 @@ function transferFn({ origin, persons, relationships }: PersonsRelationships): N
     return {
       id: personId,
       type: 'person',
-      data: { label: person.name, profilePicUrl: person.profilePicUrl, hovered: false },
+      data: { label: person.name, profilePicUrl: person.profilePicUrl, isOriginPerson: false },
       position,
       selectable: true,
       draggable: false,
@@ -478,6 +438,7 @@ function transferFn({ origin, persons, relationships }: PersonsRelationships): N
       target: childId,
       sourceHandle: 'children',
       targetHandle: 'parents',
+      deletable: false,
     }
   }
 
@@ -503,6 +464,7 @@ function transferFn({ origin, persons, relationships }: PersonsRelationships): N
       target: rightSpouse.id,
       sourceHandle: 'couple-right',
       targetHandle: 'person-left',
+      deletable: false,
     }
 
     const coupleToLeftSpouse = {
@@ -511,6 +473,7 @@ function transferFn({ origin, persons, relationships }: PersonsRelationships): N
       target: coupleNode.id,
       sourceHandle: 'person-right',
       targetHandle: 'couple-left',
+      deletable: false,
     }
 
     return [coupleToRightSpouse, coupleToLeftSpouse]
