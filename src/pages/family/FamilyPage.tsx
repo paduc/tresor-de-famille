@@ -97,7 +97,7 @@ function transferFn({ origin, persons, relationships }: PersonsRelationships): N
 
   const originNode = makePersonNode(originPersonId, { x: currentX, y: currentY })
   originNode.data.isOriginPerson = true
-  nodes.push(originNode)
+  insertNode(originNode)
 
   const COUPLE_OFFSET = X_OFFSET * 1.15
 
@@ -114,15 +114,15 @@ function transferFn({ origin, persons, relationships }: PersonsRelationships): N
       x: currentX + COUPLE_OFFSET,
       y: currentY,
     })
-    nodes.push(spouseNode)
+    insertNode(spouseNode)
 
     spouseIds.push(spouseId)
 
     coupleNode = makeCoupleNode(originNode, spouseNode)
-    nodes.push(coupleNode)
+    insertNode(coupleNode)
 
     const coupleEdges = makeCoupleEdges(coupleNode, originNode, spouseNode)
-    edges = edges.concat(coupleEdges)
+    insertEdges(coupleEdges)
   }
 
   // Add parents
@@ -178,14 +178,17 @@ function transferFn({ origin, persons, relationships }: PersonsRelationships): N
       parent2Id && uniqueParentIds.add(parent2Id)
       const { coupleNode, edges: newEdges, parent2Node } = getCoupleNode(parent1Id, parent2Id)
       if (parent2Node) {
-        nodes.push(coupleNode)
-        nodes.push(parent2Node)
+        insertNode(coupleNode)
+        insertNode(parent2Node)
 
-        parent2Node.position.x = parentNode.position.x + (uniqueParentIds.size - 1) * COUPLE_OFFSET
+        parent2Node.position = {
+          x: parentNode.position.x + (uniqueParentIds.size - 1) * COUPLE_OFFSET,
+          y: parentNode.position.y,
+        }
         coupleNode.position.x = parent2Node.position.x - BUBBLE_RADIUS / 2
       }
       if (newEdges && newEdges.length) {
-        edges = edges.concat(newEdges)
+        insertEdges(newEdges)
       }
       if (!coupleChildren.has(coupleNode.id)) {
         coupleChildren.set(coupleNode.id, [])
@@ -216,11 +219,11 @@ function transferFn({ origin, persons, relationships }: PersonsRelationships): N
           y: currentY + Y_OFFSET,
         })
         childNodes.push(childNode)
-        edges.push(makeParentChildEdge(coupleId, childId))
+        insertEdge(makeParentChildEdge(coupleId, childId))
       }
     }
 
-    nodes = nodes.concat(childNodes)
+    insertNodes(childNodes)
 
     return
   }
@@ -271,6 +274,30 @@ function transferFn({ origin, persons, relationships }: PersonsRelationships): N
     return nodes.find((node) => node.id === nodeId)
   }
 
+  function insertEdge(edgeToBeInserted: Edge) {
+    // avoid duplicate edges
+    edges = [...edges.filter((edge) => edge.id !== edgeToBeInserted.id), edgeToBeInserted]
+  }
+
+  function insertEdges(edgesToBeInserted: Edge[]) {
+    // avoid duplicate edges
+    for (const edgeToBeInserted of edgesToBeInserted) {
+      insertEdge(edgeToBeInserted)
+    }
+  }
+
+  function insertNode(nodeToBeInserted: Node) {
+    // avoid duplicate nodes
+    nodes = [...nodes.filter((node) => node.id !== nodeToBeInserted.id), nodeToBeInserted]
+  }
+
+  function insertNodes(nodesToBeInserted: Node[]) {
+    // avoid duplicate nodes
+    for (const nodeToBeInserted of nodesToBeInserted) {
+      insertNode(nodeToBeInserted)
+    }
+  }
+
   // Ideas to make this nicer:
   // - Do not try to make a fully recursive version, it's overly complex and not interesting, ex: for huge families, you have to put a huge distance between couples
   // - Stay focused on interesting use-cases (quick look at a persons family - as defined statically (children, grand-children, parents, grand-parents), path between two persons, ...)
@@ -301,30 +328,30 @@ function transferFn({ origin, persons, relationships }: PersonsRelationships): N
       x: singleParent ? currentX : currentX - localXOffset,
       y: currentY - Y_OFFSET,
     })
-    nodes.push(parent1Node)
+    insertNode(parent1Node)
 
     if (!singleParent) {
       const parent2Node = makePersonNode(parent2Id, {
         x: currentX + localXOffset,
         y: currentY - Y_OFFSET,
       })
-      nodes.push(parent2Node)
+      insertNode(parent2Node)
 
       // Make couple node here
       const coupleNode = makeCoupleNode(parent1Node, parent2Node)
-      nodes.push(coupleNode)
+      insertNode(coupleNode)
 
       // Edge from the person to his parents' couple node
       const coupleEdges = makeCoupleEdges(coupleNode, parent1Node, parent2Node)
-      edges = edges.concat(coupleEdges)
+      insertEdges(coupleEdges)
 
-      edges.push(makeParentChildEdge(coupleNode.id, personId))
+      insertEdge(makeParentChildEdge(coupleNode.id, personId))
 
       return [parent1Node, parent2Node]
     }
 
     // Edge from the person to his single parent node
-    edges.push(makeParentChildEdge(parent1Id, personId))
+    insertEdge(makeParentChildEdge(parent1Id, personId))
     return [parent1Node]
   }
 
@@ -386,8 +413,8 @@ function transferFn({ origin, persons, relationships }: PersonsRelationships): N
             x: personNode.position.x - X_OFFSET * ++counter,
             y: personNode.position.y,
           })
-          nodes.push(siblingNode)
-          edges.push(makeParentChildEdge(coupleNode.id, siblingId))
+          insertNode(siblingNode)
+          insertEdge(makeParentChildEdge(coupleNode.id, siblingId))
         }
       }
 
@@ -397,8 +424,8 @@ function transferFn({ origin, persons, relationships }: PersonsRelationships): N
             x: personNode.position.x - X_OFFSET * ++counter,
             y: personNode.position.y,
           })
-          nodes.push(siblingNode)
-          edges.push(makeParentChildEdge(parent1Id, siblingId))
+          insertNode(siblingNode)
+          insertEdge(makeParentChildEdge(parent1Id, siblingId))
         }
       }
 
@@ -412,8 +439,8 @@ function transferFn({ origin, persons, relationships }: PersonsRelationships): N
         x: personNode.position.x - X_OFFSET * ++counter,
         y: personNode.position.y,
       })
-      nodes.push(siblingNode)
-      edges.push(makeParentChildEdge(parent1Id, siblingId))
+      insertNode(siblingNode)
+      insertEdge(makeParentChildEdge(parent1Id, siblingId))
     }
 
     return trueSiblings.size
