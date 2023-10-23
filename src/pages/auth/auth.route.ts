@@ -51,7 +51,7 @@ pageRouter
 
       // Registration case
       if (loginType === 'register') {
-        if (!code || !REGISTRATION_CODES.includes(code)) {
+        if (REGISTRATION_CODE && (!code || !REGISTRATION_CODES.includes(code))) {
           return responseAsHtml(
             request,
             response,
