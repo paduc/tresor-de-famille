@@ -12,6 +12,7 @@ export type Session =
       arePhotosEnabled: boolean
       arePersonsEnabled: boolean
       areThreadsEnabled: boolean
+      isFamilyPageEnabled: boolean
       areVideosEnabled: boolean
     }
 

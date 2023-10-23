@@ -52,7 +52,7 @@ export default function AdaptiveLayout({ children }: AdaptiveLayoutProps) {
     return <p>Session not available</p>
   }
 
-  const { arePhotosEnabled, areThreadsEnabled, profilePic } = session
+  const { arePhotosEnabled, areThreadsEnabled, isFamilyPageEnabled, profilePic } = session
 
   const userName = session.userName || ''
 
@@ -80,7 +80,7 @@ export default function AdaptiveLayout({ children }: AdaptiveLayoutProps) {
       name: 'Ma famille (alpha)',
       href: '/family.html',
       icon: BookOpenIcon,
-      condition: () => true,
+      condition: () => isFamilyPageEnabled,
     },
   ]
 
