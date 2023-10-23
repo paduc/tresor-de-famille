@@ -22,7 +22,7 @@ const register = makeRegister({
 const REGISTRATION_CODES = REGISTRATION_CODE.split(',')
 
 pageRouter
-  .route('/login.html')
+  .route(['/login.html', '/register.html'])
   .get(async (request, response) => {
     const { redirectTo, code } = z
       .object({
@@ -31,7 +31,11 @@ pageRouter
       })
       .parse(request.query)
 
-    responseAsHtml(request, response, ConnexionPage({ redirectTo, code }))
+    responseAsHtml(
+      request,
+      response,
+      ConnexionPage({ redirectTo, code, loginType: request.path === '/register.html' ? 'register' : 'login' })
+    )
   })
   .post(async (request, response) => {
     try {
