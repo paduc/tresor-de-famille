@@ -26,10 +26,11 @@ export const getThreadListPageProps = async (userId: UUID): Promise<ThreadListPa
     { userId }
   )
 
-  const userUploadedEvents = await getEventList<UserUploadedPhotoToChat>('UserUploadedPhotoToChat', { uploadedBy: userId })
+  // const userUploadedEvents = await getEventList<UserUploadedPhotoToChat>('UserUploadedPhotoToChat', { uploadedBy: userId })
 
-  type ThreadEvent = MessageEvent | UserUploadedPhotoToChat
-  const threadEvents: ThreadEvent[] = [...messagesEvents, ...userUploadedEvents]
+  // type ThreadEvent = MessageEvent | UserUploadedPhotoToChat
+  type ThreadEvent = MessageEvent
+  const threadEvents: ThreadEvent[] = messagesEvents
 
   const uniqueThreads = new Map<UUID, ThreadEvent[]>()
   for (const threadEvent of threadEvents) {
