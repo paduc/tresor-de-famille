@@ -7,14 +7,19 @@ import { downloadPhoto } from '../dependencies/photo-storage'
 import { doesPhotoExist } from '../pages/_doesPhotoExist'
 
 actionsRouter.route('/photos/:photoId').get(requireAuth(), async (request, response) => {
-  const { photoId } = zod.object({ photoId: zIsUUID }).parse(request.params)
-  const userId = request.session.user!.id
+  try {
+    const { photoId } = zod.object({ photoId: zIsUUID }).parse(request.params)
+    const userId = request.session.user!.id
 
-  response.set('Content-Type', 'image/*')
-  response.set('Cache-Control', 'private, max-age=15552000')
+    response.set('Content-Type', 'image/*')
+    response.set('Cache-Control', 'private, max-age=15552000')
 
-  const photoExists = await doesPhotoExist({ photoId, userId })
-  if (!photoExists) return response.sendStatus(404)
+    const photoExists = await doesPhotoExist({ photoId, userId })
+    if (!photoExists) return response.sendStatus(404)
 
-  downloadPhoto(photoId).pipe(response)
+    downloadPhoto(photoId).pipe(response)
+  } catch (error) {
+    console.error('getPhotoById', error)
+    response.status(500).send()
+  }
 })

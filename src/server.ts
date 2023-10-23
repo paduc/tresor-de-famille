@@ -1,4 +1,4 @@
-import express, { Express } from 'express'
+import express, { Express, NextFunction, Request, Response } from 'express'
 import session from 'express-session'
 import path from 'node:path'
 require('express-async-errors')
@@ -45,6 +45,12 @@ app.use(actionsRouter)
 app.use(factViewerRouter)
 
 app.use(express.static(path.join(__dirname, 'assets')))
+
+app.use((err: Error, _: Request, res: Response, next: NextFunction) => {
+  res.status(500).send()
+
+  next(err)
+})
 
 app.listen(PORT, async (): Promise<void> => {
   await createHistoryTable()
