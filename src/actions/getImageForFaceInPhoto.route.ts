@@ -66,7 +66,12 @@ actionsRouter.route('/photo/:photoId/face/:faceId').get(requireAuth(), async (re
 
   // Extract the square portion of the image using the bounding box
   const extractedImage = pipeline
-    .extract({ width: longestSide, height: longestSide, top: Math.max(0, squareTop), left: Math.max(0, squareLeft) })
+    .extract({
+      width: Math.min(longestSide, imageMetadata.width! - squareLeft),
+      height: Math.min(longestSide, imageMetadata.height! - squareTop),
+      top: Math.max(0, squareTop),
+      left: Math.max(0, squareLeft),
+    })
     .rotate() // to keep original orientation (based on exif)
   // .withMetadata() // could also be used
 
