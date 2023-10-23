@@ -80,7 +80,7 @@ export default function AdaptiveLayout({ children }: AdaptiveLayoutProps) {
       name: 'Ma famille (alpha)',
       href: '/family.html',
       icon: BookOpenIcon,
-      condition: () => areThreadsEnabled,
+      condition: () => true,
     },
   ]
 

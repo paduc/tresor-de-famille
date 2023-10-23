@@ -108,9 +108,9 @@ async function getSession(request: Request): Promise<Session> {
       userName: user.name,
       isAdmin: userId === ADMIN_USERID,
       profilePic,
-      arePhotosEnabled: !!hasPhotos,
-      arePersonsEnabled: !!hasPersons,
-      areThreadsEnabled: !!hasThreads,
+      arePhotosEnabled: true,
+      arePersonsEnabled: true,
+      areThreadsEnabled: true,
       areVideosEnabled: false,
     }
   }
