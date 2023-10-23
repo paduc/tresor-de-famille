@@ -19,6 +19,8 @@ const register = makeRegister({
   hashPassword: (password: string) => bcrypt.hash(password, PASSWORD_SALT),
 })
 
+const REGISTRATION_CODES = REGISTRATION_CODE.split(',')
+
 pageRouter
   .route('/login.html')
   .get(async (request, response) => {
@@ -45,7 +47,7 @@ pageRouter
 
       // Registration case
       if (loginType === 'register') {
-        if (code !== REGISTRATION_CODE) {
+        if (!code || !REGISTRATION_CODES.includes(code)) {
           return responseAsHtml(
             request,
             response,
