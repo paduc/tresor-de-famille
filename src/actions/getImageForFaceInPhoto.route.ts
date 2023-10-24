@@ -45,6 +45,8 @@ actionsRouter.route('/photo/:photoId/face/:faceId').get(requireAuth(), async (re
     const boxTop = Math.round(imageMetadata.height! * Top!)
     const boxLeft = Math.round(imageMetadata.width! * Left!)
 
+    // console.log(JSON.stringify(imageMetadata, null, 2))
+
     // Find the longest side of the bounding box
     const longestSide = Math.max(boxWidth, boxHeight)
 
@@ -56,30 +58,40 @@ actionsRouter.route('/photo/:photoId/face/:faceId').get(requireAuth(), async (re
     if (squareTop < 0) {
       squareTop = 0
     } else if (squareTop + longestSide > imageMetadata.height!) {
-      squareTop = imageMetadata.height! - longestSide
+      squareTop = Math.max(0, imageMetadata.height! - longestSide)
     }
 
     if (squareLeft < 0) {
       squareLeft = 0
     } else if (squareLeft + longestSide > imageMetadata.width!) {
-      squareLeft = imageMetadata.width! - longestSide
+      squareLeft = Math.max(0, imageMetadata.width! - longestSide)
     }
 
+    // console.log(JSON.stringify({ squareLeft, squareTop, longestSide }, null, 2))
+
     // Extract the square portion of the image using the bounding box
-    const extractedImage = pipeline
-      .extract({
-        width: Math.min(longestSide, imageMetadata.width! - squareLeft),
-        height: Math.min(longestSide, imageMetadata.height! - squareTop),
-        top: Math.max(0, squareTop),
-        left: Math.max(0, squareLeft),
-      })
-      .rotate() // to keep original orientation (based on exif)
-    // .withMetadata() // could also be used
+    const extractZone = {
+      width: Math.min(longestSide, imageMetadata.width! - squareLeft),
+      height: Math.min(longestSide, imageMetadata.height! - squareTop),
+      top: Math.max(0, squareTop),
+      left: Math.max(0, squareLeft),
+    }
+
+    // console.log(JSON.stringify(extractZone, null, 2))
 
     response.set('Content-Type', 'image/*')
     response.set('Cache-Control', 'private, max-age=15552000')
+    try {
+      const extractedImage = pipeline.extract(extractZone).rotate() // to keep original orientation (based on exif) // to keep original orientation (based on exif)
+      // .withMetadata() // could also be used
 
-    extractedImage.pipe(response)
+      extractedImage.pipe(response)
+    } catch (error) {
+      console.error('Bad extraction zone', error)
+      // send the full image instead
+      // TODO: send placeholder
+      originalImageStream.pipe(response)
+    }
   } catch (error) {
     console.error('getImageForFaceInPhoto', error)
     response.status(500).send()
