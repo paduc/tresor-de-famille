@@ -1,10 +1,10 @@
-import React, { useLayoutEffect, useRef, useState } from 'react'
+import React, { useCallback, useLayoutEffect, useRef, useState } from 'react'
 import TextareaAutosize from 'react-textarea-autosize'
 
 import { XMarkIcon } from '@heroicons/react/20/solid'
 import { UUID } from '../../../domain/UUID'
 import { withBrowserBundle } from '../../../libs/ssr/withBrowserBundle'
-import { buttonIconStyles, secondaryRedButtonStyles } from '../../_components/Button'
+import { buttonIconStyles, primaryButtonStyles, secondaryRedButtonStyles, smallButtonStyles } from '../../_components/Button'
 import { SessionContext } from '../../_components/SessionContext'
 import { PersonAutocomplete } from '../../_components/PersonAutocomplete'
 import { PhotoListPageUrl } from '../../listPhotos/PhotoListPageUrl'
@@ -65,6 +65,16 @@ const Wrapper = ({ context, caption, photoId, photoUrl, faces, updated }: NewPho
   const [selectedFace, setSelectedFace] = useState<PhotoFace | null>(null)
   const [faceEditionMode, setFaceEditionMode] = useState<boolean>(false)
 
+  const [hasCaptionChanged, setCaptionChanged] = useState<boolean>(false)
+
+  const handleCaptionChange = useCallback(
+    (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+      if (e.target.value !== caption) setCaptionChanged(true)
+      else setCaptionChanged(false)
+    },
+    [caption]
+  )
+
   const scrollEvent = () => {
     if (isScrollHintVisible) {
       toggleScrollHint(false)
@@ -108,19 +118,20 @@ const Wrapper = ({ context, caption, photoId, photoUrl, faces, updated }: NewPho
         </div>
         <div ref={bottomRef} className='bg-white bg-opacity-5'>
           <div className='text-gray-300 px-3 py-4 pb-28 w-full sm:max-w-lg mx-auto divide divide-y divide-solid divide-gray-200 divide-opacity-30'>
-            <div>
+            <div className='pb-1'>
               <form method='POST' className='relative'>
                 <input type='hidden' name='action' value='addCaption' />
-                <div className='overflow-hidden'>
+                <div className='overflow-hidden pb-5'>
                   <label htmlFor='caption' className='sr-only'>
                     Ajouter une légende...
                   </label>
                   <TextareaAutosize
                     name='caption'
                     minRows={1}
-                    className='block w-full bg-none bg-transparent resize-none border-0 p-0 text-white placeholder:text-gray-300 pb-3'
+                    className='block w-full bg-none bg-transparent resize-none border-0 p-0 text-white focus:ring-0 focus:border-0 placeholder:text-gray-300 pb-3'
                     placeholder='Ajouter une légende...'
                     defaultValue={caption}
+                    onChange={handleCaptionChange}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' && !e.altKey && !e.ctrlKey) {
                         e.preventDefault()
@@ -130,6 +141,12 @@ const Wrapper = ({ context, caption, photoId, photoUrl, faces, updated }: NewPho
                     }}
                   />
                 </div>
+                <button
+                  className={`mt-3 ${primaryButtonStyles} ${smallButtonStyles} absolute bottom-0 right-0 ${
+                    hasCaptionChanged ? 'visible' : 'invisible'
+                  }`}>
+                  Sauvegarder
+                </button>
               </form>
             </div>
             {faces && faces.length ? (

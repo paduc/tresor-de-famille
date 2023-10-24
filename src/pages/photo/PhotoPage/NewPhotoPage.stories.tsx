@@ -80,6 +80,7 @@ export const PhotoWithFaces = () => (
     ]}
     photoId={getUuid()}
     photoUrl={fakePhoto({ width: 1000, height: 1000 })}
+    caption='Ceci est une légende'
   />
 )
 
