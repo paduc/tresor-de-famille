@@ -2,6 +2,7 @@ import { getSingleEvent } from '../dependencies/getSingleEvent'
 import { UUID } from '../domain'
 import { UserNamedPersonInPhoto } from '../events/onboarding/UserNamedPersonInPhoto'
 import { UserNamedThemself } from '../events/onboarding/UserNamedThemself'
+import { UserRecognizedPersonInPhoto } from '../events/onboarding/UserRecognizedPersonInPhoto'
 import { getProfilePicUrlForUser } from './_getProfilePicUrlForUser'
 
 export const getProfilePicUrlForPerson = async (personId: UUID, userId: UUID): Promise<string | null> => {
@@ -12,10 +13,13 @@ export const getProfilePicUrlForPerson = async (personId: UUID, userId: UUID): P
     return getProfilePicUrlForUser(userId)
   }
 
-  const personNamed = await getSingleEvent<UserNamedPersonInPhoto>(['UserNamedPersonInPhoto'], {
-    personId,
-    userId,
-  })
+  const personNamed = await getSingleEvent<UserNamedPersonInPhoto | UserRecognizedPersonInPhoto>(
+    ['UserNamedPersonInPhoto', 'UserRecognizedPersonInPhoto'],
+    {
+      personId,
+      userId,
+    }
+  )
 
   if (personNamed) {
     const { faceId, photoId } = personNamed.payload
