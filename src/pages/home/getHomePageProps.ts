@@ -3,14 +3,19 @@ import { getPhotoUrlFromId } from '../../dependencies/photo-storage'
 import { UUID } from '../../domain'
 import { OnboardingUserUploadedPhotoOfThemself } from '../../events/onboarding/OnboardingUserUploadedPhotoOfThemself'
 import { UserConfirmedHisFace } from '../../events/onboarding/UserConfirmedHisFace'
+import { UserNamedPersonInPhoto } from '../../events/onboarding/UserNamedPersonInPhoto'
 import { UserNamedThemself } from '../../events/onboarding/UserNamedThemself'
+import { UserRecognizedPersonInPhoto } from '../../events/onboarding/UserRecognizedPersonInPhoto'
+import { getProfilePicUrlForUser } from '../_getProfilePicUrlForUser'
 import { AWSDetectedFacesInPhoto } from '../photo/recognizeFacesInChatPhoto/AWSDetectedFacesInPhoto'
 import { GetUserName, HomePageProps, UploadProfilePicture } from './HomePage'
 
 export const getHomePageProps = async (userId: UUID): Promise<HomePageProps> => {
   const step1 = await getGetUserName(userId)
 
-  const step2: UploadProfilePicture = await getUploadProfilePicture(userId)
+  const personId = step1['get-user-name'] === 'done' ? step1.personId : undefined
+
+  const step2: UploadProfilePicture = await getUploadProfilePicture(userId, personId)
 
   const isOnboarding = step2['upload-profile-picture'] !== 'user-face-confirmed'
 
@@ -37,7 +42,7 @@ async function getGetUserName(userId: UUID): Promise<GetUserName> {
   return { 'get-user-name': 'pending' }
 }
 
-async function getUploadProfilePicture(userId: UUID): Promise<UploadProfilePicture> {
+async function getUploadProfilePicture(userId: UUID, personId?: UUID): Promise<UploadProfilePicture> {
   const userFaceConfirmed = await getSingleEvent<UserConfirmedHisFace>('UserConfirmedHisFace', { userId })
 
   if (userFaceConfirmed) {
@@ -47,6 +52,24 @@ async function getUploadProfilePicture(userId: UUID): Promise<UploadProfilePictu
       photoId,
       photoUrl: getPhotoUrlFromId(photoId),
       faceId,
+    }
+  }
+
+  // User might have uploaded a photo of themself elsewhere
+  if (personId) {
+    const otherFaceEvent = await getSingleEvent<UserNamedPersonInPhoto | UserRecognizedPersonInPhoto>(
+      ['UserNamedPersonInPhoto', 'UserRecognizedPersonInPhoto'],
+      { personId }
+    )
+
+    if (otherFaceEvent) {
+      const { photoId, faceId } = otherFaceEvent.payload
+      return {
+        'upload-profile-picture': 'user-face-confirmed',
+        photoId,
+        photoUrl: getPhotoUrlFromId(photoId),
+        faceId,
+      }
     }
   }
 
