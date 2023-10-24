@@ -470,6 +470,7 @@ function transferFn({ origin, persons, relationships }: PersonsRelationships): N
       sourceHandle: 'children',
       targetHandle: 'parents',
       deletable: false,
+      selectable: false,
     }
   }
 
@@ -482,6 +483,8 @@ function transferFn({ origin, persons, relationships }: PersonsRelationships): N
         x: (spouse1Node.position.x + spouse2Node.position.x) / 2 + BUBBLE_RADIUS - COUPLE_NODE_RADIUS,
         y: spouse1Node.position.y + BUBBLE_RADIUS - COUPLE_NODE_RADIUS + 2,
       },
+      selectable: false,
+      draggable: false,
     }
   }
 
@@ -496,6 +499,7 @@ function transferFn({ origin, persons, relationships }: PersonsRelationships): N
       sourceHandle: 'couple-right',
       targetHandle: 'person-left',
       deletable: false,
+      selectable: false,
     }
 
     const coupleToLeftSpouse = {
@@ -505,6 +509,7 @@ function transferFn({ origin, persons, relationships }: PersonsRelationships): N
       sourceHandle: 'person-right',
       targetHandle: 'couple-left',
       deletable: false,
+      selectable: false,
     }
 
     return [coupleToRightSpouse, coupleToLeftSpouse]
@@ -1002,9 +1007,15 @@ function CoupleNode({
 }: NodeProps<{}>) {
   return (
     <>
-      <Handle id='couple-left' type='target' style={{ opacity: 0, left: 3 }} position={Position.Left} />
-      <Handle id='couple-right' type='source' style={{ opacity: 0, right: 3 }} position={Position.Right} />
-      <Handle id='children' type='source' style={{ opacity: 0, bottom: 3 }} position={Position.Bottom} />
+      <Handle id='couple-left' type='target' style={{ opacity: 0, left: 3 }} position={Position.Left} isConnectable={false} />
+      <Handle
+        id='couple-right'
+        type='source'
+        style={{ opacity: 0, right: 3 }}
+        position={Position.Right}
+        isConnectable={false}
+      />
+      <Handle id='children' type='source' style={{ opacity: 0, bottom: 3 }} position={Position.Bottom} isConnectable={false} />
       <div className='h-3 w-3 rounded-full bg-gray-50 border border-grey-700' />
     </>
   )
@@ -1040,10 +1051,16 @@ function PersonNode({
   const addSpouseLabel = 'Ajouter un compagnon / époux'
   return (
     <div className='text-center relative' key={`personNode_${id}`}>
-      <Handle id='parents' type='target' style={{ opacity: 0, top: 5 }} position={Position.Top} />
-      <Handle id='children' type='source' style={{ opacity: 0, bottom: 5 }} position={Position.Bottom} />
-      <Handle id='person-left' type='target' style={{ opacity: 0, left: 5 }} position={Position.Left} />
-      <Handle id='person-right' type='source' style={{ opacity: 0, right: 5 }} position={Position.Right} />
+      <Handle id='parents' type='target' style={{ opacity: 0, top: 5 }} position={Position.Top} isConnectable={false} />
+      <Handle id='children' type='source' style={{ opacity: 0, bottom: 5 }} position={Position.Bottom} isConnectable={false} />
+      <Handle id='person-left' type='target' style={{ opacity: 0, left: 5 }} position={Position.Left} isConnectable={false} />
+      <Handle
+        id='person-right'
+        type='source'
+        style={{ opacity: 0, right: 5 }}
+        position={Position.Right}
+        isConnectable={false}
+      />
 
       <div className='relative z-10'>
         {data.profilePicUrl ? (
