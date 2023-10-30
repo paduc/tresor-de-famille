@@ -84,7 +84,7 @@ export const PersonSearch = ({ onPersonSelected, open, setOpen, personFaceUrl }:
                       personFaceUrl ? 'pl-24' : 'pl-11'
                     } pr-4 text-gray-900 placeholder:text-gray-400 focus:ring-0`}
                     autoFocus
-                    placeholder='Rechercher...'
+                    placeholder='Rechercher une personne...'
                     onChange={(event) => setQuery(event.target.value.trim())}
                   />
                 </div>
