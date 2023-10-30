@@ -1,11 +1,10 @@
-import debounce from 'lodash.debounce'
 import { formatRelative } from 'date-fns'
 import { fr } from 'date-fns/locale'
+import debounce from 'lodash.debounce'
 import React, { useCallback, useEffect, useState } from 'react'
 import { UUID } from '../../../domain'
 import { withBrowserBundle } from '../../../libs/ssr/withBrowserBundle'
-import { buttonIconStyles, primaryButtonStyles, secondaryButtonStyles } from '../../_components/Button'
-import { InlinePhotoUploadBtn } from '../../_components/InlinePhotoUploadBtn'
+import { buttonIconStyles } from '../../_components/Button'
 import { AppLayout } from '../../_components/layout/AppLayout'
 import { PhotoIcon } from './PhotoIcon'
 
@@ -24,8 +23,8 @@ import {
 } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import { fixedForwardRef } from '../../../libs/fixedForwardRef'
-import { TipTapContentAsJSON } from '../TipTapTypes'
 import { Epoch } from '../../../libs/typeguards'
+import { TipTapContentAsJSON } from '../TipTapTypes'
 
 // @ts-ignore
 function classNames(...classes) {
@@ -99,21 +98,6 @@ export const ChatPage = withBrowserBundle(
             <Title title={title} chatId={chatId} />
             <div className=''>
               <RichTextEditor ref={richTextEditorRef} content={contentAsJSON} chatId={chatId} lastUpdated={lastUpdated} />
-            </div>
-            <div className='bg-gray-50 px-4 py-4 sm:px-6'>
-              <InlinePhotoUploadBtn formAction='/add-photo.html' formKey='addNewPhotoToChat' hiddenFields={{ chatId }}>
-                <span
-                  className={`${secondaryButtonStyles}`}
-                  onClick={(e) => {
-                    if (newMessageAreaRef.current !== null && newMessageAreaRef.current.value !== '') {
-                      e.preventDefault()
-                      alert("Merci d'envoyer votre souvenir avant d'ajouter une photo.")
-                    }
-                  }}>
-                  <PhotoIcon className={`${buttonIconStyles}`} aria-hidden='true' />
-                  Ajouter une photo
-                </span>
-              </InlinePhotoUploadBtn>
             </div>
           </div>
         </div>
