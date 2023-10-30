@@ -13,10 +13,9 @@
   ```
 */
 import { Dialog, Menu, Transition } from '@headlessui/react'
-import { Bars3Icon, PlusSmallIcon, XMarkIcon } from '@heroicons/react/24/outline'
-import { BookOpenIcon, PhotoIcon, VideoCameraIcon } from '@heroicons/react/24/outline'
+import { Bars3Icon, BookOpenIcon, PhotoIcon, PlusSmallIcon, VideoCameraIcon, XMarkIcon } from '@heroicons/react/24/outline'
 import React, { Fragment, useContext, useState } from 'react'
-import { InlinePhotoUpload } from '../InlinePhotoUpload'
+import { InlinePhotoUploadBtn } from '../InlinePhotoUploadBtn'
 import { LocationContext } from '../LocationContext'
 import { Logo } from '../Logo'
 import { SessionContext } from '../SessionContext'
@@ -123,12 +122,12 @@ export default function SidebarLayout({ children, hideNavBarItems }: SidebarLayo
                                 </a>
                               </li>
                               <li>
-                                <InlinePhotoUpload>
+                                <InlinePhotoUploadBtn formAction='/add-photo.html'>
                                   <span className='button inline-flex items-center gap-x-1.5 rounded-md  px-2.5 py-1.5 text-sm text-white border-1 ring-1 ring-inset ring-indigo-200 shadow-sm hover:bg-white/20'>
                                     <PlusSmallIcon className='-ml-0.5 h-5 w-5' aria-hidden='true' />
                                     Nouvelle photo
                                   </span>
-                                </InlinePhotoUpload>
+                                </InlinePhotoUploadBtn>
                               </li>
                             </ul>
                           </li>
@@ -225,12 +224,12 @@ export default function SidebarLayout({ children, hideNavBarItems }: SidebarLayo
                         </a>
                       </li>
                       <li>
-                        <InlinePhotoUpload>
+                        <InlinePhotoUploadBtn formAction='/add-photo.html'>
                           <span className='button inline-flex items-center gap-x-1.5 rounded-md  px-2.5 py-1.5 text-sm text-white border-1 ring-1 ring-inset ring-indigo-200 shadow-sm hover:bg-white/20'>
                             <PlusSmallIcon className='-ml-0.5 h-5 w-5' aria-hidden='true' />
                             Nouvelle photo
                           </span>
-                        </InlinePhotoUpload>
+                        </InlinePhotoUploadBtn>
                       </li>
                     </ul>
                   </li>

@@ -17,7 +17,7 @@ import { Bars3Icon, BookOpenIcon, MagnifyingGlassIcon, PhotoIcon, PlusSmallIcon,
 import React, { Fragment, useContext, useState } from 'react'
 import { PersonPageURL } from '../../person/PersonPageURL'
 import { PersonSearch } from '../../photo/PhotoPage/PersonSearch'
-import { InlinePhotoUpload } from '../InlinePhotoUpload'
+import { InlinePhotoUploadBtn } from '../InlinePhotoUploadBtn'
 import { LocationContext } from '../LocationContext'
 import { Logo } from '../Logo'
 import { SessionContext } from '../SessionContext'
@@ -171,12 +171,12 @@ export default function AdaptiveLayout({ children }: AdaptiveLayoutProps) {
                             ) : null}
                             {arePhotosEnabled ? (
                               <li>
-                                <InlinePhotoUpload>
+                                <InlinePhotoUploadBtn formAction='/add-photo.html'>
                                   <span className='button inline-flex items-center gap-x-1.5 rounded-md  px-2.5 py-1.5 text-sm text-white border-1 ring-1 ring-inset ring-indigo-200 shadow-sm hover:bg-white/20'>
                                     <PlusSmallIcon className='-ml-0.5 h-5 w-5' aria-hidden='true' />
                                     Nouvelle photo
                                   </span>
-                                </InlinePhotoUpload>
+                                </InlinePhotoUploadBtn>
                               </li>
                             ) : null}
                           </ul>
@@ -282,12 +282,12 @@ export default function AdaptiveLayout({ children }: AdaptiveLayoutProps) {
                     ) : null}
                     {arePhotosEnabled ? (
                       <li>
-                        <InlinePhotoUpload>
+                        <InlinePhotoUploadBtn formAction='/add-photo.html'>
                           <span className='button inline-flex items-center gap-x-1.5 rounded-md  px-2.5 py-1.5 text-sm text-white border-1 ring-1 ring-inset ring-indigo-200 shadow-sm hover:bg-white/20'>
                             <PlusSmallIcon className='-ml-0.5 h-5 w-5' aria-hidden='true' />
                             Nouvelle photo
                           </span>
-                        </InlinePhotoUpload>
+                        </InlinePhotoUploadBtn>
                       </li>
                     ) : null}
                   </ul>

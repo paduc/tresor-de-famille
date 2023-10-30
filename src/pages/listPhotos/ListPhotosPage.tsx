@@ -2,10 +2,10 @@ import * as React from 'react'
 
 import { UUID } from '../../domain'
 import { withBrowserBundle } from '../../libs/ssr/withBrowserBundle'
+import { InlinePhotoUploadBtn } from '../_components/InlinePhotoUploadBtn'
 import { SuccessError } from '../_components/SuccessError'
 import { AppLayout } from '../_components/layout/AppLayout'
 import { PhotoIcon } from '../photo/PhotoPage/PhotoIcon'
-import { InlinePhotoUpload } from '../_components/InlinePhotoUpload'
 
 // @ts-ignore
 function classNames(...classes) {
@@ -49,12 +49,12 @@ export const ListPhotosPage = withBrowserBundle(({ error, success, photos }: Lis
                 Pas de photos ?!
               </p>
               <p className='max-w-xl mt-5 mx-auto text-xl text-gray-500'>Lancez-vous en en envoyant une !</p>
-              <InlinePhotoUpload>
+              <InlinePhotoUploadBtn formAction='/add-photo.html'>
                 <span className='inline-flex items-center mt-6 px-3 py-1.5 border border-transparent sm:text-sm cursor-pointer font-medium rounded-full shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
                   <PhotoIcon className='-ml-0.5 mr-2 h-4 w-4' aria-hidden='true' />
                   Ajouter une photo
                 </span>
-              </InlinePhotoUpload>
+              </InlinePhotoUploadBtn>
             </div>
           </div>
         ) : (
@@ -76,12 +76,12 @@ export const ListPhotosPage = withBrowserBundle(({ error, success, photos }: Lis
               ))}
             </ul>
             <div className='mt-5'>
-              <InlinePhotoUpload>
+              <InlinePhotoUploadBtn formAction='/add-photo.html'>
                 <span className='inline-flex items-center mt-6 px-3 py-1.5 border border-transparent sm:text-sm cursor-pointer font-medium rounded-full shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
                   <PhotoIcon className='-ml-0.5 mr-2 h-4 w-4' aria-hidden='true' />
                   Ajouter une nouvelle photo
                 </span>
-              </InlinePhotoUpload>
+              </InlinePhotoUploadBtn>
             </div>
           </>
         )}
