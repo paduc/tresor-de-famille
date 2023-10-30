@@ -21,6 +21,7 @@ import { InlinePhotoUploadBtn } from '../InlinePhotoUploadBtn'
 import { LocationContext } from '../LocationContext'
 import { Logo } from '../Logo'
 import { SessionContext } from '../SessionContext'
+import { LoaderProvider } from './LoaderContext'
 
 // @ts-ignore
 function classNames(...classes) {
@@ -87,7 +88,7 @@ export default function AdaptiveLayout({ children }: AdaptiveLayoutProps) {
   const sidebarAccessible = navigation.some((link) => link.condition())
 
   return (
-    <>
+    <LoaderProvider>
       {/*
         This example requires updating your template:
 
@@ -96,6 +97,7 @@ export default function AdaptiveLayout({ children }: AdaptiveLayoutProps) {
         <body class="h-full">
         ```
       */}
+
       <div>
         {session.arePersonsEnabled ? (
           <PersonSearch
@@ -256,7 +258,7 @@ export default function AdaptiveLayout({ children }: AdaptiveLayoutProps) {
 
         {/* Static sidebar for desktop */}
         <div
-          className={`hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col ${
+          className={`hidden lg:fixed lg:inset-y-0 lg:z-40 lg:flex lg:w-72 lg:flex-col ${
             sidebarAccessible ? '' : 'lg:hidden'
           }`}>
           {/* Sidebar component, swap this element with another sidebar if you like */}
@@ -388,7 +390,7 @@ export default function AdaptiveLayout({ children }: AdaptiveLayoutProps) {
                       <div
                         className='pl-3 w-full text-gray-400 align-middle cursor-pointer'
                         onClick={() => setPersonSearchOpen(true)}>
-                        Rechercher...
+                        Rechercher une personne...
                       </div>
                     </>
                   ) : null}
@@ -451,6 +453,6 @@ export default function AdaptiveLayout({ children }: AdaptiveLayoutProps) {
           <main>{children}</main>
         </div>
       </div>
-    </>
+    </LoaderProvider>
   )
 }
