@@ -25,6 +25,7 @@ import StarterKit from '@tiptap/starter-kit'
 import { fixedForwardRef } from '../../../libs/fixedForwardRef'
 import { Epoch } from '../../../libs/typeguards'
 import { TipTapContentAsJSON } from '../TipTapTypes'
+import { useLoader } from '../../_components/layout/LoaderContext'
 
 // @ts-ignore
 function classNames(...classes) {
@@ -266,6 +267,7 @@ type RichTextEditorRef = {
   getContents: () => JSONContent
 }
 const RichTextEditor = fixedForwardRef<RichTextEditorRef, RichTextEditorProps>((props, ref) => {
+  const setLoader = useLoader()
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -340,7 +342,10 @@ const RichTextEditor = fixedForwardRef<RichTextEditorRef, RichTextEditorProps>((
             // @ts-ignore
             form.elements.contentAsJSONEncoded.value = encodeURIComponent(JSON.stringify(contentAsJSON))
 
-            form.submit()
+            setLoader(true)
+            setTimeout(() => {
+              form.submit()
+            }, 200)
           }}
         />
       </form>
