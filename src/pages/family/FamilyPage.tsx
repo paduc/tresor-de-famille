@@ -624,8 +624,6 @@ const ClientOnlyFamilyPage = ({ initialPersons, initialRelationships, initialOri
           }
           return [...relationships, ...newRelationships]
         })
-
-        setPendingRelationshipAction(null)
       } catch (error) {}
 
       function getNewPerson(person: Exclude<typeof selectedPerson, null>): { newPerson?: Person; targetPersonId: UUID } {
