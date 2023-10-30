@@ -74,12 +74,13 @@ const X_OFFSET = 2.5 * BUBBLE_RADIUS
 const COUPLE_NODE_RADIUS = 6
 
 /**
+ * Paint close family members
  * Transform a list of persons and relationship to a list of nodes and edges.
  * Reactive function to be executed each time persons/relationships change (to repaint the graph).
  * @param props persons and relationsip
  * @returns nodes and edges
  */
-function transferFn({ origin, persons, relationships }: PersonsRelationships): NodesEdges {
+function closeFamilyMembers({ origin, persons, relationships }: PersonsRelationships): NodesEdges {
   const { personId: originPersonId, x: currentX, y: currentY } = origin
 
   let nodes: Node[] = []
@@ -565,7 +566,7 @@ const ClientOnlyFamilyPage = ({ initialPersons, initialRelationships, initialOri
   const [pendingRelationshipAction, setPendingRelationshipAction] = useState<PendingNodeRelationshipAction | null>(null)
 
   React.useEffect(() => {
-    const { nodes, edges } = transferFn({ persons, relationships, origin })
+    const { nodes, edges } = closeFamilyMembers({ persons, relationships, origin })
 
     const uniqueNodes = new Map<string, Node>()
     for (const node of nodes) {
