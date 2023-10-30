@@ -1,4 +1,5 @@
 import React, { useRef } from 'react'
+import { useLoader } from './layout/LoaderContext'
 
 type InlinePhotoUploadBtnProps = {
   children: React.ReactNode
@@ -9,11 +10,18 @@ type InlinePhotoUploadBtnProps = {
 
 export const InlinePhotoUploadBtn = ({ children, hiddenFields, formAction, formKey }: InlinePhotoUploadBtnProps) => {
   const photoUploadForm = useRef<HTMLFormElement>(null)
+  const setLoader = useLoader()
 
   const photoUploadFileSelected = (e: any) => {
-    if (photoUploadForm.current !== null) photoUploadForm.current.submit()
+    if (photoUploadForm.current !== null) {
+      setLoader(true)
+      setTimeout(() => {
+        if (photoUploadForm.current !== null) {
+          photoUploadForm.current.submit()
+        }
+      }, 200)
+    }
   }
-
   return (
     <form ref={photoUploadForm} method='post' action={formAction} encType='multipart/form-data'>
       {hiddenFields
