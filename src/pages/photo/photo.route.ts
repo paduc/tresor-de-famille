@@ -3,7 +3,7 @@ import zod, { z } from 'zod'
 import { addToHistory } from '../../dependencies/addToHistory'
 import { requireAuth } from '../../dependencies/authn'
 import { personsIndex } from '../../dependencies/search'
-import { zIsUUID } from '../../domain'
+import { UUID, zIsUUID } from '../../domain'
 import { getUuid } from '../../libs/getUuid'
 import { responseAsHtml } from '../../libs/ssr/responseAsHtml'
 import { uploadPhotoToChat } from '../chat/uploadPhotoToChat/uploadPhotoToChat'
@@ -162,10 +162,10 @@ pageRouter
 pageRouter.route('/add-photo.html').post(requireAuth(), upload.single('photo'), async (request, response) => {
   try {
     const { chatId: chatIdFromForm, isOnboarding } = zod
-      .object({ chatId: zIsUUID.optional(), isOnboarding: zod.string().optional() })
+      .object({ chatId: z.union([zIsUUID.optional(), z.string()]), isOnboarding: zod.string().optional() })
       .parse(request.body)
 
-    const chatId = chatIdFromForm || getUuid()
+    const chatId = !chatIdFromForm || chatIdFromForm === 'new' ? getUuid() : (chatIdFromForm as UUID)
 
     const userId = request.session.user!.id
 
@@ -183,7 +183,7 @@ pageRouter.route('/add-photo.html').post(requireAuth(), upload.single('photo'), 
     }
 
     if (chatIdFromForm) {
-      return response.redirect(`/chat/${chatIdFromForm}/chat.html`)
+      return response.redirect(`/chat/${chatId}/chat.html`)
     }
 
     return response.redirect(`/photo/${photoId}/photo.html`)
