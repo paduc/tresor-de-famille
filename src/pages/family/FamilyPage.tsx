@@ -1,37 +1,29 @@
 import * as React from 'react'
 import ReactFlow, {
-  Node,
-  addEdge,
   Background,
   Edge,
-  Connection,
-  useNodesState,
-  useEdgesState,
-  Position,
-  NodeProps,
   Handle,
+  Node,
+  NodeProps,
+  Panel,
+  Position,
   ReactFlowInstance,
   ReactFlowProvider,
-  Panel,
+  useEdgesState,
+  useNodesState,
 } from 'reactflow'
 
-import { withBrowserBundle } from '../../libs/ssr/withBrowserBundle'
-import { AppLayout } from '../_components/layout/AppLayout'
-import { UUID } from '../../domain'
+import { Dialog, Transition } from '@headlessui/react'
+import { UserPlusIcon, XMarkIcon } from '@heroicons/react/24/outline'
 import { useCallback, useMemo, useRef, useState } from 'react'
-import { UserPlusIcon, PhotoIcon, PlusIcon, XMarkIcon } from '@heroicons/react/24/outline'
+import { UUID } from '../../domain'
 import { getUuid } from '../../libs/getUuid'
-import { PersonAutocomplete, PersonAutocompleteProps } from '../_components/PersonAutocomplete'
-import { Transition, Dialog } from '@headlessui/react'
+import { withBrowserBundle } from '../../libs/ssr/withBrowserBundle'
+import { primaryButtonStyles, secondaryButtonStyles, smallButtonIconStyles, smallButtonStyles } from '../_components/Button'
 import { ClientOnly } from '../_components/ClientOnly'
-import {
-  secondaryButtonStyles,
-  buttonIconStyles,
-  primaryButtonStyles,
-  secondaryRedButtonStyles,
-  smallButtonStyles,
-  smallButtonIconStyles,
-} from '../_components/Button'
+import { PersonAutocomplete } from '../_components/PersonAutocomplete'
+import { AppLayout } from '../_components/layout/AppLayout'
+import { PersonPageURL } from '../person/PersonPageURL'
 
 // @ts-ignore
 function classNames(...classes) {
@@ -549,7 +541,9 @@ export type FamilyPageProps = {
 export const FamilyPage = withBrowserBundle((props: FamilyPageProps) => {
   return (
     <ClientOnly>
-      <ClientOnlyFamilyPage {...props} />
+      <ContextualMenuProvider>
+        <ClientOnlyFamilyPage {...props} />
+      </ContextualMenuProvider>
     </ClientOnly>
   )
 })
@@ -572,8 +566,6 @@ const ClientOnlyFamilyPage = ({ initialPersons, initialRelationships, initialOri
 
   React.useEffect(() => {
     const { nodes, edges } = transferFn({ persons, relationships, origin })
-
-    // console.log('useEffect', { persons, relationships, nodes, edges })
 
     const uniqueNodes = new Map<string, Node>()
     for (const node of nodes) {
@@ -600,8 +592,6 @@ const ClientOnlyFamilyPage = ({ initialPersons, initialRelationships, initialOri
       }
 
       const { selectedPerson, sourcePersonId, secondarySourcePersonId, relationshipAction } = args
-
-      // console.log('onPersonSelected', { newPersonId, sourcePersonId })
 
       const { newPerson, targetPersonId } = getNewPerson(selectedPerson)
 
@@ -713,11 +703,123 @@ const ClientOnlyFamilyPage = ({ initialPersons, initialRelationships, initialOri
                   persons={persons}
                 />
               </Panel>
+              <Panel position='top-left'>
+                <ContextualMenu onRelationshipButtonPressed={onRelationshipButtonPressed} />
+              </Panel>
             </ReactFlow>
           </div>
         </ReactFlowProvider>
       </NodeListenerContext.Provider>
     </AppLayout>
+  )
+}
+
+const ContextualMenuContext = React.createContext<
+  { isOpen: boolean; close: () => unknown; open: (personId: UUID) => unknown; selectedPersonId: UUID | null } | undefined
+>(undefined)
+
+const useContextualMenu = function () {
+  const context = React.useContext(ContextualMenuContext)
+
+  if (!context) {
+    throw new Error('Cannot useContextualMenu outside of Provider')
+  }
+
+  return context
+}
+
+function ContextualMenuProvider({ children }: { children: React.ReactNode }) {
+  const [selectedPersonId, setSelectedPersonId] = useState<UUID | null>(null)
+
+  return (
+    <ContextualMenuContext.Provider
+      value={{
+        isOpen: !!selectedPersonId,
+        close: () => setSelectedPersonId(null),
+        open: (personId: UUID) => {
+          setSelectedPersonId(personId)
+        },
+        selectedPersonId,
+      }}>
+      {children}
+    </ContextualMenuContext.Provider>
+  )
+}
+
+type ContextualMenuProps = {
+  onRelationshipButtonPressed: (personId: UUID, newRelationshipAction: NewRelationshipAction) => unknown
+}
+function ContextualMenu({ onRelationshipButtonPressed }: ContextualMenuProps) {
+  const { isOpen, close, selectedPersonId } = useContextualMenu()
+
+  const handleButtonPress = (newRelationshipAction: NewRelationshipAction) => () => {
+    if (selectedPersonId) {
+      close()
+      onRelationshipButtonPressed(selectedPersonId, newRelationshipAction)
+    }
+  }
+  return (
+    <Transition.Root show={isOpen} as={React.Fragment}>
+      <Dialog as='div' className='relative z-50' onClose={close}>
+        <Transition.Child
+          as={React.Fragment}
+          enter='ease-out duration-300'
+          enterFrom='opacity-0'
+          enterTo='opacity-100'
+          leave='ease-in duration-200'
+          leaveFrom='opacity-100'
+          leaveTo='opacity-0'>
+          <div className='fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity' />
+        </Transition.Child>
+
+        <div className='fixed inset-0 z-10 w-screen overflow-y-auto'>
+          <div className='flex sm:min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0'>
+            <Transition.Child
+              as={React.Fragment}
+              enter='ease-out duration-300'
+              enterFrom='opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95'
+              enterTo='opacity-100 translate-y-0 sm:scale-100'
+              leave='ease-in duration-200'
+              leaveFrom='opacity-100 translate-y-0 sm:scale-100'
+              leaveTo='opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95'>
+              <Dialog.Panel className='relative transform overflow-visible rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6'>
+                <div className='absolute right-0 top-0 pr-4 pt-4 sm:block'>
+                  <button
+                    type='button'
+                    className='rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2'
+                    onClick={close}>
+                    <span className='sr-only'>Close</span>
+                    <XMarkIcon className='h-6 w-6' aria-hidden='true' />
+                  </button>
+                </div>
+                <div className='mt-8'>
+                  <button
+                    onClick={handleButtonPress('addParent')}
+                    className={`mb-4 ${primaryButtonStyles.replace(/inline\-flex/g, '')}  w-full text-center`}>
+                    Gérer les parents
+                  </button>
+                  <button
+                    onClick={handleButtonPress('addChild')}
+                    className={`mb-4 ${primaryButtonStyles.replace(/inline\-flex/g, '')}  w-full text-center`}>
+                    Gérer les enfants
+                  </button>
+                  <button
+                    onClick={handleButtonPress('addSpouse')}
+                    className={`mb-4 ${primaryButtonStyles.replace(/inline\-flex/g, '')}  w-full text-center`}>
+                    Gérer les époux/compagnes
+                  </button>
+                  <a
+                    href={PersonPageURL(selectedPersonId!)}
+                    className={`mb-4 ${primaryButtonStyles.replace(/inline\-flex/g, '')} block w-full text-center`}>
+                    Aller à la page profil
+                  </a>
+                </div>
+              </Dialog.Panel>
+            </Transition.Child>
+          </div>
+        </div>
+      </Dialog>
+    </Transition.Root>
   )
 }
 
@@ -1034,21 +1136,8 @@ function PersonNode({
   profilePicUrl: string
   isOriginPerson?: true
 }>) {
-  const onRelationshipButtonPressed = React.useContext(NodeListenerContext)
+  const { open: openContextMenu } = useContextualMenu()
 
-  const handleButtonPress = useCallback(
-    (newRelationshipAction: NewRelationshipAction) => () => {
-      // Remember the nodeId and the position
-
-      if (onRelationshipButtonPressed) onRelationshipButtonPressed(id, newRelationshipAction)
-    },
-    [onRelationshipButtonPressed]
-  )
-
-  const addChildLabel = 'Ajouter un enfant'
-  const addFriendLabel = 'Ajouter un ami'
-  const addParentLabel = 'Ajouter un parent'
-  const addSpouseLabel = 'Ajouter un compagnon / époux'
   return (
     <div className='text-center relative' key={`personNode_${id}`}>
       <Handle id='parents' type='target' style={{ opacity: 0, top: 5 }} position={Position.Top} isConnectable={false} />
@@ -1062,18 +1151,22 @@ function PersonNode({
         isConnectable={false}
       />
 
-      <div className='relative z-10'>
+      <div
+        className='relative z-10'
+        onClick={() => {
+          if (data.isOriginPerson) openContextMenu(id as UUID)
+        }}>
         {data.profilePicUrl ? (
           <img
             src={data.profilePicUrl}
-            className={`inline-block rounded-full h-36 w-36 ring-2 ${
-              selected || data.isOriginPerson ? 'ring-indigo-500' : 'ring-white'
+            className={`inline-block rounded-full h-36 w-36 ${
+              selected || data.isOriginPerson ? 'ring-indigo-500 ring-4' : 'ring-white ring-2'
             } shadow-sm`}
           />
         ) : (
           <span
-            className={`inline-flex h-36 w-36 items-center justify-center rounded-full bg-gray-500 ring-2 ${
-              selected || data.isOriginPerson ? 'ring-indigo-500' : 'ring-white'
+            className={`inline-flex h-36 w-36 items-center justify-center rounded-full bg-gray-500 ${
+              selected || data.isOriginPerson ? 'ring-indigo-500 ring-4' : 'ring-white ring-2'
             } shadow-sm`}>
             <span className='text-5xl font-medium leading-none text-white'>{getInitials(data.label)}</span>
           </span>
@@ -1081,28 +1174,10 @@ function PersonNode({
         <div className='absolute w-full top-full -mt-1 pointer-events-none z-10'>
           <span
             className={`inline-flex items-center rounded-lg bg-white/70 px-3 py-1    ring-1 ring-inset ${
-              selected || data.isOriginPerson ? 'text-indigo-700 ring-indigo-500/50' : 'ring-gray-500/10 text-gray-600'
+              selected || data.isOriginPerson ? 'text-indigo-700 ring-indigo-500' : 'ring-gray-500/10 text-gray-600'
             } `}>
             {data.label}
           </span>
-        </div>
-        <div className={`${selected ? 'focus:visible' : 'invisible'} z-20 relative`}>
-          <ActionLabel
-            label={addParentLabel}
-            position={{ bottom: BUBBLE_RADIUS * 2 + 5, left: 0 }}
-            onClick={handleButtonPress('addParent')}
-          />
-          <ActionLabel
-            label={addSpouseLabel}
-            position={{ bottom: BUBBLE_RADIUS - 20, left: BUBBLE_RADIUS * 2 + 5 }}
-            onClick={handleButtonPress('addSpouse')}
-          />
-          <ActionLabel label={addChildLabel} position={{ bottom: -70, left: 0 }} onClick={handleButtonPress('addChild')} />
-          <ActionLabel
-            label={addFriendLabel}
-            position={{ bottom: BUBBLE_RADIUS - 20, right: BUBBLE_RADIUS * 2 + 5 }}
-            onClick={handleButtonPress('addFriend')}
-          />
         </div>
       </div>
     </div>
