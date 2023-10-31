@@ -99,39 +99,39 @@ pageRouter
           })
         )
       }
-    } else if (action === 'saveRichContentsAsJSON') {
-      const { contentAsJSONEncoded } = z.object({ contentAsJSONEncoded: z.string() }).parse(request.body)
+      // } else if (action === 'saveRichContentsAsJSON') {
+      //   const { contentAsJSONEncoded } = z.object({ contentAsJSONEncoded: z.string() }).parse(request.body)
 
-      try {
-        const contentAsJSON = decodeTipTapJSON(contentAsJSONEncoded)
+      //   try {
+      //     const contentAsJSON = decodeTipTapJSON(contentAsJSONEncoded)
 
-        await addToHistory(
-          UserUpdatedThreadAsRichText({
-            chatId,
-            contentAsJSON,
-            userId,
-          })
-        )
-      } catch (error) {
-        console.error('Impossible to parse the contentAsJSON payload that was sent by the client.')
-      }
-    } else if (action === 'clientsideUpdate') {
-      try {
-        const { contentAsJSON } = z.object({ contentAsJSON: z.any() }).parse(request.body)
+      //     await addToHistory(
+      //       UserUpdatedThreadAsRichText({
+      //         chatId,
+      //         contentAsJSON,
+      //         userId,
+      //       })
+      //     )
+      //   } catch (error) {
+      //     console.error('Impossible to parse the contentAsJSON payload that was sent by the client.')
+      //   }
+      // } else if (action === 'clientsideUpdate') {
+      //   try {
+      //     const { contentAsJSON } = z.object({ contentAsJSON: z.any() }).parse(request.body)
 
-        await addToHistory(
-          UserUpdatedThreadAsRichText({
-            chatId,
-            contentAsJSON,
-            userId,
-          })
-        )
-        return response.status(200).send('ok')
-      } catch (error) {
-        console.error('Impossible to save UserThread')
-      }
+      //     await addToHistory(
+      //       UserUpdatedThreadAsRichText({
+      //         chatId,
+      //         contentAsJSON,
+      //         userId,
+      //       })
+      //     )
+      //     return response.status(200).send('ok')
+      //   } catch (error) {
+      //     console.error('Impossible to save UserThread')
+      //   }
 
-      return response.status(500).send('Oops')
+      //   return response.status(500).send('Oops')
     } else if (action === 'clientsideTitleUpdate') {
       const { title } = z.object({ title: z.string() }).parse(request.body)
 

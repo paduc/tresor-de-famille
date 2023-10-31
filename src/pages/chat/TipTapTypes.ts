@@ -35,7 +35,26 @@ export type TipTapContentAsJSON = {
   content: TipTapJSON[]
 }
 
-export const decodeTipTapJSON = (contentAsJSONEncoded: string): TipTapContentAsJSON =>
-  JSON.parse(decodeURIComponent(contentAsJSONEncoded))
+export const decodeTipTapJSON = (contentAsJSONEncoded: string): TipTapContentAsJSON => {
+  try {
+    return JSON.parse(decodeURIComponent(contentAsJSONEncoded))
+  } catch (error) {
+    console.error('erreur dans decodeTipTap', JSON.stringify(contentAsJSONEncoded, null, 2))
+    return {
+      type: 'doc',
+      content: [
+        {
+          type: 'paragraph',
+          content: [
+            {
+              type: 'text',
+              text: 'Une erreur a eu lieu. Les administrateurs ont été prévenus. Aucune donnée ne peut être perdue.',
+            },
+          ],
+        },
+      ],
+    }
+  }
+}
 
 export const encodeStringy = (json: JSON) => encodeURIComponent(JSON.stringify(json))
