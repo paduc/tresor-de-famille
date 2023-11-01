@@ -1,6 +1,6 @@
 {
   "name": "tresor-de-famille",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "trésor de famille application",
   "scripts": {
     "start": "node dist/server.js",
