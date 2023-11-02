@@ -3,22 +3,23 @@ import type { Request, Response } from 'express'
 import ReactDOMServer from 'react-dom/server'
 import { ADMIN_USERID } from '../../dependencies/env'
 import { getSingleEvent } from '../../dependencies/getSingleEvent'
-import { UUID } from '../../domain'
 import { OnboardingUserStartedFirstThread } from '../../events/onboarding/OnboardingUserStartedFirstThread'
 import { OnboardingUserUploadedPhotoOfFamily } from '../../events/onboarding/OnboardingUserUploadedPhotoOfFamily'
-import { UserConfirmedHisFace } from '../../events/onboarding/UserConfirmedHisFace'
-import { UserNamedThemself } from '../../events/onboarding/UserNamedThemself'
+import { OnboardingUserUploadedPhotoOfThemself } from '../../events/onboarding/OnboardingUserUploadedPhotoOfThemself'
+import { UserNamedPersonInPhoto } from '../../events/onboarding/UserNamedPersonInPhoto'
 import { LocationContext } from '../../pages/_components/LocationContext'
 import { Session, SessionContext } from '../../pages/_components/SessionContext'
 import { PersonSearchContext } from '../../pages/_components/usePersonSearch'
+import { getProfilePicUrlForUser } from '../../pages/_getProfilePicUrlForUser'
 import { UserSentMessageToChat } from '../../pages/chat/sendMessageToChat/UserSentMessageToChat'
 import { UserUploadedPhotoToChat } from '../../pages/chat/uploadPhotoToChat/UserUploadedPhotoToChat'
 import { withContext } from './withContext'
-import { UserNamedPersonInPhoto } from '../../events/onboarding/UserNamedPersonInPhoto'
-import { OnboardingUserUploadedPhotoOfThemself } from '../../events/onboarding/OnboardingUserUploadedPhotoOfThemself'
-import { getProfilePicUrlForUser } from '../../pages/_getProfilePicUrlForUser'
+
+import manifest from '../../assets/js/manifest.json'
 
 const html = String.raw
+
+const assetByPageName: Record<string, string> = manifest
 
 /**
  * Call ReactDOMServer.renderToString on the element and send the response
@@ -73,8 +74,16 @@ export async function responseAsHtml(
           <link href="/style.css" rel="stylesheet" />
           ${bundle.shouldIncludeBrowserBundle
             ? html`
-                <script src="/js/shared.js"></script>
-                <script src="/js/${bundle.name}.js?${process.env.npm_package_version}"></script>
+                ${assetByPageName?.shared
+                  ? html`
+                      <script src="/js/${assetByPageName?.shared}"></script>
+                    `
+                  : ``}
+                ${assetByPageName?.[bundle.name]
+                  ? html`
+                      <script src="/js/${assetByPageName?.[bundle.name]}"></script>
+                    `
+                  : ``}
               `
             : ''}
         </head>

@@ -2,6 +2,7 @@ const glob = require('glob')
 const path = require('node:path')
 const fs = require('node:fs')
 const webpack = require('webpack')
+const { WebpackManifestPlugin } = require('webpack-manifest-plugin')
 
 const pageEntries = glob
   .sync('./src/**/*Page.tsx')
@@ -41,6 +42,7 @@ module.exports = {
     new webpack.DefinePlugin({
       'process.env.npm_package_version': JSON.stringify(process.env.npm_package_version),
     }),
+    new WebpackManifestPlugin({ useEntryKeys: true, publicPath: '' }),
   ],
   module: {
     rules: [
@@ -56,12 +58,13 @@ module.exports = {
     ],
   },
   output: {
-    filename: '[name].js',
+    filename: '[name].[contenthash].js',
     path: path.resolve(
       __dirname,
       process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'staging' ? 'dist' : 'src',
       'assets',
       'js'
     ),
+    clean: true,
   },
 }
