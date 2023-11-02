@@ -19,7 +19,7 @@ export default {
         <SessionContext.Provider
           value={{
             isLoggedIn: true,
-            userName: 'toto',
+            userName: 'Jean-Michel Trotro',
             profilePic: null,
             isAdmin: false,
             arePhotosEnabled: true,

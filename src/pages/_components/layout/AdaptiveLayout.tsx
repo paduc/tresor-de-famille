@@ -390,7 +390,7 @@ export default function AdaptiveLayout({ children }: AdaptiveLayoutProps) {
                       <div
                         className='pl-3 w-full text-gray-400 align-middle cursor-pointer'
                         onClick={() => setPersonSearchOpen(true)}>
-                        Rechercher une personne...
+                        Rechercher <span className='hidden sm:inline'>une personne...</span>
                       </div>
                     </>
                   ) : null}
