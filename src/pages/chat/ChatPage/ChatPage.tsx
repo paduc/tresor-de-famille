@@ -4,7 +4,7 @@ import debounce from 'lodash.debounce'
 import React, { useCallback, useEffect, useState } from 'react'
 import { UUID } from '../../../domain'
 import { withBrowserBundle } from '../../../libs/ssr/withBrowserBundle'
-import { buttonIconStyles } from '../../_components/Button'
+import { buttonIconStyles, secondaryButtonStyles } from '../../_components/Button'
 import { AppLayout } from '../../_components/layout/AppLayout'
 import { PhotoIcon } from './PhotoIcon'
 
@@ -37,14 +37,13 @@ export type ChatPageProps = {
   contentAsJSON: TipTapContentAsJSON
   lastUpdated: Epoch | undefined
   chatId: UUID
+  isShareEnabled?: boolean
 }
 
 const isBrowserContext = typeof window !== 'undefined'
 
 export const ChatPage = withBrowserBundle(
-  ({ title, contentAsJSON: contentAsJSONFromServer, lastUpdated, chatId }: ChatPageProps) => {
-    const newMessageAreaRef = React.useRef<HTMLTextAreaElement>(null)
-
+  ({ title, contentAsJSON: contentAsJSONFromServer, lastUpdated, chatId, isShareEnabled = false }: ChatPageProps) => {
     const richTextEditorRef = React.useRef<RichTextEditorRef>(null)
 
     let contentAsJSON = contentAsJSONFromServer
@@ -71,6 +70,25 @@ export const ChatPage = withBrowserBundle(
     return (
       <AppLayout>
         <div className='w-full sm:ml-6 max-w-2xl pt-3 pb-40'>
+          {!!isShareEnabled && (
+            <div className='flex items-center justify-between mb-2'>
+              <div className='min-w-0 flex-1'>
+                {/* <h2 className='text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight'>
+                Back End Developer
+              </h2> */}
+              </div>
+              <div className='flex ml-4 mt-0 mr-4 sm:mr-0'>
+                {/* <button
+                type='button'
+                className='inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50'>
+                Edit
+              </button> */}
+                <button type='button' className={`${secondaryButtonStyles}`}>
+                  Partager
+                </button>
+              </div>
+            </div>
+          )}
           <div className='divide-y divide-gray-200 overflow-hidden sm:rounded-lg bg-white shadow'>
             <Title title={title} chatId={chatId} />
             <div className=''>
