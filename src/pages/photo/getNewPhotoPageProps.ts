@@ -6,7 +6,7 @@ import { OnboardingUserUploadedPhotoOfFamily } from '../../events/onboarding/Onb
 import { OnboardingUserUploadedPhotoOfThemself } from '../../events/onboarding/OnboardingUserUploadedPhotoOfThemself'
 import { UserNamedPersonInPhoto } from '../../events/onboarding/UserNamedPersonInPhoto'
 import { UserRecognizedPersonInPhoto } from '../../events/onboarding/UserRecognizedPersonInPhoto'
-import { doesPhotoExist } from '../_doesPhotoExist'
+import { getPhotoAuthor } from '../_getPhotoAuthor'
 import { getPersonById, getPersonByIdOrThrow } from '../_getPersonById'
 import { getPersonIdsForFaceId } from '../_getPersonsIdsForFaceId'
 
@@ -23,7 +23,7 @@ export const getNewPhotoPageProps = async ({
   photoId: UUID
   userId: UUID
 }): Promise<NewPhotoPageProps> => {
-  const photoExists = await doesPhotoExist({ photoId, userId })
+  const photoExists = await getPhotoAuthor({ photoId })
   if (!photoExists) throw new Error('Photo does not exist')
 
   const captionSet = await getSingleEvent<UserAddedCaptionToPhoto>('UserAddedCaptionToPhoto', { photoId })

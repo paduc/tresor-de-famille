@@ -21,6 +21,11 @@ import { UserSentMessageToChat } from './sendMessageToChat/UserSentMessageToChat
 import { UserEnabledSharingOfThread } from './UserEnabledSharingOfThread'
 import { ChatPageUrl } from './ChatPageUrl'
 import { SHARING_CODE_HASH_SEED } from '../../dependencies/env'
+import { getSingleEvent } from '../../dependencies/getSingleEvent'
+import { UserUploadedPhotoToChat } from './uploadPhotoToChat/UserUploadedPhotoToChat'
+import { UserReceivedAccessToThread } from './UserReceivedAccessToThread'
+import { getEventList } from '../../dependencies/getEventList'
+import { ReadOnlyChatPage } from './ChatPage/ReadOnlyChatPage'
 
 const fakeProfilePicUrl =
   'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80'
@@ -67,6 +72,64 @@ pageRouter
   .get(requireAuth(), async (request, response) => {
     const { chatId } = z.object({ chatId: zIsUUID }).parse(request.params)
     const userId = request.session.user!.id
+
+    const creationEvent = await getSingleEvent<
+      | UserSentMessageToChat
+      | UserUploadedPhotoToChat
+      | UserUpdatedThreadAsRichText
+      | UserInsertedPhotoInRichTextThread
+      | UserSetChatTitle
+    >(
+      [
+        'UserSentMessageToChat',
+        'UserUpdatedThreadAsRichText',
+        'UserUploadedPhotoToChat',
+        'UserInsertedPhotoInRichTextThread',
+        'UserSetChatTitle',
+      ],
+      {
+        chatId,
+      }
+    )
+
+    if (!creationEvent) {
+      return response.status(404).send('Introuvable')
+    }
+
+    const creatorId =
+      creationEvent.type === 'UserUploadedPhotoToChat' ? creationEvent.payload.uploadedBy : creationEvent.payload.userId
+
+    if (creatorId !== userId) {
+      // Look for UserReceivedAccessToThread
+      const accessEvent = await getSingleEvent<UserReceivedAccessToThread>('UserReceivedAccessToThread', { userId, chatId })
+
+      if (!accessEvent) {
+        //   if absent, check for UserEnabledSharingOfThread, check the code, if match, emit UserReceivedAccessToThread, go to 'if present', if not, res.status(403)
+
+        // Check if user has a code
+        const { code } = z.object({ code: z.string().optional() }).parse(request.query)
+
+        if (!code) {
+          return response.status(403).send(`Vous n'avez pas l'accès à ce document.`)
+        }
+
+        // Check if the thread is shared with this code
+        const sharingEnabledEvent = await getSingleEvent<UserEnabledSharingOfThread>('UserEnabledSharingOfThread', {
+          chatId,
+          code,
+        })
+
+        if (!sharingEnabledEvent) {
+          return response.status(403).send(`Vous n'avez pas l'accès à ce document.`)
+        }
+
+        await addToHistory(UserReceivedAccessToThread({ chatId, userId, code }))
+      }
+
+      //   if present, return a read-only version of the ChatPage
+      const { contentAsJSON, title, lastUpdated } = await getChatPageProps({ chatId, userId: creatorId })
+      return responseAsHtml(request, response, ReadOnlyChatPage({ chatId, contentAsJSON, title, lastUpdated }))
+    }
 
     const props = await getChatPageProps({ chatId, userId })
 
