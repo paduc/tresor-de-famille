@@ -32,30 +32,6 @@ function classNames(...classes) {
   return classes.filter(Boolean).join(' ')
 }
 
-export type MessageItemProps = {
-  message: {
-    body: string
-  }
-}
-
-export type PhotoItemProps = {
-  photoId: UUID
-  url: string
-  description?: string
-  personsInPhoto: string[]
-  unrecognizedFacesInPhoto: number
-  chatId: UUID
-}
-
-export type ChatEvent = { timestamp: number } & (
-  | ({
-      type: 'photo'
-    } & PhotoItemProps)
-  | ({
-      type: 'message'
-    } & MessageItemProps)
-)
-
 export type ChatPageProps = {
   title?: string
   contentAsJSON: TipTapContentAsJSON
@@ -107,6 +83,14 @@ export const ChatPage = withBrowserBundle(
   }
 )
 
+export type PhotoItemProps = {
+  photoId: UUID
+  url: string
+  description?: string
+  personsInPhoto: string[]
+  unrecognizedFacesInPhoto: number
+  chatId: UUID
+}
 const PhotoItem = (props: PhotoItemProps) => {
   const { description, url, personsInPhoto, unrecognizedFacesInPhoto } = props
   const descriptionOfPeople = personsInPhoto.join(', ')

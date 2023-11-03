@@ -1,8 +1,8 @@
 import * as React from 'react'
 import { SessionContext } from '../../_components'
 
-import { ChatEvent, ChatPage } from './ChatPage'
 import { UUID } from '../../../domain'
+import { ChatPage } from './ChatPage'
 
 import { getUuid } from '../../../libs/getUuid'
 import { Epoch } from '../../../libs/typeguards'

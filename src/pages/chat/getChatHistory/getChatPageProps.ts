@@ -1,9 +1,8 @@
 import { getEventList } from '../../../dependencies/getEventList'
 import { getSingleEvent } from '../../../dependencies/getSingleEvent'
 import { getPhotoUrlFromId } from '../../../dependencies/photo-storage'
-import { UUID, isUUID } from '../../../domain'
+import { UUID } from '../../../domain'
 import { FaceIgnoredInPhoto } from '../../../events/onboarding/FaceIgnoredInPhoto'
-import { OnboardingUserStartedFirstThread } from '../../../events/onboarding/OnboardingUserStartedFirstThread'
 import { UserNamedPersonInPhoto } from '../../../events/onboarding/UserNamedPersonInPhoto'
 import { UserRecognizedPersonInPhoto } from '../../../events/onboarding/UserRecognizedPersonInPhoto'
 import { Epoch } from '../../../libs/typeguards'
@@ -11,8 +10,8 @@ import { getPersonById, getPersonByIdOrThrow } from '../../_getPersonById'
 import { getPersonIdsForFaceId } from '../../_getPersonsIdsForFaceId'
 import { UserAddedCaptionToPhoto } from '../../photo/UserAddedCaptionToPhoto'
 import { AWSDetectedFacesInPhoto } from '../../photo/recognizeFacesInChatPhoto/AWSDetectedFacesInPhoto'
-import { ChatEvent, ChatPageProps } from '../ChatPage/ChatPage'
-import { PhotoNode, TipTapContentAsJSON, encodeStringy } from '../TipTapTypes'
+import { ChatPageProps } from '../ChatPage/ChatPage'
+import { TipTapContentAsJSON, encodeStringy } from '../TipTapTypes'
 import { UserInsertedPhotoInRichTextThread } from '../UserInsertedPhotoInRichTextThread'
 import { UserSetChatTitle } from '../UserSetChatTitle'
 import { UserUpdatedThreadAsRichText } from '../UserUpdatedThreadAsRichText'
@@ -266,29 +265,6 @@ async function getFamilyDetectedFace(args: { faceId: UUID; photoId: UUID; userId
     faceId,
     stage: 'awaiting-name',
   }
-}
-
-type ChatMessageItem = ChatEvent & {
-  type: 'message'
-}
-
-async function retrieveMessagesForChat(chatId: UUID): Promise<ChatMessageItem[]> {
-  const chatMessages = await getEventList<UserSentMessageToChat>('UserSentMessageToChat', { chatId })
-
-  const onboardingThread = await getEventList<OnboardingUserStartedFirstThread>('OnboardingUserStartedFirstThread', {
-    threadId: chatId,
-  })
-
-  const messageRows = [...chatMessages, ...onboardingThread]
-
-  const messages = messageRows.map(({ occurredAt, payload: { message } }): ChatEvent & { type: 'message' } => ({
-    type: 'message',
-    timestamp: occurredAt.getTime(),
-    message: {
-      body: message,
-    },
-  }))
-  return messages
 }
 
 function findLastIndex<T>(array: T[], callback: (item: T) => boolean): number {
