@@ -4,7 +4,7 @@
   "description": "trésor de famille application",
   "scripts": {
     "start": "node dist/server.js",
-    "build": "tsc --p tsconfig.build.json && yarn build:front && yarn postcss:build && cp -r src/assets dist",
+    "build": "yarn build:front && tsc --p tsconfig.build.json && yarn postcss:build && cp -r src/assets dist",
     "build:front": "webpack --config=webpack.config.js",
     "postcss:local": "postcss -o src/assets/style.css src/pages/style.css",
     "postcss:build": "postcss -o dist/assets/style.css src/pages/style.css",
