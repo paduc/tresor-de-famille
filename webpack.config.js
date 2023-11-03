@@ -59,12 +59,7 @@ module.exports = {
   },
   output: {
     filename: '[name].[contenthash].js',
-    path: path.resolve(
-      __dirname,
-      process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'staging' ? 'dist' : 'src',
-      'assets',
-      'js'
-    ),
+    path: path.resolve(__dirname, 'src', 'assets', 'js'),
     clean: true,
   },
 }
