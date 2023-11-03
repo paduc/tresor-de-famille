@@ -99,12 +99,12 @@ export const AvecUnMelangeDePhotoEtMessage = () => (
   />
 )
 
-export const AvecPartageActivé = () => (
+export const PartageActivéNonPartagé = () => (
   <ChatPage
     chatId={getUuid()}
     lastUpdated={t0 as Epoch}
     title='Ceci est le titre'
-    isShareEnabled={true}
+    isShareEnabled={{ shared: false }}
     contentAsJSON={{
       type: 'doc',
       content: [
@@ -156,6 +156,33 @@ export const AvecPartageActivé = () => (
             personsInPhoto: encodeURIComponent(JSON.stringify([])),
             unrecognizedFacesInPhoto: 10,
           },
+        },
+      ],
+    }}
+  />
+)
+
+export const HistoirePartagée = () => (
+  <ChatPage
+    chatId={getUuid()}
+    lastUpdated={t0 as Epoch}
+    title='Ceci est le titre'
+    isShareEnabled={{
+      shared: true,
+      shareUrl:
+        'http://tdf.org/shareimages.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8',
+    }}
+    contentAsJSON={{
+      type: 'doc',
+      content: [
+        {
+          type: 'paragraph',
+          content: [
+            {
+              type: 'text',
+              text: 'Message',
+            },
+          ],
         },
       ],
     }}

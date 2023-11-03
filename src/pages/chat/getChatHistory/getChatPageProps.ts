@@ -1,3 +1,4 @@
+import { BASE_URL } from '../../../dependencies/env'
 import { getEventList } from '../../../dependencies/getEventList'
 import { getSingleEvent } from '../../../dependencies/getSingleEvent'
 import { getPhotoUrlFromId } from '../../../dependencies/photo-storage'
@@ -11,12 +12,16 @@ import { getPersonIdsForFaceId } from '../../_getPersonsIdsForFaceId'
 import { UserAddedCaptionToPhoto } from '../../photo/UserAddedCaptionToPhoto'
 import { AWSDetectedFacesInPhoto } from '../../photo/recognizeFacesInChatPhoto/AWSDetectedFacesInPhoto'
 import { ChatPageProps } from '../ChatPage/ChatPage'
+import { ChatPageUrl } from '../ChatPageUrl'
 import { TipTapContentAsJSON, encodeStringy } from '../TipTapTypes'
+import { UserEnabledSharingOfThread } from '../UserEnabledSharingOfThread'
 import { UserInsertedPhotoInRichTextThread } from '../UserInsertedPhotoInRichTextThread'
 import { UserSetChatTitle } from '../UserSetChatTitle'
 import { UserUpdatedThreadAsRichText } from '../UserUpdatedThreadAsRichText'
 import { UserSentMessageToChat } from '../sendMessageToChat/UserSentMessageToChat'
 import { UserUploadedPhotoToChat } from '../uploadPhotoToChat/UserUploadedPhotoToChat'
+
+const IS_SHARING_ENABLED = process.env.IS_SHARING_ENABLED === '1'
 
 export const getChatPageProps = async ({ chatId, userId }: { chatId: UUID; userId: UUID }): Promise<ChatPageProps> => {
   const titleSet = await getSingleEvent<UserSetChatTitle>('UserSetChatTitle', { chatId })
@@ -74,6 +79,7 @@ export const getChatPageProps = async ({ chatId, userId }: { chatId: UUID; userI
       contentAsJSON,
       lastUpdated: latestEvent.occurredAt.getTime() as Epoch,
       title: title || '',
+      isShareEnabled: await getSharingStatus({ userId, chatId }),
     }
   }
 
@@ -136,7 +142,7 @@ export const getChatPageProps = async ({ chatId, userId }: { chatId: UUID; userI
   }
 }
 
-export async function retrievePhotoInfo({ photoId, userId }: { photoId: UUID; userId: UUID }): Promise<{
+async function retrievePhotoInfo({ photoId, userId }: { photoId: UUID; userId: UUID }): Promise<{
   description: string
   personsInPhoto: string[]
   unrecognizedFacesInPhoto: number
@@ -274,4 +280,31 @@ function findLastIndex<T>(array: T[], callback: (item: T) => boolean): number {
     return -1 // Object not found in the array
   }
   return array.length - 1 - index // Adjust the index to the original array
+}
+
+type GetSharingStatus = {
+  userId: UUID
+  chatId: UUID
+}
+
+async function getSharingStatus({ userId, chatId }: GetSharingStatus): Promise<ChatPageProps['isShareEnabled']> {
+  if (!IS_SHARING_ENABLED) {
+    return false
+  }
+
+  const shareEvent = await getSingleEvent<UserEnabledSharingOfThread>('UserEnabledSharingOfThread', { userId, chatId })
+
+  if (!shareEvent) {
+    return { shared: false }
+  }
+
+  try {
+    const shareUrl = new URL(BASE_URL + ChatPageUrl(chatId))
+    shareUrl.searchParams.append('code', shareEvent.payload.code)
+
+    return { shared: true, shareUrl: shareUrl.toString() }
+  } catch (error) {
+    console.error('Could not produce a valid shareUrl', error)
+    return { shared: false }
+  }
 }

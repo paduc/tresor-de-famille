@@ -26,6 +26,7 @@ import { fixedForwardRef } from '../../../libs/fixedForwardRef'
 import { Epoch } from '../../../libs/typeguards'
 import { TipTapContentAsJSON } from '../TipTapTypes'
 import { useLoader } from '../../_components/layout/LoaderContext'
+import { DocumentDuplicateIcon } from '@heroicons/react/24/outline'
 
 // @ts-ignore
 function classNames(...classes) {
@@ -37,7 +38,15 @@ export type ChatPageProps = {
   contentAsJSON: TipTapContentAsJSON
   lastUpdated: Epoch | undefined
   chatId: UUID
-  isShareEnabled?: boolean
+  isShareEnabled?:
+    | {
+        shared: true
+        shareUrl: string
+      }
+    | {
+        shared: false
+      }
+    | false
 }
 
 const isBrowserContext = typeof window !== 'undefined'
@@ -83,9 +92,48 @@ export const ChatPage = withBrowserBundle(
                 className='inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50'>
                 Edit
               </button> */}
-                <button type='button' className={`${secondaryButtonStyles}`}>
-                  Partager
-                </button>
+                {isShareEnabled.shared ? (
+                  <div className='flex items-center'>
+                    <span className='text-gray-500 mr-3'>Lien de partage :</span>
+                    <div className='flex rounded-full shadow-sm'>
+                      <div className='relative flex flex-grow items-stretch focus-within:z-10'>
+                        <input
+                          type='text'
+                          value={`${isShareEnabled.shareUrl}`}
+                          className='block rounded-none rounded-l-full border-0 py-1.5 pl-4 text-gray-900 ring-2 ring-inset ring-indigo-600  sm:text-sm sm:leading-6 cursor-text'
+                          disabled
+                        />
+                      </div>
+                      <button
+                        type='button'
+                        onClick={() => {
+                          navigator.clipboard.writeText(isShareEnabled.shareUrl).then(
+                            () => {
+                              alert(
+                                'Le lien de partage est bien copié.\n\nVous pouvez maintenant le partager par email, sms, whatsapp, ou tout autre moyen de communication.'
+                              )
+                            },
+                            () => {
+                              alert(
+                                'Impossible de copier le lien de partager.\n\nVous pouvez essayer de le faire en copiant le contenu de la case.'
+                              )
+                            }
+                          )
+                        }}
+                        className='relative -ml-px inline-flex items-center gap-x-1.5 rounded-r-full px-3 py-2 text-sm font-semibold text-indigo-600 bg-white ring-2 ring-inset ring-indigo-600 hover:bg-indigo-600 hover:text-white'>
+                        <DocumentDuplicateIcon className='-ml-0.5 h-5 w-5 ' aria-hidden='true' />
+                        Copier
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <form method='post'>
+                    <input type='hidden' name='action' value='enableSharing' />
+                    <button type='submit' className={`${secondaryButtonStyles}`}>
+                      Partager
+                    </button>
+                  </form>
+                )}
               </div>
             </div>
           )}

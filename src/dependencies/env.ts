@@ -7,6 +7,10 @@ export const throwIfUndefined = (variableName: string, condition: boolean = true
   return value!
 }
 
+export const BASE_URL = throwIfUndefined('BASE_URL', process.env.NODE_ENV === 'production')!
+
+export const SHARING_CODE_HASH_SEED = throwIfUndefined('SHARING_CODE_HASH_SEED', process.env.NODE_ENV === 'production')!
+
 export const AUTHN = process.env.AUTHN
 export const PASSWORD_SALT = throwIfUndefined('PASSWORD_SALT', AUTHN === 'password')!
 

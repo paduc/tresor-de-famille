@@ -1,6 +1,8 @@
 import multer from 'multer'
 import fs from 'node:fs'
 import z from 'zod'
+import { createHash } from 'node:crypto'
+
 import { addToHistory } from '../../dependencies/addToHistory'
 import { requireAuth } from '../../dependencies/authn'
 import { uploadPhoto } from '../../dependencies/photo-storage'
@@ -16,6 +18,9 @@ import { UserSetChatTitle } from './UserSetChatTitle'
 import { UserUpdatedThreadAsRichText } from './UserUpdatedThreadAsRichText'
 import { getChatPageProps } from './getChatHistory/getChatPageProps'
 import { UserSentMessageToChat } from './sendMessageToChat/UserSentMessageToChat'
+import { UserEnabledSharingOfThread } from './UserEnabledSharingOfThread'
+import { ChatPageUrl } from './ChatPageUrl'
+import { SHARING_CODE_HASH_SEED } from '../../dependencies/env'
 
 const fakeProfilePicUrl =
   'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80'
@@ -31,7 +36,7 @@ pageRouter
   .get(requireAuth(), async (request, response) => {
     const newChatId = getUuid()
 
-    response.redirect(`/chat/${newChatId}/chat.html`)
+    response.redirect(ChatPageUrl(newChatId))
   })
   .post(requireAuth(), async (request, response) => {
     const userId = request.session.user!.id
@@ -54,11 +59,11 @@ pageRouter
     }
 
     // TODO: try catch error and send it back as HTML (or redirect if OK)
-    return response.redirect(`/chat/${chatId}/chat.html`)
+    return response.redirect(ChatPageUrl(chatId))
   })
 
 pageRouter
-  .route('/chat/:chatId/chat.html')
+  .route(ChatPageUrl.template)
   .get(requireAuth(), async (request, response) => {
     const { chatId } = z.object({ chatId: zIsUUID }).parse(request.params)
     const userId = request.session.user!.id
@@ -82,6 +87,7 @@ pageRouter
             'saveRichContentsAsJSON',
             'insertPhotoAtMarker',
             'clientsideUpdate',
+            'enableSharing',
           ]),
         })
         .parse(request.body)
@@ -145,9 +151,20 @@ pageRouter
         )
 
         await detectFacesInPhotoUsingAWS({ file, photoId })
+      } else if (action === 'enableSharing') {
+        const hash = createHash('sha1')
+        hash.update(SHARING_CODE_HASH_SEED)
+        hash.update(chatId)
+
+        await addToHistory(
+          UserEnabledSharingOfThread({
+            chatId,
+            userId,
+            code: hash.digest('base64url'),
+          })
+        )
       }
 
-      // TODO: try catch error and send it back as HTML (or redirect if OK)
       return response.redirect(`/chat/${chatId}/chat.html`)
     } catch (error) {
       console.error(error)
