@@ -10,9 +10,9 @@ export const throwIfUndefined = (variableName: string, condition: boolean = true
 export const AUTHN = process.env.AUTHN
 export const PASSWORD_SALT = throwIfUndefined('PASSWORD_SALT', AUTHN === 'password')!
 
-export const POSTGRES_CONNECTION_STRING = throwIfUndefined('DATABASE_URL', process.env.NODE_ENV === 'production')!
+export const DATABASE_URL = throwIfUndefined('DATABASE_URL', process.env.NODE_ENV === 'production')!
 
-export const REGISTRATION_CODE = throwIfUndefined('REGISTRATION_CODE', process.env.NODE_ENV === 'production')!
+export const REGISTRATION_CODE = process.env.REGISTRATION_CODE || ''
 
 export const ADMIN_USERID = throwIfUndefined('ADMIN_USERID', process.env.NODE_ENV === 'production')!
 

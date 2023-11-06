@@ -1,5 +1,5 @@
 import { Pool } from 'pg'
-import { POSTGRES_CONNECTION_STRING } from './env'
+import { DATABASE_URL } from './env'
 
 const testConfig = {
   user: 'test',
@@ -19,7 +19,7 @@ const devConfig = {
 }
 
 const prodConfig = {
-  connectionString: POSTGRES_CONNECTION_STRING,
+  connectionString: DATABASE_URL,
 }
 
 export const postgres = new Pool(
