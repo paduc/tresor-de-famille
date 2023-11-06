@@ -61,7 +61,6 @@ const Wrapper = ({ context, caption, photoId, photoUrl, faces, updated }: NewPho
   })
 
   const [selectedFace, setSelectedFace] = useState<PhotoFace | null>(null)
-  const [faceEditionMode, setFaceEditionMode] = useState<boolean>(false)
 
   const [hasCaptionChanged, setCaptionChanged] = useState<boolean>(false)
 
@@ -147,18 +146,10 @@ const Wrapper = ({ context, caption, photoId, photoUrl, faces, updated }: NewPho
                   <ul className='flex flex-wrap gap-2 mt-3 pt-3'>
                     {annotatedFaces.map((face) => (
                       <li key={`photoface${face.faceId}`} className='text-gray-300 mr-2 mb-2'>
-                        <a
-                          href={PersonPageURL(face.personId)}
-                          onClick={(e) => {
-                            if (faceEditionMode) {
-                              e.preventDefault()
-                              setSelectedFace(face)
-                            }
-                          }}
-                          className='flex flex-col items-center'>
+                        <div onClick={() => setSelectedFace(face)} className='flex flex-col items-center cursor-pointer'>
                           <PhotoBadge faceId={face.faceId} photoId={photoId} className={``} altText={face.name || ''} />
                           <div className='mt-1 max-w-[80px] truncate'>{face.name}</div>
-                        </a>
+                        </div>
                       </li>
                     ))}
                     {pendingFaces.map((face) => (
@@ -187,30 +178,6 @@ const Wrapper = ({ context, caption, photoId, photoUrl, faces, updated }: NewPho
                     ))}
                   </ul>
                 )}
-                {!selectedFace ? (
-                  <Switch.Group as='div' className='flex items-center mt-4'>
-                    <Switch
-                      checked={faceEditionMode}
-                      onChange={setFaceEditionMode}
-                      className={classNames(
-                        faceEditionMode ? 'bg-indigo-600' : 'bg-gray-500',
-                        'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2'
-                      )}>
-                      <span
-                        aria-hidden='true'
-                        className={classNames(
-                          faceEditionMode ? 'translate-x-5' : 'translate-x-0',
-                          'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out'
-                        )}
-                      />
-                    </Switch>
-                    <Switch.Label as='span' className='ml-3 text-sm'>
-                      <span className='font-medium text-gray-300'>
-                        {faceEditionMode ? "Activé: choisissez un visage pour l'éditer" : 'Activer le mode édition de visages'}
-                      </span>
-                    </Switch.Label>
-                  </Switch.Group>
-                ) : null}
               </div>
             ) : null}
           </div>
