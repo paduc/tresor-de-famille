@@ -1,3 +1,4 @@
+import { getEventList } from '../dependencies/getEventList'
 import { getSingleEvent } from '../dependencies/getSingleEvent'
 import { UUID } from '../domain'
 import { UserNamedPersonInPhoto } from '../events/onboarding/UserNamedPersonInPhoto'
@@ -13,7 +14,7 @@ export const getProfilePicUrlForPerson = async (personId: UUID, userId: UUID): P
     return getProfilePicUrlForUser(userId)
   }
 
-  const personNamed = await getSingleEvent<UserNamedPersonInPhoto | UserRecognizedPersonInPhoto>(
+  const personInPhotoEvents = await getEventList<UserNamedPersonInPhoto | UserRecognizedPersonInPhoto>(
     ['UserNamedPersonInPhoto', 'UserRecognizedPersonInPhoto'],
     {
       personId,
@@ -21,8 +22,8 @@ export const getProfilePicUrlForPerson = async (personId: UUID, userId: UUID): P
     }
   )
 
-  if (personNamed) {
-    const { faceId, photoId } = personNamed.payload
+  if (personInPhotoEvents.length) {
+    const { faceId, photoId } = personInPhotoEvents.at(0)!.payload
     return `/photo/${photoId}/face/${faceId}`
   }
 
