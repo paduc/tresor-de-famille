@@ -32,6 +32,7 @@ export default {
             areThreadsEnabled: false,
             areVideosEnabled: false,
             arePersonsEnabled: true,
+            isFamilyPageEnabled: true,
           }}>
           <PersonSearchContext.Provider value={{ search: fakePersonSearch } as unknown as SearchIndex}>
             <Story />

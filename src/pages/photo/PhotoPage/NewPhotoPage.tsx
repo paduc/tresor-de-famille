@@ -54,8 +54,6 @@ export const NewPhotoPage = withBrowserBundle((props: NewPhotoPageProps) => {
 const Wrapper = ({ context, caption, photoId, photoUrl, faces, updated }: NewPhotoPageProps) => {
   const session = React.useContext(SessionContext)
 
-  const [isScrollHintVisible, toggleScrollHint] = React.useState(true)
-
   // For UI testing purposes (view under the fold)
   const bottomRef = useRef<HTMLDivElement | null>(null)
   useLayoutEffect(() => {
@@ -75,12 +73,6 @@ const Wrapper = ({ context, caption, photoId, photoUrl, faces, updated }: NewPho
     [caption]
   )
 
-  const scrollEvent = () => {
-    if (isScrollHintVisible) {
-      toggleScrollHint(false)
-    }
-  }
-
   if (!session.isLoggedIn)
     return (
       <div>
@@ -94,30 +86,17 @@ const Wrapper = ({ context, caption, photoId, photoUrl, faces, updated }: NewPho
 
   return (
     <div className='relative'>
-      <div
-        className='bg-black absolute overflow-y-scroll overflow-x-hidden top-0 bottom-0 left-0 right-0 w-[100hh] h-[100vh]'
-        onScroll={scrollEvent}>
+      <div className='bg-black absolute overflow-y-scroll overflow-x-hidden top-0 bottom-0 left-0 right-0 w-[100vw] h-[100vh]'>
         <a
           href={`${context ? getThreadUrl(context.threadId) : PhotoListPageUrl}`}
-          className='absolute top-2 left-2 text-gray-300'>
+          className='absolute top-2 right-2 text-gray-300'>
           <XMarkIcon className='cursor-pointer h-8 w-8' />
         </a>
-
-        <div
-          className={`${
-            isScrollHintVisible ? 'opacity-100' : 'opacity-0'
-          } transition-opacity duration-300 cursor-pointer absolute bottom-2 left-2 text-gray-300 animate-bounce`}
-          onClick={() => toggleScrollHint(false)}>
-          <div className='flex  leading-6 align-middle'>
-            <ArrowDownIcon className=' h-6 w-6 mr-1' />
-            Faire défiler
-          </div>
+        <div className='grid place-items-center h-[95svh]'>
+          <img src={photoUrl} className='max-w-full max-h-[95svh]' />
         </div>
-        <div className='grid place-items-center h-screen'>
-          <img src={photoUrl} className='max-w-full max-h-screen' />
-        </div>
-        <div ref={bottomRef} className='bg-white bg-opacity-5'>
-          <div className='text-gray-300 px-3 py-4 pb-28 w-full sm:max-w-lg mx-auto divide divide-y divide-solid divide-gray-200 divide-opacity-30'>
+        <div ref={bottomRef} className='bg-white bg-opacity-5 border-t border-gray-200/50'>
+          <div className='text-gray-200 px-3 py-4 pb-28 w-full sm:max-w-lg mx-auto divide divide-y divide-solid divide-gray-200/50'>
             <div className='pb-1'>
               <form method='POST' className='relative'>
                 <input type='hidden' name='action' value='addCaption' />
