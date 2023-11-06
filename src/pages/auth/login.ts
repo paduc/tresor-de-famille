@@ -5,7 +5,7 @@ export const makeLogin =
   (comparePassword: (password: string, passwordHash: string) => Promise<boolean>) =>
   async (email: string, password: string): Promise<UUID> => {
     const { rows } = await postgres.query(
-      "SELECT * FROM history WHERE type = 'UserRegisteredWithEmailAndPassword' AND payload->>'email'=$1 LIMIT 1",
+      "SELECT * FROM history WHERE type = 'UserRegisteredWithEmailAndPassword' AND LOWER(payload->>'email')=LOWER($1) LIMIT 1",
       [email]
     )
 

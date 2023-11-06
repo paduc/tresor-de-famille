@@ -10,9 +10,11 @@ type RegisterDeps = {
 export const makeRegister =
   ({ addToHistory, hashPassword }: RegisterDeps) =>
   async (email: string, password: string, code?: string) => {
+    const lowerCaseEmail = email.toLowerCase().trim()
+
     const { rowCount } = await postgres.query(
       "SELECT * FROM history WHERE type = 'UserRegisteredWithEmailAndPassword' AND payload->>'email'=$1 LIMIT 1",
-      [email]
+      [lowerCaseEmail]
     )
 
     if (rowCount) {
@@ -25,7 +27,7 @@ export const makeRegister =
     await addToHistory(
       UserRegisteredWithEmailAndPassword({
         userId,
-        email,
+        email: lowerCaseEmail,
         passwordHash,
         code,
       })
