@@ -252,6 +252,7 @@ type RichTextEditorRef = {
 }
 const RichTextEditor = fixedForwardRef<RichTextEditorRef, RichTextEditorProps>((props, ref) => {
   const setLoader = useLoader()
+  const [contentAsJSONEncoded, setContentAsJSONEncoded] = useState('')
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -303,7 +304,7 @@ const RichTextEditor = fixedForwardRef<RichTextEditorRef, RichTextEditorProps>((
     <>
       <form method='post' ref={photoUploadForm} encType='multipart/form-data'>
         <input type='hidden' name='action' value='insertPhotoAtMarker' />
-        <input type='hidden' name='contentAsJSONEncoded' value='' />
+        <input type='hidden' name='contentAsJSONEncoded' value={contentAsJSONEncoded} />
         <input
           type='file'
           id={`file-input-insert-file-in-rich-text`}
@@ -321,14 +322,11 @@ const RichTextEditor = fixedForwardRef<RichTextEditorRef, RichTextEditorProps>((
 
             const contentAsJSON = editor.getJSON()
 
-            const form = e.currentTarget.form!
-
-            // @ts-ignore
-            form.elements.contentAsJSONEncoded.value = encodeURIComponent(JSON.stringify(contentAsJSON))
+            setContentAsJSONEncoded(encodeURIComponent(JSON.stringify(contentAsJSON)))
 
             setLoader(true)
             setTimeout(() => {
-              form.submit()
+              photoUploadForm.current?.submit()
             }, 200)
           }}
         />
