@@ -25,22 +25,18 @@ export type ThreadListPageProps = {
 export const ThreadListPage = withBrowserBundle(({ error, success, threads }: ThreadListPageProps) => {
   return (
     <AppLayout>
-      <div className='bg-white p-6'>
+      <div className='bg-white py-6'>
         <SuccessError success={success} error={error} />
         {threads.length ? (
           <>
-            <h3 className='text-lg font-medium leading-6 mb-1 text-gray-900'>Histoires et anecdotes</h3>
+            <h3 className='text-lg ml-6 font-medium leading-6 mb-1 text-gray-900'>Histoires et anecdotes</h3>
             <ul role='list' className='divide-y divide-gray-100'>
               {threads.map((thread) => {
                 const chatPageUrl = '/chat/' + thread.threadId + '/chat.html'
                 return (
-                  <li
-                    key={thread.threadId}
-                    className='flex flex-wrap items-center justify-between gap-x-6 gap-y-4 py-5 sm:flex-nowrap'>
-                    <div>
-                      <p className='text-base text-gray-900'>
-                        <a href={chatPageUrl}>{thread.title}</a>
-                      </p>
+                  <li key={thread.threadId} className='flex flex-wrap items-center justify-between gap-y-4 ml-0 sm:flex-nowrap'>
+                    <a href={chatPageUrl} className='w-full py-5 px-6 hover:bg-gray-50'>
+                      <p className='text-base text-gray-900'>{thread.title}</p>
                       <div className='mt-1 flex items-center gap-x-2 text-xs leading-5 text-gray-500'>
                         {/* <p>
                           <a href='' className='hover:underline'>
@@ -57,21 +53,21 @@ export const ThreadListPage = withBrowserBundle(({ error, success, threads }: Th
                           </time>
                         </p>
                       </div>
-                    </div>
-                    {/* <dl className='flex w-full flex-none justify-between gap-x-8 sm:w-auto'>
+                      {/* <dl className='flex w-full flex-none justify-between gap-x-8 sm:w-auto'>
                     <div className='flex w-16 gap-x-2.5'>
-                      <dt>
-                        <span className='sr-only'>Total comments</span>
-                        <ChatBubbleLeftIconOutline className='h-6 w-6 text-gray-400' aria-hidden='true' />
-                      </dt>
-                      <dd className='text-sm leading-6 text-gray-900'>32</dd>
+                    <dt>
+                    <span className='sr-only'>Total comments</span>
+                    <ChatBubbleLeftIconOutline className='h-6 w-6 text-gray-400' aria-hidden='true' />
+                    </dt>
+                    <dd className='text-sm leading-6 text-gray-900'>32</dd>
                     </div>
                   </dl> */}
+                    </a>
                   </li>
                 )
               })}
             </ul>
-            <p className='mt-5 max-w-2xl'>
+            <p className='mt-5 ml-6 max-w-2xl'>
               <a href='/chat.html' className={`${primaryButtonStyles}`}>
                 Démarrer une nouvelle anecdote
               </a>
