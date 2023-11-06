@@ -1,31 +1,30 @@
 import multer from 'multer'
+import { createHash } from 'node:crypto'
 import fs from 'node:fs'
 import z from 'zod'
-import { createHash } from 'node:crypto'
 
 import { addToHistory } from '../../dependencies/addToHistory'
 import { requireAuth } from '../../dependencies/authn'
+import { SHARING_CODE_HASH_SEED } from '../../dependencies/env'
+import { getSingleEvent } from '../../dependencies/getSingleEvent'
 import { uploadPhoto } from '../../dependencies/photo-storage'
 import { zIsUUID } from '../../domain'
-import { decodeTipTapJSON, encodeStringy } from './TipTapTypes'
 import { getUuid } from '../../libs/getUuid'
 import { responseAsHtml } from '../../libs/ssr/responseAsHtml'
 import { pageRouter } from '../pageRouter'
 import { detectFacesInPhotoUsingAWS } from '../photo/recognizeFacesInChatPhoto/detectFacesInPhotoUsingAWS'
 import { ChatPage } from './ChatPage/ChatPage'
+import { ReadOnlyChatPage } from './ChatPage/ReadOnlyChatPage'
+import { ChatPageUrl } from './ChatPageUrl'
+import { decodeTipTapJSON, encodeStringy } from './TipTapTypes'
+import { UserEnabledSharingOfThread } from './UserEnabledSharingOfThread'
 import { UserInsertedPhotoInRichTextThread } from './UserInsertedPhotoInRichTextThread'
+import { UserReceivedAccessToThread } from './UserReceivedAccessToThread'
 import { UserSetChatTitle } from './UserSetChatTitle'
 import { UserUpdatedThreadAsRichText } from './UserUpdatedThreadAsRichText'
 import { getChatPageProps } from './getChatHistory/getChatPageProps'
 import { UserSentMessageToChat } from './sendMessageToChat/UserSentMessageToChat'
-import { UserEnabledSharingOfThread } from './UserEnabledSharingOfThread'
-import { ChatPageUrl } from './ChatPageUrl'
-import { SHARING_CODE_HASH_SEED } from '../../dependencies/env'
-import { getSingleEvent } from '../../dependencies/getSingleEvent'
 import { UserUploadedPhotoToChat } from './uploadPhotoToChat/UserUploadedPhotoToChat'
-import { UserReceivedAccessToThread } from './UserReceivedAccessToThread'
-import { getEventList } from '../../dependencies/getEventList'
-import { ReadOnlyChatPage } from './ChatPage/ReadOnlyChatPage'
 
 const fakeProfilePicUrl =
   'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80'
@@ -128,7 +127,8 @@ pageRouter
 
       //   if present, return a read-only version of the ChatPage
       const { contentAsJSON, title, lastUpdated } = await getChatPageProps({ chatId, userId: creatorId })
-      return responseAsHtml(request, response, ReadOnlyChatPage({ chatId, contentAsJSON, title, lastUpdated }))
+
+      return responseAsHtml(request, response, ReadOnlyChatPage({ contentAsJSON, title }))
     }
 
     const props = await getChatPageProps({ chatId, userId })

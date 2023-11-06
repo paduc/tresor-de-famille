@@ -26,6 +26,7 @@ export default {
             areThreadsEnabled: true,
             areVideosEnabled: true,
             arePersonsEnabled: true,
+            isFamilyPageEnabled: true,
           }}>
           <Story />
         </SessionContext.Provider>

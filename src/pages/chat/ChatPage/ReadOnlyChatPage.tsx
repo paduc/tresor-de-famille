@@ -1,110 +1,39 @@
-import { formatRelative } from 'date-fns'
-import { fr } from 'date-fns/locale'
-import debounce from 'lodash.debounce'
-import React, { useCallback, useEffect, useState } from 'react'
+import React from 'react'
 import { UUID } from '../../../domain'
 import { withBrowserBundle } from '../../../libs/ssr/withBrowserBundle'
-import { buttonIconStyles, secondaryButtonStyles } from '../../_components/Button'
 import { AppLayout } from '../../_components/layout/AppLayout'
-import { PhotoIcon } from './PhotoIcon'
-
-import { Node } from '@tiptap/core'
-import {
-  Attributes,
-  Content,
-  Editor,
-  EditorContent,
-  FloatingMenu,
-  JSONContent,
-  NodeViewWrapper,
-  ReactNodeViewRenderer,
-  mergeAttributes,
-  useEditor,
-} from '@tiptap/react'
-import StarterKit from '@tiptap/starter-kit'
-import { fixedForwardRef } from '../../../libs/fixedForwardRef'
-import { Epoch } from '../../../libs/typeguards'
 import { TipTapContentAsJSON } from '../TipTapTypes'
-import { useLoader } from '../../_components/layout/LoaderContext'
-import { DocumentDuplicateIcon } from '@heroicons/react/24/outline'
 
 export type ReadOnlyChatPageProps = {
-  chatId: UUID
   title?: string
   contentAsJSON: TipTapContentAsJSON
-  lastUpdated: Epoch | undefined
 }
 
-export const ReadOnlyChatPage = withBrowserBundle(({ chatId, contentAsJSON }: ReadOnlyChatPageProps) => {
-  const editor = useEditor({
-    editable: false,
-    extensions: [
-      StarterKit.configure({
-        paragraph: {
-          HTMLAttributes: {
-            class: 'px-4 sm:px-0 py-4 text-gray-800 text-lg  whitespace-pre-wrap [&+p]:-mt-1 [&+p]:border-t-0 [&+p]:pt-0',
-          },
-        },
-      }),
-      TipTapReadonlyPhotoNode,
-    ],
-    content: contentAsJSON,
-    autofocus: 'end',
-    editorProps: {
-      attributes: {
-        class: 'focus:outline-none',
-      },
-    },
-  })
-
+export const ReadOnlyChatPage = withBrowserBundle(({ contentAsJSON, title }: ReadOnlyChatPageProps) => {
   return (
     <AppLayout>
-      <div className='text-lg'>READONLY</div>
       <div className='w-full sm:ml-6 max-w-2xl pt-3 pb-40'>
         <div className='divide-y divide-gray-200 overflow-hidden sm:rounded-lg bg-white shadow'>
-          {/* <Title title={title} chatId={chatId} /> */}
+          {title ? <div className='relative w-full max-w-2xl px-4 py-5 sm:px-6 text-gray-800 text-xl'>{title}</div> : null}
           <div className='sm:ml-6 max-w-2xl relative'>
-            <EditorContent editor={editor} />
+            {contentAsJSON.content.map((block) => {
+              if (block.type === 'paragraph') {
+                return (
+                  <p className='px-4 sm:px-0 py-4 text-gray-800 text-lg  whitespace-pre-wrap [&+p]:-mt-1 [&+p]:border-t-0 [&+p]:pt-0'>
+                    {block.content[0].text}
+                  </p>
+                )
+              }
+
+              if (block.type === 'photoNode') {
+                return <ReadonlyPhotoItemWrappedForTipTap node={block} />
+              }
+            })}
           </div>
         </div>
       </div>
     </AppLayout>
   )
-})
-
-const TipTapReadonlyPhotoNode = Node.create({
-  name: 'photoNode',
-
-  group: 'block',
-
-  atom: true,
-
-  addAttributes(): (Attributes | {}) & { [Attr in keyof ReadonlyPhotoItemProps]: any } {
-    return {
-      chatId: {},
-      photoId: {},
-      url: {},
-      description: {},
-      personsInPhoto: {},
-      unrecognizedFacesInPhoto: {},
-    }
-  },
-
-  parseHTML() {
-    return [
-      {
-        tag: 'tdf-photo',
-      },
-    ]
-  },
-
-  renderHTML({ HTMLAttributes }) {
-    return ['tdf-photo', mergeAttributes(HTMLAttributes)]
-  },
-
-  addNodeView() {
-    return ReactNodeViewRenderer(ReadonlyPhotoItemWrappedForTipTap)
-  },
 })
 
 const ReadonlyPhotoItemWrappedForTipTap = (props: {
@@ -130,25 +59,19 @@ const ReadonlyPhotoItemWrappedForTipTap = (props: {
     const { chatId, photoId, url, description, personsInPhoto, unrecognizedFacesInPhoto } = remixedProps
 
     return (
-      <NodeViewWrapper className='tdf-photo'>
-        <ReadonlyPhotoItem
-          chatId={chatId}
-          personsInPhoto={personsInPhoto}
-          photoId={photoId}
-          unrecognizedFacesInPhoto={unrecognizedFacesInPhoto}
-          url={url}
-          description={description}
-          key={photoId}
-        />
-      </NodeViewWrapper>
+      <ReadonlyPhotoItem
+        chatId={chatId}
+        personsInPhoto={personsInPhoto}
+        photoId={photoId}
+        unrecognizedFacesInPhoto={unrecognizedFacesInPhoto}
+        url={url}
+        description={description}
+        key={photoId}
+      />
     )
   } catch (error) {
     console.error(error)
-    return (
-      <NodeViewWrapper className='tdf-photo'>
-        <div>Error: illegal values in photo module</div>
-      </NodeViewWrapper>
-    )
+    return <div>Erreur: photo dont les données sont illisibles.</div>
   }
 }
 
