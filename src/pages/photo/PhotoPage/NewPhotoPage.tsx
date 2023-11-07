@@ -1,18 +1,13 @@
-import React, { useCallback, useLayoutEffect, useRef, useState } from 'react'
+import React, { useCallback, useState } from 'react'
 import TextareaAutosize from 'react-textarea-autosize'
 
 import { XMarkIcon } from '@heroicons/react/20/solid'
 import { UUID } from '../../../domain/UUID'
 import { withBrowserBundle } from '../../../libs/ssr/withBrowserBundle'
 import { buttonIconStyles, primaryButtonStyles, secondaryRedButtonStyles, smallButtonStyles } from '../../_components/Button'
-import { SessionContext } from '../../_components/SessionContext'
 import { PersonAutocomplete } from '../../_components/PersonAutocomplete'
+import { SessionContext } from '../../_components/SessionContext'
 import { PhotoListPageUrl } from '../../listPhotos/PhotoListPageUrl'
-import { PersonPageURL } from '../../person/PersonPageURL'
-import { Switch } from '@headlessui/react'
-import classNames from 'classnames'
-import { ClientOnly } from '../../_components/ClientOnly'
-import { ArrowDownIcon } from '@heroicons/react/24/outline'
 
 type PhotoFace = {
   faceId: UUID
@@ -42,23 +37,8 @@ export type NewPhotoPageProps = {
   updated?: boolean
 }
 
-export const NewPhotoPage = withBrowserBundle((props: NewPhotoPageProps) => {
-  // To avoid the warning that useLayoutEffect does not work in SSR
-  return (
-    <ClientOnly>
-      <Wrapper {...props} />
-    </ClientOnly>
-  )
-})
-
-const Wrapper = ({ context, caption, photoId, photoUrl, faces, updated }: NewPhotoPageProps) => {
+export const NewPhotoPage = withBrowserBundle(({ context, caption, photoId, photoUrl, faces, updated }: NewPhotoPageProps) => {
   const session = React.useContext(SessionContext)
-
-  // For UI testing purposes (view under the fold)
-  const bottomRef = useRef<HTMLDivElement | null>(null)
-  useLayoutEffect(() => {
-    if (bottomRef.current !== null && updated) bottomRef.current.scrollIntoView()
-  })
 
   const [selectedFace, setSelectedFace] = useState<PhotoFace | null>(null)
 
@@ -94,7 +74,7 @@ const Wrapper = ({ context, caption, photoId, photoUrl, faces, updated }: NewPho
         <div className='grid place-items-center h-[95svh]'>
           <img src={photoUrl} className='max-w-full max-h-[95svh]' />
         </div>
-        <div ref={bottomRef} className='bg-white bg-opacity-5 border-t border-gray-200/50'>
+        <div className='bg-white bg-opacity-5 border-t border-gray-200/50'>
           <div className='text-gray-200 px-3 py-4 pb-28 w-full sm:max-w-lg mx-auto divide divide-y divide-solid divide-gray-200/50'>
             <div className='pb-1'>
               <form method='POST' className='relative'>
@@ -185,7 +165,7 @@ const Wrapper = ({ context, caption, photoId, photoUrl, faces, updated }: NewPho
       </div>
     </div>
   )
-}
+})
 
 type PhotoBadgeProps = {
   photoId: UUID
