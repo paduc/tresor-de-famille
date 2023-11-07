@@ -1,17 +1,28 @@
 import { getEventList } from '../dependencies/getEventList'
 import { getSingleEvent } from '../dependencies/getSingleEvent'
 import { UUID } from '../domain'
+import { UserConfirmedHisFace } from '../events/onboarding/UserConfirmedHisFace'
 import { UserNamedPersonInPhoto } from '../events/onboarding/UserNamedPersonInPhoto'
-import { UserNamedThemself } from '../events/onboarding/UserNamedThemself'
 import { UserRecognizedPersonInPhoto } from '../events/onboarding/UserRecognizedPersonInPhoto'
-import { getProfilePicUrlForUser } from './_getProfilePicUrlForUser'
+import { UserSelectedNewProfilePic } from './person/UserSelectedNewProfilePic'
 
 export const getProfilePicUrlForPerson = async (personId: UUID, userId: UUID): Promise<string | null> => {
-  const personAsNamedByThemself = await getSingleEvent<UserNamedThemself>(['UserNamedThemself'], { userId, personId })
+  const preferredProfilePic = await getSingleEvent<UserSelectedNewProfilePic>(['UserSelectedNewProfilePic'], {
+    userId,
+    personId,
+  })
 
-  if (personAsNamedByThemself) {
-    // the person is the user
-    return getProfilePicUrlForUser(userId)
+  if (preferredProfilePic) {
+    const { faceId, photoId } = preferredProfilePic.payload
+    return `/photo/${photoId}/face/${faceId}`
+  }
+
+  const faceEvent = await getSingleEvent<UserConfirmedHisFace>(['UserConfirmedHisFace'], { personId })
+
+  if (faceEvent) {
+    const { photoId, faceId } = faceEvent.payload
+
+    return `/photo/${photoId}/face/${faceId}`
   }
 
   const personInPhotoEvents = await getEventList<UserNamedPersonInPhoto | UserRecognizedPersonInPhoto>(

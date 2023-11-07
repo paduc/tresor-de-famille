@@ -1,17 +1,62 @@
+import { z } from 'zod'
+import { addToHistory } from '../../dependencies/addToHistory'
+import { requireAuth } from '../../dependencies/authn'
+import { zIsUUID } from '../../domain'
 import { responseAsHtml } from '../../libs/ssr/responseAsHtml'
 import { pageRouter } from '../pageRouter'
-import { requireAuth } from '../../dependencies/authn'
-import { PersonPageURL } from './PersonPageURL'
-import { z } from 'zod'
-import { zIsUUID } from '../../domain'
-import { getPersonPageProps } from './getPersonPageProps'
 import { PersonPage } from './PersonPage'
+import { PersonPageURL } from './PersonPageURL'
+import { UserSelectedNewProfilePic } from './UserSelectedNewProfilePic'
+import { getPersonPageProps } from './getPersonPageProps'
 
-pageRouter.route(PersonPageURL()).get(requireAuth(), async (request, response) => {
-  const { personId } = z.object({ personId: zIsUUID }).parse(request.params)
-  const userId = request.session.user!.id
+pageRouter
+  .route(PersonPageURL())
+  .get(requireAuth(), async (request, response) => {
+    try {
+      const { personId } = z.object({ personId: zIsUUID }).parse(request.params)
+      const userId = request.session.user!.id
 
-  const props = await getPersonPageProps(personId, userId)
+      const props = await getPersonPageProps(personId, userId)
 
-  responseAsHtml(request, response, PersonPage(props))
-})
+      responseAsHtml(request, response, PersonPage(props))
+    } catch (error) {
+      console.error('Failed to load profile', error)
+      return response.status(500).send("Le chargement du profile n'a pas fonctionné.")
+    }
+  })
+  .post(async (request, response) => {
+    try {
+      const { action } = z
+        .object({
+          action: z.string(),
+        })
+        .parse(request.body)
+
+      const userId = request.session.user!.id
+
+      if (action === 'selectNewProfilePic') {
+        const { faceId, photoId, personId } = z
+          .object({
+            photoId: zIsUUID,
+            faceId: zIsUUID,
+            personId: zIsUUID,
+          })
+          .parse(request.body)
+
+        await addToHistory(
+          UserSelectedNewProfilePic({
+            personId,
+            photoId,
+            faceId,
+            userId,
+          })
+        )
+        return response.redirect(PersonPageURL(personId))
+      }
+
+      throw new Error('POST on person route without or unknown action')
+    } catch (error) {
+      console.error('Failed to select new profile pic', error)
+      return response.status(500).send("La sélection de la nouvelle photo de profile n'a pas fonctionné.")
+    }
+  })

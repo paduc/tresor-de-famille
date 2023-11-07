@@ -14,15 +14,16 @@ import { UserDeletedPhoto } from '../photo/UserDeletedPhoto'
 import { getProfilePicUrlForPerson } from '../_getProfilePicUrlForPerson'
 
 export const getPersonPageProps = async (personId: UUID, userId: UUID): Promise<PersonPageProps> => {
-  const photos = await getPersonPhotos(personId, userId)
+  const { photos, alternateProfilePics } = await getPersonPhotos(personId, userId)
 
   const { name } = (await getPersonById(personId)) || { name: 'N/A' }
 
   const profilePicUrl = await getProfilePicUrlForPerson(personId, userId)
 
   return {
-    person: { name, profilePicUrl },
+    person: { personId, name, profilePicUrl },
     photos,
+    alternateProfilePics,
   }
 }
 async function getPersonPhotos(personId: UUID, userId: UUID) {
@@ -54,16 +55,35 @@ async function getPersonPhotos(personId: UUID, userId: UUID) {
 
   const uniqueFaceIds = new Set<UUID>(nonDeletedPhotos.map((event) => event.payload.faceId))
 
-  const photoIdsFromPhotosWithSameFaces = (
-    await postgres.query<{ photo_id: UUID }>(
-      "SELECT payload->>'photoId' AS photo_id from history where type='AWSDetectedFacesInPhoto' and EXISTS ( SELECT 1 FROM jsonb_array_elements(history.payload->'faces') AS face WHERE (face->>'faceId') = ANY ($1));",
+  const awsDetectionsOfAtLeastOneFace = (
+    await postgres.query<{ photoId: UUID; faces: { faceId: UUID }[] }>(
+      "SELECT payload->>'photoId' AS \"photoId\", payload->'faces' AS faces from history where type='AWSDetectedFacesInPhoto' and EXISTS ( SELECT 1 FROM jsonb_array_elements(history.payload->'faces') AS face WHERE (face->>'faceId') = ANY ($1));",
       [Array.from(uniqueFaceIds)]
     )
-  ).rows.map(({ photo_id }) => photo_id)
+  ).rows
+
+  const photoIdsFromPhotosWithSameFaces = awsDetectionsOfAtLeastOneFace.map(({ photoId }) => photoId)
 
   const photoIds = Array.from(new Set<UUID>([...photoIdsFromPhotoEvents, ...photoIdsFromPhotosWithSameFaces]))
 
   // TODO (later): remove the photos for which another person was tagged for this faceId
 
-  return photoIds.map((photoId) => ({ id: photoId, url: getPhotoUrlFromId(photoId) }))
+  const alternateProfilePics: {
+    faceId: UUID
+    photoId: UUID
+    url: string
+  }[] = []
+
+  for (const { photoId, faces } of awsDetectionsOfAtLeastOneFace) {
+    const face = faces.find((face) => uniqueFaceIds.has(face.faceId))
+    if (face) {
+      const { faceId } = face
+      alternateProfilePics.push({ faceId, photoId, url: `/photo/${photoId}/face/${faceId}` })
+    }
+  }
+
+  return {
+    photos: photoIds.map((photoId) => ({ photoId, url: getPhotoUrlFromId(photoId) })),
+    alternateProfilePics,
+  }
 }

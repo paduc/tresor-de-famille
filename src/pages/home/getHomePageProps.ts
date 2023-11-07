@@ -6,7 +6,6 @@ import { UserConfirmedHisFace } from '../../events/onboarding/UserConfirmedHisFa
 import { UserNamedPersonInPhoto } from '../../events/onboarding/UserNamedPersonInPhoto'
 import { UserNamedThemself } from '../../events/onboarding/UserNamedThemself'
 import { UserRecognizedPersonInPhoto } from '../../events/onboarding/UserRecognizedPersonInPhoto'
-import { getProfilePicUrlForUser } from '../_getProfilePicUrlForUser'
 import { AWSDetectedFacesInPhoto } from '../photo/recognizeFacesInChatPhoto/AWSDetectedFacesInPhoto'
 import { GetUserName, HomePageProps, UploadProfilePicture } from './HomePage'
 
