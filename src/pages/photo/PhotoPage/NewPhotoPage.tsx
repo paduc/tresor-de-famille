@@ -8,6 +8,7 @@ import { buttonIconStyles, primaryButtonStyles, secondaryRedButtonStyles, smallB
 import { PersonAutocomplete } from '../../_components/PersonAutocomplete'
 import { SessionContext } from '../../_components/SessionContext'
 import { PhotoListPageUrl } from '../../listPhotos/PhotoListPageUrl'
+import { TrashIcon } from '@heroicons/react/24/outline'
 
 type PhotoFace = {
   faceId: UUID
@@ -108,9 +109,9 @@ export const NewPhotoPage = withBrowserBundle(({ context, caption, photoId, phot
               </form>
             </div>
             {faces && faces.length ? (
-              <div className='pt-3'>
+              <div className='py-3'>
                 {selectedFace ? (
-                  <div className='mt-3'>
+                  <div className=''>
                     <div className='flex justify-center sm:justify-start'>
                       <PhotoBadge
                         photoId={photoId}
@@ -123,7 +124,7 @@ export const NewPhotoPage = withBrowserBundle(({ context, caption, photoId, phot
                     </div>
                   </div>
                 ) : (
-                  <ul className='flex flex-wrap gap-2 mt-3 pt-3'>
+                  <ul className='flex flex-wrap gap-2 pt-3'>
                     {annotatedFaces.map((face) => (
                       <li key={`photoface${face.faceId}`} className='text-gray-300 mr-2 mb-2'>
                         <div onClick={() => setSelectedFace(face)} className='flex flex-col items-center cursor-pointer'>
@@ -160,6 +161,21 @@ export const NewPhotoPage = withBrowserBundle(({ context, caption, photoId, phot
                 )}
               </div>
             ) : null}
+            <form
+              method='POST'
+              action='/delete-photo'
+              onSubmit={(e) => {
+                const confirmed = confirm('Êtes-vous sur de vouloir supprimer cette photo ?')
+                if (!confirmed) e.preventDefault()
+              }}>
+              <input type='hidden' name='photoId' value={photoId} />
+              <button
+                type='submit'
+                className={`mt-4 inline-flex items-center cursor-pointer text-red-500 hover:text-red-600 text-md`}>
+                <TrashIcon className='h-6 w-6 mr-1' />
+                Supprimer cette photo
+              </button>
+            </form>
           </div>
         </div>
       </div>

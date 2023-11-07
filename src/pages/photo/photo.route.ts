@@ -15,6 +15,9 @@ import { detectFacesInPhotoUsingAWS } from './recognizeFacesInChatPhoto/detectFa
 import { FaceIgnoredInPhoto } from '../../events/onboarding/FaceIgnoredInPhoto'
 import { UserNamedPersonInPhoto } from '../../events/onboarding/UserNamedPersonInPhoto'
 import { UserRecognizedPersonInPhoto } from '../../events/onboarding/UserRecognizedPersonInPhoto'
+import { PhotoListPageUrl } from '../listPhotos/PhotoListPageUrl'
+import { UserDeletedPhoto } from './UserDeletedPhoto'
+import { doesPhotoExist } from '../_doesPhotoExist'
 
 const FILE_SIZE_LIMIT_MB = 50
 const upload = multer({
@@ -190,5 +193,27 @@ pageRouter.route('/add-photo.html').post(requireAuth(), upload.single('photo'), 
   } catch (error) {
     console.error('Error in chat route')
     throw error
+  }
+})
+
+pageRouter.route('/delete-photo').post(requireAuth(), async (request, response) => {
+  try {
+    const { photoId } = zod.object({ photoId: zIsUUID }).parse(request.body)
+    const userId = request.session.user!.id
+
+    // Make sure the user is the author of the photo
+    const isAllowed = await doesPhotoExist({ photoId, userId })
+
+    if (!isAllowed) {
+      return response.status(403).send("La suppression de la photo a échoué parce que vous n'en êtes pas l'auteur.")
+    }
+
+    // Emit
+    await addToHistory(UserDeletedPhoto({ photoId, userId }))
+
+    return response.redirect(PhotoListPageUrl)
+  } catch (error) {
+    console.error('Error in photo route')
+    return response.status(500).send('La suppression de la photo a échoué.')
   }
 })
