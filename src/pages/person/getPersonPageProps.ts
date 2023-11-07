@@ -10,9 +10,10 @@ import { UserRecognizedPersonInPhoto } from '../../events/onboarding/UserRecogni
 import { PhotoManuallyAnnotated } from '../photo/annotateManually/PhotoManuallyAnnotated'
 import { PhotoAnnotationConfirmed } from '../photo/confirmPhotoAnnotation/PhotoAnnotationConfirmed'
 import { PersonPageProps } from './PersonPage'
+import { UserDeletedPhoto } from '../photo/UserDeletedPhoto'
 
-export const getPersonPageProps = async (personId: UUID): Promise<PersonPageProps> => {
-  const photos = await getPersonPhotos(personId)
+export const getPersonPageProps = async (personId: UUID, userId: UUID): Promise<PersonPageProps> => {
+  const photos = await getPersonPhotos(personId, userId)
 
   const { name } = (await getPersonById(personId)) || { name: 'N/A' }
 
@@ -21,7 +22,7 @@ export const getPersonPageProps = async (personId: UUID): Promise<PersonPageProp
     photos,
   }
 }
-async function getPersonPhotos(personId: UUID) {
+async function getPersonPhotos(personId: UUID, userId: UUID) {
   const photoEvents = await getEventList<
     | PhotoAnnotationConfirmed
     | PhotoManuallyAnnotated
@@ -41,9 +42,14 @@ async function getPersonPhotos(personId: UUID) {
     }
   )
 
-  const photoIdsFromPhotoEvents = photoEvents.map((event) => event.payload.photoId)
+  const deletedPhotosEvents = await getEventList<UserDeletedPhoto>('UserDeletedPhoto', { userId })
+  const deletedPhotoIds = deletedPhotosEvents.map((deletionEvent) => deletionEvent.payload.photoId)
 
-  const uniqueFaceIds = new Set<UUID>(photoEvents.map((event) => event.payload.faceId))
+  const nonDeletedPhotos = photoEvents.filter((photoEvent) => !deletedPhotoIds.includes(photoEvent.payload.photoId))
+
+  const photoIdsFromPhotoEvents = nonDeletedPhotos.map((event) => event.payload.photoId)
+
+  const uniqueFaceIds = new Set<UUID>(nonDeletedPhotos.map((event) => event.payload.faceId))
 
   const photoIdsFromPhotosWithSameFaces = (
     await postgres.query<{ photo_id: UUID }>(

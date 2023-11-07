@@ -9,8 +9,9 @@ import { PersonPage } from './PersonPage'
 
 pageRouter.route(PersonPageURL()).get(requireAuth(), async (request, response) => {
   const { personId } = z.object({ personId: zIsUUID }).parse(request.params)
+  const userId = request.session.user!.id
 
-  const props = await getPersonPageProps(personId)
+  const props = await getPersonPageProps(personId, userId)
 
   responseAsHtml(request, response, PersonPage(props))
 })
