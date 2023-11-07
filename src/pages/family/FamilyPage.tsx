@@ -875,6 +875,41 @@ function SearchPanel({
     }
   }, [pendingRelationshipAction, relationships])
 
+  const unselectableIds: UUID[] = React.useMemo(() => {
+    if (!pendingRelationshipAction) return []
+
+    const { relationshipAction, personId } = pendingRelationshipAction
+
+    const existingParents = relationships
+      .filter((rel): rel is Relationship & { type: 'parent' } => rel.type === 'parent' && rel.childId === personId)
+      .map((relationship) => relationship.parentId)
+
+    const existingChildren = relationships
+      .filter((rel): rel is Relationship & { type: 'parent' } => rel.type === 'parent' && rel.parentId === personId)
+      .map((relationship) => relationship.childId)
+
+    const existingSpouses = relationships
+      .filter((rel): rel is Relationship & { type: 'spouses' } => rel.type === 'spouses' && rel.spouseIds.includes(personId))
+      .map((relationship) => relationship.spouseIds.find((fId) => fId !== personId)!)
+
+    const existingFriends = relationships
+      .filter((rel): rel is Relationship & { type: 'friends' } => rel.type === 'friends' && rel.friendIds.includes(personId))
+      .map((relationship) => relationship.friendIds.find((fId) => fId !== personId)!)
+
+    const currentPersonId = pendingRelationshipAction.personId
+
+    switch (relationshipAction) {
+      case 'addChild':
+        return [currentPersonId, ...existingSpouses, ...existingChildren, ...existingParents]
+      case 'addParent':
+        return [currentPersonId, ...existingSpouses, ...existingChildren, ...existingParents]
+      case 'addFriend':
+        return [currentPersonId, ...existingFriends]
+      case 'addSpouse':
+        return [currentPersonId, ...existingSpouses, ...existingChildren, ...existingParents]
+    }
+  }, [pendingRelationshipAction, relationships])
+
   const [otherRelationshipIsAccepted, setOtherRelationshipIsAccepted] = useState<boolean>(true)
 
   // Reset the checkbox on each open/close
@@ -976,7 +1011,7 @@ function SearchPanel({
                               relationshipAction,
                             })
                           }}
-                          unselectableIds={relativeIdsWithThisRelationship.map((rel) => rel.personId)}
+                          unselectableIds={unselectableIds}
                           className='max-w-xl text-gray-800'
                         />
                         {otherSourcePerson ? (
