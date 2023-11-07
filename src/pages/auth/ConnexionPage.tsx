@@ -39,11 +39,12 @@ export const ConnexionPage = ({ loginType = 'login', email, redirectTo, code, er
                     <input
                       type='radio'
                       name='loginType'
+                      id='loginCheckbox'
                       value='login'
                       defaultChecked={loginType === 'login'}
                       className='focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300'
                     />
-                    <label htmlFor='loginType' className='ml-3 block text-sm font-medium text-gray-700'>
+                    <label htmlFor='loginCheckbox' className='ml-3 cursor-pointer block text-sm font-medium text-gray-700'>
                       Compte existant
                     </label>
                   </div>
@@ -51,24 +52,25 @@ export const ConnexionPage = ({ loginType = 'login', email, redirectTo, code, er
                     <input
                       type='radio'
                       name='loginType'
+                      id='registerCheckbox'
                       value='register'
                       defaultChecked={loginType === 'register'}
                       className='focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300'
                     />
-                    <label htmlFor='loginType' className='ml-3 block text-sm font-medium text-gray-700'>
+                    <label htmlFor='registerCheckbox' className='ml-3 cursor-pointer block text-sm font-medium text-gray-700'>
                       Nouveau compte
                     </label>
                   </div>
                 </div>
               </fieldset>
               <div>
-                <label htmlFor='email' className='block text-sm font-medium text-gray-700'>
+                <label htmlFor='emailField' className='block cursor-pointer text-sm font-medium text-gray-700'>
                   Adresse email
                 </label>
                 <div className='mt-1 relative'>
                   <input
                     type='text'
-                    id='email-input'
+                    id='emailField'
                     name='email'
                     autoComplete='email'
                     autoFocus
@@ -105,12 +107,12 @@ export const ConnexionPage = ({ loginType = 'login', email, redirectTo, code, er
                 </div>
               </div>
               <div>
-                <label htmlFor='password' className='block text-sm font-medium text-gray-700'>
+                <label htmlFor='passwordField' className='block  cursor-pointer text-sm font-medium text-gray-700'>
                   Mot de passe
                 </label>
                 <div className='mt-1 relative'>
                   <input
-                    id='password'
+                    id='passwordField'
                     name='password'
                     type='password'
                     required
