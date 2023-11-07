@@ -993,13 +993,7 @@ function SearchPanel({
                                 src={otherSourcePerson.profilePicUrl}
                                 alt=''
                               />
-                            ) : (
-                              <span className={`inline-flex h-12 w-12 items-center justify-center rounded-full bg-gray-500`}>
-                                <span className='text-5xl font-medium leading-none text-white'>
-                                  {getInitials(otherSourcePerson.name)}
-                                </span>
-                              </span>
-                            )}
+                            ) : null}
                             <div className='mx-2 min-w-0 flex-auto'>
                               <p className='text-base'>{otherSourcePerson.name} est l'autre parent.</p>
                             </div>
