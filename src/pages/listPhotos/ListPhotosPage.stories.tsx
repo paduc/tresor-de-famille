@@ -17,17 +17,14 @@ export const AvecPhotos = () => (
       photos={[
         {
           photoId: getUuid(),
-          chatId: getUuid(),
           url: 'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=500&h=500&q=80',
         },
         {
           photoId: getUuid(),
-          chatId: getUuid(),
           url: 'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=500&h=300&q=80',
         },
         {
           photoId: getUuid(),
-          chatId: getUuid(),
           url: 'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=300&h=500&q=80',
         },
       ]}

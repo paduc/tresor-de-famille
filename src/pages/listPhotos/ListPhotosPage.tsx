@@ -59,7 +59,14 @@ export const ListPhotosPage = withBrowserBundle(({ error, success, photos }: Lis
           </div>
         ) : (
           <>
-            <h3 className='text-lg font-medium leading-6 text-gray-900'>Photos</h3>
+            <h3 className='text-lg font-medium leading-6 text-gray-900'>
+              Photos
+              <InlinePhotoUploadBtn formAction='/add-photo.html'>
+                <span className='inline-block sm:text-sm cursor-pointer font-medium  text-indigo-600 hover:text-indigo-500'>
+                  Ajouter une nouvelle photo
+                </span>
+              </InlinePhotoUploadBtn>
+            </h3>
 
             <ul
               role='list'
