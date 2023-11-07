@@ -11,14 +11,17 @@ import { PhotoManuallyAnnotated } from '../photo/annotateManually/PhotoManuallyA
 import { PhotoAnnotationConfirmed } from '../photo/confirmPhotoAnnotation/PhotoAnnotationConfirmed'
 import { PersonPageProps } from './PersonPage'
 import { UserDeletedPhoto } from '../photo/UserDeletedPhoto'
+import { getProfilePicUrlForPerson } from '../_getProfilePicUrlForPerson'
 
 export const getPersonPageProps = async (personId: UUID, userId: UUID): Promise<PersonPageProps> => {
   const photos = await getPersonPhotos(personId, userId)
 
   const { name } = (await getPersonById(personId)) || { name: 'N/A' }
 
+  const profilePicUrl = await getProfilePicUrlForPerson(personId, userId)
+
   return {
-    person: { name },
+    person: { name, profilePicUrl },
     photos,
   }
 }

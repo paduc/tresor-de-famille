@@ -8,7 +8,11 @@ export default { title: 'Page Personne', component: PersonPage, parameters: { la
 export const AvecDesPhotos = () => (
   <SessionContext.Provider value={{ isLoggedIn: true, userName: 'toto', isAdmin: false }}>
     <PersonPage
-      person={{ name: 'John Doe' }}
+      person={{
+        name: 'John Doe',
+        profilePicUrl:
+          'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=150&h=150&q=80',
+      }}
       photos={[
         {
           id: getUuid(),
