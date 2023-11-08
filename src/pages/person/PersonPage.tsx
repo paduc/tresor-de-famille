@@ -35,8 +35,11 @@ export type PersonPageProps = {
 }
 
 export const PersonPage = withBrowserBundle(({ person, photos, alternateProfilePics }: PersonPageProps) => {
-  const [isOpen, setOpen] = React.useState<boolean>(false)
-  const close = React.useCallback(() => setOpen(false), [])
+  const [isProfilePicOpen, openProfilePic] = React.useState<boolean>(false)
+  const closeProfilePic = React.useCallback(() => openProfilePic(false), [])
+
+  const [isNameChangerOpen, openNameChanger] = React.useState<boolean>(false)
+  const closeNameChanger = React.useCallback(() => openNameChanger(false), [])
 
   return (
     <AppLayout>
@@ -55,7 +58,7 @@ export const PersonPage = withBrowserBundle(({ person, photos, alternateProfileP
                     {alternateProfilePics.length > 1 ? (
                       <button
                         type='button'
-                        onClick={() => setOpen(true)}
+                        onClick={() => openProfilePic(true)}
                         className={`mt-2 inline-flex items-center cursor-pointer text-indigo-600 hover:text-indigo-500 text-md`}>
                         <CameraIcon className={`h-6 w-6 mr-1`} />
                         Changer
@@ -75,7 +78,10 @@ export const PersonPage = withBrowserBundle(({ person, photos, alternateProfileP
         */}
             <div className='pt-1.5'>
               <h1 className='text-2xl font-bold text-gray-900'>
-                <EditableName name={person.name} personId={person.personId} />
+                {person.name}{' '}
+                <button className='align-middle mb-1' onClick={() => openNameChanger(true)}>
+                  <PencilSquareIcon className='text-gray-500 hover:text-gray-700 h-6 w-6 ml-2' />
+                </button>
               </h1>
               {/* <p className='text-sm font-medium text-gray-500'>
                 Applied for{' '}
@@ -120,13 +126,15 @@ export const PersonPage = withBrowserBundle(({ person, photos, alternateProfileP
       </div>
 
       <ProfilePictureSelector
-        isOpen={isOpen}
-        close={close}
+        isOpen={isProfilePicOpen}
+        close={closeProfilePic}
         personId={person.personId}
         faceList={alternateProfilePics}
         name={person.name}
         currentFaceUrl={person.profilePicUrl}
       />
+
+      <NameChanger isOpen={isNameChangerOpen} close={closeNameChanger} personId={person.personId} name={person.name} />
     </AppLayout>
   )
 })
@@ -251,65 +259,99 @@ function ProfilePictureSelector({ faceList, isOpen, close, name, currentFaceUrl,
   )
 }
 
-const EditableName = (props: { personId: string; name: string }) => {
-  const [isEditable, setEditable] = React.useState(false)
-  const [newName, setNewName] = React.useState(props.name)
+type NameChangerProps = {
+  name: string
+  isOpen: boolean
+  close: () => void
+  personId: UUID
+}
+function NameChanger({ isOpen, close, name, personId }: NameChangerProps) {
   const formRef = React.useRef<HTMLFormElement>(null)
 
-  const { personId, name } = props
-
-  const onCancel = () => {
-    setNewName(props.name)
-    setEditable(false)
-  }
-
   const onConfirm = () => {
-    setEditable(false)
     if (formRef.current !== null) {
       formRef.current.submit()
     }
   }
 
-  return isEditable ? (
-    <form method='POST' ref={formRef} className='flex items-center'>
-      <input type='hidden' name='personId' value={personId} />
-      <input type='hidden' name='action' value='changeName' />
-      <input type='hidden' name='oldName' value={name} />
-      <div className='overflow-hidden shadow-sm border border-gray-200 focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500'>
-        <input
-          type='text'
-          name='newName'
-          value={newName}
-          className='block w-full resize-none border-0 py-3 px-4 focus:ring-0 text-2xl'
-          autoFocus
-          onChange={(e) => setNewName(e.target.value)}
-          onKeyDown={(e) => {
-            switch (e.key) {
-              case 'Enter':
-                onConfirm()
-                break
-              case 'Escape':
-                onCancel()
-                break
-            }
-          }}
-        />
-      </div>
-      <button type='submit' className={`${primaryButtonStyles} text-sm ml-4`}>
-        <CheckIcon className={`${buttonIconStyles}`} />
-        Valider
-      </button>
-      <button className={`${secondaryButtonStyles} text-sm ml-1`} onClick={onCancel}>
-        <XMarkIcon className={`${buttonIconStyles}`} />
-        Annuler
-      </button>
-    </form>
-  ) : (
-    <h1 className='text-2xl font-bold text-gray-900'>
-      {props.name}{' '}
-      <button className='align-middle mb-1' onClick={() => setEditable(true)}>
-        <PencilSquareIcon className='text-gray-500 hover:text-gray-700 h-6 w-6 ml-2' />
-      </button>
-    </h1>
+  return (
+    <Transition.Root show={isOpen} as={React.Fragment}>
+      <Dialog as='div' className='relative z-50' onClose={close}>
+        <Transition.Child
+          as={React.Fragment}
+          enter='ease-out duration-300'
+          enterFrom='opacity-0'
+          enterTo='opacity-100'
+          leave='ease-in duration-200'
+          leaveFrom='opacity-100'
+          leaveTo='opacity-0'>
+          <div className='fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity' />
+        </Transition.Child>
+
+        <div className='fixed inset-0 z-10 w-screen overflow-y-auto'>
+          <div className='flex sm:min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0'>
+            <Transition.Child
+              as={React.Fragment}
+              enter='ease-out duration-300'
+              enterFrom='opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95'
+              enterTo='opacity-100 translate-y-0 sm:scale-100'
+              leave='ease-in duration-200'
+              leaveFrom='opacity-100 translate-y-0 sm:scale-100'
+              leaveTo='opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95'>
+              <Dialog.Panel className='relative transform overflow-visible rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6'>
+                <Dialog.Title as='h3' className='text-lg font-semibold leading-6 text-gray-900 mr-5'>
+                  <div>Changer le nom</div>
+                </Dialog.Title>
+                <div className='absolute right-0 top-0 pr-4 pt-4 sm:block'>
+                  <button
+                    type='button'
+                    className='rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2'
+                    onClick={close}>
+                    <span className='sr-only'>Close</span>
+                    <XMarkIcon className='h-6 w-6' aria-hidden='true' />
+                  </button>
+                </div>
+                <div className='mt-4'>
+                  <form method='POST' ref={formRef} className=''>
+                    <input type='hidden' name='personId' value={personId} />
+                    <input type='hidden' name='action' value='changeName' />
+                    <input type='hidden' name='oldName' value={name} />
+                    <div className='overflow-hidden shadow-sm border border-gray-200 focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500'>
+                      <input
+                        type='text'
+                        name='newName'
+                        defaultValue={name}
+                        className='block w-full resize-none border-0 py-3 px-4 focus:ring-0 text-base'
+                        autoFocus
+                        onKeyDown={(e) => {
+                          switch (e.key) {
+                            case 'Enter':
+                              onConfirm()
+                              break
+                            case 'Escape':
+                              close()
+                              break
+                          }
+                        }}
+                      />
+                    </div>
+                    <div className='flex items-start mt-5'>
+                      <button type='submit' className={`${primaryButtonStyles} text-sm `}>
+                        <CheckIcon className={`${buttonIconStyles}`} />
+                        Valider
+                      </button>
+                      <a className={`${secondaryButtonStyles} text-sm ml-1`} onClick={() => close()}>
+                        <XMarkIcon className={`${buttonIconStyles}`} />
+                        Annuler
+                      </a>
+                    </div>
+                  </form>
+                </div>
+              </Dialog.Panel>
+            </Transition.Child>
+          </div>
+        </div>
+      </Dialog>
+    </Transition.Root>
   )
 }
