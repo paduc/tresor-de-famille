@@ -1,4 +1,5 @@
 import { postgres } from '../dependencies/database'
+import { getSingleEvent } from '../dependencies/getSingleEvent'
 import { UUID } from '../domain'
 import { GedcomImported } from '../events'
 import { UserNamedPersonInPhoto } from '../events/onboarding/UserNamedPersonInPhoto'
@@ -6,6 +7,7 @@ import { UserNamedThemself } from '../events/onboarding/UserNamedThemself'
 
 import { OpenAIMadeDeductions } from './chat/sendToOpenAIForDeductions/OpenAIMadeDeductions'
 import { UserCreatedRelationshipWithNewPerson } from './family/UserCreatedRelationshipWithNewPerson'
+import { UserChangedPersonName } from './person/UserChangedPersonName'
 import { PhotoAnnotatedUsingOpenAI } from './photo/annotatePhotoUsingOpenAI/PhotoAnnotatedUsingOpenAI'
 
 type OpenAIDeductionPerson = { name: string }
@@ -91,7 +93,17 @@ export const getPersonById = async (personId: UUID): Promise<PersonById | null> 
     }
   }
 
-  return personIdMap.get(personId) || null
+  const person = personIdMap.get(personId)
+
+  if (!person) return null
+
+  const newNameEvent = await getSingleEvent<UserChangedPersonName>('UserChangedPersonName', { personId })
+
+  if (newNameEvent) {
+    person.name = newNameEvent.payload.name
+  }
+
+  return person
 }
 
 export const getPersonByIdOrThrow = async (personId: UUID): Promise<PersonById> => {

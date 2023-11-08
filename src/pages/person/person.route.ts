@@ -8,6 +8,8 @@ import { PersonPage } from './PersonPage'
 import { PersonPageURL } from './PersonPageURL'
 import { UserSelectedNewProfilePic } from './UserSelectedNewProfilePic'
 import { getPersonPageProps } from './getPersonPageProps'
+import { UserChangedPersonName } from './UserChangedPersonName'
+import { personsIndex } from '../../dependencies/search'
 
 pageRouter
   .route(PersonPageURL())
@@ -51,6 +53,37 @@ pageRouter
             userId,
           })
         )
+        return response.redirect(PersonPageURL(personId))
+      }
+
+      if (action === 'changeName') {
+        const { oldName, newName, personId } = z
+          .object({
+            newName: z.string(),
+            oldName: z.string(),
+            personId: zIsUUID,
+          })
+          .parse(request.body)
+
+        if (oldName !== newName) {
+          await addToHistory(
+            UserChangedPersonName({
+              personId,
+              name: newName,
+              userId,
+            })
+          )
+
+          try {
+            await personsIndex.partialUpdateObject({
+              objectID: personId,
+              name: newName,
+            })
+          } catch (error) {
+            console.error('Could not change persons name in algolia index', error)
+          }
+        }
+
         return response.redirect(PersonPageURL(personId))
       }
 

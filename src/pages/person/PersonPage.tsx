@@ -1,11 +1,19 @@
 import * as React from 'react'
 
 import { Dialog, Transition } from '@headlessui/react'
-import { CameraIcon, CheckIcon, ChevronRightIcon, XMarkIcon } from '@heroicons/react/24/outline'
+import {
+  CameraIcon,
+  CheckCircleIcon,
+  CheckIcon,
+  ChevronRightIcon,
+  PencilSquareIcon,
+  XMarkIcon,
+} from '@heroicons/react/24/outline'
 import { UUID } from '../../domain'
 import { withBrowserBundle } from '../../libs/ssr/withBrowserBundle'
 import { InlinePhotoUploadBtn } from '../_components/InlinePhotoUploadBtn'
 import { AppLayout } from '../_components/layout/AppLayout'
+import { buttonIconStyles, primaryButtonStyles, secondaryButtonStyles, smallButtonStyles } from '../_components/Button'
 
 // @ts-ignore
 function classNames(...classes) {
@@ -66,7 +74,9 @@ export const PersonPage = withBrowserBundle(({ person, photos, alternateProfileP
           but preserve the same layout if the text wraps without making the image jump around.
         */}
             <div className='pt-1.5'>
-              <h1 className='text-2xl font-bold text-gray-900'>{person.name}</h1>
+              <h1 className='text-2xl font-bold text-gray-900'>
+                <EditableName name={person.name} personId={person.personId} />
+              </h1>
               {/* <p className='text-sm font-medium text-gray-500'>
                 Applied for{' '}
                 <a href='#' className='text-gray-900'>
@@ -238,5 +248,68 @@ function ProfilePictureSelector({ faceList, isOpen, close, name, currentFaceUrl,
         </div>
       </Dialog>
     </Transition.Root>
+  )
+}
+
+const EditableName = (props: { personId: string; name: string }) => {
+  const [isEditable, setEditable] = React.useState(false)
+  const [newName, setNewName] = React.useState(props.name)
+  const formRef = React.useRef<HTMLFormElement>(null)
+
+  const { personId, name } = props
+
+  const onCancel = () => {
+    setNewName(props.name)
+    setEditable(false)
+  }
+
+  const onConfirm = () => {
+    setEditable(false)
+    if (formRef.current !== null) {
+      formRef.current.submit()
+    }
+  }
+
+  return isEditable ? (
+    <form method='POST' ref={formRef} className='flex items-center'>
+      <input type='hidden' name='personId' value={personId} />
+      <input type='hidden' name='action' value='changeName' />
+      <input type='hidden' name='oldName' value={name} />
+      <div className='overflow-hidden shadow-sm border border-gray-200 focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500'>
+        <input
+          type='text'
+          name='newName'
+          value={newName}
+          className='block w-full resize-none border-0 py-3 px-4 focus:ring-0 text-2xl'
+          autoFocus
+          onChange={(e) => setNewName(e.target.value)}
+          onKeyDown={(e) => {
+            switch (e.key) {
+              case 'Enter':
+                onConfirm()
+                break
+              case 'Escape':
+                onCancel()
+                break
+            }
+          }}
+        />
+      </div>
+      <button type='submit' className={`${primaryButtonStyles} text-sm ml-4`}>
+        <CheckIcon className={`${buttonIconStyles}`} />
+        Valider
+      </button>
+      <button className={`${secondaryButtonStyles} text-sm ml-1`} onClick={onCancel}>
+        <XMarkIcon className={`${buttonIconStyles}`} />
+        Annuler
+      </button>
+    </form>
+  ) : (
+    <h1 className='text-2xl font-bold text-gray-900'>
+      {props.name}{' '}
+      <button className='align-middle mb-1' onClick={() => setEditable(true)}>
+        <PencilSquareIcon className='text-gray-500 hover:text-gray-700 h-6 w-6 ml-2' />
+      </button>
+    </h1>
   )
 }

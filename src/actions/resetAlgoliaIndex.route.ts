@@ -1,11 +1,14 @@
 import { requireAuth } from '../dependencies/authn'
 import { postgres } from '../dependencies/database'
 import { REGISTRATION_CODE } from '../dependencies/env'
+import { getEventList } from '../dependencies/getEventList'
 import { personsIndex } from '../dependencies/search'
+import { UUID } from '../domain'
 import { GedcomImported } from '../events'
 import { UserNamedPersonInPhoto } from '../events/onboarding/UserNamedPersonInPhoto'
 import { UserNamedThemself } from '../events/onboarding/UserNamedThemself'
 import { UserCreatedRelationshipWithNewPerson } from '../pages/family/UserCreatedRelationshipWithNewPerson'
+import { UserChangedPersonName } from '../pages/person/UserChangedPersonName'
 import { PhotoAnnotatedUsingOpenAI } from '../pages/photo/annotatePhotoUsingOpenAI/PhotoAnnotatedUsingOpenAI'
 import { PhotoAnnotationConfirmed } from '../pages/photo/confirmPhotoAnnotation/PhotoAnnotationConfirmed'
 import { actionsRouter } from './actionsRouter'
@@ -55,6 +58,27 @@ actionsRouter.get('/resetAlgoliaIndex', requireAuth(), async (request, response)
     // @ts-ignore
     response.send(error.message).status(400)
   }
+
+  try {
+    const nameChangesEvent = await getEventList<UserChangedPersonName>('UserChangedPersonName')
+
+    const uniqueNameChangeEventsPerPerson: Record<UUID, string> = nameChangesEvent.reduce((uniques, event) => {
+      // keep latest
+      return { ...uniques, [event.payload.personId]: event.payload.name }
+    }, {})
+
+    const nameChanges = Object.entries(uniqueNameChangeEventsPerPerson)
+    for (const [personId, name] of nameChanges) {
+      try {
+        await personsIndex.partialUpdateObject({
+          objectID: personId,
+          name,
+        })
+      } catch (error) {
+        console.error('Could not change persons name in algolia index', error)
+      }
+    }
+  } catch (error) {}
 
   response.send('Everything is OK: algolia persons index has been rebuilt')
 })

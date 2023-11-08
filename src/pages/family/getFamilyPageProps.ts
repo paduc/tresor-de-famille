@@ -1,10 +1,12 @@
 import { postgres } from '../../dependencies/database'
 import { getEventList } from '../../dependencies/getEventList'
+import { getSingleEvent } from '../../dependencies/getSingleEvent'
 import { UUID } from '../../domain'
 import { UserNamedPersonInPhoto } from '../../events/onboarding/UserNamedPersonInPhoto'
 import { UserNamedThemself } from '../../events/onboarding/UserNamedThemself'
 import { getPersonIdForUserId } from '../_getPersonIdForUserId.query'
 import { getProfilePicUrlForPerson } from '../_getProfilePicUrlForPerson'
+import { UserChangedPersonName } from '../person/UserChangedPersonName'
 
 import { FamilyPageProps } from './FamilyPage'
 import { UserCreatedNewRelationship } from './UserCreatedNewRelationship'
@@ -35,7 +37,13 @@ async function getUserFamilyPersonIds(userId: UUID): Promise<Person[]> {
     const { personId } = event.type === 'UserCreatedRelationshipWithNewPerson' ? event.payload.newPerson : event.payload
     if (persons.has(personId)) continue
 
-    const { name } = event.type === 'UserCreatedRelationshipWithNewPerson' ? event.payload.newPerson : event.payload
+    const newNameEvent = await getSingleEvent<UserChangedPersonName>('UserChangedPersonName', { personId })
+
+    const { name } = newNameEvent
+      ? newNameEvent.payload
+      : event.type === 'UserCreatedRelationshipWithNewPerson'
+      ? event.payload.newPerson
+      : event.payload
     const profilePicUrl = await getProfilePicUrlForPerson(personId, userId)
     persons.set(personId, { personId, name, profilePicUrl })
   }
