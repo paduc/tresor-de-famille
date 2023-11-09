@@ -95,11 +95,11 @@ pageRouter
           const { faceId, newFamilyMemberName } = z
             .object({
               faceId: zIsUUID,
-              newFamilyMemberName: z.string(),
+              newFamilyMemberName: z.string().optional(),
             })
             .parse(request.body)
 
-          if (newFamilyMemberName.length > 0) {
+          if (newFamilyMemberName && newFamilyMemberName.length > 0) {
             const personId = getUuid()
             await addToHistory(
               UserNamedPersonInPhoto({
@@ -120,6 +120,7 @@ pageRouter
               })
             } catch (error) {
               console.error('Could not add new family member to algolia index', error)
+              throw error
             }
           } else {
             const { existingFamilyMemberId } = z
@@ -158,7 +159,7 @@ pageRouter
       return response.redirect(`/photo/${photoId}/photo.html`)
     } catch (error) {
       console.error('Error in photo route', error)
-      throw error
+      return response.status(500).send("Boom, crash, bing. Quelque chose ne s'est pas bien passé.")
     }
   })
 

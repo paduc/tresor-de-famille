@@ -9,8 +9,8 @@ const fakePersonSearch = async (query: string) => {
   return {
     hits: [
       { objectID: getUuid(), name: 'John Doe' },
-      { objectID: getUuid(), name: 'John Doe' },
-      { objectID: getUuid(), name: 'John Doe' },
+      { objectID: getUuid(), name: 'Zelda', bornOn: '12/04/1985', sex: 'F' },
+      { objectID: getUuid(), name: 'Mario Fernando della Cartograpfia', bornOn: '12/04/1985' },
     ],
   }
 }
