@@ -24,6 +24,7 @@ import { ClientOnly } from '../_components/ClientOnly'
 import { PersonAutocomplete } from '../_components/PersonAutocomplete'
 import { AppLayout } from '../_components/layout/AppLayout'
 import { PersonPageURL } from '../person/PersonPageURL'
+import { TDFModal } from '../_components/TDFModal'
 
 // @ts-ignore
 function classNames(...classes) {
@@ -757,68 +758,32 @@ function ContextualMenu({ onRelationshipButtonPressed }: ContextualMenuProps) {
       onRelationshipButtonPressed(selectedPersonId, newRelationshipAction)
     }
   }
-  return (
-    <Transition.Root show={isOpen} as={React.Fragment}>
-      <Dialog as='div' className='relative z-50' onClose={close}>
-        <Transition.Child
-          as={React.Fragment}
-          enter='ease-out duration-300'
-          enterFrom='opacity-0'
-          enterTo='opacity-100'
-          leave='ease-in duration-200'
-          leaveFrom='opacity-100'
-          leaveTo='opacity-0'>
-          <div className='fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity' />
-        </Transition.Child>
 
-        <div className='fixed inset-0 z-10 w-screen overflow-y-auto'>
-          <div className='flex sm:min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0'>
-            <Transition.Child
-              as={React.Fragment}
-              enter='ease-out duration-300'
-              enterFrom='opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95'
-              enterTo='opacity-100 translate-y-0 sm:scale-100'
-              leave='ease-in duration-200'
-              leaveFrom='opacity-100 translate-y-0 sm:scale-100'
-              leaveTo='opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95'>
-              <Dialog.Panel className='relative transform overflow-visible rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6'>
-                <div className='absolute right-0 top-0 pr-4 pt-4 sm:block'>
-                  <button
-                    type='button'
-                    className='rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2'
-                    onClick={close}>
-                    <span className='sr-only'>Close</span>
-                    <XMarkIcon className='h-6 w-6' aria-hidden='true' />
-                  </button>
-                </div>
-                <div className='mt-8'>
-                  <button
-                    onClick={handleButtonPress('addParent')}
-                    className={`mb-4 ${primaryButtonStyles.replace(/inline\-flex/g, '')}  w-full text-center`}>
-                    Gérer les parents
-                  </button>
-                  <button
-                    onClick={handleButtonPress('addChild')}
-                    className={`mb-4 ${primaryButtonStyles.replace(/inline\-flex/g, '')}  w-full text-center`}>
-                    Gérer les enfants
-                  </button>
-                  <button
-                    onClick={handleButtonPress('addSpouse')}
-                    className={`mb-4 ${primaryButtonStyles.replace(/inline\-flex/g, '')}  w-full text-center`}>
-                    Gérer les époux/compagnes
-                  </button>
-                  <a
-                    href={PersonPageURL(selectedPersonId!)}
-                    className={`mb-4 ${primaryButtonStyles.replace(/inline\-flex/g, '')} block w-full text-center`}>
-                    Aller à la page profil
-                  </a>
-                </div>
-              </Dialog.Panel>
-            </Transition.Child>
-          </div>
-        </div>
-      </Dialog>
-    </Transition.Root>
+  return (
+    <TDFModal isOpen={isOpen} close={close}>
+      <div className='mt-8'>
+        <button
+          onClick={handleButtonPress('addParent')}
+          className={`mb-4 ${secondaryButtonStyles.replace(/inline\-flex/g, '')}  w-full text-center`}>
+          Gérer les parents
+        </button>
+        <button
+          onClick={handleButtonPress('addChild')}
+          className={`mb-4 ${secondaryButtonStyles.replace(/inline\-flex/g, '')}  w-full text-center`}>
+          Gérer les enfants
+        </button>
+        <button
+          onClick={handleButtonPress('addSpouse')}
+          className={`mb-4 ${secondaryButtonStyles.replace(/inline\-flex/g, '')}  w-full text-center`}>
+          Gérer les époux/compagnes
+        </button>
+        <a
+          href={PersonPageURL(selectedPersonId!)}
+          className={`mb-4 ${primaryButtonStyles.replace(/inline\-flex/g, '')} block w-full text-center`}>
+          Aller à la page profil
+        </a>
+      </div>
+    </TDFModal>
   )
 }
 
@@ -941,146 +906,107 @@ function SearchPanel({
   }, [pendingRelationshipAction])
 
   return (
-    <Transition.Root show={!!pendingRelationshipAction} as={React.Fragment}>
-      <Dialog as='div' className='relative z-50' onClose={close}>
-        <Transition.Child
-          as={React.Fragment}
-          enter='ease-out duration-300'
-          enterFrom='opacity-0'
-          enterTo='opacity-100'
-          leave='ease-in duration-200'
-          leaveFrom='opacity-100'
-          leaveTo='opacity-0'>
-          <div className='fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity' />
-        </Transition.Child>
-
-        <div className='fixed inset-0 z-10 w-screen overflow-y-auto'>
-          <div className='flex sm:min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0'>
-            <Transition.Child
-              as={React.Fragment}
-              enter='ease-out duration-300'
-              enterFrom='opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95'
-              enterTo='opacity-100 translate-y-0 sm:scale-100'
-              leave='ease-in duration-200'
-              leaveFrom='opacity-100 translate-y-0 sm:scale-100'
-              leaveTo='opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95'>
-              <Dialog.Panel className='relative transform overflow-visible rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6'>
-                <div className='absolute right-0 top-0 hidden pr-4 pt-4 sm:block'>
-                  <button
-                    type='button'
-                    className='rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2'
-                    onClick={close}>
-                    <span className='sr-only'>Close</span>
-                    <XMarkIcon className='h-6 w-6' aria-hidden='true' />
-                  </button>
-                </div>
-                <div className='divide-y divider-gray-200'>
-                  <div className='sm:flex sm:items-start pb-5'>
-                    <div className='mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-indigo-100 sm:mx-0 sm:h-10 sm:w-10'>
-                      <UserPlusIcon className='h-6 w-6 text-indigo-600' aria-hidden='true' />
-                    </div>
-                    <div className='mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left'>
-                      <Dialog.Title as='h3' className='text-base font-semibold leading-6 text-gray-900'>
-                        {(() => {
-                          if (!pendingRelationshipAction) return 'Ajouter un parent'
-                          switch (pendingRelationshipAction.relationshipAction) {
-                            case 'addParent': {
-                              return 'Ajouter un père ou une mère'
-                            }
-                            case 'addChild': {
-                              return 'Ajouter un fils ou une fille'
-                            }
-                            case 'addFriend': {
-                              return 'Ajouter un ami ou une connaissance'
-                            }
-                            case 'addSpouse': {
-                              return 'Ajouter un compagne, un époux, ...'
-                            }
-                          }
-                        })()}
-                      </Dialog.Title>
-                      <div className='mt-2'>
-                        <PersonAutocomplete
-                          onPersonSelected={(person) => {
-                            if (!pendingRelationshipAction) return
-                            const { personId, relationshipAction } = pendingRelationshipAction
-                            onPersonSelected({
-                              selectedPerson: person,
-                              sourcePersonId: personId,
-                              secondarySourcePersonId: otherRelationshipIsAccepted ? otherSourcePerson?.personId : undefined,
-                              relationshipAction,
-                            })
-                          }}
-                          unselectableIds={unselectableIds}
-                          className='max-w-xl text-gray-800'
-                        />
-                        {otherSourcePerson ? (
-                          <div className='flex items-center justify-between mt-2'>
-                            <input
-                              type='checkbox'
-                              className='mr-2'
-                              checked={otherRelationshipIsAccepted}
-                              onChange={() => setOtherRelationshipIsAccepted((state) => !state)}
-                            />
-                            {otherSourcePerson.profilePicUrl ? (
-                              <img
-                                className='h-12 w-12 flex-none rounded-full bg-gray-50 shadow-md border border-gray-200'
-                                src={otherSourcePerson.profilePicUrl}
-                                alt=''
-                              />
-                            ) : null}
-                            <div className='mx-2 min-w-0 flex-auto'>
-                              <p className='text-base'>{otherSourcePerson.name} est l'autre parent.</p>
-                            </div>
-                          </div>
-                        ) : null}
-                      </div>
-                    </div>
-                  </div>
-                  {relativeIdsWithThisRelationship.length ? (
-                    <div className='pt-5'>
-                      <div>Actuellement, vous avez indiqué :</div>
-                      <ul role='list' className='divide-y divide-gray-100'>
-                        {relativeIdsWithThisRelationship.map(({ personId, relationship }) => {
-                          const person = persons.find((person) => person.personId === personId)
-                          if (!person) return null
-                          return (
-                            <li key={personId} className='flex items-center justify-between gap-x-6 py-5'>
-                              {person.profilePicUrl ? (
-                                <img
-                                  className='h-12 w-12 flex-none rounded-full bg-gray-50 shadow-md border border-gray-200'
-                                  src={person.profilePicUrl}
-                                  alt=''
-                                />
-                              ) : (
-                                <span className={`inline-flex h-12 w-12 items-center justify-center rounded-full bg-gray-500`}>
-                                  <span className='text-xl font-medium leading-none text-white'>
-                                    {getInitials(person.name)}
-                                  </span>
-                                </span>
-                              )}
-                              <div className='min-w-0 flex-auto'>
-                                <p className='text-base'>{person.name}</p>
-                              </div>
-                              <button
-                                onClick={() => onRemoveRelationship(relationship.id)}
-                                className={`${secondaryButtonStyles} ${smallButtonStyles}`}>
-                                <XMarkIcon className={smallButtonIconStyles} />
-                                Retirer
-                              </button>
-                            </li>
-                          )
-                        })}
-                      </ul>
-                    </div>
+    <TDFModal isOpen={!!pendingRelationshipAction} close={close}>
+      <div className='divide-y divider-gray-200'>
+        <div className='sm:flex sm:items-start pb-5'>
+          <div className='mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-indigo-100 sm:mx-0 sm:h-10 sm:w-10'>
+            <UserPlusIcon className='h-6 w-6 text-indigo-600' aria-hidden='true' />
+          </div>
+          <div className='mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left'>
+            <Dialog.Title as='h3' className='text-base font-semibold leading-6 text-gray-900'>
+              {(() => {
+                if (!pendingRelationshipAction) return 'Ajouter un parent'
+                switch (pendingRelationshipAction.relationshipAction) {
+                  case 'addParent': {
+                    return 'Ajouter un père ou une mère'
+                  }
+                  case 'addChild': {
+                    return 'Ajouter un fils ou une fille'
+                  }
+                  case 'addFriend': {
+                    return 'Ajouter un ami ou une connaissance'
+                  }
+                  case 'addSpouse': {
+                    return 'Ajouter un compagne, un époux, ...'
+                  }
+                }
+              })()}
+            </Dialog.Title>
+            <div className='mt-2'>
+              <PersonAutocomplete
+                onPersonSelected={(person) => {
+                  if (!pendingRelationshipAction) return
+                  const { personId, relationshipAction } = pendingRelationshipAction
+                  onPersonSelected({
+                    selectedPerson: person,
+                    sourcePersonId: personId,
+                    secondarySourcePersonId: otherRelationshipIsAccepted ? otherSourcePerson?.personId : undefined,
+                    relationshipAction,
+                  })
+                }}
+                unselectableIds={unselectableIds}
+                className='max-w-xl text-gray-800'
+              />
+              {otherSourcePerson ? (
+                <div className='flex items-center justify-between mt-2'>
+                  <input
+                    type='checkbox'
+                    className='mr-2'
+                    checked={otherRelationshipIsAccepted}
+                    onChange={() => setOtherRelationshipIsAccepted((state) => !state)}
+                  />
+                  {otherSourcePerson.profilePicUrl ? (
+                    <img
+                      className='h-12 w-12 flex-none rounded-full bg-gray-50 shadow-md border border-gray-200'
+                      src={otherSourcePerson.profilePicUrl}
+                      alt=''
+                    />
                   ) : null}
+                  <div className='mx-2 min-w-0 flex-auto'>
+                    <p className='text-base'>{otherSourcePerson.name} est l'autre parent.</p>
+                  </div>
                 </div>
-              </Dialog.Panel>
-            </Transition.Child>
+              ) : null}
+            </div>
           </div>
         </div>
-      </Dialog>
-    </Transition.Root>
+        {relativeIdsWithThisRelationship.length ? (
+          <div className='pt-5'>
+            <div>Actuellement, vous avez indiqué :</div>
+            <ul role='list' className='divide-y divide-gray-100'>
+              {relativeIdsWithThisRelationship.map(({ personId, relationship }) => {
+                const person = persons.find((person) => person.personId === personId)
+                if (!person) return null
+                return (
+                  <li key={personId} className='flex items-center justify-between gap-x-6 py-5'>
+                    {person.profilePicUrl ? (
+                      <img
+                        className='h-12 w-12 flex-none rounded-full bg-gray-50 shadow-md border border-gray-200'
+                        src={person.profilePicUrl}
+                        alt=''
+                      />
+                    ) : (
+                      <span className={`inline-flex h-12 w-12 items-center justify-center rounded-full bg-gray-500`}>
+                        <span className='text-xl font-medium leading-none text-white'>{getInitials(person.name)}</span>
+                      </span>
+                    )}
+                    <div className='min-w-0 flex-auto'>
+                      <p className='text-base'>{person.name}</p>
+                    </div>
+                    <button
+                      onClick={() => onRemoveRelationship(relationship.id)}
+                      className={`${secondaryButtonStyles} ${smallButtonStyles}`}>
+                      <XMarkIcon className={smallButtonIconStyles} />
+                      Retirer
+                    </button>
+                  </li>
+                )
+              })}
+            </ul>
+          </div>
+        ) : null}
+      </div>
+    </TDFModal>
   )
 }
 

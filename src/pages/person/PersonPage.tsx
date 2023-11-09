@@ -1,19 +1,12 @@
 import * as React from 'react'
 
-import { Dialog, Transition } from '@headlessui/react'
-import {
-  CameraIcon,
-  CheckCircleIcon,
-  CheckIcon,
-  ChevronRightIcon,
-  PencilSquareIcon,
-  XMarkIcon,
-} from '@heroicons/react/24/outline'
+import { CameraIcon, CheckIcon, ChevronRightIcon, PencilSquareIcon, XMarkIcon } from '@heroicons/react/24/outline'
 import { UUID } from '../../domain'
 import { withBrowserBundle } from '../../libs/ssr/withBrowserBundle'
+import { buttonIconStyles, primaryButtonStyles, secondaryButtonStyles } from '../_components/Button'
 import { InlinePhotoUploadBtn } from '../_components/InlinePhotoUploadBtn'
+import { TDFModal } from '../_components/TDFModal'
 import { AppLayout } from '../_components/layout/AppLayout'
-import { buttonIconStyles, primaryButtonStyles, secondaryButtonStyles, smallButtonStyles } from '../_components/Button'
 
 // @ts-ignore
 function classNames(...classes) {
@@ -170,92 +163,48 @@ type ProfilePictureSelectorProps = {
 }
 function ProfilePictureSelector({ faceList, isOpen, close, name, currentFaceUrl, personId }: ProfilePictureSelectorProps) {
   return (
-    <Transition.Root show={isOpen} as={React.Fragment}>
-      <Dialog as='div' className='relative z-50' onClose={close}>
-        <Transition.Child
-          as={React.Fragment}
-          enter='ease-out duration-300'
-          enterFrom='opacity-0'
-          enterTo='opacity-100'
-          leave='ease-in duration-200'
-          leaveFrom='opacity-100'
-          leaveTo='opacity-0'>
-          <div className='fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity' />
-        </Transition.Child>
+    <TDFModal isOpen={isOpen} close={close} title={`Photo de profil de ${name}`}>
+      <ul className='divide-y divide-gray-100'>
+        {faceList.map(({ url, faceId, photoId }) => {
+          const isSelectedFace = url === currentFaceUrl
 
-        <div className='fixed inset-0 z-10 w-screen overflow-y-auto'>
-          <div className='flex sm:min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0'>
-            <Transition.Child
-              as={React.Fragment}
-              enter='ease-out duration-300'
-              enterFrom='opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95'
-              enterTo='opacity-100 translate-y-0 sm:scale-100'
-              leave='ease-in duration-200'
-              leaveFrom='opacity-100 translate-y-0 sm:scale-100'
-              leaveTo='opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95'>
-              <Dialog.Panel className='relative transform overflow-visible rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6'>
-                <Dialog.Title as='h3' className='text-lg font-semibold leading-6 text-gray-900 mr-5'>
-                  <div>Photo de profil de {name}</div>
-                </Dialog.Title>
-                <div className='absolute right-0 top-0 pr-4 pt-4 sm:block'>
-                  <button
-                    type='button'
-                    className='rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2'
-                    onClick={close}>
-                    <span className='sr-only'>Close</span>
-                    <XMarkIcon className='h-6 w-6' aria-hidden='true' />
-                  </button>
+          if (isSelectedFace) {
+            return (
+              <li className={` relative flex justify-between gap-x-6 px-4 py-5  sm:px-6 lg:px-8`} key={`face_${url}`}>
+                <div className='flex min-w-0 gap-x-4'>
+                  <img className='h-20 w-20 flex-none rounded-full bg-gray-50' src={url} alt='' />
                 </div>
-                <div className='mt-8'>
-                  <ul className='divide-y divide-gray-100'>
-                    {faceList.map(({ url, faceId, photoId }) => {
-                      const isSelectedFace = url === currentFaceUrl
+                <div className='flex shrink-0 items-center gap-x-4'>
+                  <div className=' flex flex-col items-end'>Sélectionnée</div>
+                  <CheckIcon className='h-5 w-5 flex-none text-green-600' aria-hidden='true' />
+                </div>
+              </li>
+            )
+          }
 
-                      if (isSelectedFace) {
-                        return (
-                          <li
-                            className={` relative flex justify-between gap-x-6 px-4 py-5  sm:px-6 lg:px-8`}
-                            key={`face_${url}`}>
-                            <div className='flex min-w-0 gap-x-4'>
-                              <img className='h-20 w-20 flex-none rounded-full bg-gray-50' src={url} alt='' />
-                            </div>
-                            <div className='flex shrink-0 items-center gap-x-4'>
-                              <div className=' flex flex-col items-end'>Sélectionnée</div>
-                              <CheckIcon className='h-5 w-5 flex-none text-green-600' aria-hidden='true' />
-                            </div>
-                          </li>
-                        )
-                      }
-
-                      return (
-                        <li
-                          className={` hover:bg-gray-50
+          return (
+            <li
+              className={` hover:bg-gray-50
                             relative  px-4 py-5  sm:px-6 lg:px-8`}
-                          key={`face_${url}`}>
-                          <form method='POST' className='flex justify-between gap-x-6'>
-                            <input type='hidden' name='faceId' value={faceId} />
-                            <input type='hidden' name='photoId' value={photoId} />
-                            <input type='hidden' name='personId' value={personId} />
-                            <input type='hidden' name='action' value='selectNewProfilePic' />
-                            <button type='submit' className=' flex min-w-0 gap-x-4 cursor-pointer'>
-                              <img className='h-20 w-20 flex-none rounded-full bg-gray-50' src={url} alt='' />
-                            </button>
-                            <button type='submit' className='flex shrink-0 items-center gap-x-4 cursor-pointer'>
-                              <div className=' text-indigo-700 flex flex-col items-end'>Sélectionner</div>
-                              <ChevronRightIcon className='h-5 w-5 flex-none text-indigo-700' aria-hidden='true' />
-                            </button>
-                          </form>
-                        </li>
-                      )
-                    })}
-                  </ul>
-                </div>
-              </Dialog.Panel>
-            </Transition.Child>
-          </div>
-        </div>
-      </Dialog>
-    </Transition.Root>
+              key={`face_${url}`}>
+              <form method='POST' className='flex justify-between gap-x-6'>
+                <input type='hidden' name='faceId' value={faceId} />
+                <input type='hidden' name='photoId' value={photoId} />
+                <input type='hidden' name='personId' value={personId} />
+                <input type='hidden' name='action' value='selectNewProfilePic' />
+                <button type='submit' className=' flex min-w-0 gap-x-4 cursor-pointer'>
+                  <img className='h-20 w-20 flex-none rounded-full bg-gray-50' src={url} alt='' />
+                </button>
+                <button type='submit' className='flex shrink-0 items-center gap-x-4 cursor-pointer'>
+                  <div className=' text-indigo-700 flex flex-col items-end'>Sélectionner</div>
+                  <ChevronRightIcon className='h-5 w-5 flex-none text-indigo-700' aria-hidden='true' />
+                </button>
+              </form>
+            </li>
+          )
+        })}
+      </ul>
+    </TDFModal>
   )
 }
 
@@ -275,83 +224,41 @@ function NameChanger({ isOpen, close, name, personId }: NameChangerProps) {
   }
 
   return (
-    <Transition.Root show={isOpen} as={React.Fragment}>
-      <Dialog as='div' className='relative z-50' onClose={close}>
-        <Transition.Child
-          as={React.Fragment}
-          enter='ease-out duration-300'
-          enterFrom='opacity-0'
-          enterTo='opacity-100'
-          leave='ease-in duration-200'
-          leaveFrom='opacity-100'
-          leaveTo='opacity-0'>
-          <div className='fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity' />
-        </Transition.Child>
-
-        <div className='fixed inset-0 z-10 w-screen overflow-y-auto'>
-          <div className='flex sm:min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0'>
-            <Transition.Child
-              as={React.Fragment}
-              enter='ease-out duration-300'
-              enterFrom='opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95'
-              enterTo='opacity-100 translate-y-0 sm:scale-100'
-              leave='ease-in duration-200'
-              leaveFrom='opacity-100 translate-y-0 sm:scale-100'
-              leaveTo='opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95'>
-              <Dialog.Panel className='relative transform overflow-visible rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6'>
-                <Dialog.Title as='h3' className='text-lg font-semibold leading-6 text-gray-900 mr-5'>
-                  <div>Changer le nom</div>
-                </Dialog.Title>
-                <div className='absolute right-0 top-0 pr-4 pt-4 sm:block'>
-                  <button
-                    type='button'
-                    className='rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2'
-                    onClick={close}>
-                    <span className='sr-only'>Close</span>
-                    <XMarkIcon className='h-6 w-6' aria-hidden='true' />
-                  </button>
-                </div>
-                <div className='mt-4'>
-                  <form method='POST' ref={formRef} className=''>
-                    <input type='hidden' name='personId' value={personId} />
-                    <input type='hidden' name='action' value='changeName' />
-                    <input type='hidden' name='oldName' value={name} />
-                    <div className='overflow-hidden shadow-sm border border-gray-200 focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500'>
-                      <input
-                        type='text'
-                        name='newName'
-                        defaultValue={name}
-                        className='block w-full resize-none border-0 py-3 px-4 focus:ring-0 text-base'
-                        autoFocus
-                        onKeyDown={(e) => {
-                          switch (e.key) {
-                            case 'Enter':
-                              onConfirm()
-                              break
-                            case 'Escape':
-                              close()
-                              break
-                          }
-                        }}
-                      />
-                    </div>
-                    <div className='flex items-start mt-5'>
-                      <button type='submit' className={`${primaryButtonStyles} text-sm `}>
-                        <CheckIcon className={`${buttonIconStyles}`} />
-                        Valider
-                      </button>
-                      <a className={`${secondaryButtonStyles} text-sm ml-1`} onClick={() => close()}>
-                        <XMarkIcon className={`${buttonIconStyles}`} />
-                        Annuler
-                      </a>
-                    </div>
-                  </form>
-                </div>
-              </Dialog.Panel>
-            </Transition.Child>
-          </div>
+    <TDFModal isOpen={isOpen} close={close} title='Changer le nom'>
+      <form method='POST' ref={formRef} className=''>
+        <input type='hidden' name='personId' value={personId} />
+        <input type='hidden' name='action' value='changeName' />
+        <input type='hidden' name='oldName' value={name} />
+        <div className='overflow-hidden shadow-sm border border-gray-200 focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500'>
+          <input
+            type='text'
+            name='newName'
+            defaultValue={name}
+            className='block w-full resize-none border-0 py-3 px-4 focus:ring-0 text-base'
+            autoFocus
+            onKeyDown={(e) => {
+              switch (e.key) {
+                case 'Enter':
+                  onConfirm()
+                  break
+                case 'Escape':
+                  close()
+                  break
+              }
+            }}
+          />
         </div>
-      </Dialog>
-    </Transition.Root>
+        <div className='flex items-start mt-5'>
+          <button type='submit' className={`${primaryButtonStyles} text-sm `}>
+            <CheckIcon className={`${buttonIconStyles}`} />
+            Valider
+          </button>
+          <a className={`${secondaryButtonStyles} text-sm ml-1`} onClick={() => close()}>
+            <XMarkIcon className={`${buttonIconStyles}`} />
+            Annuler
+          </a>
+        </div>
+      </form>
+    </TDFModal>
   )
 }
