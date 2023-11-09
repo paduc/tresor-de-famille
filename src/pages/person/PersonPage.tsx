@@ -225,11 +225,11 @@ function NameChanger({ isOpen, close, name, personId }: NameChangerProps) {
 
   return (
     <TDFModal isOpen={isOpen} close={close} title='Changer le nom'>
-      <form method='POST' ref={formRef} className=''>
+      <form method='POST' ref={formRef} className='w-full'>
         <input type='hidden' name='personId' value={personId} />
         <input type='hidden' name='action' value='changeName' />
         <input type='hidden' name='oldName' value={name} />
-        <div className='overflow-hidden shadow-sm border border-gray-200 focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500'>
+        <div className='w-full min-w-screen overflow-hidden shadow-sm border border-gray-200 focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500'>
           <input
             type='text'
             name='newName'
