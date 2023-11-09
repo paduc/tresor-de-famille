@@ -15,6 +15,12 @@ const project = new Project({
 })
 
 factDiagramRouter.route('/factDiagram.html').get(async (request, response) => {
+  const userId = request.session.user!.id
+
+  if (!process.env.ADMIN_USERID || process.env.ADMIN_USERID !== userId) {
+    return response.status(403).send("Vous n'êtes pas autorisé à accéder à cette page")
+  }
+
   const facts = getFacts(project)
 
   try {
