@@ -13,7 +13,15 @@
   ```
 */
 import { Dialog, Menu, Transition } from '@headlessui/react'
-import { Bars3Icon, BookOpenIcon, MagnifyingGlassIcon, PhotoIcon, PlusSmallIcon, XMarkIcon } from '@heroicons/react/24/outline'
+import {
+  Bars3Icon,
+  BookOpenIcon,
+  HomeIcon,
+  MagnifyingGlassIcon,
+  PhotoIcon,
+  PlusSmallIcon,
+  XMarkIcon,
+} from '@heroicons/react/24/outline'
 import React, { Fragment, useContext, useState } from 'react'
 import { PersonPageURL } from '../../person/PersonPageURL'
 import { PersonSearch } from '../../photo/PhotoPage/PersonSearch'
@@ -64,6 +72,12 @@ export default function AdaptiveLayout({ children }: AdaptiveLayoutProps) {
     current?: boolean
     condition: () => boolean
   }[] = [
+    {
+      name: 'Accueil',
+      href: '/',
+      icon: HomeIcon,
+      condition: () => true,
+    },
     {
       name: 'Photos',
       href: '/photos.html',
@@ -183,33 +197,11 @@ export default function AdaptiveLayout({ children }: AdaptiveLayoutProps) {
                             ) : null}
                           </ul>
                         </li>
-                        {/* <li>
-                          <div className='text-xs font-semibold leading-6 text-indigo-200'>Vos anecdotes récentes</div>
-                          <ul role='list' className='-mx-2 mt-2 space-y-1'>
-                            {teams.map((team) => (
-                              <li key={team.name}>
-                                <a
-                                  href={team.href}
-                                  className={classNames(
-                                    team.current
-                                      ? 'bg-indigo-700 text-white'
-                                      : 'text-indigo-200 hover:text-white hover:bg-indigo-700',
-                                    'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold'
-                                  )}>
-                                  <span className='flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border border-indigo-400 bg-indigo-500 text-[0.625rem] font-medium text-white'>
-                                    {team.initial}
-                                  </span>
-                                  <span className='truncate'>{team.name}</span>
-                                </a>
-                              </li>
-                            ))}
-                          </ul>
-                        </li> */}
                         <li>
-                          <div className='text-xs font-semibold leading-6 text-indigo-200'>Par type</div>
+                          {/* <div className='text-xs font-semibold leading-6 text-indigo-200'>Par type</div> */}
                           <ul role='list' className='-mx-2 space-y-1'>
                             {navigation.map((item) => {
-                              const isCurrent = url.startsWith(item.href)
+                              const isCurrent = item.href === '/' ? url === '/' : url.startsWith(item.href)
                               return (
                                 <Fragment key={`typeItem${item.name}`}>
                                   {item.condition() ? (
@@ -318,7 +310,7 @@ export default function AdaptiveLayout({ children }: AdaptiveLayoutProps) {
                   <div className='text-xs font-semibold leading-6 text-indigo-200'>Par type</div>
                   <ul role='list' className='-mx-2 space-y-1'>
                     {navigation.map((item) => {
-                      const isCurrent = url.startsWith(item.href)
+                      const isCurrent = item.href === '/' ? url === '/' : url.startsWith(item.href)
                       return (
                         <Fragment key={item.name}>
                           {item.condition() ? (
