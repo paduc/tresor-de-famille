@@ -79,6 +79,7 @@ export const PhotoWithFaces = () => (
   <NewPhotoPage
     faces={[
       { faceId: getUuid(), stage: 'done', name: 'Pierre-Antoine Duchateau', personId: getUuid() },
+      { faceId: getUuid(), stage: 'done', name: 'Pierre-Antoine Duchateau', personId: getUuid() },
       { faceId: getUuid(), stage: 'ignored' },
       { faceId: getUuid(), stage: 'awaiting-name' },
       { faceId: getUuid(), stage: 'ignored' },

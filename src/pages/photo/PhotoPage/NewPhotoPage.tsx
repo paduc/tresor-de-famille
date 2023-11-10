@@ -3,10 +3,12 @@ import TextareaAutosize from 'react-textarea-autosize'
 
 import { Dialog, Transition } from '@headlessui/react'
 import { XMarkIcon } from '@heroicons/react/20/solid'
-import { TrashIcon } from '@heroicons/react/24/outline'
+import { EyeIcon, EyeSlashIcon, TrashIcon } from '@heroicons/react/24/outline'
 import { UUID } from '../../../domain/UUID'
 import { withBrowserBundle } from '../../../libs/ssr/withBrowserBundle'
 import {
+  linkStyles,
+  linkStylesDarkMode,
   primaryButtonStyles,
   secondaryButtonStyles,
   secondaryRedButtonStyles,
@@ -54,6 +56,7 @@ export const NewPhotoPage = withBrowserBundle(({ context, caption, photoId, phot
   const [selectedFaceForPersonSelector, setSelectedFaceForPersonSelector] = useState<PhotoFace | null>(null)
 
   const [hasCaptionChanged, setCaptionChanged] = useState<boolean>(false)
+  const [areIgnoredFacesVisible, showIgnoredFaces] = useState<boolean>(false)
 
   const handleCaptionChange = useCallback(
     (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -164,20 +167,33 @@ export const NewPhotoPage = withBrowserBundle(({ context, caption, photoId, phot
                       </div>
                     </li>
                   ))}
-                  {ignoredFaces.map((face) => (
-                    <li
-                      key={`photoface${face.faceId}`}
-                      className='text-gray-500 mr-2 mb-2 flex flex-col items-center relative'
-                      onClick={() => setSelectedFaceForMenu(face)}>
-                      <PhotoBadge faceId={face.faceId} photoId={photoId} className={`grayscale cursor-pointer`} />
-                      <div className='absolute top-11 right-0 h-4 w-4 rounded-full bg-red-600 -ring-2 ring-1 ring-white'>
-                        <div className='text-white text-center'>
-                          <XMarkIcon className='h-[3.5] w-[3.5]' />
-                        </div>
-                      </div>
-                    </li>
-                  ))}
+                  {areIgnoredFacesVisible
+                    ? ignoredFaces.map((face) => (
+                        <li
+                          key={`photoface${face.faceId}`}
+                          className='text-gray-500 mr-2 mb-2 flex flex-col items-center relative'
+                          onClick={() => setSelectedFaceForMenu(face)}>
+                          <PhotoBadge faceId={face.faceId} photoId={photoId} className={`grayscale cursor-pointer`} />
+                          <div className='absolute top-11 right-0 h-4 w-4 rounded-full bg-red-600 -ring-2 ring-1 ring-white'>
+                            <div className='text-white text-center'>
+                              <XMarkIcon className='h-[3.5] w-[3.5]' />
+                            </div>
+                          </div>
+                        </li>
+                      ))
+                    : null}
                 </ul>
+                {areIgnoredFacesVisible ? (
+                  <button className={`${linkStylesDarkMode} mt-4`} onClick={() => showIgnoredFaces(false)}>
+                    <EyeSlashIcon className='h-6 w-6 mr-1' />
+                    Masquer les visages ignorés
+                  </button>
+                ) : (
+                  <button className={`${linkStylesDarkMode} mt-4`} onClick={() => showIgnoredFaces(true)}>
+                    <EyeIcon className='h-6 w-6 mr-1' />
+                    Afficher les visages ignorés
+                  </button>
+                )}
               </div>
             ) : null}
             <form

@@ -21,3 +21,5 @@ export const buttonIconStyles = '-ml-0.5 mr-2 h-6 w-6'
 export const smallButtonIconStyles = '-ml-0.5 mr-1 h-4 w-4'
 
 export const linkStyles = 'font-medium text-indigo-600 hover:text-indigo-500 cursor-pointer inline-flex items-center text-md'
+
+export const linkStylesDarkMode = 'text-indigo-500 hover:text-indigo-600 cursor-pointer inline-flex items-center text-md'
