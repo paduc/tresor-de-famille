@@ -1,13 +1,12 @@
 import React, { useCallback, useState } from 'react'
 import TextareaAutosize from 'react-textarea-autosize'
 
-import { Combobox, Dialog, Transition } from '@headlessui/react'
+import { Dialog, Transition } from '@headlessui/react'
 import { XMarkIcon } from '@heroicons/react/20/solid'
-import { CheckIcon, TrashIcon } from '@heroicons/react/24/outline'
+import { TrashIcon } from '@heroicons/react/24/outline'
 import { UUID } from '../../../domain/UUID'
 import { withBrowserBundle } from '../../../libs/ssr/withBrowserBundle'
 import {
-  buttonIconStyles,
   primaryButtonStyles,
   secondaryButtonStyles,
   secondaryRedButtonStyles,
@@ -15,9 +14,9 @@ import {
 } from '../../_components/Button'
 import { SessionContext } from '../../_components/SessionContext'
 import { TDFModal } from '../../_components/TDFModal'
+import { usePersonSearch } from '../../_components/usePersonSearch'
 import { PhotoListPageUrl } from '../../listPhotos/PhotoListPageUrl'
 import { PersonPageURL } from '../../person/PersonPageURL'
-import { usePersonSearch } from '../../_components/usePersonSearch'
 
 type PhotoFace = {
   faceId: UUID
