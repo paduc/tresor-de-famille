@@ -16,6 +16,7 @@ import { UserUploadedPhotoToChat } from '../../pages/chat/uploadPhotoToChat/User
 import { withContext } from './withContext'
 
 import manifest from '../../assets/js/manifest.json'
+import { getPersonIdForUserId } from '../../pages/_getPersonIdForUserId.query'
 
 const html = String.raw
 
@@ -118,24 +119,27 @@ async function getSession(request: Request): Promise<Session> {
   if (user) {
     const userId = user.id
 
-    const hasPhotos = await getSingleEvent<
-      UserUploadedPhotoToChat | OnboardingUserUploadedPhotoOfFamily | OnboardingUserUploadedPhotoOfThemself
-    >(['OnboardingUserUploadedPhotoOfFamily', 'UserUploadedPhotoToChat', 'OnboardingUserUploadedPhotoOfThemself'], {
-      uploadedBy: userId,
-    })
+    // const hasPhotos = await getSingleEvent<
+    //   UserUploadedPhotoToChat | OnboardingUserUploadedPhotoOfFamily | OnboardingUserUploadedPhotoOfThemself
+    // >(['OnboardingUserUploadedPhotoOfFamily', 'UserUploadedPhotoToChat', 'OnboardingUserUploadedPhotoOfThemself'], {
+    //   uploadedBy: userId,
+    // })
 
-    const hasThreads = await getSingleEvent<UserSentMessageToChat | OnboardingUserStartedFirstThread>(
-      ['UserSentMessageToChat', 'OnboardingUserStartedFirstThread'],
-      { userId }
-    )
+    // const hasThreads = await getSingleEvent<UserSentMessageToChat | OnboardingUserStartedFirstThread>(
+    //   ['UserSentMessageToChat', 'OnboardingUserStartedFirstThread'],
+    //   { userId }
+    // )
 
-    const hasPersons = await getSingleEvent<UserNamedPersonInPhoto>('UserNamedPersonInPhoto', { userId })
+    // const hasPersons = await getSingleEvent<UserNamedPersonInPhoto>('UserNamedPersonInPhoto', { userId })
+
+    const personId = await getPersonIdForUserId(userId)
 
     const profilePic = await getProfilePicUrlForUser(userId)
 
     return {
       isLoggedIn: true,
       userName: user.name,
+      personId,
       isAdmin: userId === ADMIN_USERID,
       profilePic,
       arePhotosEnabled: !!user.name,
