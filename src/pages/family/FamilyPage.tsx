@@ -1145,30 +1145,6 @@ function PersonNode({
   )
 }
 
-type ActionLabelProps = {
-  label: string
-  position: {
-    top?: number | string
-    bottom?: number | string
-    left?: number | string
-    right?: number | string
-  }
-  onClick?: () => void
-}
-
-function ActionLabel({ label, position, onClick }: ActionLabelProps) {
-  return (
-    <span
-      className={`absolute ${primaryButtonStyles} whitespace-nowrap`}
-      style={{
-        ...position,
-      }}
-      onClick={onClick}>
-      {label}
-    </span>
-  )
-}
-
 function getInitials(name: string): string {
   // Split the name into words using whitespace or hyphen as separators
   const words = name.split(/\s|-/)
