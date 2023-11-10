@@ -55,7 +55,39 @@ export const AfterOnboarding = () => (
       areVideosEnabled: false,
       arePersonsEnabled: true,
     }}>
-    <HomePage isOnboarding={false} />
+    <HomePage isOnboarding={false} latestThreads={[]} />
+  </SessionContext.Provider>
+)
+
+export const AfterOnboardingAvecSouvenirs = () => (
+  <SessionContext.Provider
+    value={{
+      isLoggedIn: true,
+      userName: 'John Doe Adear',
+      profilePic:
+        'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=200&h=200&q=80',
+      isAdmin: false,
+      arePhotosEnabled: true,
+      areThreadsEnabled: true,
+      areVideosEnabled: false,
+      arePersonsEnabled: true,
+    }}>
+    <HomePage
+      isOnboarding={false}
+      latestThreads={[
+        {
+          threadId: getUuid(),
+          title: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
+          lastUpdatedOn: Date.now(),
+        },
+        {
+          threadId: getUuid(),
+          title:
+            'Et diam cursus quis sed purus nam. Scelerisque amet elit non sit ut tincidunt condimentum. Nisl ultrices eu venenatis diam.',
+          lastUpdatedOn: Date.now(),
+        },
+      ]}
+    />
   </SessionContext.Provider>
 )
 

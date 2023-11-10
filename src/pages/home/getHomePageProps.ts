@@ -7,6 +7,7 @@ import { UserNamedPersonInPhoto } from '../../events/onboarding/UserNamedPersonI
 import { UserNamedThemself } from '../../events/onboarding/UserNamedThemself'
 import { UserRecognizedPersonInPhoto } from '../../events/onboarding/UserRecognizedPersonInPhoto'
 import { AWSDetectedFacesInPhoto } from '../photo/recognizeFacesInChatPhoto/AWSDetectedFacesInPhoto'
+import { getThreadListPageProps } from '../threadList/getThreadListPageProps'
 import { GetUserName, HomePageProps, UploadProfilePicture } from './HomePage'
 
 export const getHomePageProps = async (userId: UUID): Promise<HomePageProps> => {
@@ -22,8 +23,12 @@ export const getHomePageProps = async (userId: UUID): Promise<HomePageProps> => 
     return { isOnboarding, steps: { ...step1, ...step2 } }
   }
 
+  const { threads } = await getThreadListPageProps(userId)
+  const latestThreads = threads.sort((a, b) => b.lastUpdatedOn - a.lastUpdatedOn).slice(0, 3)
+
   return {
     isOnboarding,
+    latestThreads,
   }
 }
 
