@@ -220,10 +220,6 @@ type SelectPersonForFacePanelProps = {
   photoId: UUID
 }
 function SelectPersonForFacePanel({ close, selectedFace, photoId }: SelectPersonForFacePanelProps) {
-  const [selectedFamilyMember, setSelectedFamilyMember] = useState<
-    { type: 'known'; personId: UUID } | { type: 'unknown'; name: string } | null
-  >(null)
-
   return (
     <Transition.Root show={!!selectedFace} as={React.Fragment}>
       <Dialog as='div' className='relative z-50' onClose={close}>
@@ -239,7 +235,7 @@ function SelectPersonForFacePanel({ close, selectedFace, photoId }: SelectPerson
         </Transition.Child>
 
         <div className='fixed inset-0 z-10 w-screen overflow-y-auto'>
-          <div className='flex min-h-full items-start justify-center p-4 text-center sm:items-center sm:p-0'>
+          <div className='flex min-h-full items-start justify-center p-4 text-center'>
             <Transition.Child
               as={React.Fragment}
               enter='ease-out duration-300'
@@ -268,29 +264,6 @@ function SelectPersonForFacePanel({ close, selectedFace, photoId }: SelectPerson
                           faceId={selectedFace.faceId}
                           selectedPersonName={selectedFace.stage === 'done' ? selectedFace.name : undefined}
                         />
-                        {selectedFamilyMember ? (
-                          <form method='POST'>
-                            <input type='hidden' name='action' value='submitFamilyMemberName' />
-                            <input type='hidden' name='faceId' value={selectedFace.faceId} />
-                            <input
-                              type='hidden'
-                              name='familyMember'
-                              value={encodeURIComponent(JSON.stringify(selectedFamilyMember))}
-                            />
-                            En cours de maintenance
-                            {/* <button type='submit' className={`${primaryButtonStyles}`}>
-                              Enregistrer
-                            </button>
-                            <button
-                              className='ml-3 text-gray-300'
-                              onClick={(e) => {
-                                e.preventDefault()
-                                close()
-                              }}>
-                              Annuler
-                            </button> */}
-                          </form>
-                        ) : null}
                       </div>
                     </div>
                   </div>
@@ -313,62 +286,6 @@ function SelectPersonForFacePanel({ close, selectedFace, photoId }: SelectPerson
   )
 }
 
-// const FamilyMemberNameForm = ({ face, onDismiss }: FamilyMemberNameFormProps) => {
-//   const formRef = React.useRef<HTMLFormElement>(null)
-
-//   const handlePersonSelected = (selection: { type: 'known'; personId: UUID } | { type: 'unknown'; name: string }) => {
-//     const { type } = selection
-//     if (formRef.current !== null) {
-//       if (type === 'unknown') {
-//         const element = formRef.current.elements.namedItem('newFamilyMemberName') as HTMLInputElement
-
-//         if (element !== null) {
-//           element.value = selection.name
-//         }
-//       } else {
-//         const element = formRef.current.elements.namedItem('existingFamilyMemberId') as HTMLInputElement
-
-//         if (element !== null) {
-//           element.value = selection.personId
-//         }
-//       }
-//       formRef.current.submit()
-//     }
-//   }
-
-//   const { faceId } = face
-
-//   return (
-//     <div className=''>
-//       <p className={`mb-2 text-gray-300`}>Quel est le nom de cette personne ?</p>
-//       {/* <PersonAutocomplete className='max-w-xl text-gray-800' presentPerson={face.stage === 'done' ? face : undefined} /> */}
-//       <form method='POST' ref={formRef}>
-//         <input type='hidden' name='action' value='submitFamilyMemberName' />
-//         <input type='hidden' name='faceId' value={faceId} />
-//         <input type='hidden' name='newFamilyMemberName' value='' />
-//         <input type='hidden' name='existingFamilyMemberId' value='' />
-//       </form>
-//       <form method='POST' className='relative mt-3'>
-//         <input type='hidden' name='action' value='ignoreFamilyMemberFaceInPhoto' />
-//         <input type='hidden' name='faceId' value={faceId} />
-//         <div className='flex'>
-//           <button type='submit' className={`${secondaryRedButtonStyles}`}>
-//             <XMarkIcon className={`${buttonIconStyles}`} aria-hidden='true' />
-//             Ignorer ce visage
-//           </button>
-//           <button
-//             className='ml-3 text-gray-300'
-//             onClick={(e) => {
-//               e.preventDefault()
-//               onDismiss && onDismiss()
-//             }}>
-//             Annuler
-//           </button>
-//         </div>
-//       </form>
-//     </div>
-//   )
-// }
 function getThreadUrl(threadId: UUID) {
   return `/chat/${threadId}/chat.html`
 }
@@ -518,6 +435,7 @@ const PersonAutocomplete = ({ faceId, className, selectedPersonName }: PersonAut
           aria-expanded='true'
           aria-autocomplete='list'
           name='newName'
+          autoFocus
           defaultValue={selectedPersonName || ''}
           className='block w-full resize-none border-0 py-3 px-4 focus:ring-0 text-base'
           onChange={(event) => setQuery(event.target.value.trim())}
