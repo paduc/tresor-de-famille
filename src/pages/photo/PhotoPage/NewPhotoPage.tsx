@@ -40,14 +40,15 @@ export type NewPhotoPageProps = {
   photoId: UUID
   caption?: string
   faces: PhotoFace[]
-  context?: {
-    type: 'thread'
-    threadId: UUID
-  }
-  updated?: boolean
+  context?:
+    | {
+        type: 'thread'
+        threadId: UUID
+      }
+    | { type: 'profile'; profileId: UUID }
 }
 
-export const NewPhotoPage = withBrowserBundle(({ context, caption, photoId, photoUrl, faces, updated }: NewPhotoPageProps) => {
+export const NewPhotoPage = withBrowserBundle(({ context, caption, photoId, photoUrl, faces }: NewPhotoPageProps) => {
   const session = React.useContext(SessionContext)
 
   const [selectedFaceForMenu, setSelectedFaceForMenu] = useState<PhotoFace | null>(null)
@@ -96,7 +97,13 @@ export const NewPhotoPage = withBrowserBundle(({ context, caption, photoId, phot
       />
       <div className='bg-black absolute overflow-y-scroll overflow-x-hidden top-0 bottom-0 left-0 right-0 w-[100vw] h-[100vh]'>
         <a
-          href={`${context ? getThreadUrl(context.threadId) : PhotoListPageUrl}`}
+          href={`${
+            context
+              ? context.type === 'thread'
+                ? getThreadUrl(context.threadId)
+                : PersonPageURL(context.profileId)
+              : PhotoListPageUrl
+          }`}
           className='absolute top-2 right-2 text-gray-300'>
           <XMarkIcon className='cursor-pointer h-8 w-8' />
         </a>

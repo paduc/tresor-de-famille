@@ -34,8 +34,8 @@ pageRouter
     try {
       const { photoId } = zod.object({ photoId: zIsUUID }).parse(request.params)
 
-      const { threadId, updated } = z
-        .object({ threadId: zIsUUID.optional(), updated: z.string().optional() })
+      const { threadId, profileId, updated } = z
+        .object({ threadId: zIsUUID.optional(), profileId: zIsUUID.optional(), updated: z.string().optional() })
         .parse(request.query)
 
       const props = await getNewPhotoPageProps({ photoId, userId: request.session.user!.id })
@@ -44,8 +44,8 @@ pageRouter
         props.context = { type: 'thread', threadId }
       }
 
-      if (updated) {
-        props.updated = true
+      if (profileId) {
+        props.context = { type: 'profile', profileId }
       }
 
       responseAsHtml(request, response, NewPhotoPage(props))
