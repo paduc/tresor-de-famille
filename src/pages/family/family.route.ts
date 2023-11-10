@@ -39,11 +39,11 @@ type Relationship = z.infer<typeof zIsRelationship>
 
 pageRouter.route('/family/saveNewRelationship').post(requireAuth(), async (request, response) => {
   const userId = request.session.user!.id
-  const { newPerson, relationship, secondaryRelationship } = z
+  const { newPerson, relationship, secondaryRelationships } = z
     .object({
       newPerson: z.object({ personId: zIsUUID, name: z.string() }).optional(),
       relationship: zIsRelationship,
-      secondaryRelationship: zIsRelationship.optional(),
+      secondaryRelationships: z.array(zIsRelationship),
     })
     .parse(request.body)
 
@@ -80,7 +80,7 @@ pageRouter.route('/family/saveNewRelationship').post(requireAuth(), async (reque
     )
   }
 
-  if (secondaryRelationship) {
+  for (const secondaryRelationship of secondaryRelationships) {
     await addToHistory(
       UserCreatedNewRelationship({
         relationship: secondaryRelationship,

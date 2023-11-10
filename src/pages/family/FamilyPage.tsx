@@ -205,8 +205,6 @@ function closeFamilyMembers({ origin, persons, relationships }: PersonsRelations
         return [coupleId, coupleChildren.get(coupleId)!]
       })
 
-    // console.log(couplesSortedByX)
-
     let childIndex = 0
     let childNodes: Node[] = []
     for (const [coupleId, children] of couplesSortedByX) {
@@ -593,20 +591,18 @@ const ClientOnlyFamilyPage = ({ initialPersons, initialRelationships, initialOri
         return
       }
 
-      const { selectedPerson, sourcePersonId, secondarySourcePersonId, relationshipAction } = args
+      const { selectedPerson, sourcePersonId, secondaryRelationshipsCb: newSecondaryRelationshipsCb, relationshipAction } = args
 
       const { newPerson, targetPersonId } = getNewPerson(selectedPerson)
 
       try {
         const newRelationship = getNewRelationship(sourcePersonId)
-        let newSecondaryRelationship: Relationship | undefined
-
-        if (secondarySourcePersonId) {
-          newSecondaryRelationship = getNewRelationship(secondarySourcePersonId)
-        }
+        const secondaryRelationships: Relationship[] = newSecondaryRelationshipsCb
+          ? newSecondaryRelationshipsCb(targetPersonId)
+          : []
 
         // TODO: display loading state
-        await saveNewRelationship({ newPerson, relationship: newRelationship, secondaryRelationship: newSecondaryRelationship })
+        await saveNewRelationship({ newPerson, relationship: newRelationship, secondaryRelationships })
 
         // Add Node if new person (call setPersons)
         setPersons((persons) => {
@@ -619,10 +615,7 @@ const ClientOnlyFamilyPage = ({ initialPersons, initialRelationships, initialOri
 
         // Add Relationship
         setRelationships((relationships) => {
-          const newRelationships = [newRelationship]
-          if (newSecondaryRelationship) {
-            newRelationships.push(newSecondaryRelationship)
-          }
+          const newRelationships = [newRelationship, ...secondaryRelationships]
           return [...relationships, ...newRelationships]
         })
       } catch (error) {}
@@ -792,7 +785,7 @@ type SearchPanelProps = {
     args: {
       selectedPerson: { type: 'known'; personId: UUID } | { type: 'unknown'; name: string }
       sourcePersonId: UUID
-      secondarySourcePersonId: UUID | undefined
+      secondaryRelationshipsCb?: (personId: UUID) => Relationship[]
       relationshipAction: NewRelationshipAction
     } | null
   ) => unknown
@@ -882,26 +875,63 @@ function SearchPanel({
     setOtherRelationshipIsAccepted(true)
   }, [pendingRelationshipAction])
 
-  const otherSourcePerson = useMemo<Person | null>(() => {
+  const otherRelationships = useMemo<{ label: string; cb: (searchedPerson: UUID) => Relationship[] } | null>(() => {
     // If addChild and there is a single spouse, offer to add it to her as well
     if (pendingRelationshipAction) {
-      const { relationshipAction, personId: sourcePersonId } = pendingRelationshipAction!
-      if (relationshipAction === 'addChild') {
+      const { relationshipAction, personId: sourcePersonId } = pendingRelationshipAction
+      if (relationshipAction === 'addSpouse') {
+        // Get children with single parent
+        const childrenWithSingleParent = getChildrenWithSingleParent(sourcePersonId, { relationships, persons })
+
+        if (!childrenWithSingleParent.length) {
+          return null
+        }
+
+        return {
+          label: `est aussi le parent de ${childrenWithSingleParent.map((child) => child.name).join(', ')}`,
+          cb: (searchedSpouse) =>
+            childrenWithSingleParent.map((child) => ({
+              id: getUuid(),
+              type: 'parent',
+              childId: child.personId,
+              parentId: searchedSpouse,
+            })),
+        }
+      } else if (relationshipAction === 'addChild') {
         // Single coparent
         const [coparent, ...otherCoparents] = getCoparents(sourcePersonId, { relationships, persons })
         if (coparent && !otherCoparents.length) {
-          return coparent
+          return {
+            label: `${coparent.name} est l'autre parent`,
+            cb: (searchedChild) => [
+              {
+                id: getUuid(),
+                type: 'parent',
+                childId: searchedChild,
+                parentId: coparent.personId,
+              },
+            ],
+          }
         }
 
         // Single spouse
         const [spouse, ...otherSpouses] = getSpousesOf(sourcePersonId, { relationships, persons })
 
         if (spouse && !otherSpouses.length) {
-          return spouse
+          return {
+            label: `${spouse.name} est l'autre parent`,
+            cb: (searchedChild) => [
+              {
+                id: getUuid(),
+                type: 'parent',
+                childId: searchedChild,
+                parentId: spouse.personId,
+              },
+            ],
+          }
         }
       }
     }
-
     return null
   }, [pendingRelationshipAction])
 
@@ -936,34 +966,28 @@ function SearchPanel({
               <PersonAutocomplete
                 onPersonSelected={(person) => {
                   if (!pendingRelationshipAction) return
+
                   const { personId, relationshipAction } = pendingRelationshipAction
                   onPersonSelected({
                     selectedPerson: person,
                     sourcePersonId: personId,
-                    secondarySourcePersonId: otherRelationshipIsAccepted ? otherSourcePerson?.personId : undefined,
+                    secondaryRelationshipsCb: otherRelationshipIsAccepted ? otherRelationships?.cb : undefined,
                     relationshipAction,
                   })
                 }}
                 unselectableIds={unselectableIds}
                 className='max-w-xl text-gray-800'
               />
-              {otherSourcePerson ? (
+              {otherRelationships ? (
                 <div className='flex items-center justify-between mt-2'>
                   <input
                     type='checkbox'
-                    className='mr-2'
+                    className='mr-1'
                     checked={otherRelationshipIsAccepted}
                     onChange={() => setOtherRelationshipIsAccepted((state) => !state)}
                   />
-                  {otherSourcePerson.profilePicUrl ? (
-                    <img
-                      className='h-12 w-12 flex-none rounded-full bg-gray-50 shadow-md border border-gray-200'
-                      src={otherSourcePerson.profilePicUrl}
-                      alt=''
-                    />
-                  ) : null}
                   <div className='mx-2 min-w-0 flex-auto'>
-                    <p className='text-base'>{otherSourcePerson.name} est l'autre parent.</p>
+                    <p className='text-base'>{otherRelationships.label}</p>
                   </div>
                 </div>
               ) : null}
@@ -1049,6 +1073,27 @@ function getCoparents(sourcePersonId: UUID, args: { relationships: Relationship[
 
   return Array.from(coparentIds)
     .map((coparentId) => args.persons.find((person) => person.personId === coparentId))
+    .filter((item): item is Person => !!item)
+}
+
+function getChildrenWithSingleParent(sourceParentId: UUID, args: { relationships: Relationship[]; persons: Person[] }) {
+  const { relationships } = args
+  const childIds = new Set(
+    relationships
+      .filter((rel): rel is Relationship & { type: 'parent' } => rel.type === 'parent' && rel.parentId === sourceParentId)
+      .map((rel) => rel.childId)
+  )
+
+  const childrenWithSingleParent = Array.from(childIds).filter((childId) => {
+    const parents = relationships.filter(
+      (rel): rel is Relationship & { type: 'parent' } => rel.type === 'parent' && rel.childId === childId
+    )
+
+    return parents.length === 1
+  })
+
+  return childrenWithSingleParent
+    .map((childId) => args.persons.find((person) => person.personId === childId))
     .filter((item): item is Person => !!item)
 }
 
@@ -1165,15 +1210,15 @@ function getInitials(name: string): string {
 type SaveNewRelationshipArgs = {
   newPerson?: Person
   relationship: Relationship
-  secondaryRelationship?: Relationship
+  secondaryRelationships: Relationship[]
 }
 
-const saveNewRelationship = async ({ newPerson, relationship, secondaryRelationship }: SaveNewRelationshipArgs) => {
+const saveNewRelationship = async ({ newPerson, relationship, secondaryRelationships }: SaveNewRelationshipArgs) => {
   // setStatus('saving')
   return fetch(`/family/saveNewRelationship`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ newPerson, relationship, secondaryRelationship }),
+    body: JSON.stringify({ newPerson, relationship, secondaryRelationships }),
   }).then((res) => {
     if (!res.ok) {
       alert("La nouvelle relation n'a pas pu être sauvegardée.")

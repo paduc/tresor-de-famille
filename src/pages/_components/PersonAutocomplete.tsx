@@ -52,6 +52,8 @@ export const PersonAutocomplete = ({
     fetchResults()
   }, [index, setHits, query])
 
+  // console.log(JSON.stringify({ hits }, null, 2))
+
   return (
     <Combobox defaultValue={presentPerson?.name || ''} onChange={(person: any) => onPersonSelected(person)}>
       <div className={`relative sm:ml-0 ${className || ''}`}>
