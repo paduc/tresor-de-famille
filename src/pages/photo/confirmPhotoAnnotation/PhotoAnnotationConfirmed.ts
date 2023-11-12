@@ -1,5 +1,6 @@
 import { DomainEvent, makeDomainEvent } from '../../../dependencies/DomainEvent'
 import { UUID } from '../../../domain'
+import { FaceId } from '../../../domain/FaceId'
 
 export type PhotoAnnotationConfirmed = DomainEvent<
   'PhotoAnnotationConfirmed',
@@ -20,7 +21,7 @@ export type PhotoAnnotationConfirmed = DomainEvent<
     // as suggested by (if OpenAI)
     deductionId?: UUID
     // using this face (Rekognition)
-    faceId: UUID
+    faceId: FaceId
   }
 >
 

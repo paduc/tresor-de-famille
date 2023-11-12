@@ -1,13 +1,13 @@
 import * as React from 'react'
-import { UUID } from '../../../domain'
+import { FaceId } from '../../../domain/FaceId'
 
 export const HoverContext = React.createContext<{
-  hoveredFaceId: UUID | null
-  setHoveredFaceId: (faceId: UUID | null) => void
+  hoveredFaceId: FaceId | null
+  setHoveredFaceId: (faceId: FaceId | null) => void
 }>(undefined!)
 
 export const HoverProvider = ({ children }: { children: React.ReactNode }) => {
-  const [hoveredFaceId, setHoveredFaceId] = React.useState<UUID | null>(null)
+  const [hoveredFaceId, setHoveredFaceId] = React.useState<FaceId | null>(null)
 
   return <HoverContext.Provider value={{ hoveredFaceId, setHoveredFaceId }}>{children}</HoverContext.Provider>
 }

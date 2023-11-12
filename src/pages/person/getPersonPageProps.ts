@@ -12,6 +12,7 @@ import { PhotoAnnotationConfirmed } from '../photo/confirmPhotoAnnotation/PhotoA
 import { PersonPageProps } from './PersonPage'
 import { UserDeletedPhoto } from '../photo/UserDeletedPhoto'
 import { getProfilePicUrlForPerson } from '../_getProfilePicUrlForPerson'
+import { FaceId } from '../../domain/FaceId'
 
 export const getPersonPageProps = async (personId: UUID, userId: UUID): Promise<PersonPageProps> => {
   const { photos, alternateProfilePics } = await getPersonPhotos(personId, userId)
@@ -53,10 +54,10 @@ async function getPersonPhotos(personId: UUID, userId: UUID) {
 
   const photoIdsFromPhotoEvents = nonDeletedPhotos.map((event) => event.payload.photoId)
 
-  const uniqueFaceIds = new Set<UUID>(nonDeletedPhotos.map((event) => event.payload.faceId))
+  const uniqueFaceIds = new Set<FaceId>(nonDeletedPhotos.map((event) => event.payload.faceId))
 
   const awsDetectionsOfAtLeastOneFace = (
-    await postgres.query<{ photoId: UUID; faces: { faceId: UUID }[] }>(
+    await postgres.query<{ photoId: UUID; faces: { faceId: FaceId }[] }>(
       "SELECT payload->>'photoId' AS \"photoId\", payload->'faces' AS faces from history where type='AWSDetectedFacesInPhoto' and EXISTS ( SELECT 1 FROM jsonb_array_elements(history.payload->'faces') AS face WHERE (face->>'faceId') = ANY ($1));",
       [Array.from(uniqueFaceIds)]
     )
@@ -69,7 +70,7 @@ async function getPersonPhotos(personId: UUID, userId: UUID) {
   // TODO (later): remove the photos for which another person was tagged for this faceId
 
   const alternateProfilePics: {
-    faceId: UUID
+    faceId: FaceId
     photoId: UUID
     url: string
   }[] = []

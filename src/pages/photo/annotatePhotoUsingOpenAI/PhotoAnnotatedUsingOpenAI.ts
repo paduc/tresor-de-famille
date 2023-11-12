@@ -1,5 +1,6 @@
 import { UUID } from '../../../domain'
 import { DomainEvent, makeDomainEvent } from '../../../dependencies/DomainEvent'
+import { FaceId } from '../../../domain/FaceId'
 
 type Deduction = {
   deductionId: UUID
@@ -8,13 +9,13 @@ type Deduction = {
   | {
       type: 'face-is-person'
       personId: UUID
-      faceId: UUID
+      faceId: FaceId
     }
   | {
       type: 'face-is-new-person'
       name: string
       personId: UUID
-      faceId: UUID
+      faceId: FaceId
     }
 )
 

@@ -7,10 +7,11 @@ import { downloadPhoto } from '../dependencies/photo-storage'
 import { postgres } from '../dependencies/database'
 import { AWSDetectedFacesInPhoto } from '../pages/photo/recognizeFacesInChatPhoto/AWSDetectedFacesInPhoto'
 import sharp from 'sharp'
+import { zIsFaceId } from '../domain/FaceId'
 
 actionsRouter.route('/photo/:photoId/face/:faceId').get(requireAuth(), async (request, response) => {
   try {
-    const { photoId, faceId } = zod.object({ photoId: zIsUUID, faceId: zIsUUID }).parse(request.params)
+    const { photoId, faceId } = zod.object({ photoId: zIsUUID, faceId: zIsFaceId }).parse(request.params)
 
     const { rows } = await postgres.query<AWSDetectedFacesInPhoto>(
       "SELECT * FROM history WHERE type='AWSDetectedFacesInPhoto' AND payload->>'photoId'=$1 ORDER BY \"occurredAt\" DESC LIMIT 1",

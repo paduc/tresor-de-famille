@@ -18,6 +18,7 @@ import { UserRecognizedPersonInPhoto } from '../../events/onboarding/UserRecogni
 import { PhotoListPageUrl } from '../listPhotos/PhotoListPageUrl'
 import { UserDeletedPhoto } from './UserDeletedPhoto'
 import { doesPhotoExist } from '../_doesPhotoExist'
+import { zIsFaceId } from '../../domain/FaceId'
 
 const FILE_SIZE_LIMIT_MB = 50
 const upload = multer({
@@ -94,7 +95,7 @@ pageRouter
         } else if (action === 'submitFamilyMemberName') {
           const { faceId, newFamilyMemberName } = z
             .object({
-              faceId: zIsUUID,
+              faceId: zIsFaceId,
               newFamilyMemberName: z.string().optional(),
             })
             .parse(request.body)
@@ -140,7 +141,7 @@ pageRouter
         } else if (action === 'ignoreFamilyMemberFaceInPhoto') {
           const { faceId } = z
             .object({
-              faceId: zIsUUID,
+              faceId: zIsFaceId,
             })
             .parse(request.body)
           await addToHistory(

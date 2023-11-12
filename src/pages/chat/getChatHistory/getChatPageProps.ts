@@ -2,6 +2,7 @@ import { getEventList } from '../../../dependencies/getEventList'
 import { getSingleEvent } from '../../../dependencies/getSingleEvent'
 import { getPhotoUrlFromId } from '../../../dependencies/photo-storage'
 import { UUID } from '../../../domain'
+import { FaceId } from '../../../domain/FaceId'
 import { FaceIgnoredInPhoto } from '../../../events/onboarding/FaceIgnoredInPhoto'
 import { UserNamedPersonInPhoto } from '../../../events/onboarding/UserNamedPersonInPhoto'
 import { UserRecognizedPersonInPhoto } from '../../../events/onboarding/UserRecognizedPersonInPhoto'
@@ -178,7 +179,7 @@ export async function retrievePhotoInfo({ photoId, userId }: { photoId: UUID; us
 }
 
 type PhotoFace = {
-  faceId: UUID
+  faceId: FaceId
 } & (
   | {
       stage: 'awaiting-name'
@@ -194,7 +195,7 @@ type PhotoFace = {
 )
 
 // Copy from getNewPhotoPageProps()
-async function getFamilyDetectedFace(args: { faceId: UUID; photoId: UUID; userId: UUID }): Promise<PhotoFace> {
+async function getFamilyDetectedFace(args: { faceId: FaceId; photoId: UUID; userId: UUID }): Promise<PhotoFace> {
   const { faceId, photoId, userId } = args
 
   const personNamedOrRecognizedEvent = await getSingleEvent<UserNamedPersonInPhoto | UserRecognizedPersonInPhoto>(

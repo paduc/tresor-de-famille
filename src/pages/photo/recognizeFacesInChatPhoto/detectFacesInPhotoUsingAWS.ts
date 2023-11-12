@@ -12,6 +12,8 @@ import { OnboardingUserUploadedPhotoOfThemself } from '../../../events/onboardin
 import { OnboardingUserUploadedPhotoOfFamily } from '../../../events/onboarding/OnboardingUserUploadedPhotoOfFamily'
 import { UserInsertedPhotoInRichTextThread } from '../../chat/UserInsertedPhotoInRichTextThread'
 import { getSingleEvent } from '../../../dependencies/getSingleEvent'
+import { FaceId } from '../../../domain/FaceId'
+import { makeFaceId } from '../../../libs/makeFaceId'
 
 type DetectFacesInPhotosUsingAWSArgs = {
   file: Express.Multer.File
@@ -49,7 +51,7 @@ export async function detectFacesInPhotoUsingAWS({ file, photoId }: DetectFacesI
     const faceId =
       findFaceInPhotoWithSameAwsFaceId(awsFace.awsFaceId) ||
       (await getFaceIdForAWSFaceIdInOtherPhotos(awsFace.awsFaceId, ownerUserId)) ||
-      getUuid()
+      makeFaceId()
 
     faces.push({
       ...awsFace,
@@ -64,11 +66,11 @@ export async function detectFacesInPhotoUsingAWS({ file, photoId }: DetectFacesI
   )
 }
 
-async function getFaceIdForAWSFaceIdInOtherPhotos(awsFaceId: string, userId: UUID): Promise<UUID | undefined> {
+async function getFaceIdForAWSFaceIdInOtherPhotos(awsFaceId: string, userId: UUID): Promise<FaceId | undefined> {
   const { rows } = await postgres.query<AWSDetectedFacesInPhoto>("SELECT * FROM history WHERE type='AWSDetectedFacesInPhoto'")
 
   // Create a AWSFaceId - faceId index for the given userId
-  const awsFaceIdIndex = new Map<string, UUID>()
+  const awsFaceIdIndex = new Map<string, FaceId>()
   for (const row of rows) {
     const photoUserId = await getOwnerUserIdForPhotoId(row.payload.photoId)
     if (photoUserId && photoUserId === userId) {

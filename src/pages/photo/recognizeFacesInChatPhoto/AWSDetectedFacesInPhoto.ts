@@ -1,5 +1,6 @@
 import { UUID } from '../../../domain'
 import { DomainEvent, makeDomainEvent } from '../../../dependencies/DomainEvent'
+import { FaceId } from '../../../domain/FaceId'
 
 type AWSBoundingBox = {
   /**
@@ -22,7 +23,7 @@ type AWSBoundingBox = {
 
 type AWSDetectedFace = {
   awsFaceId: string
-  faceId: UUID
+  faceId: FaceId
   position: AWSBoundingBox
   confidence: number
   // See more in Rekognition.FaceDetail

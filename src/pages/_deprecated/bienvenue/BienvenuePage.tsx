@@ -9,6 +9,7 @@ import { AppLayout } from '../../_components/layout/AppLayout'
 import { SendIcon } from '../../chat/ChatPage/SendIcon'
 import { FamilyMemberRelationship, traduireRelation } from './step3-learnAboutUsersFamily/FamilyMemberRelationship'
 import { PersonAutocomplete } from './step3-learnAboutUsersFamily/PersonAutocomplete'
+import { FaceId } from '../../../domain/FaceId'
 
 // @ts-ignore
 function classNames(...classes) {
@@ -25,7 +26,7 @@ type OpenAIMessage = {
 }
 
 type FamilyMemberPhotoFace = {
-  faceId: UUID
+  faceId: FaceId
 } & (
   | {
       stage: 'awaiting-name'
@@ -65,16 +66,16 @@ type OnboardingStep =
           photoId: UUID
           photoUrl: string
           faces: {
-            faceId: UUID
+            faceId: FaceId
           }[]
         }
       | {
           stage: 'face-confirmed'
           photoId: UUID
           photoUrl: string
-          confirmedFaceId: UUID
+          confirmedFaceId: FaceId
           faces: {
-            faceId: UUID
+            faceId: FaceId
           }[]
         }
     ))
@@ -145,7 +146,7 @@ export const BienvenuePage = withBrowserBundle(({ userId, steps }: BienvenuePage
 
 type PhotoBadgeProps = {
   photoId: UUID
-  faceId: UUID
+  faceId: FaceId
   className?: string
 }
 const PhotoBadge = ({ photoId, className, faceId }: PhotoBadgeProps) => {
@@ -160,7 +161,7 @@ const PhotoBadge = ({ photoId, className, faceId }: PhotoBadgeProps) => {
 }
 
 type FamilyMemberNameFormProps = {
-  faceId: UUID
+  faceId: FaceId
   photoId: UUID
 }
 

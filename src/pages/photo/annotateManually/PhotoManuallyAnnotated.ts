@@ -1,5 +1,6 @@
 import { DomainEvent, makeDomainEvent } from '../../../dependencies/DomainEvent'
 import { UUID } from '../../../domain'
+import { FaceId } from '../../../domain/FaceId'
 
 export type PhotoManuallyAnnotated = DomainEvent<
   'PhotoManuallyAnnotated',
@@ -18,7 +19,7 @@ export type PhotoManuallyAnnotated = DomainEvent<
     // in this photo
     photoId: UUID
     // using this face (Rekognition)
-    faceId: UUID
+    faceId: FaceId
   }
 >
 

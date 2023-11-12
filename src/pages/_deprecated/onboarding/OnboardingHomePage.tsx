@@ -3,6 +3,7 @@ import { ArrowRightIcon, ArrowRightOnRectangleIcon, PlusIcon } from '@heroicons/
 import { CheckIcon, PhotoIcon, XMarkIcon } from '@heroicons/react/24/outline'
 import classNames from 'classnames'
 import * as React from 'react'
+import { FaceId } from '../../../domain/FaceId'
 
 type Steps = GetUserName & UploadFirstPhoto & UploadFamilyPhoto & CreateFirstThread & ChoseBeneficiaries
 
@@ -194,14 +195,14 @@ export type UploadFirstPhoto =
       photoId: UUID
       photoUrl: string
       faces: {
-        faceId: UUID
+        faceId: FaceId
       }[]
     }
   | {
       'upload-first-photo': 'user-face-confirmed'
       photoId: UUID
       photoUrl: string
-      faceId: UUID
+      faceId: FaceId
     }
 
 export type UploadFamilyPhoto =
@@ -387,7 +388,7 @@ function Paragraph({ children, className }: { className?: string } & React.Props
 
 type PhotoBadgeProps = {
   photoId: UUID
-  faceId: UUID
+  faceId: FaceId
   className?: string
 }
 const PhotoBadge = ({ photoId, className, faceId }: PhotoBadgeProps) => {
@@ -402,7 +403,7 @@ const PhotoBadge = ({ photoId, className, faceId }: PhotoBadgeProps) => {
 }
 
 type FamilyMemberPhotoFace = {
-  faceId: UUID
+  faceId: FaceId
 } & (
   | {
       stage: 'awaiting-name'
@@ -615,7 +616,7 @@ export const AnnotateFamilyPhoto = ({ step }: AnnotateFamilyPhotoProps) => {
 }
 
 type FamilyMemberNameFormProps = {
-  faceId: UUID
+  faceId: FaceId
   photoId: UUID
 }
 

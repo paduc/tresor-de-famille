@@ -16,6 +16,7 @@ import { PhotoAnnotationUsingOpenAIFailed } from './PhotoAnnotationUsingOpenAIFa
 import { PhotoAnnotatedUsingOpenAI } from './PhotoAnnotatedUsingOpenAI'
 import { PhotoManuallyAnnotated } from '../annotateManually/PhotoManuallyAnnotated'
 import { PhotoAnnotationConfirmed } from '../confirmPhotoAnnotation/PhotoAnnotationConfirmed'
+import { FaceId } from '../../../domain/FaceId'
 
 type AnnotatePhotoUsingOpenAIArgs = {
   photoId: UUID
@@ -177,7 +178,7 @@ async function getDetectedFaces(photoId: UUID) {
   return detectedFaces
 }
 
-const getConfirmedPersonForFaceId = async (photoId: UUID, faceId: UUID): Promise<{ name: string } | null> => {
+const getConfirmedPersonForFaceId = async (photoId: UUID, faceId: FaceId): Promise<{ name: string } | null> => {
   const { rows } = await postgres.query<PhotoAnnotationConfirmed | PhotoManuallyAnnotated>(
     "SELECT * FROM history WHERE type IN ('PhotoAnnotationConfirmed','PhotoManuallyAnnotated') AND payload->>'photoId'=$1 AND payload->>'faceId'=$2 ORDER BY \"occurredAt\" ASC",
     [photoId, faceId]

@@ -16,6 +16,7 @@ import { getPersonIdForUserId } from '../_getPersonIdForUserId.query'
 import { uploadPhoto } from '../../dependencies/photo-storage'
 import { OnboardingUserUploadedPhotoOfThemself } from '../../events/onboarding/OnboardingUserUploadedPhotoOfThemself'
 import { detectFacesInPhotoUsingAWS } from '../photo/recognizeFacesInChatPhoto/detectFacesInPhotoUsingAWS'
+import { zIsFaceId } from '../../domain/FaceId'
 
 const FILE_SIZE_LIMIT_MB = 50
 const upload = multer({
@@ -81,7 +82,7 @@ pageRouter
     } else if (action === 'confirmFaceIsUser') {
       const { faceId, photoId } = z
         .object({
-          faceId: zIsUUID,
+          faceId: zIsFaceId,
           photoId: zIsUUID,
         })
         .parse(request.body)
@@ -173,7 +174,7 @@ async function uploadUserPhotoOfThemself({ file, userId }: UploadUserPhotoOfThem
 //   } else if (action === 'confirmFaceIsUser') {
 //     const { faceId, photoId } = z
 //       .object({
-//         faceId: zIsUUID,
+//         faceId: zIsFaceId,
 //         photoId: zIsUUID,
 //       })
 //       .parse(request.body)
@@ -190,7 +191,7 @@ async function uploadUserPhotoOfThemself({ file, userId }: UploadUserPhotoOfThem
 //   } else if (action === 'submitFamilyMemberName') {
 //     const { faceId, photoId, newFamilyMemberName } = z
 //       .object({
-//         faceId: zIsUUID,
+//         faceId: zIsFaceId,
 //         photoId: zIsUUID,
 //         newFamilyMemberName: z.string(),
 //       })
@@ -236,7 +237,7 @@ async function uploadUserPhotoOfThemself({ file, userId }: UploadUserPhotoOfThem
 //   } else if (action === 'ignoreFamilyMemberFaceInPhoto') {
 //     const { faceId, photoId } = z
 //       .object({
-//         faceId: zIsUUID,
+//         faceId: zIsFaceId,
 //         photoId: zIsUUID,
 //       })
 //       .parse(request.body)

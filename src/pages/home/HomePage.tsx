@@ -8,6 +8,7 @@ import { InlinePhotoUploadBtn } from '../_components/InlinePhotoUploadBtn'
 import TextareaAutosize from 'react-textarea-autosize'
 import { AppLayout } from '../_components/layout/AppLayout'
 import { SendIcon } from '../chat/ChatPage/SendIcon'
+import { FaceId } from '../../domain/FaceId'
 
 type Steps = GetUserName & UploadProfilePicture
 export type HomePageProps =
@@ -187,14 +188,14 @@ export type UploadProfilePicture =
       photoId: UUID
       photoUrl: string
       faces: {
-        faceId: UUID
+        faceId: FaceId
       }[]
     }
   | {
       'upload-profile-picture': 'user-face-confirmed'
       photoId: UUID
       photoUrl: string
-      faceId: UUID
+      faceId: FaceId
     }
 
 function GetUserName() {
@@ -337,7 +338,7 @@ export const ChoseOwnFaceInPhoto = ({ step }: ChoseOwnFaceInPhotoProps) => {
 
 type PhotoBadgeProps = {
   photoId: UUID
-  faceId: UUID
+  faceId: FaceId
   className?: string
 }
 const PhotoBadge = ({ photoId, className, faceId }: PhotoBadgeProps) => {

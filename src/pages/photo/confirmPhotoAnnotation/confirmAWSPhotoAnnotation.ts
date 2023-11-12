@@ -2,14 +2,14 @@ import { addToHistory } from '../../../dependencies/addToHistory'
 import { postgres } from '../../../dependencies/database'
 import { normalizeBBOX } from '../../../dependencies/face-recognition'
 import { UUID } from '../../../domain'
-import { PhotoAnnotationConfirmed } from './PhotoAnnotationConfirmed'
-import { PhotoAnnotatedUsingOpenAI } from '../annotatePhotoUsingOpenAI/PhotoAnnotatedUsingOpenAI'
+import { FaceId } from '../../../domain/FaceId'
 import { AWSDetectedFacesInPhoto } from '../recognizeFacesInChatPhoto/AWSDetectedFacesInPhoto'
+import { PhotoAnnotationConfirmed } from './PhotoAnnotationConfirmed'
 
 type ConfirmAWSPhotoAnnotationArgs = {
   photoId: UUID
   personId: UUID
-  faceId: UUID
+  faceId: FaceId
   confirmedBy: UUID
 }
 
@@ -31,7 +31,7 @@ export const confirmAWSPhotoAnnotation = async ({ photoId, faceId, personId, con
   )
 }
 
-async function getFaceById(photoId: UUID, faceId: UUID) {
+async function getFaceById(photoId: UUID, faceId: FaceId) {
   const { rows } = await postgres.query<AWSDetectedFacesInPhoto>(
     "SELECT * FROM history WHERE type='AWSDetectedFacesInPhoto' AND payload->>'photoId'=$1",
     [photoId]

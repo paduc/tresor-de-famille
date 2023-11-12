@@ -7,6 +7,7 @@ import { buttonIconStyles, primaryButtonStyles, secondaryButtonStyles } from '..
 import { InlinePhotoUploadBtn } from '../_components/InlinePhotoUploadBtn'
 import { TDFModal } from '../_components/TDFModal'
 import { AppLayout } from '../_components/layout/AppLayout'
+import { FaceId } from '../../domain/FaceId'
 
 // @ts-ignore
 function classNames(...classes) {
@@ -21,7 +22,7 @@ export type PersonPageProps = {
   }
   photos: { photoId: UUID; url: string }[]
   alternateProfilePics: {
-    faceId: UUID
+    faceId: FaceId
     photoId: UUID
     url: string
   }[]
@@ -158,7 +159,7 @@ type ProfilePictureSelectorProps = {
   currentFaceUrl: string | null
   personId: UUID
   faceList: {
-    faceId: UUID
+    faceId: FaceId
     photoId: UUID
     url: string
   }[]

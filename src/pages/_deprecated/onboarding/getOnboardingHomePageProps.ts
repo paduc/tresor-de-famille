@@ -27,6 +27,7 @@ import {
   ChoseBeneficiaries,
   GetUserName,
 } from './OnboardingHomePage'
+import { FaceId } from '../../../domain/FaceId'
 
 export const RELATIONSHIPS_ENABLED = false
 
@@ -141,7 +142,7 @@ async function getFamilyPhoto({ photoId, userId }: { photoId: UUID; userId: UUID
 
 type FamilyPhotoMemberFace = FamilyPhoto['faces'][number]
 
-async function getFamilyDetectedFace(args: { faceId: UUID; photoId: UUID; userId: UUID }): Promise<FamilyPhotoMemberFace> {
+async function getFamilyDetectedFace(args: { faceId: FaceId; photoId: UUID; userId: UUID }): Promise<FamilyPhotoMemberFace> {
   const { faceId, photoId, userId } = args
 
   // Has a this face been named or recognized ?

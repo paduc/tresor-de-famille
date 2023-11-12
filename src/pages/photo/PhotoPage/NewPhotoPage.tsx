@@ -4,10 +4,10 @@ import TextareaAutosize from 'react-textarea-autosize'
 import { Dialog, Transition } from '@headlessui/react'
 import { XMarkIcon } from '@heroicons/react/20/solid'
 import { EyeIcon, EyeSlashIcon, TrashIcon } from '@heroicons/react/24/outline'
+import { FaceId } from '../../../domain/FaceId'
 import { UUID } from '../../../domain/UUID'
 import { withBrowserBundle } from '../../../libs/ssr/withBrowserBundle'
 import {
-  linkStyles,
   linkStylesDarkMode,
   primaryButtonStyles,
   secondaryButtonStyles,
@@ -21,7 +21,7 @@ import { PhotoListPageUrl } from '../../listPhotos/PhotoListPageUrl'
 import { PersonPageURL } from '../../person/PersonPageURL'
 
 type PhotoFace = {
-  faceId: UUID
+  faceId: FaceId
 } & (
   | {
       stage: 'awaiting-name'
@@ -220,7 +220,7 @@ export const NewPhotoPage = withBrowserBundle(({ context, caption, photoId, phot
 
 type PhotoBadgeProps = {
   photoId: UUID
-  faceId: UUID
+  faceId: FaceId
   className?: string
   altText?: string
 }
@@ -398,7 +398,7 @@ function ContextualMenu({ close, selectedFace, photoId, gotoPersonSelector }: Co
   )
 }
 
-function IgnoreFaceButton({ faceId }: { faceId: UUID }) {
+function IgnoreFaceButton({ faceId }: { faceId: FaceId }) {
   return (
     <form method='POST' className=''>
       <input type='hidden' name='action' value='ignoreFamilyMemberFaceInPhoto' />
@@ -420,7 +420,7 @@ type SearchPersonHitDTO = {
 }
 
 type PersonAutocompleteProps = {
-  faceId: UUID
+  faceId: FaceId
   className?: string
   selectedPersonName?: string
 }

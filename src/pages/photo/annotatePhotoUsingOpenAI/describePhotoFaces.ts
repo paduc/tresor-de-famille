@@ -1,5 +1,6 @@
 import { postgres } from '../../../dependencies/database'
 import { UUID } from '../../../domain'
+import { FaceId } from '../../../domain/FaceId'
 import { makeIdCodeMap } from '../../../libs/makeIdCodeMap'
 import { AWSDetectedFacesInPhoto } from '../recognizeFacesInChatPhoto/AWSDetectedFacesInPhoto'
 
@@ -7,7 +8,7 @@ type PhotoFace = {
   person: {
     name: string
   } | null
-  faceId: UUID
+  faceId: FaceId
   position: {
     width: number
     height: number
@@ -22,7 +23,7 @@ type PhotoFaceDescription = {
   description: string
   unknownFaces: string[]
   knownPersons: string[]
-  faceCodeMap: ReturnType<typeof makeIdCodeMap>
+  faceCodeMap: ReturnType<typeof makeIdCodeMap<FaceId>>
 }
 
 export const describePhotoFaces = async (photoId: UUID, photoFaces: PhotoFace[]): Promise<PhotoFaceDescription> => {
@@ -41,7 +42,7 @@ export const describePhotoFaces = async (photoId: UUID, photoFaces: PhotoFace[])
     detectedFaceByFaceId.set(detectedFace.faceId, detectedFace)
   }
 
-  const faceCodeMap = makeIdCodeMap('face')
+  const faceCodeMap = makeIdCodeMap<FaceId>('face')
 
   const descriptions = []
   const unknownFaces: string[] = []

@@ -6,6 +6,7 @@ import { PhotoAnnotationConfirmed } from './PhotoAnnotationConfirmed'
 import { PhotoAnnotatedUsingOpenAI } from '../annotatePhotoUsingOpenAI/PhotoAnnotatedUsingOpenAI'
 import { AWSDetectedFacesInPhoto } from '../recognizeFacesInChatPhoto/AWSDetectedFacesInPhoto'
 import { personsIndex, searchClient } from '../../../dependencies/search'
+import { FaceId } from '../../../domain/FaceId'
 
 type ConfirmOpenAIPhotoAnnotationArgs = {
   photoId: UUID
@@ -51,7 +52,7 @@ export const confirmOpenAIPhotoAnnotation = async ({ photoId, deductionId, confi
   }
 }
 
-async function getFaceById(photoId: UUID, faceId: UUID) {
+async function getFaceById(photoId: UUID, faceId: FaceId) {
   const { rows } = await postgres.query<AWSDetectedFacesInPhoto>(
     "SELECT * FROM history WHERE type='AWSDetectedFacesInPhoto' AND payload->>'photoId'=$1",
     [photoId]
