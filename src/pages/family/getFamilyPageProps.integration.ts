@@ -3,6 +3,7 @@ import { addToHistory } from '../../dependencies/addToHistory'
 import { UserNamedThemself } from '../../events/onboarding/UserNamedThemself'
 import { getUuid } from '../../libs/getUuid'
 import { makePersonId } from '../../libs/makePersonId'
+import { makeRelationshipId } from '../../libs/makeRelationshipId'
 import { makeAppUserId } from '../../libs/makeUserId'
 import { UserCreatedNewRelationship } from './UserCreatedNewRelationship'
 import { UserCreatedRelationshipWithNewPerson } from './UserCreatedRelationshipWithNewPerson'
@@ -16,7 +17,7 @@ describe('getFamilyProps', () => {
   describe('getFamilyRelationships', () => {
     describe('when UserCreatedRelationshipWithNewPerson with type parent and parentId = personId', () => {
       const newPersonId = makePersonId()
-      const relationshipId = getUuid()
+      const relationshipId = makeRelationshipId()
 
       beforeAll(async () => {
         await resetDatabase()
@@ -74,7 +75,7 @@ describe('getFamilyProps', () => {
 
     describe('when UserCreatedRelationshipWithNewPerson with type spouses and spouseIds[0] = personId', () => {
       const newPersonId = makePersonId()
-      const relationshipId = getUuid()
+      const relationshipId = makeRelationshipId()
 
       beforeAll(async () => {
         await resetDatabase()
@@ -131,7 +132,7 @@ describe('getFamilyProps', () => {
 
     describe('when UserCreatedRelationshipWithNewPerson with type friends and friendIds[0] = personId', () => {
       const newPersonId = makePersonId()
-      const relationshipId = getUuid()
+      const relationshipId = makeRelationshipId()
 
       beforeAll(async () => {
         await resetDatabase()

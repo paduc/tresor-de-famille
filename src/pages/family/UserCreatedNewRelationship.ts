@@ -1,9 +1,9 @@
-import { UUID } from '../../domain'
 import { DomainEvent, makeDomainEvent } from '../../dependencies/DomainEvent'
-import { PersonId } from '../../domain/PersonId'
 import { AppUserId } from '../../domain/AppUserId'
+import { PersonId } from '../../domain/PersonId'
+import { RelationshipId } from '../../domain/RelationshipId'
 
-export type Relationship = { id: UUID } & (
+export type Relationship = { id: RelationshipId } & (
   | {
       type: 'parent'
       parentId: PersonId

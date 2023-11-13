@@ -27,6 +27,8 @@ import { AppLayout } from '../_components/layout/AppLayout'
 import { PersonPageURL } from '../person/PersonPageURL'
 import { PersonId } from '../../domain/PersonId'
 import { makePersonId } from '../../libs/makePersonId'
+import { RelationshipId } from '../../domain/RelationshipId'
+import { makeRelationshipId } from '../../libs/makeRelationshipId'
 
 // @ts-ignore
 function classNames(...classes) {
@@ -39,7 +41,7 @@ type Person = {
   personId: PersonId
 }
 
-type Relationship = { id: UUID } & (
+type Relationship = { id: RelationshipId } & (
   | {
       type: 'parent'
       parentId: PersonId
@@ -637,13 +639,13 @@ const ClientOnlyFamilyPage = ({ initialPersons, initialRelationships, initialOri
       function getNewRelationship(sourcePersonId: PersonId): Relationship {
         switch (relationshipAction) {
           case 'addChild':
-            return { id: getUuid(), type: 'parent', childId: targetPersonId, parentId: sourcePersonId }
+            return { id: makeRelationshipId(), type: 'parent', childId: targetPersonId, parentId: sourcePersonId }
           case 'addParent':
-            return { id: getUuid(), type: 'parent', childId: sourcePersonId, parentId: targetPersonId }
+            return { id: makeRelationshipId(), type: 'parent', childId: sourcePersonId, parentId: targetPersonId }
           case 'addFriend':
-            return { id: getUuid(), type: 'friends', friendIds: [targetPersonId, sourcePersonId] }
+            return { id: makeRelationshipId(), type: 'friends', friendIds: [targetPersonId, sourcePersonId] }
           case 'addSpouse':
-            return { id: getUuid(), type: 'spouses', spouseIds: [targetPersonId, sourcePersonId] }
+            return { id: makeRelationshipId(), type: 'spouses', spouseIds: [targetPersonId, sourcePersonId] }
         }
       }
     },
@@ -651,7 +653,7 @@ const ClientOnlyFamilyPage = ({ initialPersons, initialRelationships, initialOri
   )
 
   const onRemoveRelationship = useCallback(
-    async (relationshipId: UUID) => {
+    async (relationshipId: RelationshipId) => {
       try {
         // TODO: display loading state
         await removeRelationship({ relationshipId })
@@ -792,7 +794,7 @@ type SearchPanelProps = {
       relationshipAction: NewRelationshipAction
     } | null
   ) => unknown
-  onRemoveRelationship: (relationshipId: UUID) => unknown
+  onRemoveRelationship: (relationshipId: RelationshipId) => unknown
   pendingRelationshipAction: PendingNodeRelationshipAction | null
   relationships: Relationship[]
   persons: Person[]
@@ -894,7 +896,7 @@ function SearchPanel({
           label: `est aussi le parent de ${childrenWithSingleParent.map((child) => child.name).join(', ')}`,
           cb: (searchedSpouse) =>
             childrenWithSingleParent.map((child) => ({
-              id: getUuid(),
+              id: makeRelationshipId(),
               type: 'parent',
               childId: child.personId,
               parentId: searchedSpouse,
@@ -908,7 +910,7 @@ function SearchPanel({
             label: `${coparent.name} est l'autre parent`,
             cb: (searchedChild) => [
               {
-                id: getUuid(),
+                id: makeRelationshipId(),
                 type: 'parent',
                 childId: searchedChild,
                 parentId: coparent.personId,
@@ -925,7 +927,7 @@ function SearchPanel({
             label: `${spouse.name} est l'autre parent`,
             cb: (searchedChild) => [
               {
-                id: getUuid(),
+                id: makeRelationshipId(),
                 type: 'parent',
                 childId: searchedChild,
                 parentId: spouse.personId,
@@ -1237,7 +1239,7 @@ const saveNewRelationship = async ({ newPerson, relationship, secondaryRelations
 }
 
 type RemoveRelationshipArgs = {
-  relationshipId: UUID
+  relationshipId: RelationshipId
 }
 const removeRelationship = async ({ relationshipId }: RemoveRelationshipArgs) => {
   // setStatus('saving')

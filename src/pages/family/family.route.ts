@@ -16,6 +16,7 @@ import { getEventList } from '../../dependencies/getEventList'
 import { UserRemovedRelationship } from './UserRemovedRelationship'
 import { zIsPersonId } from '../../domain/PersonId'
 import { AppUserId } from '../../domain/AppUserId'
+import { RelationshipId, zIsRelationshipId } from '../../domain/RelationshipId'
 
 pageRouter.route(FamilyPageURL()).get(requireAuth(), async (request, response) => {
   const props = await getFamilyPageProps(request.session.user!.id)
@@ -25,7 +26,7 @@ pageRouter.route(FamilyPageURL()).get(requireAuth(), async (request, response) =
 
 const zIsRelationship = z
   .object({
-    id: zIsUUID,
+    id: zIsRelationshipId,
   })
   .and(
     z.discriminatedUnion('type', [
@@ -96,7 +97,7 @@ pageRouter.route('/family/removeRelationship').post(requireAuth(), async (reques
   const userId = request.session.user!.id
   const { relationshipId } = z
     .object({
-      relationshipId: zIsUUID,
+      relationshipId: zIsRelationshipId,
     })
     .parse(request.body)
 
@@ -107,7 +108,7 @@ pageRouter.route('/family/removeRelationship').post(requireAuth(), async (reques
   return response.status(200).send()
 })
 
-async function relationshipExists({ userId, relationshipId }: { userId: AppUserId; relationshipId: UUID }) {
+async function relationshipExists({ userId, relationshipId }: { userId: AppUserId; relationshipId: RelationshipId }) {
   const existingRelationships = await getEventList<UserCreatedNewRelationship | UserCreatedRelationshipWithNewPerson>(
     ['UserCreatedNewRelationship', 'UserCreatedRelationshipWithNewPerson'],
     { userId }

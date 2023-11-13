@@ -5,6 +5,9 @@ import { getUuid } from '../../libs/getUuid'
 import { UUID } from '../../domain'
 import { SearchIndex } from 'algoliasearch'
 import { PersonSearchContext } from '../_components/usePersonSearch'
+import { makeRelationshipId } from '../../libs/makeRelationshipId'
+import { makePersonId } from '../../libs/makePersonId'
+import { PersonId } from '../../domain/PersonId'
 
 const fakeProfilePicUrl =
   'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80'
@@ -15,29 +18,29 @@ const fakePhoto = (gender?: 'men' | 'women') => {
   return `https://randomuser.me/api/portraits/${genderUsed}/${nbr}.jpg`
 }
 
-const fakePerson1Id = getUuid()
-const fakePerson2Id = getUuid()
-const fakePerson3Id = getUuid()
+const fakePerson1Id = makePersonId()
+const fakePerson2Id = makePersonId()
+const fakePerson3Id = makePersonId()
 
-const originPersonId = 'origin' as UUID
-const papaId = getUuid()
-const mamaId = getUuid()
-const mama2Id = 'mama2' as UUID
-const fille1Id = getUuid()
-const fille2Id = getUuid()
-const petiteFille1Id = getUuid()
-const bonPapaId = getUuid()
-const bonneMamieId = getUuid()
-const mamyId = getUuid()
-const papyId = getUuid()
-const broId = getUuid()
-const sisId = getUuid()
-// const wifeId = getUuid()
-const wifeId = 'wife' as UUID
-const fils1Id = 'fils1' as UUID
-// const fils2Id = getUuid()
-const fils2Id = 'fils2' as UUID
-const halfBroId = getUuid()
+const originPersonId = 'origin' as PersonId
+const papaId = makePersonId()
+const mamaId = makePersonId()
+const mama2Id = 'mama2' as PersonId
+const fille1Id = makePersonId()
+const fille2Id = makePersonId()
+const petiteFille1Id = makePersonId()
+const bonPapaId = makePersonId()
+const bonneMamieId = makePersonId()
+const mamyId = makePersonId()
+const papyId = makePersonId()
+const broId = makePersonId()
+const sisId = makePersonId()
+// const wifeId = makePersonId()
+const wifeId = 'wife' as PersonId
+const fils1Id = 'fils1' as PersonId
+// const fils2Id = makePersonId()
+const fils2Id = 'fils2' as PersonId
+const halfBroId = makePersonId()
 
 const initialPersons = [
   { personId: originPersonId, name: 'Pierrot', profilePicUrl: fakeProfilePicUrl },
@@ -143,28 +146,28 @@ export const PlusieursPersonnes = () => {
       <FamilyPage
         initialPersons={initialPersons}
         initialRelationships={[
-          { id: getUuid(), type: 'spouses', spouseIds: [originPersonId, wifeId] },
-          // { id: getUuid(), type: 'spouses', spouseIds: [papaId, mamaId] },
-          // { id: getUuid(), type: 'parent', childId: originPersonId, parentId: papaId },
-          // { id: getUuid(), type: 'parent', childId: originPersonId, parentId: mamaId },
-          // { id: getUuid(), type: 'parent', childId: halfBroId, parentId: papaId },
-          // { id: getUuid(), type: 'parent', childId: broId, parentId: mamaId },
-          // { id: getUuid(), type: 'parent', childId: broId, parentId: papaId },
-          // { id: getUuid(), type: 'parent', childId: sisId, parentId: mamaId },
-          // { id: getUuid(), type: 'parent', childId: sisId, parentId: papaId },
-          // { id: getUuid(), type: 'parent', childId: fille1Id, parentId: originPersonId },
-          // { id: getUuid(), type: 'parent', childId: fille1Id, parentId: wifeId },
-          // { id: getUuid(), type: 'parent', childId: fille2Id, parentId: originPersonId },
-          // { id: getUuid(), type: 'parent', childId: fille2Id, parentId: wifeId },
-          // { id: getUuid(), type: 'parent', childId: fils1Id, parentId: originPersonId },
-          // { id: getUuid(), type: 'parent', childId: fils1Id, parentId: wifeId },
-          // { id: getUuid(), type: 'parent', childId: fils2Id, parentId: originPersonId },
-          // { id: getUuid(), type: 'parent', childId: fils2Id, parentId: mama2Id },
-          // { id: getUuid(), type: 'parent', childId: petiteFille1Id, parentId: fille2Id },
-          // { id: getUuid(), type: 'parent', childId: papaId, parentId: bonPapaId },
-          // { id: getUuid(), type: 'parent', childId: papaId, parentId: bonneMamieId },
-          // { id: getUuid(), type: 'parent', childId: mamaId, parentId: papyId },
-          // { id: getUuid(), type: 'parent', childId: mamaId, parentId: mamyId },
+          { id: makeRelationshipId(), type: 'spouses', spouseIds: [originPersonId, wifeId] },
+          // { id: makeRelationshipId(), type: 'spouses', spouseIds: [papaId, mamaId] },
+          // { id: makeRelationshipId(), type: 'parent', childId: originPersonId, parentId: papaId },
+          // { id: makeRelationshipId(), type: 'parent', childId: originPersonId, parentId: mamaId },
+          // { id: makeRelationshipId(), type: 'parent', childId: halfBroId, parentId: papaId },
+          // { id: makeRelationshipId(), type: 'parent', childId: broId, parentId: mamaId },
+          // { id: makeRelationshipId(), type: 'parent', childId: broId, parentId: papaId },
+          // { id: makeRelationshipId(), type: 'parent', childId: sisId, parentId: mamaId },
+          // { id: makeRelationshipId(), type: 'parent', childId: sisId, parentId: papaId },
+          // { id: makeRelationshipId(), type: 'parent', childId: fille1Id, parentId: originPersonId },
+          // { id: makeRelationshipId(), type: 'parent', childId: fille1Id, parentId: wifeId },
+          // { id: makeRelationshipId(), type: 'parent', childId: fille2Id, parentId: originPersonId },
+          // { id: makeRelationshipId(), type: 'parent', childId: fille2Id, parentId: wifeId },
+          // { id: makeRelationshipId(), type: 'parent', childId: fils1Id, parentId: originPersonId },
+          // { id: makeRelationshipId(), type: 'parent', childId: fils1Id, parentId: wifeId },
+          // { id: makeRelationshipId(), type: 'parent', childId: fils2Id, parentId: originPersonId },
+          // { id: makeRelationshipId(), type: 'parent', childId: fils2Id, parentId: mama2Id },
+          // { id: makeRelationshipId(), type: 'parent', childId: petiteFille1Id, parentId: fille2Id },
+          // { id: makeRelationshipId(), type: 'parent', childId: papaId, parentId: bonPapaId },
+          // { id: makeRelationshipId(), type: 'parent', childId: papaId, parentId: bonneMamieId },
+          // { id: makeRelationshipId(), type: 'parent', childId: mamaId, parentId: papyId },
+          // { id: makeRelationshipId(), type: 'parent', childId: mamaId, parentId: mamyId },
         ]}
         initialOriginPersonId={originPersonId}
       />
