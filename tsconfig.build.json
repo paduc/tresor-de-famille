@@ -4,6 +4,7 @@
     "src/**/*.stories.tsx",
     "src/**/*.stories.ignore.tsx",
     "src/**/*.integration.ts",
-    "src/pages/_deprecated/**/*"
+    "src/pages/_deprecated/**/*",
+    "src/**/__test__/**/*"
   ]
 }
