@@ -12,6 +12,8 @@ import { parseZodErrors } from '../../libs/parseZodErrors'
 import { getPersonByIdOrThrow } from '../_getPersonById'
 import { getPersonIdForUserId } from '../_getPersonIdForUserId'
 import { searchClient } from '../../dependencies/search'
+import { FamilyId } from '../../domain/FamilyId'
+import { UUID } from '../../domain/UUID'
 
 const login = makeLogin(bcrypt.compare)
 const register = makeRegister({
@@ -74,6 +76,8 @@ pageRouter
           filters: `visible_by:user/${userId}`,
         })
 
+        request.session.currentFamilyId = userId as string as FamilyId
+
         return response.redirect(redirectTo || '/')
       }
 
@@ -86,6 +90,7 @@ pageRouter
         request.session.searchKey = searchClient.generateSecuredApiKey(ALGOLIA_SEARCHKEY, {
           filters: `visible_by:user/${userId} OR visible_by:person/${personId}`,
         })
+        request.session.currentFamilyId = userId as string as FamilyId
       } catch (error) {
         request.session.searchKey = searchClient.generateSecuredApiKey(ALGOLIA_SEARCHKEY, {
           filters: `visible_by:user/${userId}`,
