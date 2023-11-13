@@ -3,6 +3,7 @@ import { DomainEvent, makeDomainEvent } from '../../../dependencies/DomainEvent'
 import { FaceId } from '../../../domain/FaceId'
 import { PersonId } from '../../../domain/PersonId'
 import { PhotoId } from '../../../domain/PhotoId'
+import { ThreadId } from '../../../domain/ThreadId'
 
 type Deduction = {
   deductionId: UUID
@@ -22,7 +23,7 @@ type Deduction = {
 export type OpenAIMadeDeductions = DomainEvent<
   'OpenAIMadeDeductions',
   {
-    chatId: UUID
+    chatId: ThreadId
     promptId: UUID
     deductions: Deduction[]
   }

@@ -1,11 +1,12 @@
 import { DomainEvent, makeDomainEvent } from '../../dependencies/DomainEvent'
 import { UUID } from '../../domain'
+import { ThreadId } from '../../domain/ThreadId'
 import { TipTapContentAsJSON } from './TipTapTypes'
 
 export type UserUpdatedThreadAsRichText = DomainEvent<
   'UserUpdatedThreadAsRichText',
   {
-    chatId: UUID
+    chatId: ThreadId
     contentAsJSON: TipTapContentAsJSON
     userId: UUID
   }

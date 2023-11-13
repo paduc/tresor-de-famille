@@ -6,6 +6,7 @@ import { withBrowserBundle } from '../../libs/ssr/withBrowserBundle'
 import { primaryButtonStyles } from '../_components/Button'
 import { SuccessError } from '../_components/SuccessError'
 import { AppLayout } from '../_components/layout/AppLayout'
+import { ThreadId } from '../../domain/ThreadId'
 
 // @ts-ignore
 function classNames(...classes) {
@@ -16,7 +17,7 @@ export type ThreadListPageProps = {
   success?: string
   error?: string
   threads: {
-    threadId: UUID
+    threadId: ThreadId
     title: string
     lastUpdatedOn: number
   }[]

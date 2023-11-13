@@ -1,6 +1,7 @@
 import { UUID } from '../../../domain'
 import { DomainEvent, makeDomainEvent } from '../../../dependencies/DomainEvent'
 import { PhotoId } from '../../../domain/PhotoId'
+import { ThreadId } from '../../../domain/ThreadId'
 
 export type PhotoLocation =
   | {
@@ -14,7 +15,7 @@ export type PhotoLocation =
 export type UserUploadedPhotoToChat = DomainEvent<
   'UserUploadedPhotoToChat',
   {
-    chatId: UUID
+    chatId: ThreadId
     photoId: PhotoId
     location: PhotoLocation
     uploadedBy: UUID

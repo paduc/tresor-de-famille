@@ -1,10 +1,11 @@
 import { UUID } from '../../../domain'
 import { DomainEvent, makeDomainEvent } from '../../../dependencies/DomainEvent'
+import { ThreadId } from '../../../domain/ThreadId'
 
 export type OpenAIPrompted = DomainEvent<
   'OpenAIPrompted',
   {
-    chatId: UUID
+    chatId: ThreadId
     promptId: UUID
     promptedBy: UUID
     model: string

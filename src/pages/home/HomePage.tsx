@@ -1,16 +1,16 @@
 import { CheckIcon, PhotoIcon } from '@heroicons/react/24/outline'
 import * as React from 'react'
-import { UUID } from '../../domain'
+import TextareaAutosize from 'react-textarea-autosize'
+import { FaceId } from '../../domain/FaceId'
+import { PersonId } from '../../domain/PersonId'
+import { PhotoId } from '../../domain/PhotoId'
+import { ThreadId } from '../../domain/ThreadId'
 import { withBrowserBundle } from '../../libs/ssr/withBrowserBundle'
 import { SessionContext } from '../_components'
 import { buttonIconStyles, primaryButtonStyles, primaryGreenButtonStyles, secondaryButtonStyles } from '../_components/Button'
 import { InlinePhotoUploadBtn } from '../_components/InlinePhotoUploadBtn'
-import TextareaAutosize from 'react-textarea-autosize'
 import { AppLayout } from '../_components/layout/AppLayout'
 import { SendIcon } from '../chat/ChatPage/SendIcon'
-import { FaceId } from '../../domain/FaceId'
-import { PersonId } from '../../domain/PersonId'
-import { PhotoId } from '../../domain/PhotoId'
 
 type Steps = GetUserName & UploadProfilePicture
 export type HomePageProps =
@@ -21,7 +21,7 @@ export type HomePageProps =
   | {
       isOnboarding: false
       latestThreads: {
-        threadId: UUID
+        threadId: ThreadId
         title: string
         lastUpdatedOn: number
       }[]

@@ -5,6 +5,7 @@ import { UUID } from '../../../domain'
 import { FaceId } from '../../../domain/FaceId'
 import { PersonId } from '../../../domain/PersonId'
 import { PhotoId } from '../../../domain/PhotoId'
+import { ThreadId } from '../../../domain/ThreadId'
 import { FaceIgnoredInPhoto } from '../../../events/onboarding/FaceIgnoredInPhoto'
 import { UserNamedPersonInPhoto } from '../../../events/onboarding/UserNamedPersonInPhoto'
 import { UserRecognizedPersonInPhoto } from '../../../events/onboarding/UserRecognizedPersonInPhoto'
@@ -21,7 +22,7 @@ import { UserUpdatedThreadAsRichText } from '../UserUpdatedThreadAsRichText'
 import { UserSentMessageToChat } from '../sendMessageToChat/UserSentMessageToChat'
 import { UserUploadedPhotoToChat } from '../uploadPhotoToChat/UserUploadedPhotoToChat'
 
-export const getChatPageProps = async ({ chatId, userId }: { chatId: UUID; userId: UUID }): Promise<ChatPageProps> => {
+export const getChatPageProps = async ({ chatId, userId }: { chatId: ThreadId; userId: UUID }): Promise<ChatPageProps> => {
   const titleSet = await getSingleEvent<UserSetChatTitle>('UserSetChatTitle', { chatId })
 
   const title = titleSet?.payload.title

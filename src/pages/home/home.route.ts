@@ -284,7 +284,7 @@ async function uploadUserPhotoOfThemself({ file, userId }: UploadUserPhotoOfThem
 //         message: z.string(),
 //       })
 //       .parse(request.body)
-//     const threadId = getUuid()
+//     const threadId = makeThreadId()
 //     await addToHistory(
 //       OnboardingUserStartedFirstThread({
 //         message,

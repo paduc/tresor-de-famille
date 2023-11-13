@@ -17,6 +17,8 @@ import { UserUpdatedThreadAsRichText } from './UserUpdatedThreadAsRichText'
 import { getChatPageProps } from './getChatHistory/getChatPageProps'
 import { UserSentMessageToChat } from './sendMessageToChat/UserSentMessageToChat'
 import { makePhotoId } from '../../libs/makePhotoId'
+import { makeThreadId } from '../../libs/makeThreadId'
+import { zIsThreadId } from '../../domain/ThreadId'
 
 const fakeProfilePicUrl =
   'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80'
@@ -37,7 +39,7 @@ pageRouter
   .post(requireAuth(), async (request, response) => {
     const userId = request.session.user!.id
 
-    const chatId = getUuid()
+    const chatId = makeThreadId()
 
     const { message } = request.body
 
@@ -61,7 +63,7 @@ pageRouter
 pageRouter
   .route('/chat/:chatId/chat.html')
   .get(requireAuth(), async (request, response) => {
-    const { chatId } = z.object({ chatId: zIsUUID }).parse(request.params)
+    const { chatId } = z.object({ chatId: zIsThreadId }).parse(request.params)
     const userId = request.session.user!.id
 
     const props = await getChatPageProps({ chatId, userId })
@@ -73,7 +75,7 @@ pageRouter
   .post(requireAuth(), upload.single('photo'), async (request, response) => {
     try {
       const userId = request.session.user!.id
-      const { chatId } = z.object({ chatId: zIsUUID }).parse(request.params)
+      const { chatId } = z.object({ chatId: zIsThreadId }).parse(request.params)
 
       const { action } = z
         .object({

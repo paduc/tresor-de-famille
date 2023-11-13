@@ -21,6 +21,7 @@ import { PhotoListPageUrl } from '../../listPhotos/PhotoListPageUrl'
 import { PersonPageURL } from '../../person/PersonPageURL'
 import { PersonId } from '../../../domain/PersonId'
 import { PhotoId } from '../../../domain/PhotoId'
+import { ThreadId } from '../../../domain/ThreadId'
 
 type PhotoFace = {
   faceId: FaceId
@@ -46,7 +47,7 @@ export type NewPhotoPageProps = {
   context?:
     | {
         type: 'thread'
-        threadId: UUID
+        threadId: ThreadId
       }
     | { type: 'profile'; profileId: PersonId }
 }
@@ -310,7 +311,7 @@ function SelectPersonForFacePanel({ close, selectedFace, photoId }: SelectPerson
   )
 }
 
-function getThreadUrl(threadId: UUID) {
+function getThreadUrl(threadId: ThreadId) {
   return `/chat/${threadId}/chat.html`
 }
 

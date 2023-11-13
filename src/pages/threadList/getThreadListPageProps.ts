@@ -1,6 +1,7 @@
 import { getEventList } from '../../dependencies/getEventList'
 import { getSingleEvent } from '../../dependencies/getSingleEvent'
 import { UUID } from '../../domain'
+import { ThreadId } from '../../domain/ThreadId'
 import { OnboardingUserStartedFirstThread } from '../../events/onboarding/OnboardingUserStartedFirstThread'
 import { UserInsertedPhotoInRichTextThread } from '../chat/UserInsertedPhotoInRichTextThread'
 import { UserSetChatTitle } from '../chat/UserSetChatTitle'
@@ -32,7 +33,7 @@ export const getThreadListPageProps = async (userId: UUID): Promise<ThreadListPa
   type ThreadEvent = MessageEvent
   const threadEvents: ThreadEvent[] = messagesEvents
 
-  const uniqueThreads = new Map<UUID, ThreadEvent[]>()
+  const uniqueThreads = new Map<ThreadId, ThreadEvent[]>()
   for (const threadEvent of threadEvents) {
     const threadId =
       threadEvent.type === 'OnboardingUserStartedFirstThread' ? threadEvent.payload.threadId : threadEvent.payload.chatId
@@ -44,7 +45,7 @@ export const getThreadListPageProps = async (userId: UUID): Promise<ThreadListPa
     uniqueThreads.get(threadId)!.push(threadEvent)
   }
 
-  const titleForThreadId = new Map<UUID, string | undefined>()
+  const titleForThreadId = new Map<ThreadId, string | undefined>()
   for (const uniqueThreadId of uniqueThreads.keys()) {
     const titleSet = await getSingleEvent<UserSetChatTitle>('UserSetChatTitle', { chatId: uniqueThreadId })
 

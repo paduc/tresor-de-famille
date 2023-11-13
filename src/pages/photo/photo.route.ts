@@ -23,6 +23,8 @@ import { makePersonId } from '../../libs/makePersonId'
 import { zIsPersonId } from '../../domain/PersonId'
 import { zIsPhotoId } from '../../domain/PhotoId'
 import { makePhotoId } from '../../libs/makePhotoId'
+import { ThreadId, zIsThreadId } from '../../domain/ThreadId'
+import { makeThreadId } from '../../libs/makeThreadId'
 
 const FILE_SIZE_LIMIT_MB = 50
 const upload = multer({
@@ -40,7 +42,7 @@ pageRouter
       const { photoId } = zod.object({ photoId: zIsPhotoId }).parse(request.params)
 
       const { threadId, profileId, updated } = z
-        .object({ threadId: zIsUUID.optional(), profileId: zIsPersonId.optional(), updated: z.string().optional() })
+        .object({ threadId: zIsThreadId.optional(), profileId: zIsPersonId.optional(), updated: z.string().optional() })
         .parse(request.query)
 
       const props = await getNewPhotoPageProps({ photoId, userId: request.session.user!.id })
@@ -63,7 +65,7 @@ pageRouter
     try {
       const userId = request.session.user!.id
 
-      const { threadId } = z.object({ threadId: zIsUUID.optional() }).parse(request.query)
+      const { threadId } = z.object({ threadId: zIsThreadId.optional() }).parse(request.query)
 
       const { action } = zod
         .object({
@@ -171,10 +173,10 @@ pageRouter
 pageRouter.route('/add-photo.html').post(requireAuth(), upload.single('photo'), async (request, response) => {
   try {
     const { chatId: chatIdFromForm, isOnboarding } = zod
-      .object({ chatId: z.union([zIsUUID.optional(), z.string()]), isOnboarding: zod.string().optional() })
+      .object({ chatId: z.union([zIsThreadId.optional(), z.string()]), isOnboarding: zod.string().optional() })
       .parse(request.body)
 
-    const chatId = !chatIdFromForm || chatIdFromForm === 'new' ? getUuid() : (chatIdFromForm as UUID)
+    const chatId = !chatIdFromForm || chatIdFromForm === 'new' ? makeThreadId() : (chatIdFromForm as ThreadId)
 
     const userId = request.session.user!.id
 

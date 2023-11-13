@@ -27,6 +27,7 @@ import { Epoch } from '../../../libs/typeguards'
 import { TipTapContentAsJSON } from '../TipTapTypes'
 import { useLoader } from '../../_components/layout/LoaderContext'
 import { PhotoId } from '../../../domain/PhotoId'
+import { ThreadId } from '../../../domain/ThreadId'
 
 // @ts-ignore
 function classNames(...classes) {
@@ -37,7 +38,7 @@ export type ChatPageProps = {
   title?: string
   contentAsJSON: TipTapContentAsJSON
   lastUpdated: Epoch | undefined
-  chatId: UUID
+  chatId: ThreadId
 }
 
 const isBrowserContext = typeof window !== 'undefined'
@@ -90,7 +91,7 @@ export type PhotoItemProps = {
   description?: string
   personsInPhoto: string[]
   unrecognizedFacesInPhoto: number
-  chatId: UUID
+  chatId: ThreadId
 }
 const PhotoItem = (props: PhotoItemProps) => {
   const { description, url, personsInPhoto, unrecognizedFacesInPhoto } = props
@@ -121,7 +122,7 @@ const PhotoItem = (props: PhotoItemProps) => {
   )
 }
 
-const Title = ({ title, chatId }: { title: string | undefined; chatId: UUID }) => {
+const Title = ({ title, chatId }: { title: string | undefined; chatId: ThreadId }) => {
   const [latestTitle, setLatestTitle] = useState<string | undefined>(title)
   const [status, setStatus] = useState<AutosaveStatus>('idle')
 
@@ -172,7 +173,7 @@ const Title = ({ title, chatId }: { title: string | undefined; chatId: UUID }) =
 type AutosaveStatus = 'idle' | 'saving' | 'saved' | 'error'
 const useAutosaveEditor = (
   editor: Editor | null,
-  chatId: UUID,
+  chatId: ThreadId,
   initialLastUpdated: Epoch | undefined
 ): { status: AutosaveStatus; lastUpdated: Epoch | undefined } => {
   // console.log('useAutosaveEditor', editor)
@@ -244,7 +245,7 @@ const useAutosaveEditor = (
 
 type RichTextEditorProps = {
   content: Content
-  chatId: UUID
+  chatId: ThreadId
   lastUpdated: Epoch | undefined
 }
 
@@ -363,7 +364,9 @@ const RichTextEditor = fixedForwardRef<RichTextEditorRef, RichTextEditorProps>((
 const PhotoItemWrappedForTipTap = (props: {
   node: {
     attrs: {
-      [Attr in keyof PhotoItemProps]: PhotoItemProps[Attr] extends PhotoId
+      [Attr in keyof PhotoItemProps]: PhotoItemProps[Attr] extends ThreadId
+        ? ThreadId
+        : PhotoItemProps[Attr] extends PhotoId
         ? PhotoId
         : PhotoItemProps[Attr] extends UUID
         ? UUID

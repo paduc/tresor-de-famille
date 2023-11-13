@@ -4,11 +4,12 @@ import { addToHistory } from '../../../dependencies/addToHistory'
 import { UserUploadedPhotoToChat } from './UserUploadedPhotoToChat'
 import { UUID } from '../../../domain'
 import { PhotoId } from '../../../domain/PhotoId'
+import { ThreadId } from '../../../domain/ThreadId'
 
 type UploadPhotoToChatArgs = {
   file: Express.Multer.File
   photoId: PhotoId
-  chatId: UUID
+  chatId: ThreadId
   userId: UUID
 }
 export async function uploadPhotoToChat({ file, photoId, chatId, userId }: UploadPhotoToChatArgs) {
@@ -16,5 +17,5 @@ export async function uploadPhotoToChat({ file, photoId, chatId, userId }: Uploa
 
   const location = await uploadPhoto({ contents: fs.createReadStream(originalPath), id: photoId })
 
-  await addToHistory(UserUploadedPhotoToChat({ chatId: chatId as UUID, photoId, location, uploadedBy: userId }))
+  await addToHistory(UserUploadedPhotoToChat({ chatId, photoId, location, uploadedBy: userId }))
 }
