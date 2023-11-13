@@ -1,11 +1,11 @@
 import { postgres } from '../dependencies/database'
 import { getSingleEvent } from '../dependencies/getSingleEvent'
 import { PersonId } from '../domain/PersonId'
-import { GedcomImported } from '../events'
+import { GedcomImported } from '../events/GedcomImported'
 import { UserNamedPersonInPhoto } from '../events/onboarding/UserNamedPersonInPhoto'
 import { UserNamedThemself } from '../events/onboarding/UserNamedThemself'
 
-import { OpenAIMadeDeductions } from './chat/sendToOpenAIForDeductions/OpenAIMadeDeductions'
+import { OpenAIMadeDeductions } from './thread/sendToOpenAIForDeductions/OpenAIMadeDeductions'
 import { UserCreatedRelationshipWithNewPerson } from './family/UserCreatedRelationshipWithNewPerson'
 import { UserChangedPersonName } from './person/UserChangedPersonName'
 import { PhotoAnnotatedUsingOpenAI } from './photo/annotatePhotoUsingOpenAI/PhotoAnnotatedUsingOpenAI'

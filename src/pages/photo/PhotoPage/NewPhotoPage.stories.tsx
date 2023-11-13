@@ -1,7 +1,7 @@
 import { SearchIndex } from 'algoliasearch/lite'
 import * as React from 'react'
 import { getUuid } from '../../../libs/getUuid'
-import { SessionContext } from '../../_components'
+import { SessionContext } from '../../_components/SessionContext'
 import { PersonSearchContext } from '../../_components/usePersonSearch'
 import { NewPhotoPage } from './NewPhotoPage'
 

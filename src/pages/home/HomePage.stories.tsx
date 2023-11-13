@@ -1,12 +1,13 @@
 import { SearchIndex } from 'algoliasearch'
 import * as React from 'react'
 import { getUuid } from '../../libs/getUuid'
-import { SessionContext } from '../_components'
 import { PersonSearchContext } from '../_components/usePersonSearch'
 import { HomePage } from './HomePage'
 import { makePhotoId } from '../../libs/makePhotoId'
 import { makePersonId } from '../../libs/makePersonId'
 import { makeFaceId } from '../../libs/makeFaceId'
+import { SessionContext } from '../_components/SessionContext'
+import { makeThreadId } from '../../libs/makeThreadId'
 
 const fakePersonSearch = async (query: string) => {
   return {
@@ -79,12 +80,12 @@ export const AfterOnboardingAvecSouvenirs = () => (
       isOnboarding={false}
       latestThreads={[
         {
-          threadId: getUuid(),
+          threadId: makeThreadId(),
           title: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
           lastUpdatedOn: Date.now(),
         },
         {
-          threadId: getUuid(),
+          threadId: makeThreadId(),
           title:
             'Et diam cursus quis sed purus nam. Scelerisque amet elit non sit ut tincidunt condimentum. Nisl ultrices eu venenatis diam.',
           lastUpdatedOn: Date.now(),

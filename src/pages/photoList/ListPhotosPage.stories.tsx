@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { makePhotoId } from '../../libs/makePhotoId'
-import { SessionContext } from '../_components'
+import { SessionContext } from '../_components/SessionContext'
 import { ListPhotosPage } from './ListPhotosPage'
 
 export default { title: 'Lister les Photos', component: ListPhotosPage, parameters: { layout: 'fullscreen' } }

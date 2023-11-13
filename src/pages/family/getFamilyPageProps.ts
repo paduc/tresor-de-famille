@@ -5,7 +5,7 @@ import { AppUserId } from '../../domain/AppUserId'
 import { PersonId } from '../../domain/PersonId'
 import { UserNamedPersonInPhoto } from '../../events/onboarding/UserNamedPersonInPhoto'
 import { UserNamedThemself } from '../../events/onboarding/UserNamedThemself'
-import { getPersonIdForUserId } from '../_getPersonIdForUserId.query'
+import { getPersonIdForUserId } from '../_getPersonIdForUserId'
 import { getProfilePicUrlForPerson } from '../_getProfilePicUrlForPerson'
 import { UserChangedPersonName } from '../person/UserChangedPersonName'
 

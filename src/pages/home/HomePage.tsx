@@ -6,11 +6,11 @@ import { PersonId } from '../../domain/PersonId'
 import { PhotoId } from '../../domain/PhotoId'
 import { ThreadId } from '../../domain/ThreadId'
 import { withBrowserBundle } from '../../libs/ssr/withBrowserBundle'
-import { SessionContext } from '../_components'
+import { SessionContext } from '../_components/SessionContext'
 import { buttonIconStyles, primaryButtonStyles, primaryGreenButtonStyles, secondaryButtonStyles } from '../_components/Button'
 import { InlinePhotoUploadBtn } from '../_components/InlinePhotoUploadBtn'
 import { AppLayout } from '../_components/layout/AppLayout'
-import { SendIcon } from '../chat/ChatPage/SendIcon'
+import { SendIcon } from '../thread/ChatPage/SendIcon'
 
 type Steps = GetUserName & UploadProfilePicture
 export type HomePageProps =

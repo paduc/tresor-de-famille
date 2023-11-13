@@ -1,6 +1,6 @@
 import { postgres } from '../../../dependencies/database'
 import { PersonId } from '../../../domain/PersonId'
-import { GedcomImported } from '../../../events'
+import { GedcomImported } from '../../../events/GedcomImported'
 import { makeIdCodeMap } from '../../../libs/makeIdCodeMap'
 
 export type DescribeFamilyArgs = {

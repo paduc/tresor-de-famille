@@ -10,7 +10,7 @@ import { addToHistory } from '../../dependencies/addToHistory'
 import { ALGOLIA_SEARCHKEY, PASSWORD_SALT, REGISTRATION_CODE } from '../../dependencies/env'
 import { parseZodErrors } from '../../libs/parseZodErrors'
 import { getPersonByIdOrThrow } from '../_getPersonById'
-import { getPersonIdForUserId } from '../_getPersonIdForUserId.query'
+import { getPersonIdForUserId } from '../_getPersonIdForUserId'
 import { searchClient } from '../../dependencies/search'
 
 const login = makeLogin(bcrypt.compare)

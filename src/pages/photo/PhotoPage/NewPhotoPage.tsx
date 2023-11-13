@@ -19,7 +19,7 @@ import {
 import { SessionContext } from '../../_components/SessionContext'
 import { TDFModal } from '../../_components/TDFModal'
 import { usePersonSearch } from '../../_components/usePersonSearch'
-import { PhotoListPageUrl } from '../../listPhotos/PhotoListPageUrl'
+import { PhotoListPageUrl } from '../../photoList/PhotoListPageUrl'
 import { PersonPageURL } from '../../person/PersonPageURL'
 
 type PhotoFace = {

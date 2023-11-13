@@ -11,12 +11,12 @@ import { LocationContext } from '../../pages/_components/LocationContext'
 import { Session, SessionContext } from '../../pages/_components/SessionContext'
 import { PersonSearchContext } from '../../pages/_components/usePersonSearch'
 import { getProfilePicUrlForUser } from '../../pages/_getProfilePicUrlForUser'
-import { UserSentMessageToChat } from '../../pages/chat/sendMessageToChat/UserSentMessageToChat'
-import { UserUploadedPhotoToChat } from '../../pages/chat/uploadPhotoToChat/UserUploadedPhotoToChat'
+import { UserSentMessageToChat } from '../../pages/thread/sendMessageToChat/UserSentMessageToChat'
+import { UserUploadedPhotoToChat } from '../../pages/thread/uploadPhotoToChat/UserUploadedPhotoToChat'
 import { withContext } from './withContext'
 
 import manifest from '../../assets/js/manifest.json'
-import { getPersonIdForUserId } from '../../pages/_getPersonIdForUserId.query'
+import { getPersonIdForUserId } from '../../pages/_getPersonIdForUserId'
 
 const html = String.raw
 

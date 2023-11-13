@@ -1,5 +1,0 @@
-export * from './FauxUtilisateurInscrit'
-export * from './GedcomImported'
-export * from './UserAddedBunnyCDNVideo'
-export * from './UserRegisteredWithEmailAndPassword'
-export * from './VideoSequenceAdded'

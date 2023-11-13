@@ -1,7 +1,8 @@
 import c from 'classnames'
 import { XCircleIcon } from '@heroicons/react/20/solid'
 import * as React from 'react'
-import { Layout, Logo } from '../_components'
+import { Logo } from '../_components/Logo'
+import { Layout } from '../_components/layout/Layout'
 
 type ConnexionPageProps = {
   loginType?: 'login' | 'register'

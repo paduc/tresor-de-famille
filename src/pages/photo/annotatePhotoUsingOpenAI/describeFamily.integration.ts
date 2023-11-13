@@ -1,7 +1,7 @@
 import { resetDatabase } from '../../../dependencies/__test__/resetDatabase'
 import { addToHistory } from '../../../dependencies/addToHistory'
 import { AppUserId } from '../../../domain/AppUserId'
-import { GedcomImported } from '../../../events'
+import { GedcomImported } from '../../../events/GedcomImported'
 import { makePersonId } from '../../../libs/makePersonId'
 import { describeFamily } from './describeFamily'
 
