@@ -2,6 +2,7 @@ import { postgres } from '../../dependencies/database'
 import { getEventList } from '../../dependencies/getEventList'
 import { getSingleEvent } from '../../dependencies/getSingleEvent'
 import { UUID } from '../../domain'
+import { PersonId } from '../../domain/PersonId'
 import { UserNamedPersonInPhoto } from '../../events/onboarding/UserNamedPersonInPhoto'
 import { UserNamedThemself } from '../../events/onboarding/UserNamedThemself'
 import { getPersonIdForUserId } from '../_getPersonIdForUserId.query'
@@ -32,7 +33,7 @@ async function getUserFamilyPersonIds(userId: UUID): Promise<Person[]> {
     { userId }
   )
 
-  const persons = new Map<UUID, Person>()
+  const persons = new Map<PersonId, Person>()
   for (const event of events) {
     const { personId } = event.type === 'UserCreatedRelationshipWithNewPerson' ? event.payload.newPerson : event.payload
     if (persons.has(personId)) continue
@@ -52,7 +53,7 @@ async function getUserFamilyPersonIds(userId: UUID): Promise<Person[]> {
 }
 
 type Relationship = FamilyPageProps['initialRelationships'][number]
-async function getFamilyRelationships(personIds: UUID[], userId: UUID): Promise<Relationship[]> {
+async function getFamilyRelationships(personIds: PersonId[], userId: UUID): Promise<Relationship[]> {
   const relationships: Relationship[] = []
 
   const removedRelationshipIds = (await getEventList<UserRemovedRelationship>('UserRemovedRelationship', { userId })).map(

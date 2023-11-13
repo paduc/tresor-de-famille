@@ -11,12 +11,13 @@ import { getPersonPageProps } from './getPersonPageProps'
 import { UserChangedPersonName } from './UserChangedPersonName'
 import { personsIndex } from '../../dependencies/search'
 import { zIsFaceId } from '../../domain/FaceId'
+import { zIsPersonId } from '../../domain/PersonId'
 
 pageRouter
   .route(PersonPageURL())
   .get(requireAuth(), async (request, response) => {
     try {
-      const { personId } = z.object({ personId: zIsUUID }).parse(request.params)
+      const { personId } = z.object({ personId: zIsPersonId }).parse(request.params)
       const userId = request.session.user!.id
 
       const props = await getPersonPageProps(personId, userId)
@@ -42,7 +43,7 @@ pageRouter
           .object({
             photoId: zIsUUID,
             faceId: zIsFaceId,
-            personId: zIsUUID,
+            personId: zIsPersonId,
           })
           .parse(request.body)
 
@@ -62,7 +63,7 @@ pageRouter
           .object({
             newName: z.string(),
             oldName: z.string(),
-            personId: zIsUUID,
+            personId: zIsPersonId,
           })
           .parse(request.body)
 

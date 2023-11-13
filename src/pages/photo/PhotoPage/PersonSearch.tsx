@@ -1,7 +1,7 @@
 import { Combobox, Dialog, Transition } from '@headlessui/react'
 import { CheckIcon, MagnifyingGlassIcon } from '@heroicons/react/20/solid'
 import React, { Fragment, useState } from 'react'
-import { UUID } from '../../../domain/UUID'
+import { PersonId } from '../../../domain/PersonId'
 import { usePersonSearch } from '../../_components/usePersonSearch'
 
 type SearchPersonHitDTO = {
@@ -12,7 +12,7 @@ type SearchPersonHitDTO = {
 }
 
 type PersonSearchProps = {
-  onPersonSelected: (personId: UUID) => unknown
+  onPersonSelected: (personId: PersonId) => unknown
   open: boolean
   setOpen: (isOpen: boolean) => unknown
   personFaceUrl?: string

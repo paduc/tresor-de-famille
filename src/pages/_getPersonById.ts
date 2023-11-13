@@ -1,6 +1,6 @@
 import { postgres } from '../dependencies/database'
 import { getSingleEvent } from '../dependencies/getSingleEvent'
-import { UUID } from '../domain'
+import { PersonId } from '../domain/PersonId'
 import { GedcomImported } from '../events'
 import { UserNamedPersonInPhoto } from '../events/onboarding/UserNamedPersonInPhoto'
 import { UserNamedThemself } from '../events/onboarding/UserNamedThemself'
@@ -16,9 +16,7 @@ type GedcomPerson = GedcomImported['payload']['persons'][number]
 export type PersonById = GedcomPerson | OpenAIDeductionPerson
 
 // This is a helper because it has become frequent
-export const getPersonById = async (personId: UUID): Promise<PersonById | null> => {
-  type PersonId = UUID
-
+export const getPersonById = async (personId: PersonId): Promise<PersonById | null> => {
   const personIdMap = new Map<PersonId, PersonById>()
 
   function addOrMerge(personId: PersonId, info: PersonById) {
@@ -106,7 +104,7 @@ export const getPersonById = async (personId: UUID): Promise<PersonById | null> 
   return person
 }
 
-export const getPersonByIdOrThrow = async (personId: UUID): Promise<PersonById> => {
+export const getPersonByIdOrThrow = async (personId: PersonId): Promise<PersonById> => {
   const person = await getPersonById(personId)
   if (person === null) {
     throw new Error(`Could not retrieve person for id ${personId}`)

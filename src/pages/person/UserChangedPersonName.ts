@@ -1,10 +1,11 @@
 import { UUID } from '../../domain'
 import { DomainEvent, makeDomainEvent } from '../../dependencies/DomainEvent'
+import { PersonId } from '../../domain/PersonId'
 
 export type UserChangedPersonName = DomainEvent<
   'UserChangedPersonName',
   {
-    personId: UUID
+    personId: PersonId
     name: string
     userId: UUID
   }

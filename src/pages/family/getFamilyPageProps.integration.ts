@@ -2,6 +2,7 @@ import { resetDatabase } from '../../dependencies/__test__/resetDatabase'
 import { addToHistory } from '../../dependencies/addToHistory'
 import { UserNamedThemself } from '../../events/onboarding/UserNamedThemself'
 import { getUuid } from '../../libs/getUuid'
+import { makePersonId } from '../../libs/makePersonId'
 import { UserCreatedNewRelationship } from './UserCreatedNewRelationship'
 import { UserCreatedRelationshipWithNewPerson } from './UserCreatedRelationshipWithNewPerson'
 import { UserRemovedRelationship } from './UserRemovedRelationship'
@@ -9,11 +10,11 @@ import { getFamilyPageProps } from './getFamilyPageProps'
 
 describe('getFamilyProps', () => {
   const userId = getUuid()
-  const personId = getUuid()
+  const personId = makePersonId()
 
   describe('getFamilyRelationships', () => {
     describe('when UserCreatedRelationshipWithNewPerson with type parent and parentId = personId', () => {
-      const newPersonId = getUuid()
+      const newPersonId = makePersonId()
       const relationshipId = getUuid()
 
       beforeAll(async () => {
@@ -44,7 +45,7 @@ describe('getFamilyProps', () => {
               personId: newPersonId,
               name: 'new name',
             },
-            relationship: { id: getUuid(), type: 'parent', parentId: getUuid(), childId: newPersonId },
+            relationship: { id: getUuid(), type: 'parent', parentId: makePersonId(), childId: newPersonId },
           })
         )
       })
@@ -71,7 +72,7 @@ describe('getFamilyProps', () => {
     })
 
     describe('when UserCreatedRelationshipWithNewPerson with type spouses and spouseIds[0] = personId', () => {
-      const newPersonId = getUuid()
+      const newPersonId = makePersonId()
       const relationshipId = getUuid()
 
       beforeAll(async () => {
@@ -102,7 +103,7 @@ describe('getFamilyProps', () => {
               personId: newPersonId,
               name: 'new name',
             },
-            relationship: { id: getUuid(), type: 'spouses', spouseIds: [getUuid(), newPersonId] },
+            relationship: { id: getUuid(), type: 'spouses', spouseIds: [makePersonId(), newPersonId] },
           })
         )
       })
@@ -128,7 +129,7 @@ describe('getFamilyProps', () => {
     })
 
     describe('when UserCreatedRelationshipWithNewPerson with type friends and friendIds[0] = personId', () => {
-      const newPersonId = getUuid()
+      const newPersonId = makePersonId()
       const relationshipId = getUuid()
 
       beforeAll(async () => {
@@ -159,7 +160,7 @@ describe('getFamilyProps', () => {
               personId: newPersonId,
               name: 'new name',
             },
-            relationship: { id: getUuid(), type: 'friends', friendIds: [getUuid(), newPersonId] },
+            relationship: { id: getUuid(), type: 'friends', friendIds: [makePersonId(), newPersonId] },
           })
         )
       })
@@ -185,7 +186,7 @@ describe('getFamilyProps', () => {
     })
 
     describe('when the same happens from UserCreatedNewRelationship', () => {
-      const newPersonId = getUuid()
+      const newPersonId = makePersonId()
       const friendRelationshipId = getUuid()
       const spouseRelId = getUuid()
 
@@ -259,7 +260,7 @@ describe('getFamilyProps', () => {
       })
     })
     describe('when the same happens after UserRemovedRelationship', () => {
-      const newPersonId = getUuid()
+      const newPersonId = makePersonId()
       const removedRelationshipId = getUuid()
 
       beforeAll(async () => {

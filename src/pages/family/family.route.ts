@@ -14,10 +14,9 @@ import { getSingleEvent } from '../../dependencies/getSingleEvent'
 import { getUuid } from '../../libs/getUuid'
 import { getEventList } from '../../dependencies/getEventList'
 import { UserRemovedRelationship } from './UserRemovedRelationship'
+import { zIsPersonId } from '../../domain/PersonId'
 
 pageRouter.route(FamilyPageURL()).get(requireAuth(), async (request, response) => {
-  // const { personId } = z.object({ personId: zIsUUID }).parse(request.params)
-
   const props = await getFamilyPageProps(request.session.user!.id)
 
   responseAsHtml(request, response, FamilyPage(props))
@@ -29,9 +28,9 @@ const zIsRelationship = z
   })
   .and(
     z.discriminatedUnion('type', [
-      z.object({ type: z.literal('parent'), parentId: zIsUUID, childId: zIsUUID }),
-      z.object({ type: z.literal('spouses'), spouseIds: z.tuple([zIsUUID, zIsUUID]) }),
-      z.object({ type: z.literal('friends'), friendIds: z.tuple([zIsUUID, zIsUUID]) }),
+      z.object({ type: z.literal('parent'), parentId: zIsPersonId, childId: zIsPersonId }),
+      z.object({ type: z.literal('spouses'), spouseIds: z.tuple([zIsPersonId, zIsPersonId]) }),
+      z.object({ type: z.literal('friends'), friendIds: z.tuple([zIsPersonId, zIsPersonId]) }),
     ])
   )
 
@@ -41,7 +40,7 @@ pageRouter.route('/family/saveNewRelationship').post(requireAuth(), async (reque
   const userId = request.session.user!.id
   const { newPerson, relationship, secondaryRelationships } = z
     .object({
-      newPerson: z.object({ personId: zIsUUID, name: z.string() }).optional(),
+      newPerson: z.object({ personId: zIsPersonId, name: z.string() }).optional(),
       relationship: zIsRelationship,
       secondaryRelationships: z.array(zIsRelationship),
     })

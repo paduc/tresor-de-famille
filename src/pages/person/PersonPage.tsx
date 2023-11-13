@@ -8,6 +8,7 @@ import { InlinePhotoUploadBtn } from '../_components/InlinePhotoUploadBtn'
 import { TDFModal } from '../_components/TDFModal'
 import { AppLayout } from '../_components/layout/AppLayout'
 import { FaceId } from '../../domain/FaceId'
+import { PersonId } from '../../domain/PersonId'
 
 // @ts-ignore
 function classNames(...classes) {
@@ -16,7 +17,7 @@ function classNames(...classes) {
 
 export type PersonPageProps = {
   person: {
-    personId: UUID
+    personId: PersonId
     name: string
     profilePicUrl: string | null
   }
@@ -157,7 +158,7 @@ type ProfilePictureSelectorProps = {
   isOpen: boolean
   close: () => void
   currentFaceUrl: string | null
-  personId: UUID
+  personId: PersonId
   faceList: {
     faceId: FaceId
     photoId: UUID
@@ -215,7 +216,7 @@ type NameChangerProps = {
   name: string
   isOpen: boolean
   close: () => void
-  personId: UUID
+  personId: PersonId
 }
 function NameChanger({ isOpen, close, name, personId }: NameChangerProps) {
   const formRef = React.useRef<HTMLFormElement>(null)

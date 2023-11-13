@@ -1,5 +1,6 @@
 import { DomainEvent, makeDomainEvent } from '../../dependencies/DomainEvent'
 import { FaceId } from '../../domain/FaceId'
+import { PersonId } from '../../domain/PersonId'
 import { UUID } from '../../domain/UUID'
 
 export type UserConfirmedHisFace = DomainEvent<
@@ -8,7 +9,7 @@ export type UserConfirmedHisFace = DomainEvent<
     userId: UUID
     faceId: FaceId
     photoId: UUID
-    personId: UUID
+    personId: PersonId
   }
 >
 

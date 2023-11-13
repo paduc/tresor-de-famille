@@ -19,6 +19,8 @@ import { PhotoListPageUrl } from '../listPhotos/PhotoListPageUrl'
 import { UserDeletedPhoto } from './UserDeletedPhoto'
 import { doesPhotoExist } from '../_doesPhotoExist'
 import { zIsFaceId } from '../../domain/FaceId'
+import { makePersonId } from '../../libs/makePersonId'
+import { zIsPersonId } from '../../domain/PersonId'
 
 const FILE_SIZE_LIMIT_MB = 50
 const upload = multer({
@@ -36,7 +38,7 @@ pageRouter
       const { photoId } = zod.object({ photoId: zIsUUID }).parse(request.params)
 
       const { threadId, profileId, updated } = z
-        .object({ threadId: zIsUUID.optional(), profileId: zIsUUID.optional(), updated: z.string().optional() })
+        .object({ threadId: zIsUUID.optional(), profileId: zIsPersonId.optional(), updated: z.string().optional() })
         .parse(request.query)
 
       const props = await getNewPhotoPageProps({ photoId, userId: request.session.user!.id })
@@ -101,7 +103,7 @@ pageRouter
             .parse(request.body)
 
           if (newFamilyMemberName && newFamilyMemberName.length > 0) {
-            const personId = getUuid()
+            const personId = makePersonId()
             await addToHistory(
               UserNamedPersonInPhoto({
                 userId,
@@ -126,7 +128,7 @@ pageRouter
           } else {
             const { existingFamilyMemberId } = z
               .object({
-                existingFamilyMemberId: zIsUUID,
+                existingFamilyMemberId: zIsPersonId,
               })
               .parse(request.body)
             await addToHistory(

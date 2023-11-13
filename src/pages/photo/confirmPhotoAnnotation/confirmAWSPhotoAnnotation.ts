@@ -3,12 +3,13 @@ import { postgres } from '../../../dependencies/database'
 import { normalizeBBOX } from '../../../dependencies/face-recognition'
 import { UUID } from '../../../domain'
 import { FaceId } from '../../../domain/FaceId'
+import { PersonId } from '../../../domain/PersonId'
 import { AWSDetectedFacesInPhoto } from '../recognizeFacesInChatPhoto/AWSDetectedFacesInPhoto'
 import { PhotoAnnotationConfirmed } from './PhotoAnnotationConfirmed'
 
 type ConfirmAWSPhotoAnnotationArgs = {
   photoId: UUID
-  personId: UUID
+  personId: PersonId
   faceId: FaceId
   confirmedBy: UUID
 }

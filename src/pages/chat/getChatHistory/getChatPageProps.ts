@@ -3,6 +3,7 @@ import { getSingleEvent } from '../../../dependencies/getSingleEvent'
 import { getPhotoUrlFromId } from '../../../dependencies/photo-storage'
 import { UUID } from '../../../domain'
 import { FaceId } from '../../../domain/FaceId'
+import { PersonId } from '../../../domain/PersonId'
 import { FaceIgnoredInPhoto } from '../../../events/onboarding/FaceIgnoredInPhoto'
 import { UserNamedPersonInPhoto } from '../../../events/onboarding/UserNamedPersonInPhoto'
 import { UserRecognizedPersonInPhoto } from '../../../events/onboarding/UserRecognizedPersonInPhoto'
@@ -189,7 +190,7 @@ type PhotoFace = {
     }
   | {
       stage: 'done'
-      personId: UUID
+      personId: PersonId
       name: string
     }
 )

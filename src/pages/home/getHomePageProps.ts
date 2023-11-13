@@ -1,6 +1,7 @@
 import { getSingleEvent } from '../../dependencies/getSingleEvent'
 import { getPhotoUrlFromId } from '../../dependencies/photo-storage'
 import { UUID } from '../../domain'
+import { PersonId } from '../../domain/PersonId'
 import { OnboardingUserUploadedPhotoOfThemself } from '../../events/onboarding/OnboardingUserUploadedPhotoOfThemself'
 import { UserConfirmedHisFace } from '../../events/onboarding/UserConfirmedHisFace'
 import { UserNamedPersonInPhoto } from '../../events/onboarding/UserNamedPersonInPhoto'
@@ -46,7 +47,7 @@ async function getGetUserName(userId: UUID): Promise<GetUserName> {
   return { 'get-user-name': 'pending' }
 }
 
-async function getUploadProfilePicture(userId: UUID, personId?: UUID): Promise<UploadProfilePicture> {
+async function getUploadProfilePicture(userId: UUID, personId?: PersonId): Promise<UploadProfilePicture> {
   const userFaceConfirmed = await getSingleEvent<UserConfirmedHisFace>('UserConfirmedHisFace', { userId })
 
   if (userFaceConfirmed) {

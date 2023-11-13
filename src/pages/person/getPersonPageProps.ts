@@ -13,8 +13,9 @@ import { PersonPageProps } from './PersonPage'
 import { UserDeletedPhoto } from '../photo/UserDeletedPhoto'
 import { getProfilePicUrlForPerson } from '../_getProfilePicUrlForPerson'
 import { FaceId } from '../../domain/FaceId'
+import { PersonId } from '../../domain/PersonId'
 
-export const getPersonPageProps = async (personId: UUID, userId: UUID): Promise<PersonPageProps> => {
+export const getPersonPageProps = async (personId: PersonId, userId: UUID): Promise<PersonPageProps> => {
   const { photos, alternateProfilePics } = await getPersonPhotos(personId, userId)
 
   const { name } = (await getPersonById(personId)) || { name: 'N/A' }
@@ -27,7 +28,7 @@ export const getPersonPageProps = async (personId: UUID, userId: UUID): Promise<
     alternateProfilePics,
   }
 }
-async function getPersonPhotos(personId: UUID, userId: UUID) {
+async function getPersonPhotos(personId: PersonId, userId: UUID) {
   const photoEvents = await getEventList<
     | PhotoAnnotationConfirmed
     | PhotoManuallyAnnotated

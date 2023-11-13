@@ -19,6 +19,7 @@ import { TDFModal } from '../../_components/TDFModal'
 import { usePersonSearch } from '../../_components/usePersonSearch'
 import { PhotoListPageUrl } from '../../listPhotos/PhotoListPageUrl'
 import { PersonPageURL } from '../../person/PersonPageURL'
+import { PersonId } from '../../../domain/PersonId'
 
 type PhotoFace = {
   faceId: FaceId
@@ -31,7 +32,7 @@ type PhotoFace = {
     }
   | {
       stage: 'done'
-      personId: UUID
+      personId: PersonId
       name: string
     }
 )
@@ -46,7 +47,7 @@ export type NewPhotoPageProps = {
         type: 'thread'
         threadId: UUID
       }
-    | { type: 'profile'; profileId: UUID }
+    | { type: 'profile'; profileId: PersonId }
 }
 
 export const NewPhotoPage = withBrowserBundle(({ context, caption, photoId, photoUrl, faces }: NewPhotoPageProps) => {

@@ -1,10 +1,11 @@
 import { DomainEvent, makeDomainEvent } from '../../dependencies/DomainEvent'
 import { UUID } from '../../domain'
+import { PersonId } from '../../domain/PersonId'
 
 export type UserIgnoredRelationship = DomainEvent<
   'UserIgnoredRelationship',
   {
-    personId: UUID
+    personId: PersonId
 
     userId: UUID
   }

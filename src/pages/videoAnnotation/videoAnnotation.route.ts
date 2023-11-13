@@ -8,6 +8,7 @@ import { pageRouter } from '../pageRouter'
 import { getVideo } from './getVideo.query'
 import { VideoAnnotationPage } from './VideoAnnotationPage'
 import { addToHistory } from '../../dependencies/addToHistory'
+import { zIsPersonId } from '../../domain/PersonId'
 
 pageRouter
   .route('/video/:videoId/annotate.html')
@@ -35,7 +36,7 @@ pageRouter
           description: zod.string(),
           date: zod.string(),
           places: zod.union([zCustom(isPlace), zod.array(zCustom(isPlace))]),
-          persons: zod.union([zIsUUID, zod.array(zIsUUID)]),
+          persons: zod.union([zIsPersonId, zod.array(zIsPersonId)]),
           startTime: zIsMediaTime,
           endTime: zIsMediaTime,
         })

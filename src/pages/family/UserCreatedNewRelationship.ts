@@ -1,19 +1,20 @@
 import { UUID } from '../../domain'
 import { DomainEvent, makeDomainEvent } from '../../dependencies/DomainEvent'
+import { PersonId } from '../../domain/PersonId'
 
 export type Relationship = { id: UUID } & (
   | {
       type: 'parent'
-      parentId: UUID
-      childId: UUID
+      parentId: PersonId
+      childId: PersonId
     }
   | {
       type: 'spouses'
-      spouseIds: [UUID, UUID]
+      spouseIds: [PersonId, PersonId]
     }
   | {
       type: 'friends'
-      friendIds: [UUID, UUID]
+      friendIds: [PersonId, PersonId]
     }
 )
 

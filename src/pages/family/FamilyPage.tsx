@@ -25,6 +25,8 @@ import { PersonAutocomplete } from '../_components/PersonAutocomplete'
 import { TDFModal } from '../_components/TDFModal'
 import { AppLayout } from '../_components/layout/AppLayout'
 import { PersonPageURL } from '../person/PersonPageURL'
+import { PersonId } from '../../domain/PersonId'
+import { makePersonId } from '../../libs/makePersonId'
 
 // @ts-ignore
 function classNames(...classes) {
@@ -34,28 +36,28 @@ function classNames(...classes) {
 type Person = {
   profilePicUrl: string | null
   name: string
-  personId: UUID
+  personId: PersonId
 }
 
 type Relationship = { id: UUID } & (
   | {
       type: 'parent'
-      parentId: UUID
-      childId: UUID
+      parentId: PersonId
+      childId: PersonId
     }
   | {
       type: 'spouses'
-      spouseIds: [UUID, UUID] // in which order ? alphabetical on UUID ?
+      spouseIds: [PersonId, PersonId] // in which order ? alphabetical on PersonId ?
     }
   | {
       type: 'friends'
-      friendIds: [UUID, UUID]
+      friendIds: [PersonId, PersonId]
     }
 )
 
 type PersonsRelationships = {
   origin: {
-    personId: UUID
+    personId: PersonId
     x: number
     y: number
   }
@@ -100,7 +102,7 @@ function closeFamilyMembers({ origin, persons, relationships }: PersonsRelations
     (rel): rel is Relationship & { type: 'spouses' } => rel.type === 'spouses' && rel.spouseIds.includes(originPersonId)
   )
   let coupleNode: Node | null = null
-  const spouseIds: UUID[] = []
+  const spouseIds: PersonId[] = []
   if (spouseRel) {
     const spouseId = spouseRel.spouseIds.find((personId) => personId !== originPersonId)!
 
@@ -149,7 +151,7 @@ function closeFamilyMembers({ origin, persons, relationships }: PersonsRelations
       return []
     }
 
-    const childIds = new Set<UUID>(childRelationships.map((rel) => rel.childId))
+    const childIds = new Set<PersonId>(childRelationships.map((rel) => rel.childId))
 
     const childCount = childIds.size
 
@@ -158,11 +160,11 @@ function closeFamilyMembers({ origin, persons, relationships }: PersonsRelations
     const childrenBoxWidth = childCount * BUBBLE_RADIUS * 2 + (childCount - 1) * CHILD_GAP
     const childrenBoxX = parentNode.position.x + BUBBLE_RADIUS
 
-    type ChildId = UUID
+    type ChildId = PersonId
 
     type CoupleNodeId = string
 
-    const uniqueParentIds = new Set<UUID>(spouseIds) // Add the spouses so they appear in uniqueParentIds.size()
+    const uniqueParentIds = new Set<PersonId>(spouseIds) // Add the spouses so they appear in uniqueParentIds.size()
 
     const coupleChildren = new Map<CoupleNodeId, ChildId[]>()
     for (const childId of childIds) {
@@ -193,7 +195,7 @@ function closeFamilyMembers({ origin, persons, relationships }: PersonsRelations
       coupleChildren.get(coupleNode.id)!.push(childId)
     }
 
-    const couplesSortedByX: [string, UUID[]][] = Array.from(coupleChildren.keys())
+    const couplesSortedByX: [string, PersonId[]][] = Array.from(coupleChildren.keys())
       .sort((a, b) => {
         const nodeA = findNode(a)
         const xA = nodeA ? nodeA.position.x : Infinity
@@ -243,7 +245,7 @@ function closeFamilyMembers({ origin, persons, relationships }: PersonsRelations
       let parent2NodeExisted = true
       if (!parent2Node) {
         parent2NodeExisted = false
-        parent2Node = makePersonNode(parent2Id as UUID, { x: parent1Node.position.x + 100, y: 0 }) // place it arbitrarily on the right of the parent1Node so that makeCoupleEdges knows to which handles to connect
+        parent2Node = makePersonNode(parent2Id as PersonId, { x: parent1Node.position.x + 100, y: 0 }) // place it arbitrarily on the right of the parent1Node so that makeCoupleEdges knows to which handles to connect
       }
 
       const coupleNode = makeCoupleNode(parent1Node, parent2Node)
@@ -351,7 +353,7 @@ function closeFamilyMembers({ origin, persons, relationships }: PersonsRelations
     return [parent1Node]
   }
 
-  function getParents(personId: string): Set<UUID> {
+  function getParents(personId: string): Set<PersonId> {
     const rels = relationships.filter(
       (rel): rel is Relationship & { type: 'parent' } => rel.type === 'parent' && rel.childId === personId
     )
@@ -405,7 +407,7 @@ function closeFamilyMembers({ origin, persons, relationships }: PersonsRelations
         if (!coupleNode) return 0
 
         for (const siblingId of trueSiblings) {
-          const siblingNode = makePersonNode(siblingId as UUID, {
+          const siblingNode = makePersonNode(siblingId as PersonId, {
             x: personNode.position.x - X_OFFSET * ++counter,
             y: personNode.position.y,
           })
@@ -416,7 +418,7 @@ function closeFamilyMembers({ origin, persons, relationships }: PersonsRelations
 
       if (halfSiblings.size) {
         for (const [siblingId, parentId] of halfSiblings) {
-          const siblingNode = makePersonNode(siblingId as UUID, {
+          const siblingNode = makePersonNode(siblingId as PersonId, {
             x: personNode.position.x - X_OFFSET * ++counter,
             y: personNode.position.y,
           })
@@ -431,7 +433,7 @@ function closeFamilyMembers({ origin, persons, relationships }: PersonsRelations
     // One parent
     // use the parent node
     for (const siblingId of trueSiblings) {
-      const siblingNode = makePersonNode(siblingId as UUID, {
+      const siblingNode = makePersonNode(siblingId as PersonId, {
         x: personNode.position.x - X_OFFSET * ++counter,
         y: personNode.position.y,
       })
@@ -442,7 +444,7 @@ function closeFamilyMembers({ origin, persons, relationships }: PersonsRelations
     return trueSiblings.size
   }
 
-  function makePersonNode(personId: UUID, position: { x: number; y: number }) {
+  function makePersonNode(personId: PersonId, position: { x: number; y: number }) {
     const person = getPersonById(personId)
     return {
       id: personId,
@@ -507,7 +509,7 @@ function closeFamilyMembers({ origin, persons, relationships }: PersonsRelations
     return [coupleToRightSpouse, coupleToLeftSpouse]
   }
 
-  function getPersonById(personId: UUID): Person {
+  function getPersonById(personId: PersonId): Person {
     const person = persons.find((person) => person.personId === personId)
     if (!person) throw new Error('Could not find personId in list of persons')
 
@@ -519,7 +521,7 @@ function closeFamilyMembers({ origin, persons, relationships }: PersonsRelations
 
 type NewRelationshipAction = 'addChild' | 'addParent' | 'addFriend' | 'addSpouse'
 type PendingNodeRelationshipAction = {
-  personId: UUID
+  personId: PersonId
   relationshipAction: NewRelationshipAction
 }
 
@@ -535,7 +537,7 @@ const nodeTypes = {
 export type FamilyPageProps = {
   initialPersons: Person[]
   initialRelationships: Relationship[]
-  initialOriginPersonId: UUID
+  initialOriginPersonId: PersonId
 }
 
 export const FamilyPage = withBrowserBundle((props: FamilyPageProps) => {
@@ -556,7 +558,7 @@ const ClientOnlyFamilyPage = ({ initialPersons, initialRelationships, initialOri
   const [edges, setEdges, onEdgesChange] = useEdgesState([])
   const [persons, setPersons] = useState(initialPersons)
   const [relationships, setRelationships] = useState(initialRelationships)
-  const [origin, setOrigin] = useState<{ personId: UUID; x: number; y: number }>({
+  const [origin, setOrigin] = useState<{ personId: PersonId; x: number; y: number }>({
     personId: initialOriginPersonId,
     x: 0,
     y: 0,
@@ -581,7 +583,7 @@ const ClientOnlyFamilyPage = ({ initialPersons, initialRelationships, initialOri
 
   const onRelationshipButtonPressed = useCallback((nodeId: string, newRelationshipAction: NewRelationshipAction) => {
     // Move the nodeId and the action to state
-    setPendingRelationshipAction({ personId: nodeId as UUID, relationshipAction: newRelationshipAction })
+    setPendingRelationshipAction({ personId: nodeId as PersonId, relationshipAction: newRelationshipAction })
   }, [])
 
   const onSearchPersonSelected = useCallback<SearchPanelProps['onPersonSelected']>(
@@ -620,9 +622,9 @@ const ClientOnlyFamilyPage = ({ initialPersons, initialRelationships, initialOri
         })
       } catch (error) {}
 
-      function getNewPerson(person: Exclude<typeof selectedPerson, null>): { newPerson?: Person; targetPersonId: UUID } {
+      function getNewPerson(person: Exclude<typeof selectedPerson, null>): { newPerson?: Person; targetPersonId: PersonId } {
         if (person.type === 'unknown') {
-          const newPersonId = getUuid()
+          const newPersonId = makePersonId()
           return {
             newPerson: { personId: newPersonId, name: person.name, profilePicUrl: null },
             targetPersonId: newPersonId,
@@ -632,7 +634,7 @@ const ClientOnlyFamilyPage = ({ initialPersons, initialRelationships, initialOri
         return { targetPersonId: person.personId }
       }
 
-      function getNewRelationship(sourcePersonId: UUID): Relationship {
+      function getNewRelationship(sourcePersonId: PersonId): Relationship {
         switch (relationshipAction) {
           case 'addChild':
             return { id: getUuid(), type: 'parent', childId: targetPersonId, parentId: sourcePersonId }
@@ -666,7 +668,7 @@ const ClientOnlyFamilyPage = ({ initialPersons, initialRelationships, initialOri
       const selectedNode = nodes[0]
       if (selectedNode.id === origin.personId) return
       const { x, y } = selectedNode.position
-      setOrigin({ personId: selectedNode.id as UUID, x, y })
+      setOrigin({ personId: selectedNode.id as PersonId, x, y })
     },
     [reactFlowInstance, origin]
   )
@@ -708,7 +710,8 @@ const ClientOnlyFamilyPage = ({ initialPersons, initialRelationships, initialOri
 }
 
 const ContextualMenuContext = React.createContext<
-  { isOpen: boolean; close: () => unknown; open: (personId: UUID) => unknown; selectedPersonId: UUID | null } | undefined
+  | { isOpen: boolean; close: () => unknown; open: (personId: PersonId) => unknown; selectedPersonId: PersonId | null }
+  | undefined
 >(undefined)
 
 const useContextualMenu = function () {
@@ -722,14 +725,14 @@ const useContextualMenu = function () {
 }
 
 function ContextualMenuProvider({ children }: { children: React.ReactNode }) {
-  const [selectedPersonId, setSelectedPersonId] = useState<UUID | null>(null)
+  const [selectedPersonId, setSelectedPersonId] = useState<PersonId | null>(null)
 
   return (
     <ContextualMenuContext.Provider
       value={{
         isOpen: !!selectedPersonId,
         close: () => setSelectedPersonId(null),
-        open: (personId: UUID) => {
+        open: (personId: PersonId) => {
           setSelectedPersonId(personId)
         },
         selectedPersonId,
@@ -740,7 +743,7 @@ function ContextualMenuProvider({ children }: { children: React.ReactNode }) {
 }
 
 type ContextualMenuProps = {
-  onRelationshipButtonPressed: (personId: UUID, newRelationshipAction: NewRelationshipAction) => unknown
+  onRelationshipButtonPressed: (personId: PersonId, newRelationshipAction: NewRelationshipAction) => unknown
 }
 function ContextualMenu({ onRelationshipButtonPressed }: ContextualMenuProps) {
   const { isOpen, close, selectedPersonId } = useContextualMenu()
@@ -783,9 +786,9 @@ function ContextualMenu({ onRelationshipButtonPressed }: ContextualMenuProps) {
 type SearchPanelProps = {
   onPersonSelected: (
     args: {
-      selectedPerson: { type: 'known'; personId: UUID } | { type: 'unknown'; name: string }
-      sourcePersonId: UUID
-      secondaryRelationshipsCb?: (personId: UUID) => Relationship[]
+      selectedPerson: { type: 'known'; personId: PersonId } | { type: 'unknown'; name: string }
+      sourcePersonId: PersonId
+      secondaryRelationshipsCb?: (personId: PersonId) => Relationship[]
       relationshipAction: NewRelationshipAction
     } | null
   ) => unknown
@@ -804,7 +807,7 @@ function SearchPanel({
 }: SearchPanelProps) {
   const close = () => onPersonSelected(null)
 
-  const relativeIdsWithThisRelationship: { personId: UUID; relationship: Relationship }[] = React.useMemo(() => {
+  const relativeIdsWithThisRelationship: { personId: PersonId; relationship: Relationship }[] = React.useMemo(() => {
     if (!pendingRelationshipAction) return []
 
     const { relationshipAction, personId } = pendingRelationshipAction
@@ -833,7 +836,7 @@ function SearchPanel({
     }
   }, [pendingRelationshipAction, relationships])
 
-  const unselectableIds: UUID[] = React.useMemo(() => {
+  const unselectableIds: PersonId[] = React.useMemo(() => {
     if (!pendingRelationshipAction) return []
 
     const { relationshipAction, personId } = pendingRelationshipAction
@@ -875,7 +878,7 @@ function SearchPanel({
     setOtherRelationshipIsAccepted(true)
   }, [pendingRelationshipAction])
 
-  const otherRelationships = useMemo<{ label: string; cb: (searchedPerson: UUID) => Relationship[] } | null>(() => {
+  const otherRelationships = useMemo<{ label: string; cb: (searchedPerson: PersonId) => Relationship[] } | null>(() => {
     // If addChild and there is a single spouse, offer to add it to her as well
     if (pendingRelationshipAction) {
       const { relationshipAction, personId: sourcePersonId } = pendingRelationshipAction
@@ -1037,12 +1040,12 @@ function SearchPanel({
 const fakeProfilePicUrl =
   'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80'
 
-function getSpousesOf(sourcePersonId: UUID, args: { relationships: Relationship[]; persons: Person[] }) {
+function getSpousesOf(sourcePersonId: PersonId, args: { relationships: Relationship[]; persons: Person[] }) {
   const spouseRels = args.relationships.filter(
     (rel): rel is Relationship & { type: 'spouses' } => rel.type === 'spouses' && rel.spouseIds.includes(sourcePersonId)
   )
 
-  const uniqueSpouseIds = new Set<UUID>()
+  const uniqueSpouseIds = new Set<PersonId>()
   for (const spouseRel of spouseRels) {
     const spouseId = spouseRel.spouseIds.find((id) => id !== sourcePersonId)
     if (spouseId) uniqueSpouseIds.add(spouseId)
@@ -1053,7 +1056,7 @@ function getSpousesOf(sourcePersonId: UUID, args: { relationships: Relationship[
     .filter((item): item is Person => !!item)
 }
 
-function getCoparents(sourcePersonId: UUID, args: { relationships: Relationship[]; persons: Person[] }) {
+function getCoparents(sourcePersonId: PersonId, args: { relationships: Relationship[]; persons: Person[] }) {
   const { relationships } = args
   const childIds = new Set(
     relationships
@@ -1061,7 +1064,7 @@ function getCoparents(sourcePersonId: UUID, args: { relationships: Relationship[
       .map((rel) => rel.childId)
   )
 
-  const coparentIds = new Set<UUID>()
+  const coparentIds = new Set<PersonId>()
   for (const childId of childIds) {
     const otherParent = relationships.find(
       (rel): rel is Relationship & { type: 'parent' } =>
@@ -1076,7 +1079,7 @@ function getCoparents(sourcePersonId: UUID, args: { relationships: Relationship[
     .filter((item): item is Person => !!item)
 }
 
-function getChildrenWithSingleParent(sourceParentId: UUID, args: { relationships: Relationship[]; persons: Person[] }) {
+function getChildrenWithSingleParent(sourceParentId: PersonId, args: { relationships: Relationship[]; persons: Person[] }) {
   const { relationships } = args
   const childIds = new Set(
     relationships
@@ -1153,7 +1156,7 @@ function PersonNode({
       <div
         className='relative z-10 group'
         onClick={() => {
-          if (data.isOriginPerson) openContextMenu(id as UUID)
+          if (data.isOriginPerson) openContextMenu(id as PersonId)
         }}>
         {data.profilePicUrl ? (
           <img

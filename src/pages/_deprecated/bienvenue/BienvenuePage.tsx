@@ -10,6 +10,7 @@ import { SendIcon } from '../../chat/ChatPage/SendIcon'
 import { FamilyMemberRelationship, traduireRelation } from './step3-learnAboutUsersFamily/FamilyMemberRelationship'
 import { PersonAutocomplete } from './step3-learnAboutUsersFamily/PersonAutocomplete'
 import { FaceId } from '../../../domain/FaceId'
+import { PersonId } from '../../../domain/PersonId'
 
 // @ts-ignore
 function classNames(...classes) {
@@ -37,19 +38,19 @@ type FamilyMemberPhotoFace = {
   | {
       stage: 'awaiting-relationship'
       name: string
-      personId: UUID
+      personId: PersonId
     }
   | {
       stage: 'awaiting-relationship-confirmation'
       name: string
-      personId: UUID
+      personId: PersonId
       messages: OpenAIMessage[]
       userAnswer: string
       relationship: FamilyMemberRelationship
     }
   | {
       stage: 'done'
-      personId: UUID
+      personId: PersonId
       name: string
       relationship?: FamilyMemberRelationship
     }

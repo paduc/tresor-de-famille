@@ -1,12 +1,13 @@
 import { getEventList } from '../dependencies/getEventList'
 import { getSingleEvent } from '../dependencies/getSingleEvent'
 import { UUID } from '../domain'
+import { PersonId } from '../domain/PersonId'
 import { UserConfirmedHisFace } from '../events/onboarding/UserConfirmedHisFace'
 import { UserNamedPersonInPhoto } from '../events/onboarding/UserNamedPersonInPhoto'
 import { UserRecognizedPersonInPhoto } from '../events/onboarding/UserRecognizedPersonInPhoto'
 import { UserSelectedNewProfilePic } from './person/UserSelectedNewProfilePic'
 
-export const getProfilePicUrlForPerson = async (personId: UUID, userId: UUID): Promise<string | null> => {
+export const getProfilePicUrlForPerson = async (personId: PersonId, userId: UUID): Promise<string | null> => {
   const preferredProfilePic = await getSingleEvent<UserSelectedNewProfilePic>(['UserSelectedNewProfilePic'], {
     userId,
     personId,

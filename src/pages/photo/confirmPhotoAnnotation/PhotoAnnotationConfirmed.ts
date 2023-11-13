@@ -1,6 +1,7 @@
 import { DomainEvent, makeDomainEvent } from '../../../dependencies/DomainEvent'
 import { UUID } from '../../../domain'
 import { FaceId } from '../../../domain/FaceId'
+import { PersonId } from '../../../domain/PersonId'
 
 export type PhotoAnnotationConfirmed = DomainEvent<
   'PhotoAnnotationConfirmed',
@@ -8,7 +9,7 @@ export type PhotoAnnotationConfirmed = DomainEvent<
     // I,
     confirmedBy: UUID
     // recognized the following
-    personId: UUID
+    personId: PersonId
     // as the person at this location
     position: {
       width: number

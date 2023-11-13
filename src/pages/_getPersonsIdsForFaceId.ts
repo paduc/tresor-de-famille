@@ -2,13 +2,14 @@ import { postgres } from '../dependencies/database'
 import { getEventList } from '../dependencies/getEventList'
 import { UUID } from '../domain'
 import { FaceId } from '../domain/FaceId'
+import { PersonId } from '../domain/PersonId'
 import { UserConfirmedHisFace } from '../events/onboarding/UserConfirmedHisFace'
 import { UserNamedPersonInPhoto } from '../events/onboarding/UserNamedPersonInPhoto'
 import { UserRecognizedPersonInPhoto } from '../events/onboarding/UserRecognizedPersonInPhoto'
 import { PhotoManuallyAnnotated } from './photo/annotateManually/PhotoManuallyAnnotated'
 import { PhotoAnnotationConfirmed } from './photo/confirmPhotoAnnotation/PhotoAnnotationConfirmed'
 
-export const getPersonIdsForFaceIdOld = async (faceId: FaceId): Promise<UUID[]> => {
+export const getPersonIdsForFaceIdOld = async (faceId: FaceId): Promise<PersonId[]> => {
   const { rows } = await postgres.query<
     | PhotoAnnotationConfirmed
     | PhotoManuallyAnnotated
@@ -23,7 +24,7 @@ export const getPersonIdsForFaceIdOld = async (faceId: FaceId): Promise<UUID[]> 
   return Array.from(new Set(rows.map((row) => row.payload.personId)))
 }
 
-export const getPersonIdsForFaceId = async ({ faceId, userId }: { faceId: FaceId; userId: UUID }): Promise<UUID[]> => {
+export const getPersonIdsForFaceId = async ({ faceId, userId }: { faceId: FaceId; userId: UUID }): Promise<PersonId[]> => {
   const annotationEvents = (
     await getEventList<
       | PhotoAnnotationConfirmed
@@ -55,7 +56,6 @@ export const getPersonIdsForFaceId = async ({ faceId, userId }: { faceId: FaceId
   })
 
   type PhotoId = UUID
-  type PersonId = UUID
 
   const uniqueByPhotoId = new Map<PhotoId, PersonId>()
   for (const annotationEvent of annotationEvents) {

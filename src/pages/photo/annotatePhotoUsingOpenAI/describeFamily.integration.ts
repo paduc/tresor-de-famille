@@ -4,21 +4,22 @@ import { GedcomImported } from '../../../events'
 import { getUuid } from '../../../libs/getUuid'
 import { describeFamily } from './describeFamily'
 import { UUID } from '../../../domain'
+import { makePersonId } from '../../../libs/makePersonId'
 
-const personId = getUuid()
-const wifeId = getUuid()
-const dadId = getUuid()
-const momId = getUuid()
-const daughterId = getUuid()
-const sonId = getUuid()
-const sisterId = getUuid()
-const brotherId = getUuid()
-const granpaId = getUuid()
-const grammaId = getUuid()
-const popsId = getUuid()
-const mumId = getUuid()
-const uncleJerry = getUuid()
-const auntBeth = getUuid()
+const personId = makePersonId()
+const wifeId = makePersonId()
+const dadId = makePersonId()
+const momId = makePersonId()
+const daughterId = makePersonId()
+const sonId = makePersonId()
+const sisterId = makePersonId()
+const brotherId = makePersonId()
+const granpaId = makePersonId()
+const grammaId = makePersonId()
+const popsId = makePersonId()
+const mumId = makePersonId()
+const uncleJerry = makePersonId()
+const auntBeth = makePersonId()
 describe('describeFamily', () => {
   beforeEach(async () => {
     await resetDatabase()

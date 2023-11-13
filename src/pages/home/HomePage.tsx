@@ -9,6 +9,7 @@ import TextareaAutosize from 'react-textarea-autosize'
 import { AppLayout } from '../_components/layout/AppLayout'
 import { SendIcon } from '../chat/ChatPage/SendIcon'
 import { FaceId } from '../../domain/FaceId'
+import { PersonId } from '../../domain/PersonId'
 
 type Steps = GetUserName & UploadProfilePicture
 export type HomePageProps =
@@ -176,7 +177,7 @@ export type GetUserName =
   | {
       'get-user-name': 'done'
       name: string
-      personId: UUID
+      personId: PersonId
     }
 
 export type UploadProfilePicture =

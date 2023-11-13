@@ -3,6 +3,7 @@ import { CheckIcon } from '@heroicons/react/20/solid'
 import React, { useState } from 'react'
 import { UUID } from '../../domain/UUID'
 import { usePersonSearch } from './usePersonSearch'
+import { PersonId } from '../../domain/PersonId'
 
 type SearchPersonHitDTO = {
   objectID: string
@@ -12,9 +13,9 @@ type SearchPersonHitDTO = {
 }
 
 export type PersonAutocompleteProps = {
-  onPersonSelected: (person: { type: 'known'; personId: UUID } | { type: 'unknown'; name: string }) => unknown
+  onPersonSelected: (person: { type: 'known'; personId: PersonId } | { type: 'unknown'; name: string }) => unknown
   className?: string
-  presentPerson?: { name: string; personId: UUID }
+  presentPerson?: { name: string; personId: PersonId }
   unselectableIds?: string[]
 }
 

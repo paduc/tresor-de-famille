@@ -1,11 +1,12 @@
 import { DomainEvent, makeDomainEvent } from '../../dependencies/DomainEvent'
 import { UUID } from '../../domain'
 import { FamilyMemberRelationship } from '../../domain/FamilyMemberRelationship'
+import { PersonId } from '../../domain/PersonId'
 
 export type UserPostedRelationUsingOpenAI = DomainEvent<
   'UserPostedRelationUsingOpenAI',
   {
-    personId: UUID
+    personId: PersonId
     userAnswer: string
 
     messages: {

@@ -2,6 +2,7 @@ import { addToHistory } from '../../../dependencies/addToHistory'
 import { postgres } from '../../../dependencies/database'
 import { normalizeBBOX } from '../../../dependencies/face-recognition'
 import { FaceId } from '../../../domain/FaceId'
+import { PersonId } from '../../../domain/PersonId'
 import { UUID } from '../../../domain/UUID'
 import { AWSDetectedFacesInPhoto } from '../recognizeFacesInChatPhoto/AWSDetectedFacesInPhoto'
 import { PhotoManuallyAnnotated } from './PhotoManuallyAnnotated'
@@ -9,7 +10,7 @@ import { PhotoManuallyAnnotated } from './PhotoManuallyAnnotated'
 type AnnotateManuallyArgs = {
   photoId: UUID
   faceId: FaceId
-  personId: UUID
+  personId: PersonId
   annotatedBy: UUID
 }
 

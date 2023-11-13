@@ -17,6 +17,7 @@ import { uploadPhoto } from '../../dependencies/photo-storage'
 import { OnboardingUserUploadedPhotoOfThemself } from '../../events/onboarding/OnboardingUserUploadedPhotoOfThemself'
 import { detectFacesInPhotoUsingAWS } from '../photo/recognizeFacesInChatPhoto/detectFacesInPhotoUsingAWS'
 import { zIsFaceId } from '../../domain/FaceId'
+import { makePersonId } from '../../libs/makePersonId'
 
 const FILE_SIZE_LIMIT_MB = 50
 const upload = multer({
@@ -52,7 +53,7 @@ pageRouter
         })
         .parse(request.body)
 
-      const personId = getUuid()
+      const personId = makePersonId()
       await addToHistory(
         UserNamedThemself({
           userId,
@@ -138,7 +139,7 @@ async function uploadUserPhotoOfThemself({ file, userId }: UploadUserPhotoOfThem
 //       })
 //       .parse(request.body)
 
-//     const personId = getUuid()
+//     const personId = makePersonId()
 //     await addToHistory(
 //       UserNamedThemself({
 //         userId,
@@ -198,7 +199,7 @@ async function uploadUserPhotoOfThemself({ file, userId }: UploadUserPhotoOfThem
 //       .parse(request.body)
 
 //     if (newFamilyMemberName.length > 0) {
-//       const personId = getUuid()
+//       const personId = makePersonId()
 //       await addToHistory(
 //         UserNamedPersonInPhoto({
 //           userId,
@@ -259,7 +260,7 @@ async function uploadUserPhotoOfThemself({ file, userId }: UploadUserPhotoOfThem
 //   } else if (action === 'submitRelationship') {
 //     const { personId, userAnswer } = z
 //       .object({
-//         personId: zIsUUID,
+//         personId: zIsPersonId,
 //         userAnswer: z.string(),
 //       })
 //       .parse(request.body)
@@ -271,7 +272,7 @@ async function uploadUserPhotoOfThemself({ file, userId }: UploadUserPhotoOfThem
 //   } else if (action === 'ignoreRelationship') {
 //     const { personId } = z
 //       .object({
-//         personId: zIsUUID,
+//         personId: zIsPersonId,
 //       })
 //       .parse(request.body)
 //     await addToHistory(UserIgnoredRelationship({ personId, userId }))
@@ -293,7 +294,7 @@ async function uploadUserPhotoOfThemself({ file, userId }: UploadUserPhotoOfThem
 //     try {
 //       const { stringifiedRelationship, personId } = z
 //         .object({
-//           personId: zIsUUID,
+//           personId: zIsPersonId,
 //           stringifiedRelationship: z.string(),
 //         })
 //         .parse(request.body)

@@ -1,13 +1,14 @@
 import { UUID } from '../domain'
 import { DomainEvent, makeDomainEvent } from '../dependencies/DomainEvent'
+import { PersonId } from '../domain/PersonId'
 
 type Relationship = {
-  parentId: UUID
-  childId: UUID
+  parentId: PersonId
+  childId: PersonId
 }
 
 type Person = {
-  id: UUID
+  id: PersonId
   name: string
   bornOn?: string
   bornIn?: string

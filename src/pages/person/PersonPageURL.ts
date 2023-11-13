@@ -1,3 +1,3 @@
-import { UUID } from '../../domain'
+import { PersonId } from '../../domain/PersonId'
 
-export const PersonPageURL = (personId?: UUID) => `/person/${personId || ':personId'}/person.html`
+export const PersonPageURL = (personId?: PersonId) => `/person/${personId || ':personId'}/person.html`

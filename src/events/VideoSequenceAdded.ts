@@ -1,8 +1,9 @@
 import { MediaTime, UUID } from '../domain'
 import { DomainEvent, makeDomainEvent } from '../dependencies/DomainEvent'
 import { Epoch, zCustom } from '../libs/typeguards'
+import { PersonId } from '../domain/PersonId'
 
-export type TaggedPerson = UUID
+export type TaggedPerson = PersonId
 
 export type Place = string & { isPlace: true }
 export const isPlace = (str: unknown): str is Place => {

@@ -1,5 +1,6 @@
 import React from 'react'
 import { UUID } from '../../domain/UUID'
+import { PersonId } from '../../domain/PersonId'
 
 export type Session =
   | {
@@ -8,7 +9,7 @@ export type Session =
   | {
       isLoggedIn: true
       userName: string
-      personId: UUID | undefined
+      personId: PersonId | undefined
       profilePic: string | null
       isAdmin: boolean
       arePhotosEnabled: boolean
