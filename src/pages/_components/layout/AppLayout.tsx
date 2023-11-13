@@ -20,6 +20,8 @@ import {
   MagnifyingGlassIcon,
   PhotoIcon,
   PlusSmallIcon,
+  ShareIcon,
+  UsersIcon,
   XMarkIcon,
 } from '@heroicons/react/24/outline'
 import React, { Fragment, useContext, useState } from 'react'
@@ -61,7 +63,7 @@ export function AppLayout({ children }: AppLayoutProps) {
     return <p>Session not available</p>
   }
 
-  const { arePhotosEnabled, areThreadsEnabled, isFamilyPageEnabled, profilePic } = session
+  const { arePhotosEnabled, areThreadsEnabled, isFamilyPageEnabled, isSharingEnabled, profilePic } = session
 
   const userName = session.userName || ''
 
@@ -94,8 +96,14 @@ export function AppLayout({ children }: AppLayoutProps) {
     {
       name: 'Ma famille (alpha)',
       href: '/family.html',
-      icon: BookOpenIcon,
+      icon: ShareIcon,
       condition: () => isFamilyPageEnabled,
+    },
+    {
+      name: 'Partage',
+      href: '/share.html',
+      icon: UsersIcon,
+      condition: () => isSharingEnabled,
     },
   ]
 

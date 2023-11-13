@@ -1,7 +1,7 @@
 import { SearchIndex } from 'algoliasearch/lite'
 import type { Request, Response } from 'express'
 import ReactDOMServer from 'react-dom/server'
-import { ADMIN_USERID } from '../../dependencies/env'
+import { ADMIN_USERID, IS_SHARING_ENABLED } from '../../dependencies/env'
 import { getSingleEvent } from '../../dependencies/getSingleEvent'
 import { OnboardingUserStartedFirstThread } from '../../events/onboarding/OnboardingUserStartedFirstThread'
 import { OnboardingUserUploadedPhotoOfFamily } from '../../events/onboarding/OnboardingUserUploadedPhotoOfFamily'
@@ -147,6 +147,7 @@ async function getSession(request: Request): Promise<Session> {
       areThreadsEnabled: !!user.name,
       isFamilyPageEnabled: !!user.name,
       areVideosEnabled: false,
+      isSharingEnabled: IS_SHARING_ENABLED,
     }
   }
 

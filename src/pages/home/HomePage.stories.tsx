@@ -58,6 +58,8 @@ export const AfterOnboarding = () => (
       areThreadsEnabled: true,
       areVideosEnabled: false,
       arePersonsEnabled: true,
+      isSharingEnabled: true,
+      isFamilyPageEnabled: true,
     }}>
     <HomePage isOnboarding={false} latestThreads={[]} />
   </SessionContext.Provider>

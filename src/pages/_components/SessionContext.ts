@@ -16,6 +16,7 @@ export type Session =
       areThreadsEnabled: boolean
       isFamilyPageEnabled: boolean
       areVideosEnabled: boolean
+      isSharingEnabled: boolean
     }
 
 export const SessionContext = React.createContext<Session>({ isLoggedIn: false })
