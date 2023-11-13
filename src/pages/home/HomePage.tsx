@@ -10,6 +10,7 @@ import { AppLayout } from '../_components/layout/AppLayout'
 import { SendIcon } from '../chat/ChatPage/SendIcon'
 import { FaceId } from '../../domain/FaceId'
 import { PersonId } from '../../domain/PersonId'
+import { PhotoId } from '../../domain/PhotoId'
 
 type Steps = GetUserName & UploadProfilePicture
 export type HomePageProps =
@@ -186,7 +187,7 @@ export type UploadProfilePicture =
     }
   | {
       'upload-profile-picture': 'photo-uploaded'
-      photoId: UUID
+      photoId: PhotoId
       photoUrl: string
       faces: {
         faceId: FaceId
@@ -194,7 +195,7 @@ export type UploadProfilePicture =
     }
   | {
       'upload-profile-picture': 'user-face-confirmed'
-      photoId: UUID
+      photoId: PhotoId
       photoUrl: string
       faceId: FaceId
     }
@@ -338,7 +339,7 @@ export const ChoseOwnFaceInPhoto = ({ step }: ChoseOwnFaceInPhotoProps) => {
 }
 
 type PhotoBadgeProps = {
-  photoId: UUID
+  photoId: PhotoId
   faceId: FaceId
   className?: string
 }

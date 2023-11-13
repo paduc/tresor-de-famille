@@ -3,6 +3,7 @@ import { getEventList } from '../dependencies/getEventList'
 import { UUID } from '../domain'
 import { FaceId } from '../domain/FaceId'
 import { PersonId } from '../domain/PersonId'
+import { PhotoId } from '../domain/PhotoId'
 import { UserConfirmedHisFace } from '../events/onboarding/UserConfirmedHisFace'
 import { UserNamedPersonInPhoto } from '../events/onboarding/UserNamedPersonInPhoto'
 import { UserRecognizedPersonInPhoto } from '../events/onboarding/UserRecognizedPersonInPhoto'
@@ -54,8 +55,6 @@ export const getPersonIdsForFaceId = async ({ faceId, userId }: { faceId: FaceId
         return event.payload.userId === userId
     }
   })
-
-  type PhotoId = UUID
 
   const uniqueByPhotoId = new Map<PhotoId, PersonId>()
   for (const annotationEvent of annotationEvents) {

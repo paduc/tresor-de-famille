@@ -1,17 +1,16 @@
-import zod from 'zod'
-import fs from 'node:fs'
-import { requireAuth } from '../dependencies/authn'
-import { actionsRouter } from './actionsRouter'
-import { zIsUUID } from '../domain'
-import { downloadPhoto } from '../dependencies/photo-storage'
-import { postgres } from '../dependencies/database'
-import { AWSDetectedFacesInPhoto } from '../pages/photo/recognizeFacesInChatPhoto/AWSDetectedFacesInPhoto'
 import sharp from 'sharp'
+import zod from 'zod'
+import { requireAuth } from '../dependencies/authn'
+import { postgres } from '../dependencies/database'
+import { downloadPhoto } from '../dependencies/photo-storage'
 import { zIsFaceId } from '../domain/FaceId'
+import { zIsPhotoId } from '../domain/PhotoId'
+import { AWSDetectedFacesInPhoto } from '../pages/photo/recognizeFacesInChatPhoto/AWSDetectedFacesInPhoto'
+import { actionsRouter } from './actionsRouter'
 
 actionsRouter.route('/photo/:photoId/face/:faceId').get(requireAuth(), async (request, response) => {
   try {
-    const { photoId, faceId } = zod.object({ photoId: zIsUUID, faceId: zIsFaceId }).parse(request.params)
+    const { photoId, faceId } = zod.object({ photoId: zIsPhotoId, faceId: zIsFaceId }).parse(request.params)
 
     const { rows } = await postgres.query<AWSDetectedFacesInPhoto>(
       "SELECT * FROM history WHERE type='AWSDetectedFacesInPhoto' AND payload->>'photoId'=$1 ORDER BY \"occurredAt\" DESC LIMIT 1",

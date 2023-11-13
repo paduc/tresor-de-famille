@@ -20,6 +20,7 @@ import { usePersonSearch } from '../../_components/usePersonSearch'
 import { PhotoListPageUrl } from '../../listPhotos/PhotoListPageUrl'
 import { PersonPageURL } from '../../person/PersonPageURL'
 import { PersonId } from '../../../domain/PersonId'
+import { PhotoId } from '../../../domain/PhotoId'
 
 type PhotoFace = {
   faceId: FaceId
@@ -39,7 +40,7 @@ type PhotoFace = {
 
 export type NewPhotoPageProps = {
   photoUrl: string
-  photoId: UUID
+  photoId: PhotoId
   caption?: string
   faces: PhotoFace[]
   context?:
@@ -220,7 +221,7 @@ export const NewPhotoPage = withBrowserBundle(({ context, caption, photoId, phot
 })
 
 type PhotoBadgeProps = {
-  photoId: UUID
+  photoId: PhotoId
   faceId: FaceId
   className?: string
   altText?: string
@@ -240,7 +241,7 @@ const PhotoBadge = ({ photoId, className, faceId, altText }: PhotoBadgeProps) =>
 type SelectPersonForFacePanelProps = {
   close: () => unknown
   selectedFace: PhotoFace | null
-  photoId: UUID
+  photoId: PhotoId
 }
 function SelectPersonForFacePanel({ close, selectedFace, photoId }: SelectPersonForFacePanelProps) {
   return (
@@ -317,7 +318,7 @@ type ContextualMenuProps = {
   // isOpen: boolean
   close: () => unknown
   selectedFace: PhotoFace | null
-  photoId: UUID
+  photoId: PhotoId
   gotoPersonSelector: (selectedFace: PhotoFace) => unknown
 }
 function ContextualMenu({ close, selectedFace, photoId, gotoPersonSelector }: ContextualMenuProps) {

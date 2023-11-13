@@ -6,6 +6,7 @@ import { InlinePhotoUploadBtn } from '../_components/InlinePhotoUploadBtn'
 import { SuccessError } from '../_components/SuccessError'
 import { AppLayout } from '../_components/layout/AppLayout'
 import { PhotoIcon } from '../photo/PhotoPage/PhotoIcon'
+import { PhotoId } from '../../domain/PhotoId'
 
 // @ts-ignore
 function classNames(...classes) {
@@ -16,7 +17,7 @@ export type ListPhotosProps = {
   success?: string
   error?: string
   photos: {
-    photoId: UUID
+    photoId: PhotoId
     url: string
   }[]
 }

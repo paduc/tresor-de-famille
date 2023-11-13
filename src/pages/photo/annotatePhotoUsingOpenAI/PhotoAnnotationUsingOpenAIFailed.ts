@@ -1,10 +1,11 @@
 import { UUID } from '../../../domain'
 import { DomainEvent, makeDomainEvent } from '../../../dependencies/DomainEvent'
+import { PhotoId } from '../../../domain/PhotoId'
 
 export type PhotoAnnotationUsingOpenAIFailed = DomainEvent<
   'PhotoAnnotationUsingOpenAIFailed',
   {
-    photoId: UUID
+    photoId: PhotoId
     model: string
     prompt: string
     response?: string

@@ -17,9 +17,11 @@ import { PhotoAnnotatedUsingOpenAI } from './PhotoAnnotatedUsingOpenAI'
 import { PhotoManuallyAnnotated } from '../annotateManually/PhotoManuallyAnnotated'
 import { PhotoAnnotationConfirmed } from '../confirmPhotoAnnotation/PhotoAnnotationConfirmed'
 import { FaceId } from '../../../domain/FaceId'
+import { PhotoId } from '../../../domain/PhotoId'
+import { makePersonId } from '../../../libs/makePersonId'
 
 type AnnotatePhotoUsingOpenAIArgs = {
-  photoId: UUID
+  photoId: PhotoId
   userId: UUID
   debug?: boolean
 }
@@ -102,7 +104,7 @@ You: { "steps": "`
           type: 'face-is-new-person',
           deductionId: getUuid(),
           faceId: photoFacesDescription.faceCodeMap.codeToId(faceCode)!,
-          personId: getUuid(),
+          personId: makePersonId(),
           name: person,
           photoId,
         })
@@ -137,7 +139,7 @@ You: { "steps": "`
   }
 }
 
-const getPhoto = async (photoId: UUID) => {
+const getPhoto = async (photoId: PhotoId) => {
   const { rows: photoRowsRes } = await postgres.query<UserUploadedPhotoToChat>(
     "SELECT * FROM history WHERE type='UserUploadedPhotoToChat' AND payload->>'photoId'=$1 ORDER BY \"occurredAt\" DESC",
     [photoId]
@@ -148,7 +150,7 @@ const getPhoto = async (photoId: UUID) => {
   return photoRow
 }
 
-async function getCaptionForPhoto(photoId: UUID) {
+async function getCaptionForPhoto(photoId: PhotoId) {
   const { rows } = await postgres.query<UserAddedCaptionToPhoto>(
     `SELECT * FROM history WHERE type='UserAddedCaptionToPhoto' AND payload->>'photoId'=$1 ORDER BY "occurredAt" DESC LIMIT 1`,
     [photoId]
@@ -157,7 +159,7 @@ async function getCaptionForPhoto(photoId: UUID) {
   return rows[0]?.payload.caption.body
 }
 
-async function getDetectedFaces(photoId: UUID) {
+async function getDetectedFaces(photoId: PhotoId) {
   const detectedFaces = []
 
   const { rows: faceDetectedRowsRes } = await postgres.query<AWSDetectedFacesInPhoto>(
@@ -178,7 +180,7 @@ async function getDetectedFaces(photoId: UUID) {
   return detectedFaces
 }
 
-const getConfirmedPersonForFaceId = async (photoId: UUID, faceId: FaceId): Promise<{ name: string } | null> => {
+const getConfirmedPersonForFaceId = async (photoId: PhotoId, faceId: FaceId): Promise<{ name: string } | null> => {
   const { rows } = await postgres.query<PhotoAnnotationConfirmed | PhotoManuallyAnnotated>(
     "SELECT * FROM history WHERE type IN ('PhotoAnnotationConfirmed','PhotoManuallyAnnotated') AND payload->>'photoId'=$1 AND payload->>'faceId'=$2 ORDER BY \"occurredAt\" ASC",
     [photoId, faceId]

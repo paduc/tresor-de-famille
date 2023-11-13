@@ -1,6 +1,7 @@
 import { postgres } from '../../../dependencies/database'
 import { UUID } from '../../../domain'
 import { FaceId } from '../../../domain/FaceId'
+import { PhotoId } from '../../../domain/PhotoId'
 import { makeIdCodeMap } from '../../../libs/makeIdCodeMap'
 import { AWSDetectedFacesInPhoto } from '../recognizeFacesInChatPhoto/AWSDetectedFacesInPhoto'
 
@@ -26,7 +27,7 @@ type PhotoFaceDescription = {
   faceCodeMap: ReturnType<typeof makeIdCodeMap<FaceId>>
 }
 
-export const describePhotoFaces = async (photoId: UUID, photoFaces: PhotoFace[]): Promise<PhotoFaceDescription> => {
+export const describePhotoFaces = async (photoId: PhotoId, photoFaces: PhotoFace[]): Promise<PhotoFaceDescription> => {
   const { rows: facesDetectedInChatPhotoRows } = await postgres.query<AWSDetectedFacesInPhoto>(
     "SELECT * FROM history WHERE type='AWSDetectedFacesInPhoto' AND payload->>'photoId'=$1 ORDER BY \"occurredAt\" DESC LIMIT 1",
     [photoId]

@@ -4,11 +4,12 @@ import { normalizeBBOX } from '../../../dependencies/face-recognition'
 import { UUID } from '../../../domain'
 import { FaceId } from '../../../domain/FaceId'
 import { PersonId } from '../../../domain/PersonId'
+import { PhotoId } from '../../../domain/PhotoId'
 import { AWSDetectedFacesInPhoto } from '../recognizeFacesInChatPhoto/AWSDetectedFacesInPhoto'
 import { PhotoAnnotationConfirmed } from './PhotoAnnotationConfirmed'
 
 type ConfirmAWSPhotoAnnotationArgs = {
-  photoId: UUID
+  photoId: PhotoId
   personId: PersonId
   faceId: FaceId
   confirmedBy: UUID
@@ -32,7 +33,7 @@ export const confirmAWSPhotoAnnotation = async ({ photoId, faceId, personId, con
   )
 }
 
-async function getFaceById(photoId: UUID, faceId: FaceId) {
+async function getFaceById(photoId: PhotoId, faceId: FaceId) {
   const { rows } = await postgres.query<AWSDetectedFacesInPhoto>(
     "SELECT * FROM history WHERE type='AWSDetectedFacesInPhoto' AND payload->>'photoId'=$1",
     [photoId]

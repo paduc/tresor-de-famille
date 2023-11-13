@@ -3,10 +3,11 @@ import { uploadPhoto } from '../../../dependencies/photo-storage'
 import { addToHistory } from '../../../dependencies/addToHistory'
 import { UserUploadedPhotoToChat } from './UserUploadedPhotoToChat'
 import { UUID } from '../../../domain'
+import { PhotoId } from '../../../domain/PhotoId'
 
 type UploadPhotoToChatArgs = {
   file: Express.Multer.File
-  photoId: UUID
+  photoId: PhotoId
   chatId: UUID
   userId: UUID
 }

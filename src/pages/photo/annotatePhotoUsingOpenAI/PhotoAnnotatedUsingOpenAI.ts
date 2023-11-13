@@ -2,10 +2,11 @@ import { UUID } from '../../../domain'
 import { DomainEvent, makeDomainEvent } from '../../../dependencies/DomainEvent'
 import { FaceId } from '../../../domain/FaceId'
 import { PersonId } from '../../../domain/PersonId'
+import { PhotoId } from '../../../domain/PhotoId'
 
 type Deduction = {
   deductionId: UUID
-  photoId: UUID
+  photoId: PhotoId
 } & (
   | {
       type: 'face-is-person'
@@ -23,7 +24,7 @@ type Deduction = {
 export type PhotoAnnotatedUsingOpenAI = DomainEvent<
   'PhotoAnnotatedUsingOpenAI',
   {
-    photoId: UUID
+    photoId: PhotoId
     model: string
     prompt: string
     response?: string

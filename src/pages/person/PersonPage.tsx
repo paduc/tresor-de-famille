@@ -9,6 +9,7 @@ import { TDFModal } from '../_components/TDFModal'
 import { AppLayout } from '../_components/layout/AppLayout'
 import { FaceId } from '../../domain/FaceId'
 import { PersonId } from '../../domain/PersonId'
+import { PhotoId } from '../../domain/PhotoId'
 
 // @ts-ignore
 function classNames(...classes) {
@@ -21,10 +22,10 @@ export type PersonPageProps = {
     name: string
     profilePicUrl: string | null
   }
-  photos: { photoId: UUID; url: string }[]
+  photos: { photoId: PhotoId; url: string }[]
   alternateProfilePics: {
     faceId: FaceId
-    photoId: UUID
+    photoId: PhotoId
     url: string
   }[]
 }
@@ -161,7 +162,7 @@ type ProfilePictureSelectorProps = {
   personId: PersonId
   faceList: {
     faceId: FaceId
-    photoId: UUID
+    photoId: PhotoId
     url: string
   }[]
 }

@@ -12,6 +12,7 @@ import { UserChangedPersonName } from './UserChangedPersonName'
 import { personsIndex } from '../../dependencies/search'
 import { zIsFaceId } from '../../domain/FaceId'
 import { zIsPersonId } from '../../domain/PersonId'
+import { zIsPhotoId } from '../../domain/PhotoId'
 
 pageRouter
   .route(PersonPageURL())
@@ -41,7 +42,7 @@ pageRouter
       if (action === 'selectNewProfilePic') {
         const { faceId, photoId, personId } = z
           .object({
-            photoId: zIsUUID,
+            photoId: zIsPhotoId,
             faceId: zIsFaceId,
             personId: zIsPersonId,
           })

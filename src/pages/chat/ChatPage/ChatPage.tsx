@@ -26,6 +26,7 @@ import { fixedForwardRef } from '../../../libs/fixedForwardRef'
 import { Epoch } from '../../../libs/typeguards'
 import { TipTapContentAsJSON } from '../TipTapTypes'
 import { useLoader } from '../../_components/layout/LoaderContext'
+import { PhotoId } from '../../../domain/PhotoId'
 
 // @ts-ignore
 function classNames(...classes) {
@@ -84,7 +85,7 @@ export const ChatPage = withBrowserBundle(
 )
 
 export type PhotoItemProps = {
-  photoId: UUID
+  photoId: PhotoId
   url: string
   description?: string
   personsInPhoto: string[]
@@ -362,7 +363,9 @@ const RichTextEditor = fixedForwardRef<RichTextEditorRef, RichTextEditorProps>((
 const PhotoItemWrappedForTipTap = (props: {
   node: {
     attrs: {
-      [Attr in keyof PhotoItemProps]: PhotoItemProps[Attr] extends UUID
+      [Attr in keyof PhotoItemProps]: PhotoItemProps[Attr] extends PhotoId
+        ? PhotoId
+        : PhotoItemProps[Attr] extends UUID
         ? UUID
         : PhotoItemProps[Attr] extends number
         ? number

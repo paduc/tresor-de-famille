@@ -16,6 +16,7 @@ import { UserSetChatTitle } from './UserSetChatTitle'
 import { UserUpdatedThreadAsRichText } from './UserUpdatedThreadAsRichText'
 import { getChatPageProps } from './getChatHistory/getChatPageProps'
 import { UserSentMessageToChat } from './sendMessageToChat/UserSentMessageToChat'
+import { makePhotoId } from '../../libs/makePhotoId'
 
 const fakeProfilePicUrl =
   'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80'
@@ -112,7 +113,7 @@ pageRouter
         )
       } else if (action === 'insertPhotoAtMarker') {
         const { file } = request
-        const photoId = getUuid()
+        const photoId = makePhotoId()
 
         if (!file) return new Error('We did not receive any image.')
         const { path: originalPath } = file

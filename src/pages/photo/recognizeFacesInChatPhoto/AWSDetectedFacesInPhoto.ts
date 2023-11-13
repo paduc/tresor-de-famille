@@ -1,6 +1,7 @@
 import { UUID } from '../../../domain'
 import { DomainEvent, makeDomainEvent } from '../../../dependencies/DomainEvent'
 import { FaceId } from '../../../domain/FaceId'
+import { PhotoId } from '../../../domain/PhotoId'
 
 type AWSBoundingBox = {
   /**
@@ -60,7 +61,7 @@ type AWSDetectedFace = {
 export type AWSDetectedFacesInPhoto = DomainEvent<
   'AWSDetectedFacesInPhoto',
   {
-    photoId: UUID
+    photoId: PhotoId
     faces: AWSDetectedFace[]
   }
 >

@@ -14,10 +14,11 @@ import { UserInsertedPhotoInRichTextThread } from '../../chat/UserInsertedPhotoI
 import { getSingleEvent } from '../../../dependencies/getSingleEvent'
 import { FaceId } from '../../../domain/FaceId'
 import { makeFaceId } from '../../../libs/makeFaceId'
+import { PhotoId } from '../../../domain/PhotoId'
 
 type DetectFacesInPhotosUsingAWSArgs = {
   file: Express.Multer.File
-  photoId: UUID
+  photoId: PhotoId
 }
 export async function detectFacesInPhotoUsingAWS({ file, photoId }: DetectFacesInPhotosUsingAWSArgs) {
   const { path: originalPath } = file
@@ -83,7 +84,7 @@ async function getFaceIdForAWSFaceIdInOtherPhotos(awsFaceId: string, userId: UUI
   return awsFaceIdIndex.get(awsFaceId)
 }
 
-async function getOwnerUserIdForPhotoId(photoId: UUID): Promise<UUID | undefined> {
+async function getOwnerUserIdForPhotoId(photoId: PhotoId): Promise<UUID | undefined> {
   const latestForPhoto = await getSingleEvent<
     | UserUploadedPhotoToChat
     | OnboardingUserUploadedPhotoOfThemself

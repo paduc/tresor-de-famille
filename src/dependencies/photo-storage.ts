@@ -4,6 +4,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { UUID } from '../domain'
 import { throwIfUndefined } from './env'
+import { PhotoId } from '../domain/PhotoId'
 
 const { PHOTO_STORAGE } = zod.object({ PHOTO_STORAGE: zod.enum(['S3', 'local']) }).parse(process.env)
 
@@ -16,7 +17,7 @@ type PhotoLocation =
     }
   | { type: 'localfile' }
 
-let downloadPhoto: (photoId: UUID) => NodeJS.ReadableStream = downloadPhotoLocally
+let downloadPhoto: (photoId: PhotoId) => NodeJS.ReadableStream = downloadPhotoLocally
 let uploadPhoto: (args: UploadPhotoArgs) => Promise<PhotoLocation> = uploadPhotoLocally
 
 if (PHOTO_STORAGE === 'S3') {
@@ -29,7 +30,7 @@ if (PHOTO_STORAGE === 'S3') {
 
   const s3client = new aws.S3({ credentials, endpoint: PHOTO_ENDPOINT })
 
-  downloadPhoto = (photoId: UUID) => {
+  downloadPhoto = (photoId: PhotoId) => {
     return s3client.getObject({ Bucket: PHOTO_BUCKET, Key: photoId }).createReadStream()
   }
 
@@ -47,15 +48,15 @@ if (PHOTO_STORAGE === 'S3') {
 
 export { downloadPhoto, uploadPhoto }
 
-const localFilePath = (photoId: UUID) => path.join(__dirname, '../../temp/photos', photoId)
+const localFilePath = (photoId: PhotoId) => path.join(__dirname, '../../temp/photos', photoId)
 
-function downloadPhotoLocally(photoId: UUID) {
+function downloadPhotoLocally(photoId: PhotoId) {
   return fs.createReadStream(localFilePath(photoId))
 }
 
 type UploadPhotoArgs = {
   contents: NodeJS.ReadableStream
-  id: UUID
+  id: PhotoId
 }
 async function uploadPhotoLocally({ contents, id }: UploadPhotoArgs) {
   const filePath = localFilePath(id)
@@ -71,7 +72,7 @@ async function uploadPhotoLocally({ contents, id }: UploadPhotoArgs) {
   return { type: 'localfile' as const }
 }
 
-export const getPhotoUrlFromId = (photoId: UUID) => {
+export const getPhotoUrlFromId = (photoId: PhotoId) => {
   return '/photos/' + photoId
 }
 

@@ -3,12 +3,13 @@ import { postgres } from '../../../dependencies/database'
 import { normalizeBBOX } from '../../../dependencies/face-recognition'
 import { FaceId } from '../../../domain/FaceId'
 import { PersonId } from '../../../domain/PersonId'
+import { PhotoId } from '../../../domain/PhotoId'
 import { UUID } from '../../../domain/UUID'
 import { AWSDetectedFacesInPhoto } from '../recognizeFacesInChatPhoto/AWSDetectedFacesInPhoto'
 import { PhotoManuallyAnnotated } from './PhotoManuallyAnnotated'
 
 type AnnotateManuallyArgs = {
-  photoId: UUID
+  photoId: PhotoId
   faceId: FaceId
   personId: PersonId
   annotatedBy: UUID
@@ -32,7 +33,7 @@ export const annotateManually = async ({ photoId, faceId, personId, annotatedBy 
   )
 }
 
-async function getFaceById(photoId: UUID, faceId: FaceId) {
+async function getFaceById(photoId: PhotoId, faceId: FaceId) {
   const { rows } = await postgres.query<AWSDetectedFacesInPhoto>(
     "SELECT * FROM history WHERE type='AWSDetectedFacesInPhoto' AND payload->>'photoId'=$1",
     [photoId]

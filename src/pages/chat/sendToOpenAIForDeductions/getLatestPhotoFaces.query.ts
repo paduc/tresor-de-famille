@@ -3,6 +3,7 @@ import { postgres } from '../../../dependencies/database'
 import { UUID } from '../../../domain'
 import { AWSDetectedFacesInPhoto } from '../../photo/recognizeFacesInChatPhoto/AWSDetectedFacesInPhoto'
 import { UserUploadedPhotoToChat } from '../uploadPhotoToChat/UserUploadedPhotoToChat'
+import { PhotoId } from '../../../domain/PhotoId'
 
 type PhotoFace = {
   details: {
@@ -12,7 +13,7 @@ type PhotoFace = {
   faceCode: string
 }
 
-export const getLatestPhotoFaces = async (chatId: UUID): Promise<{ photoId: UUID; faces: PhotoFace[] } | null> => {
+export const getLatestPhotoFaces = async (chatId: UUID): Promise<{ photoId: PhotoId; faces: PhotoFace[] } | null> => {
   const { rows: latestPhotos } = await postgres.query<UserUploadedPhotoToChat>(
     "SELECT * FROM history WHERE type='UserUploadedPhotoToChat' AND payload->>'chatId'=$1 ORDER BY \"occurredAt\" DESC LIMIT 1",
     [chatId]

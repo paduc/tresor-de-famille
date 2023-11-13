@@ -18,6 +18,8 @@ import { OnboardingUserUploadedPhotoOfThemself } from '../../events/onboarding/O
 import { detectFacesInPhotoUsingAWS } from '../photo/recognizeFacesInChatPhoto/detectFacesInPhotoUsingAWS'
 import { zIsFaceId } from '../../domain/FaceId'
 import { makePersonId } from '../../libs/makePersonId'
+import { zIsPhotoId } from '../../domain/PhotoId'
+import { makePhotoId } from '../../libs/makePhotoId'
 
 const FILE_SIZE_LIMIT_MB = 50
 const upload = multer({
@@ -84,7 +86,7 @@ pageRouter
       const { faceId, photoId } = z
         .object({
           faceId: zIsFaceId,
-          photoId: zIsUUID,
+          photoId: zIsPhotoId,
         })
         .parse(request.body)
 
@@ -107,7 +109,7 @@ type UploadUserPhotoOfThemselfArgs = {
 }
 async function uploadUserPhotoOfThemself({ file, userId }: UploadUserPhotoOfThemselfArgs) {
   const { path: originalPath } = file
-  const photoId = getUuid()
+  const photoId = makePhotoId()
 
   const location = await uploadPhoto({ contents: fs.createReadStream(originalPath), id: photoId })
 
@@ -176,7 +178,7 @@ async function uploadUserPhotoOfThemself({ file, userId }: UploadUserPhotoOfThem
 //     const { faceId, photoId } = z
 //       .object({
 //         faceId: zIsFaceId,
-//         photoId: zIsUUID,
+//         photoId: zIsPhotoId,
 //       })
 //       .parse(request.body)
 
@@ -193,7 +195,7 @@ async function uploadUserPhotoOfThemself({ file, userId }: UploadUserPhotoOfThem
 //     const { faceId, photoId, newFamilyMemberName } = z
 //       .object({
 //         faceId: zIsFaceId,
-//         photoId: zIsUUID,
+//         photoId: zIsPhotoId,
 //         newFamilyMemberName: z.string(),
 //       })
 //       .parse(request.body)
@@ -239,7 +241,7 @@ async function uploadUserPhotoOfThemself({ file, userId }: UploadUserPhotoOfThem
 //     const { faceId, photoId } = z
 //       .object({
 //         faceId: zIsFaceId,
-//         photoId: zIsUUID,
+//         photoId: zIsPhotoId,
 //       })
 //       .parse(request.body)
 //     await addToHistory(
@@ -252,7 +254,7 @@ async function uploadUserPhotoOfThemself({ file, userId }: UploadUserPhotoOfThem
 //   } else if (action === 'ignoreOtherFamilyMemberFacesInPhoto') {
 //     const { photoId } = z
 //       .object({
-//         photoId: zIsUUID,
+//         photoId: zIsPhotoId,
 //       })
 //       .parse(request.body)
 

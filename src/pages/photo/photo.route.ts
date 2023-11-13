@@ -21,6 +21,8 @@ import { doesPhotoExist } from '../_doesPhotoExist'
 import { zIsFaceId } from '../../domain/FaceId'
 import { makePersonId } from '../../libs/makePersonId'
 import { zIsPersonId } from '../../domain/PersonId'
+import { zIsPhotoId } from '../../domain/PhotoId'
+import { makePhotoId } from '../../libs/makePhotoId'
 
 const FILE_SIZE_LIMIT_MB = 50
 const upload = multer({
@@ -35,7 +37,7 @@ pageRouter
   .route('/photo/:photoId/photo.html')
   .get(requireAuth(), async (request, response) => {
     try {
-      const { photoId } = zod.object({ photoId: zIsUUID }).parse(request.params)
+      const { photoId } = zod.object({ photoId: zIsPhotoId }).parse(request.params)
 
       const { threadId, profileId, updated } = z
         .object({ threadId: zIsUUID.optional(), profileId: zIsPersonId.optional(), updated: z.string().optional() })
@@ -71,7 +73,7 @@ pageRouter
 
       const { photoId } = zod
         .object({
-          photoId: zIsUUID,
+          photoId: zIsPhotoId,
         })
         .parse(request.params)
 
@@ -179,7 +181,7 @@ pageRouter.route('/add-photo.html').post(requireAuth(), upload.single('photo'), 
     const { file } = request
 
     if (!file) return new Error('We did not receive any image.')
-    const photoId = getUuid()
+    const photoId = makePhotoId()
 
     await uploadPhotoToChat({ file, photoId, chatId, userId })
 
@@ -202,7 +204,7 @@ pageRouter.route('/add-photo.html').post(requireAuth(), upload.single('photo'), 
 
 pageRouter.route('/delete-photo').post(requireAuth(), async (request, response) => {
   try {
-    const { photoId } = zod.object({ photoId: zIsUUID }).parse(request.body)
+    const { photoId } = zod.object({ photoId: zIsPhotoId }).parse(request.body)
     const userId = request.session.user!.id
 
     // Make sure the user is the author of the photo

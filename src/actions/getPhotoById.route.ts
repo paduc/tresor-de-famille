@@ -5,10 +5,11 @@ import { actionsRouter } from './actionsRouter'
 import { zIsUUID } from '../domain'
 import { downloadPhoto } from '../dependencies/photo-storage'
 import { doesPhotoExist } from '../pages/_doesPhotoExist'
+import { zIsPhotoId } from '../domain/PhotoId'
 
 actionsRouter.route('/photos/:photoId').get(requireAuth(), async (request, response) => {
   try {
-    const { photoId } = zod.object({ photoId: zIsUUID }).parse(request.params)
+    const { photoId } = zod.object({ photoId: zIsPhotoId }).parse(request.params)
     const userId = request.session.user!.id
 
     response.set('Content-Type', 'image/*')

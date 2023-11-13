@@ -4,6 +4,9 @@ import { getUuid } from '../../libs/getUuid'
 import { SessionContext } from '../_components'
 import { PersonSearchContext } from '../_components/usePersonSearch'
 import { HomePage } from './HomePage'
+import { makePhotoId } from '../../libs/makePhotoId'
+import { makePersonId } from '../../libs/makePersonId'
+import { makeFaceId } from '../../libs/makeFaceId'
 
 const fakePersonSearch = async (query: string) => {
   return {
@@ -118,7 +121,7 @@ export const WaitingForPhoto = () => (
       steps={{
         'get-user-name': 'done',
         name: 'John Doe',
-        personId: getUuid(),
+        personId: makePersonId(),
         'upload-profile-picture': 'pending',
       }}
     />
@@ -130,9 +133,9 @@ export const PhotoUploadedNoFaces = () => (
     steps={{
       'get-user-name': 'done',
       name: 'John Doe',
-      personId: getUuid(),
+      personId: makePersonId(),
       'upload-profile-picture': 'photo-uploaded',
-      photoId: getUuid(),
+      photoId: makePhotoId(),
       photoUrl:
         'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=3000&h=2000&q=80',
       faces: [],
@@ -146,12 +149,12 @@ export const PhotoUploadedSingleFace = () => (
     steps={{
       'get-user-name': 'done',
       name: 'John Doe',
-      personId: getUuid(),
+      personId: makePersonId(),
       'upload-profile-picture': 'photo-uploaded',
-      photoId: getUuid(),
+      photoId: makePhotoId(),
       photoUrl:
         'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=3000&h=2000&q=80',
-      faces: [{ faceId: getUuid() }],
+      faces: [{ faceId: makeFaceId() }],
     }}
   />
 )
@@ -162,12 +165,12 @@ export const PhotoUploadedMultipleFaces = () => (
     steps={{
       'get-user-name': 'done',
       name: 'John Doe',
-      personId: getUuid(),
+      personId: makePersonId(),
       'upload-profile-picture': 'photo-uploaded',
-      photoId: getUuid(),
+      photoId: makePhotoId(),
       photoUrl:
         'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=3000&h=2000&q=80',
-      faces: [{ faceId: getUuid() }, { faceId: getUuid() }, { faceId: getUuid() }],
+      faces: [{ faceId: makeFaceId() }, { faceId: makeFaceId() }, { faceId: makeFaceId() }],
     }}
   />
 )

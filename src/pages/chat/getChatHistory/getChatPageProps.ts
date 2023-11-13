@@ -4,6 +4,7 @@ import { getPhotoUrlFromId } from '../../../dependencies/photo-storage'
 import { UUID } from '../../../domain'
 import { FaceId } from '../../../domain/FaceId'
 import { PersonId } from '../../../domain/PersonId'
+import { PhotoId } from '../../../domain/PhotoId'
 import { FaceIgnoredInPhoto } from '../../../events/onboarding/FaceIgnoredInPhoto'
 import { UserNamedPersonInPhoto } from '../../../events/onboarding/UserNamedPersonInPhoto'
 import { UserRecognizedPersonInPhoto } from '../../../events/onboarding/UserRecognizedPersonInPhoto'
@@ -122,7 +123,7 @@ export const getChatPageProps = async ({ chatId, userId }: { chatId: UUID; userI
           description,
           personsInPhoto: encodeURIComponent(JSON.stringify(personsInPhoto)),
           unrecognizedFacesInPhoto,
-          url: getPhotoUrlFromId(photoId as UUID),
+          url: getPhotoUrlFromId(photoId),
         },
       })
 
@@ -138,7 +139,7 @@ export const getChatPageProps = async ({ chatId, userId }: { chatId: UUID; userI
   }
 }
 
-export async function retrievePhotoInfo({ photoId, userId }: { photoId: UUID; userId: UUID }): Promise<{
+export async function retrievePhotoInfo({ photoId, userId }: { photoId: PhotoId; userId: UUID }): Promise<{
   description: string
   personsInPhoto: string[]
   unrecognizedFacesInPhoto: number
@@ -196,7 +197,7 @@ type PhotoFace = {
 )
 
 // Copy from getNewPhotoPageProps()
-async function getFamilyDetectedFace(args: { faceId: FaceId; photoId: UUID; userId: UUID }): Promise<PhotoFace> {
+async function getFamilyDetectedFace(args: { faceId: FaceId; photoId: PhotoId; userId: UUID }): Promise<PhotoFace> {
   const { faceId, photoId, userId } = args
 
   const personNamedOrRecognizedEvent = await getSingleEvent<UserNamedPersonInPhoto | UserRecognizedPersonInPhoto>(
