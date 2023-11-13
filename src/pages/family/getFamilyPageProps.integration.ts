@@ -3,13 +3,14 @@ import { addToHistory } from '../../dependencies/addToHistory'
 import { UserNamedThemself } from '../../events/onboarding/UserNamedThemself'
 import { getUuid } from '../../libs/getUuid'
 import { makePersonId } from '../../libs/makePersonId'
+import { makeAppUserId } from '../../libs/makeUserId'
 import { UserCreatedNewRelationship } from './UserCreatedNewRelationship'
 import { UserCreatedRelationshipWithNewPerson } from './UserCreatedRelationshipWithNewPerson'
 import { UserRemovedRelationship } from './UserRemovedRelationship'
 import { getFamilyPageProps } from './getFamilyPageProps'
 
 describe('getFamilyProps', () => {
-  const userId = getUuid()
+  const userId = makeAppUserId()
   const personId = makePersonId()
 
   describe('getFamilyRelationships', () => {

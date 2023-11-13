@@ -1,5 +1,6 @@
 import { DomainEvent, makeDomainEvent } from '../../../dependencies/DomainEvent'
 import { UUID } from '../../../domain'
+import { AppUserId } from '../../../domain/AppUserId'
 import { FaceId } from '../../../domain/FaceId'
 import { PersonId } from '../../../domain/PersonId'
 import { PhotoId } from '../../../domain/PhotoId'
@@ -8,7 +9,7 @@ export type PhotoManuallyAnnotated = DomainEvent<
   'PhotoManuallyAnnotated',
   {
     // I,
-    annotatedBy: UUID
+    annotatedBy: AppUserId
     // recognized the following
     personId: PersonId
     // as the person at this location

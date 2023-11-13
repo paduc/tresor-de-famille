@@ -1,6 +1,7 @@
 import { UUID } from '../../domain'
 import { DomainEvent, makeDomainEvent } from '../../dependencies/DomainEvent'
 import { PersonId } from '../../domain/PersonId'
+import { AppUserId } from '../../domain/AppUserId'
 
 export type Relationship = { id: UUID } & (
   | {
@@ -22,7 +23,7 @@ export type UserCreatedNewRelationship = DomainEvent<
   'UserCreatedNewRelationship',
   {
     relationship: Relationship
-    userId: UUID
+    userId: AppUserId
   }
 >
 

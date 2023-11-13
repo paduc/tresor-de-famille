@@ -2,6 +2,7 @@ import { MediaTime, UUID } from '../domain'
 import { DomainEvent, makeDomainEvent } from '../dependencies/DomainEvent'
 import { Epoch, zCustom } from '../libs/typeguards'
 import { PersonId } from '../domain/PersonId'
+import { AppUserId } from '../domain/AppUserId'
 
 export type TaggedPerson = PersonId
 
@@ -21,7 +22,7 @@ export type VideoSequence = {
   places?: Place[]
   date?: string
   persons?: TaggedPerson[]
-  addedBy: UUID
+  addedBy: AppUserId
   addedOn: Epoch
 }
 

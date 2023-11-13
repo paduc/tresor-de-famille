@@ -1,5 +1,5 @@
-import { DomainEvent, makeDomainEvent, JSON } from '../../dependencies/DomainEvent'
-import { UUID } from '../../domain'
+import { DomainEvent, makeDomainEvent } from '../../dependencies/DomainEvent'
+import { AppUserId } from '../../domain/AppUserId'
 import { PhotoId } from '../../domain/PhotoId'
 import { ThreadId } from '../../domain/ThreadId'
 import { TipTapContentAsJSON } from './TipTapTypes'
@@ -10,7 +10,7 @@ export type UserInsertedPhotoInRichTextThread = DomainEvent<
   {
     photoId: PhotoId
     chatId: ThreadId
-    userId: UUID
+    userId: AppUserId
     location: PhotoLocation
     contentAsJSON: TipTapContentAsJSON
   }

@@ -1,7 +1,7 @@
 import { postgres } from '../../dependencies/database'
 import { getEventList } from '../../dependencies/getEventList'
 import { getSingleEvent } from '../../dependencies/getSingleEvent'
-import { UUID } from '../../domain'
+import { AppUserId } from '../../domain/AppUserId'
 import { PersonId } from '../../domain/PersonId'
 import { UserNamedPersonInPhoto } from '../../events/onboarding/UserNamedPersonInPhoto'
 import { UserNamedThemself } from '../../events/onboarding/UserNamedThemself'
@@ -14,7 +14,7 @@ import { UserCreatedNewRelationship } from './UserCreatedNewRelationship'
 import { UserCreatedRelationshipWithNewPerson } from './UserCreatedRelationshipWithNewPerson'
 import { UserRemovedRelationship } from './UserRemovedRelationship'
 
-export const getFamilyPageProps = async (userId: UUID): Promise<FamilyPageProps> => {
+export const getFamilyPageProps = async (userId: AppUserId): Promise<FamilyPageProps> => {
   const userPersonId = await getPersonIdForUserId(userId)
 
   const persons = await getUserFamilyPersonIds(userId)
@@ -27,7 +27,7 @@ export const getFamilyPageProps = async (userId: UUID): Promise<FamilyPageProps>
 }
 
 type Person = FamilyPageProps['initialPersons'][number]
-async function getUserFamilyPersonIds(userId: UUID): Promise<Person[]> {
+async function getUserFamilyPersonIds(userId: AppUserId): Promise<Person[]> {
   const events = await getEventList<UserNamedPersonInPhoto | UserNamedThemself | UserCreatedRelationshipWithNewPerson>(
     ['UserNamedPersonInPhoto', 'UserNamedThemself', 'UserCreatedRelationshipWithNewPerson'],
     { userId }
@@ -53,7 +53,7 @@ async function getUserFamilyPersonIds(userId: UUID): Promise<Person[]> {
 }
 
 type Relationship = FamilyPageProps['initialRelationships'][number]
-async function getFamilyRelationships(personIds: PersonId[], userId: UUID): Promise<Relationship[]> {
+async function getFamilyRelationships(personIds: PersonId[], userId: AppUserId): Promise<Relationship[]> {
   const relationships: Relationship[] = []
 
   const removedRelationshipIds = (await getEventList<UserRemovedRelationship>('UserRemovedRelationship', { userId })).map(

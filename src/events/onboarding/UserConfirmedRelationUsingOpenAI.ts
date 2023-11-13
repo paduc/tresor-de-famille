@@ -1,5 +1,5 @@
 import { DomainEvent, makeDomainEvent } from '../../dependencies/DomainEvent'
-import { UUID } from '../../domain'
+import { AppUserId } from '../../domain/AppUserId'
 import { FamilyMemberRelationship } from '../../domain/FamilyMemberRelationship'
 import { PersonId } from '../../domain/PersonId'
 
@@ -10,7 +10,7 @@ export type UserConfirmedRelationUsingOpenAI = DomainEvent<
 
     relationship: FamilyMemberRelationship
 
-    userId: UUID
+    userId: AppUserId
   }
 >
 

@@ -2,6 +2,7 @@ import { getEventList } from '../../../dependencies/getEventList'
 import { getSingleEvent } from '../../../dependencies/getSingleEvent'
 import { getPhotoUrlFromId } from '../../../dependencies/photo-storage'
 import { UUID } from '../../../domain'
+import { AppUserId } from '../../../domain/AppUserId'
 import { FaceId } from '../../../domain/FaceId'
 import { PersonId } from '../../../domain/PersonId'
 import { PhotoId } from '../../../domain/PhotoId'
@@ -22,7 +23,7 @@ import { UserUpdatedThreadAsRichText } from '../UserUpdatedThreadAsRichText'
 import { UserSentMessageToChat } from '../sendMessageToChat/UserSentMessageToChat'
 import { UserUploadedPhotoToChat } from '../uploadPhotoToChat/UserUploadedPhotoToChat'
 
-export const getChatPageProps = async ({ chatId, userId }: { chatId: ThreadId; userId: UUID }): Promise<ChatPageProps> => {
+export const getChatPageProps = async ({ chatId, userId }: { chatId: ThreadId; userId: AppUserId }): Promise<ChatPageProps> => {
   const titleSet = await getSingleEvent<UserSetChatTitle>('UserSetChatTitle', { chatId })
 
   const title = titleSet?.payload.title
@@ -140,7 +141,7 @@ export const getChatPageProps = async ({ chatId, userId }: { chatId: ThreadId; u
   }
 }
 
-export async function retrievePhotoInfo({ photoId, userId }: { photoId: PhotoId; userId: UUID }): Promise<{
+export async function retrievePhotoInfo({ photoId, userId }: { photoId: PhotoId; userId: AppUserId }): Promise<{
   description: string
   personsInPhoto: string[]
   unrecognizedFacesInPhoto: number
@@ -198,7 +199,7 @@ type PhotoFace = {
 )
 
 // Copy from getNewPhotoPageProps()
-async function getFamilyDetectedFace(args: { faceId: FaceId; photoId: PhotoId; userId: UUID }): Promise<PhotoFace> {
+async function getFamilyDetectedFace(args: { faceId: FaceId; photoId: PhotoId; userId: AppUserId }): Promise<PhotoFace> {
   const { faceId, photoId, userId } = args
 
   const personNamedOrRecognizedEvent = await getSingleEvent<UserNamedPersonInPhoto | UserRecognizedPersonInPhoto>(

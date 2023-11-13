@@ -20,6 +20,7 @@ import { zIsFaceId } from '../../domain/FaceId'
 import { makePersonId } from '../../libs/makePersonId'
 import { zIsPhotoId } from '../../domain/PhotoId'
 import { makePhotoId } from '../../libs/makePhotoId'
+import { AppUserId } from '../../domain/AppUserId'
 
 const FILE_SIZE_LIMIT_MB = 50
 const upload = multer({
@@ -105,7 +106,7 @@ pageRouter
 
 type UploadUserPhotoOfThemselfArgs = {
   file: Express.Multer.File
-  userId: UUID
+  userId: AppUserId
 }
 async function uploadUserPhotoOfThemself({ file, userId }: UploadUserPhotoOfThemselfArgs) {
   const { path: originalPath } = file

@@ -2,19 +2,19 @@ import fs from 'node:fs'
 import sharp from 'sharp'
 import { addToHistory } from '../../../dependencies/addToHistory'
 import { postgres } from '../../../dependencies/database'
+import { getAwsRekognitionCollectionId } from '../../../dependencies/face-recognition'
+import { getSingleEvent } from '../../../dependencies/getSingleEvent'
 import { UUID } from '../../../domain'
-import { getUuid } from '../../../libs/getUuid'
+import { AppUserId } from '../../../domain/AppUserId'
+import { FaceId } from '../../../domain/FaceId'
+import { PhotoId } from '../../../domain/PhotoId'
+import { OnboardingUserUploadedPhotoOfFamily } from '../../../events/onboarding/OnboardingUserUploadedPhotoOfFamily'
+import { OnboardingUserUploadedPhotoOfThemself } from '../../../events/onboarding/OnboardingUserUploadedPhotoOfThemself'
+import { makeFaceId } from '../../../libs/makeFaceId'
+import { UserInsertedPhotoInRichTextThread } from '../../chat/UserInsertedPhotoInRichTextThread'
+import { UserUploadedPhotoToChat } from '../../chat/uploadPhotoToChat/UserUploadedPhotoToChat'
 import { AWSDetectedFacesInPhoto } from './AWSDetectedFacesInPhoto'
 import { getAWSDetectedFacesInPhoto } from './getAWSDetectedFacesInPhoto'
-import { getAwsRekognitionCollectionId } from '../../../dependencies/face-recognition'
-import { UserUploadedPhotoToChat } from '../../chat/uploadPhotoToChat/UserUploadedPhotoToChat'
-import { OnboardingUserUploadedPhotoOfThemself } from '../../../events/onboarding/OnboardingUserUploadedPhotoOfThemself'
-import { OnboardingUserUploadedPhotoOfFamily } from '../../../events/onboarding/OnboardingUserUploadedPhotoOfFamily'
-import { UserInsertedPhotoInRichTextThread } from '../../chat/UserInsertedPhotoInRichTextThread'
-import { getSingleEvent } from '../../../dependencies/getSingleEvent'
-import { FaceId } from '../../../domain/FaceId'
-import { makeFaceId } from '../../../libs/makeFaceId'
-import { PhotoId } from '../../../domain/PhotoId'
 
 type DetectFacesInPhotosUsingAWSArgs = {
   file: Express.Multer.File
@@ -67,7 +67,7 @@ export async function detectFacesInPhotoUsingAWS({ file, photoId }: DetectFacesI
   )
 }
 
-async function getFaceIdForAWSFaceIdInOtherPhotos(awsFaceId: string, userId: UUID): Promise<FaceId | undefined> {
+async function getFaceIdForAWSFaceIdInOtherPhotos(awsFaceId: string, userId: AppUserId): Promise<FaceId | undefined> {
   const { rows } = await postgres.query<AWSDetectedFacesInPhoto>("SELECT * FROM history WHERE type='AWSDetectedFacesInPhoto'")
 
   // Create a AWSFaceId - faceId index for the given userId
@@ -84,7 +84,7 @@ async function getFaceIdForAWSFaceIdInOtherPhotos(awsFaceId: string, userId: UUI
   return awsFaceIdIndex.get(awsFaceId)
 }
 
-async function getOwnerUserIdForPhotoId(photoId: PhotoId): Promise<UUID | undefined> {
+async function getOwnerUserIdForPhotoId(photoId: PhotoId): Promise<AppUserId | undefined> {
   const latestForPhoto = await getSingleEvent<
     | UserUploadedPhotoToChat
     | OnboardingUserUploadedPhotoOfThemself

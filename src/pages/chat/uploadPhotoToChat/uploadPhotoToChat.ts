@@ -1,16 +1,16 @@
 import fs from 'node:fs'
-import { uploadPhoto } from '../../../dependencies/photo-storage'
 import { addToHistory } from '../../../dependencies/addToHistory'
-import { UserUploadedPhotoToChat } from './UserUploadedPhotoToChat'
-import { UUID } from '../../../domain'
+import { uploadPhoto } from '../../../dependencies/photo-storage'
+import { AppUserId } from '../../../domain/AppUserId'
 import { PhotoId } from '../../../domain/PhotoId'
 import { ThreadId } from '../../../domain/ThreadId'
+import { UserUploadedPhotoToChat } from './UserUploadedPhotoToChat'
 
 type UploadPhotoToChatArgs = {
   file: Express.Multer.File
   photoId: PhotoId
   chatId: ThreadId
-  userId: UUID
+  userId: AppUserId
 }
 export async function uploadPhotoToChat({ file, photoId, chatId, userId }: UploadPhotoToChatArgs) {
   const { path: originalPath } = file

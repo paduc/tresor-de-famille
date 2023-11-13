@@ -1,5 +1,5 @@
 import { DomainEvent, makeDomainEvent } from '../../dependencies/DomainEvent'
-import { UUID } from '../../domain'
+import { AppUserId } from '../../domain/AppUserId'
 import { PersonId } from '../../domain/PersonId'
 
 export type UserIgnoredRelationship = DomainEvent<
@@ -7,7 +7,7 @@ export type UserIgnoredRelationship = DomainEvent<
   {
     personId: PersonId
 
-    userId: UUID
+    userId: AppUserId
   }
 >
 

@@ -1,5 +1,5 @@
 import { DomainEvent, makeDomainEvent } from '../../dependencies/DomainEvent'
-import { UUID } from '../../domain'
+import { AppUserId } from '../../domain/AppUserId'
 import { ThreadId } from '../../domain/ThreadId'
 
 export type UserSetChatTitle = DomainEvent<
@@ -7,7 +7,7 @@ export type UserSetChatTitle = DomainEvent<
   {
     chatId: ThreadId
     title: string
-    userId: UUID
+    userId: AppUserId
   }
 >
 

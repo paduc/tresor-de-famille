@@ -1,22 +1,22 @@
 import { postgres } from '../../dependencies/database'
 import { getEventList } from '../../dependencies/getEventList'
 import { getPhotoUrlFromId } from '../../dependencies/photo-storage'
-import { UUID } from '../../domain'
 import { UserConfirmedHisFace } from '../../events/onboarding/UserConfirmedHisFace'
 import { getPersonById } from '../_getPersonById'
 
-import { UserNamedPersonInPhoto } from '../../events/onboarding/UserNamedPersonInPhoto'
-import { UserRecognizedPersonInPhoto } from '../../events/onboarding/UserRecognizedPersonInPhoto'
-import { PhotoManuallyAnnotated } from '../photo/annotateManually/PhotoManuallyAnnotated'
-import { PhotoAnnotationConfirmed } from '../photo/confirmPhotoAnnotation/PhotoAnnotationConfirmed'
-import { PersonPageProps } from './PersonPage'
-import { UserDeletedPhoto } from '../photo/UserDeletedPhoto'
-import { getProfilePicUrlForPerson } from '../_getProfilePicUrlForPerson'
+import { AppUserId } from '../../domain/AppUserId'
 import { FaceId } from '../../domain/FaceId'
 import { PersonId } from '../../domain/PersonId'
 import { PhotoId } from '../../domain/PhotoId'
+import { UserNamedPersonInPhoto } from '../../events/onboarding/UserNamedPersonInPhoto'
+import { UserRecognizedPersonInPhoto } from '../../events/onboarding/UserRecognizedPersonInPhoto'
+import { getProfilePicUrlForPerson } from '../_getProfilePicUrlForPerson'
+import { UserDeletedPhoto } from '../photo/UserDeletedPhoto'
+import { PhotoManuallyAnnotated } from '../photo/annotateManually/PhotoManuallyAnnotated'
+import { PhotoAnnotationConfirmed } from '../photo/confirmPhotoAnnotation/PhotoAnnotationConfirmed'
+import { PersonPageProps } from './PersonPage'
 
-export const getPersonPageProps = async (personId: PersonId, userId: UUID): Promise<PersonPageProps> => {
+export const getPersonPageProps = async (personId: PersonId, userId: AppUserId): Promise<PersonPageProps> => {
   const { photos, alternateProfilePics } = await getPersonPhotos(personId, userId)
 
   const { name } = (await getPersonById(personId)) || { name: 'N/A' }
@@ -29,7 +29,7 @@ export const getPersonPageProps = async (personId: PersonId, userId: UUID): Prom
     alternateProfilePics,
   }
 }
-async function getPersonPhotos(personId: PersonId, userId: UUID) {
+async function getPersonPhotos(personId: PersonId, userId: AppUserId) {
   const photoEvents = await getEventList<
     | PhotoAnnotationConfirmed
     | PhotoManuallyAnnotated

@@ -1,5 +1,5 @@
-import { UUID } from '../../domain'
 import { DomainEvent, makeDomainEvent } from '../../dependencies/DomainEvent'
+import { AppUserId } from '../../domain/AppUserId'
 import { PhotoId } from '../../domain/PhotoId'
 
 export type OnboardingUserUploadedPhotoOfFamily = DomainEvent<
@@ -14,7 +14,7 @@ export type OnboardingUserUploadedPhotoOfFamily = DomainEvent<
           key: string
         }
       | { type: 'localfile' }
-    uploadedBy: UUID
+    uploadedBy: AppUserId
   }
 >
 

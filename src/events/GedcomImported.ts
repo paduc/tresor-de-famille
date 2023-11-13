@@ -1,5 +1,5 @@
-import { UUID } from '../domain'
 import { DomainEvent, makeDomainEvent } from '../dependencies/DomainEvent'
+import { AppUserId } from '../domain/AppUserId'
 import { PersonId } from '../domain/PersonId'
 
 type Relationship = {
@@ -23,7 +23,7 @@ export type GedcomImported = DomainEvent<
     rawGedcom: string
     relationships: Relationship[]
     persons: Person[]
-    importedBy: UUID
+    importedBy: AppUserId
   }
 >
 

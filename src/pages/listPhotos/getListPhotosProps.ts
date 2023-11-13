@@ -1,14 +1,14 @@
 import { getEventList } from '../../dependencies/getEventList'
 import { getPhotoUrlFromId } from '../../dependencies/photo-storage'
-import { UUID } from '../../domain'
-import { OnboardingUserUploadedPhotoOfThemself } from '../../events/onboarding/OnboardingUserUploadedPhotoOfThemself'
+import { AppUserId } from '../../domain/AppUserId'
 import { OnboardingUserUploadedPhotoOfFamily } from '../../events/onboarding/OnboardingUserUploadedPhotoOfFamily'
-import { UserUploadedPhotoToChat } from '../chat/uploadPhotoToChat/UserUploadedPhotoToChat'
-import { ListPhotosProps } from './ListPhotosPage'
+import { OnboardingUserUploadedPhotoOfThemself } from '../../events/onboarding/OnboardingUserUploadedPhotoOfThemself'
 import { UserInsertedPhotoInRichTextThread } from '../chat/UserInsertedPhotoInRichTextThread'
+import { UserUploadedPhotoToChat } from '../chat/uploadPhotoToChat/UserUploadedPhotoToChat'
 import { UserDeletedPhoto } from '../photo/UserDeletedPhoto'
+import { ListPhotosProps } from './ListPhotosPage'
 
-export const getListPhotosProps = async (userId: UUID): Promise<ListPhotosProps> => {
+export const getListPhotosProps = async (userId: AppUserId): Promise<ListPhotosProps> => {
   const uploadedPhotos = await getEventList<
     UserUploadedPhotoToChat | OnboardingUserUploadedPhotoOfFamily | OnboardingUserUploadedPhotoOfThemself
   >(['OnboardingUserUploadedPhotoOfFamily', 'OnboardingUserUploadedPhotoOfThemself', 'UserUploadedPhotoToChat'], {

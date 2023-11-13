@@ -1,6 +1,7 @@
 import { postgres } from '../dependencies/database'
 import { getEventList } from '../dependencies/getEventList'
 import { UUID } from '../domain'
+import { AppUserId } from '../domain/AppUserId'
 import { FaceId } from '../domain/FaceId'
 import { PersonId } from '../domain/PersonId'
 import { PhotoId } from '../domain/PhotoId'
@@ -25,7 +26,7 @@ export const getPersonIdsForFaceIdOld = async (faceId: FaceId): Promise<PersonId
   return Array.from(new Set(rows.map((row) => row.payload.personId)))
 }
 
-export const getPersonIdsForFaceId = async ({ faceId, userId }: { faceId: FaceId; userId: UUID }): Promise<PersonId[]> => {
+export const getPersonIdsForFaceId = async ({ faceId, userId }: { faceId: FaceId; userId: AppUserId }): Promise<PersonId[]> => {
   const annotationEvents = (
     await getEventList<
       | PhotoAnnotationConfirmed

@@ -1,10 +1,10 @@
-import { UUID } from '../domain'
 import { DomainEvent, makeDomainEvent } from '../dependencies/DomainEvent'
+import { AppUserId } from '../domain/AppUserId'
 
 export type UserRegisteredWithEmailAndPassword = DomainEvent<
   'UserRegisteredWithEmailAndPassword',
   {
-    userId: UUID
+    userId: AppUserId
     email: string
     passwordHash: string
     code?: string

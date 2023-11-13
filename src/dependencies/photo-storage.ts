@@ -5,6 +5,7 @@ import path from 'node:path'
 import { UUID } from '../domain'
 import { throwIfUndefined } from './env'
 import { PhotoId } from '../domain/PhotoId'
+import { AppUserId } from '../domain/AppUserId'
 
 const { PHOTO_STORAGE } = zod.object({ PHOTO_STORAGE: zod.enum(['S3', 'local']) }).parse(process.env)
 
@@ -74,13 +75,4 @@ async function uploadPhotoLocally({ contents, id }: UploadPhotoArgs) {
 
 export const getPhotoUrlFromId = (photoId: PhotoId) => {
   return '/photos/' + photoId
-}
-
-/**
- * FAKE
- * @param userId
- * @returns
- */
-export const getProfilePicUrlForUser = (userId: UUID) => {
-  return 'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80'
 }

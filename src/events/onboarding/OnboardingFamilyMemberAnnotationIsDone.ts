@@ -1,10 +1,10 @@
 import { DomainEvent, makeDomainEvent } from '../../dependencies/DomainEvent'
-import { UUID } from '../../domain'
+import { AppUserId } from '../../domain/AppUserId'
 
 export type OnboardingFamilyMemberAnnotationIsDone = DomainEvent<
   'OnboardingFamilyMemberAnnotationIsDone',
   {
-    userId: UUID
+    userId: AppUserId
   }
 >
 

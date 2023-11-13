@@ -1,6 +1,6 @@
 import { getSingleEvent } from '../../dependencies/getSingleEvent'
 import { getPhotoUrlFromId } from '../../dependencies/photo-storage'
-import { UUID } from '../../domain'
+import { AppUserId } from '../../domain/AppUserId'
 import { PersonId } from '../../domain/PersonId'
 import { OnboardingUserUploadedPhotoOfThemself } from '../../events/onboarding/OnboardingUserUploadedPhotoOfThemself'
 import { UserConfirmedHisFace } from '../../events/onboarding/UserConfirmedHisFace'
@@ -11,7 +11,7 @@ import { AWSDetectedFacesInPhoto } from '../photo/recognizeFacesInChatPhoto/AWSD
 import { getThreadListPageProps } from '../threadList/getThreadListPageProps'
 import { GetUserName, HomePageProps, UploadProfilePicture } from './HomePage'
 
-export const getHomePageProps = async (userId: UUID): Promise<HomePageProps> => {
+export const getHomePageProps = async (userId: AppUserId): Promise<HomePageProps> => {
   const step1 = await getGetUserName(userId)
 
   const personId = step1['get-user-name'] === 'done' ? step1.personId : undefined
@@ -33,7 +33,7 @@ export const getHomePageProps = async (userId: UUID): Promise<HomePageProps> => 
   }
 }
 
-async function getGetUserName(userId: UUID): Promise<GetUserName> {
+async function getGetUserName(userId: AppUserId): Promise<GetUserName> {
   const userNamedThemself = await getSingleEvent<UserNamedThemself>('UserNamedThemself', { userId })
 
   if (userNamedThemself) {
@@ -47,7 +47,7 @@ async function getGetUserName(userId: UUID): Promise<GetUserName> {
   return { 'get-user-name': 'pending' }
 }
 
-async function getUploadProfilePicture(userId: UUID, personId?: PersonId): Promise<UploadProfilePicture> {
+async function getUploadProfilePicture(userId: AppUserId, personId?: PersonId): Promise<UploadProfilePicture> {
   const userFaceConfirmed = await getSingleEvent<UserConfirmedHisFace>('UserConfirmedHisFace', { userId })
 
   if (userFaceConfirmed) {

@@ -15,6 +15,7 @@ import { getUuid } from '../../libs/getUuid'
 import { getEventList } from '../../dependencies/getEventList'
 import { UserRemovedRelationship } from './UserRemovedRelationship'
 import { zIsPersonId } from '../../domain/PersonId'
+import { AppUserId } from '../../domain/AppUserId'
 
 pageRouter.route(FamilyPageURL()).get(requireAuth(), async (request, response) => {
   const props = await getFamilyPageProps(request.session.user!.id)
@@ -106,7 +107,7 @@ pageRouter.route('/family/removeRelationship').post(requireAuth(), async (reques
   return response.status(200).send()
 })
 
-async function relationshipExists({ userId, relationshipId }: { userId: UUID; relationshipId: UUID }) {
+async function relationshipExists({ userId, relationshipId }: { userId: AppUserId; relationshipId: UUID }) {
   const existingRelationships = await getEventList<UserCreatedNewRelationship | UserCreatedRelationshipWithNewPerson>(
     ['UserCreatedNewRelationship', 'UserCreatedRelationshipWithNewPerson'],
     { userId }

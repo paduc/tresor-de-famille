@@ -1,7 +1,7 @@
 import { DomainEvent } from '../../dependencies/DomainEvent'
 import { postgres } from '../../dependencies/database'
 import { UserRegisteredWithEmailAndPassword } from '../../events/UserRegisteredWithEmailAndPassword'
-import { getUuid } from '../../libs/getUuid'
+import { makeAppUserId } from '../../libs/makeUserId'
 
 type RegisterDeps = {
   addToHistory: (event: DomainEvent) => unknown
@@ -23,7 +23,7 @@ export const makeRegister =
 
     const passwordHash = await hashPassword(password)
 
-    const userId = getUuid()
+    const userId = makeAppUserId()
     await addToHistory(
       UserRegisteredWithEmailAndPassword({
         userId,

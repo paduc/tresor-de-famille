@@ -3,26 +3,26 @@ import { openai } from '../../../dependencies/LLM'
 import { addToHistory } from '../../../dependencies/addToHistory'
 import { postgres } from '../../../dependencies/database'
 import { normalizeBBOX } from '../../../dependencies/face-recognition'
-import { UUID } from '../../../domain'
-import { getUuid } from '../../../libs/getUuid'
-import { getPersonById } from '../../_getPersonById'
-import { getPersonIdForUserId } from '../../_getPersonIdForUserId.query'
-import { AWSDetectedFacesInPhoto } from '../recognizeFacesInChatPhoto/AWSDetectedFacesInPhoto'
-import { UserUploadedPhotoToChat } from '../../chat/uploadPhotoToChat/UserUploadedPhotoToChat'
-import { UserAddedCaptionToPhoto } from '../UserAddedCaptionToPhoto'
-import { describeFamily } from './describeFamily'
-import { describePhotoFaces } from './describePhotoFaces'
-import { PhotoAnnotationUsingOpenAIFailed } from './PhotoAnnotationUsingOpenAIFailed'
-import { PhotoAnnotatedUsingOpenAI } from './PhotoAnnotatedUsingOpenAI'
-import { PhotoManuallyAnnotated } from '../annotateManually/PhotoManuallyAnnotated'
-import { PhotoAnnotationConfirmed } from '../confirmPhotoAnnotation/PhotoAnnotationConfirmed'
+import { AppUserId } from '../../../domain/AppUserId'
 import { FaceId } from '../../../domain/FaceId'
 import { PhotoId } from '../../../domain/PhotoId'
+import { getUuid } from '../../../libs/getUuid'
 import { makePersonId } from '../../../libs/makePersonId'
+import { getPersonById } from '../../_getPersonById'
+import { getPersonIdForUserId } from '../../_getPersonIdForUserId.query'
+import { UserUploadedPhotoToChat } from '../../chat/uploadPhotoToChat/UserUploadedPhotoToChat'
+import { UserAddedCaptionToPhoto } from '../UserAddedCaptionToPhoto'
+import { PhotoManuallyAnnotated } from '../annotateManually/PhotoManuallyAnnotated'
+import { PhotoAnnotationConfirmed } from '../confirmPhotoAnnotation/PhotoAnnotationConfirmed'
+import { AWSDetectedFacesInPhoto } from '../recognizeFacesInChatPhoto/AWSDetectedFacesInPhoto'
+import { PhotoAnnotatedUsingOpenAI } from './PhotoAnnotatedUsingOpenAI'
+import { PhotoAnnotationUsingOpenAIFailed } from './PhotoAnnotationUsingOpenAIFailed'
+import { describeFamily } from './describeFamily'
+import { describePhotoFaces } from './describePhotoFaces'
 
 type AnnotatePhotoUsingOpenAIArgs = {
   photoId: PhotoId
-  userId: UUID
+  userId: AppUserId
   debug?: boolean
 }
 export async function annotatePhotoUsingOpenAI({ photoId, userId, debug }: AnnotatePhotoUsingOpenAIArgs) {

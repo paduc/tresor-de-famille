@@ -1,7 +1,7 @@
-import { UUID } from '../../domain'
 import { DomainEvent, makeDomainEvent } from '../../dependencies/DomainEvent'
-import { Relationship } from './UserCreatedNewRelationship'
+import { AppUserId } from '../../domain/AppUserId'
 import { PersonId } from '../../domain/PersonId'
+import { Relationship } from './UserCreatedNewRelationship'
 
 export type UserCreatedRelationshipWithNewPerson = DomainEvent<
   'UserCreatedRelationshipWithNewPerson',
@@ -11,7 +11,7 @@ export type UserCreatedRelationshipWithNewPerson = DomainEvent<
       personId: PersonId
       name: string
     }
-    userId: UUID
+    userId: AppUserId
   }
 >
 

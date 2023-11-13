@@ -1,11 +1,12 @@
 import { UUID } from '../../domain'
 import { DomainEvent, makeDomainEvent } from '../../dependencies/DomainEvent'
+import { AppUserId } from '../../domain/AppUserId'
 
 export type UserRemovedRelationship = DomainEvent<
   'UserRemovedRelationship',
   {
     relationshipId: UUID
-    userId: UUID
+    userId: AppUserId
   }
 >
 

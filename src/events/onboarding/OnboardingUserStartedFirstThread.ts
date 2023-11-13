@@ -1,5 +1,5 @@
 import { DomainEvent, makeDomainEvent } from '../../dependencies/DomainEvent'
-import { UUID } from '../../domain'
+import { AppUserId } from '../../domain/AppUserId'
 import { ThreadId } from '../../domain/ThreadId'
 
 export type OnboardingUserStartedFirstThread = DomainEvent<
@@ -7,7 +7,7 @@ export type OnboardingUserStartedFirstThread = DomainEvent<
   {
     message: string
     threadId: ThreadId
-    userId: UUID
+    userId: AppUserId
   }
 >
 

@@ -1,8 +1,8 @@
 import { getSingleEvent } from '../../dependencies/getSingleEvent'
 import { getPhotoUrlFromId } from '../../dependencies/photo-storage'
+import { AppUserId } from '../../domain/AppUserId'
 import { FaceId } from '../../domain/FaceId'
 import { PhotoId } from '../../domain/PhotoId'
-import { UUID } from '../../domain/UUID'
 import { FaceIgnoredInPhoto } from '../../events/onboarding/FaceIgnoredInPhoto'
 import { UserNamedPersonInPhoto } from '../../events/onboarding/UserNamedPersonInPhoto'
 import { UserRecognizedPersonInPhoto } from '../../events/onboarding/UserRecognizedPersonInPhoto'
@@ -21,7 +21,7 @@ export const getNewPhotoPageProps = async ({
   userId,
 }: {
   photoId: PhotoId
-  userId: UUID
+  userId: AppUserId
 }): Promise<NewPhotoPageProps> => {
   const photoExists = await doesPhotoExist({ photoId, userId })
   if (!photoExists) throw new Error('Photo does not exist')
@@ -45,7 +45,7 @@ export const getNewPhotoPageProps = async ({
 }
 
 // Copy from getChatPageProps()
-async function getFamilyDetectedFace(args: { faceId: FaceId; photoId: PhotoId; userId: UUID }): Promise<PhotoFace> {
+async function getFamilyDetectedFace(args: { faceId: FaceId; photoId: PhotoId; userId: AppUserId }): Promise<PhotoFace> {
   const { faceId, photoId, userId } = args
 
   const personNamedOrRecognizedEvent = await getSingleEvent<UserNamedPersonInPhoto | UserRecognizedPersonInPhoto>(

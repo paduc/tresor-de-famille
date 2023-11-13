@@ -1,5 +1,5 @@
 import { DomainEvent, makeDomainEvent } from '../../dependencies/DomainEvent'
-import { UUID } from '../../domain'
+import { AppUserId } from '../../domain/AppUserId'
 import { FaceId } from '../../domain/FaceId'
 import { PersonId } from '../../domain/PersonId'
 import { PhotoId } from '../../domain/PhotoId'
@@ -12,7 +12,7 @@ export type UserRecognizedPersonInPhoto = DomainEvent<
 
     personId: PersonId
 
-    userId: UUID
+    userId: AppUserId
   }
 >
 

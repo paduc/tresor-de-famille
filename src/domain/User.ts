@@ -1,6 +1,6 @@
-import { UUID } from './UUID'
+import { AppUserId } from './AppUserId'
 
 export type User = {
-  id: UUID
+  id: AppUserId
   name: string
 }

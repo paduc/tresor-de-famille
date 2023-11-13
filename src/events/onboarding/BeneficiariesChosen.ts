@@ -1,9 +1,9 @@
 import { DomainEvent, makeDomainEvent } from '../../dependencies/DomainEvent'
-import { UUID } from '../../domain'
+import { AppUserId } from '../../domain/AppUserId'
 
 export type BeneficiariesChosen = DomainEvent<
   'BeneficiariesChosen',
-  { userId: UUID } & (
+  { userId: AppUserId } & (
     | {
         mode: 'tdf-detection-contacts-beneficiaries' // 'automatic'
         beneficiaries: ({ name: string } & ({ email: string } | { address: string }))[]

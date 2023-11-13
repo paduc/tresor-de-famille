@@ -1,5 +1,5 @@
 import { DomainEvent, makeDomainEvent } from '../../dependencies/DomainEvent'
-import { UUID } from '../../domain'
+import { AppUserId } from '../../domain/AppUserId'
 import { FaceId } from '../../domain/FaceId'
 import { PhotoId } from '../../domain/PhotoId'
 
@@ -9,7 +9,7 @@ export type FaceIgnoredInPhoto = DomainEvent<
     faceId: FaceId
     photoId: PhotoId
 
-    ignoredBy: UUID
+    ignoredBy: AppUserId
   }
 >
 

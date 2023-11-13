@@ -1,9 +1,9 @@
 import { postgres } from '../../dependencies/database'
-import { UUID } from '../../domain'
+import { AppUserId } from '../../domain/AppUserId'
 
 export const makeLogin =
   (comparePassword: (password: string, passwordHash: string) => Promise<boolean>) =>
-  async (email: string, password: string): Promise<UUID> => {
+  async (email: string, password: string): Promise<AppUserId> => {
     const { rows } = await postgres.query(
       "SELECT * FROM history WHERE type = 'UserRegisteredWithEmailAndPassword' AND LOWER(payload->>'email')=LOWER($1) LIMIT 1",
       [email]

@@ -1,16 +1,15 @@
 import { getEventList } from '../../dependencies/getEventList'
 import { getSingleEvent } from '../../dependencies/getSingleEvent'
-import { UUID } from '../../domain'
+import { AppUserId } from '../../domain/AppUserId'
 import { ThreadId } from '../../domain/ThreadId'
 import { OnboardingUserStartedFirstThread } from '../../events/onboarding/OnboardingUserStartedFirstThread'
 import { UserInsertedPhotoInRichTextThread } from '../chat/UserInsertedPhotoInRichTextThread'
 import { UserSetChatTitle } from '../chat/UserSetChatTitle'
 import { UserUpdatedThreadAsRichText } from '../chat/UserUpdatedThreadAsRichText'
 import { UserSentMessageToChat } from '../chat/sendMessageToChat/UserSentMessageToChat'
-import { UserUploadedPhotoToChat } from '../chat/uploadPhotoToChat/UserUploadedPhotoToChat'
 import { ThreadListPageProps } from './ThreadListPage'
 
-export const getThreadListPageProps = async (userId: UUID): Promise<ThreadListPageProps> => {
+export const getThreadListPageProps = async (userId: AppUserId): Promise<ThreadListPageProps> => {
   type MessageEvent =
     | UserSentMessageToChat
     | OnboardingUserStartedFirstThread
