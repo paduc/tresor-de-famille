@@ -25,3 +25,6 @@ export const ALGOLIA_APPKEY = throwIfUndefined('ALGOLIA_APPKEY', true)!
 export const ALGOLIA_SEARCHKEY = throwIfUndefined('ALGOLIA_SEARCHKEY', true)!
 
 export const SEED = process.env.SEED === '1'
+
+export const IS_SHARING_ENABLED = process.env.IS_SHARING_ENABLED === '1'
+export const SHARING_CODE_HASH_SEED = throwIfUndefined('SHARING_CODE_HASH_SEED', IS_SHARING_ENABLED)
