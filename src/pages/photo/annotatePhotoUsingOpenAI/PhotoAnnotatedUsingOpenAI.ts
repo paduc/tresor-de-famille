@@ -1,11 +1,11 @@
-import { UUID } from '../../../domain'
 import { DomainEvent, makeDomainEvent } from '../../../dependencies/DomainEvent'
+import { DeductionId } from '../../../domain/DeductionId'
 import { FaceId } from '../../../domain/FaceId'
 import { PersonId } from '../../../domain/PersonId'
 import { PhotoId } from '../../../domain/PhotoId'
 
 type Deduction = {
-  deductionId: UUID
+  deductionId: DeductionId
   photoId: PhotoId
 } & (
   | {

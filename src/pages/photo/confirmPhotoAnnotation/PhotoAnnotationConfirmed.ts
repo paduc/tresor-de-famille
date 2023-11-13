@@ -1,6 +1,6 @@
 import { DomainEvent, makeDomainEvent } from '../../../dependencies/DomainEvent'
-import { UUID } from '../../../domain'
 import { AppUserId } from '../../../domain/AppUserId'
+import { DeductionId } from '../../../domain/DeductionId'
 import { FaceId } from '../../../domain/FaceId'
 import { PersonId } from '../../../domain/PersonId'
 import { PhotoId } from '../../../domain/PhotoId'
@@ -22,7 +22,7 @@ export type PhotoAnnotationConfirmed = DomainEvent<
     // in this photo
     photoId: PhotoId
     // as suggested by (if OpenAI)
-    deductionId?: UUID
+    deductionId?: DeductionId
     // using this face (Rekognition)
     faceId: FaceId
   }

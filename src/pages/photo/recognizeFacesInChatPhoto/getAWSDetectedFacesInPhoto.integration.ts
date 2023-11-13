@@ -1,10 +1,9 @@
 import aws from 'aws-sdk'
 import fs from 'node:fs'
 import path from 'node:path'
-import { UUID } from '../../../domain'
+import { FaceId } from '../../../domain/FaceId'
 import { getUuid } from '../../../libs/getUuid'
 import { getAWSDetectedFacesInPhoto } from './getAWSDetectedFacesInPhoto'
-import { FaceId } from '../../../domain/FaceId'
 
 aws.config.update({
   accessKeyId: process.env.AWS_ACCESS_KEY,

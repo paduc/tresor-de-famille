@@ -2,8 +2,8 @@ import { addToHistory } from '../../../dependencies/addToHistory'
 import { postgres } from '../../../dependencies/database'
 import { normalizeBBOX } from '../../../dependencies/face-recognition'
 import { personsIndex } from '../../../dependencies/search'
-import { UUID } from '../../../domain'
 import { AppUserId } from '../../../domain/AppUserId'
+import { DeductionId } from '../../../domain/DeductionId'
 import { FaceId } from '../../../domain/FaceId'
 import { PhotoId } from '../../../domain/PhotoId'
 import { PhotoAnnotatedUsingOpenAI } from '../annotatePhotoUsingOpenAI/PhotoAnnotatedUsingOpenAI'
@@ -12,7 +12,7 @@ import { PhotoAnnotationConfirmed } from './PhotoAnnotationConfirmed'
 
 type ConfirmOpenAIPhotoAnnotationArgs = {
   photoId: PhotoId
-  deductionId: UUID
+  deductionId: DeductionId
   confirmedBy: AppUserId
 }
 
@@ -66,7 +66,7 @@ async function getFaceById(photoId: PhotoId, faceId: FaceId) {
   return face
 }
 
-async function getDeductionById(photoId: PhotoId, deductionId: UUID) {
+async function getDeductionById(photoId: PhotoId, deductionId: DeductionId) {
   const { rows } = await postgres.query<PhotoAnnotatedUsingOpenAI>(
     "SELECT * FROM history WHERE type='PhotoAnnotatedUsingOpenAI' AND payload->>'photoId'=$1",
     [photoId]

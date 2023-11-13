@@ -1,6 +1,5 @@
 import { postgres } from '../dependencies/database'
 import { getEventList } from '../dependencies/getEventList'
-import { UUID } from '../domain'
 import { AppUserId } from '../domain/AppUserId'
 import { FaceId } from '../domain/FaceId'
 import { PersonId } from '../domain/PersonId'

@@ -1,5 +1,4 @@
 import { postgres } from '../../../dependencies/database'
-import { UUID } from '../../../domain'
 import { FaceId } from '../../../domain/FaceId'
 import { PhotoId } from '../../../domain/PhotoId'
 import { makeIdCodeMap } from '../../../libs/makeIdCodeMap'

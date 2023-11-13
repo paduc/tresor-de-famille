@@ -1,10 +1,9 @@
-import { addToHistory } from '../../../dependencies/addToHistory'
 import { resetDatabase } from '../../../dependencies/__test__/resetDatabase'
+import { addToHistory } from '../../../dependencies/addToHistory'
+import { AppUserId } from '../../../domain/AppUserId'
 import { GedcomImported } from '../../../events'
-import { getUuid } from '../../../libs/getUuid'
-import { describeFamily } from './describeFamily'
-import { UUID } from '../../../domain'
 import { makePersonId } from '../../../libs/makePersonId'
+import { describeFamily } from './describeFamily'
 
 const personId = makePersonId()
 const wifeId = makePersonId()
@@ -158,7 +157,7 @@ describe('describeFamily', () => {
             name: 'Aunt Bethany',
           },
         ],
-        importedBy: '' as UUID,
+        importedBy: '' as AppUserId,
       })
     )
   })

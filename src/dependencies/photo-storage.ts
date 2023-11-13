@@ -1,11 +1,9 @@
 import aws from 'aws-sdk'
-import zod, { unknown } from 'zod'
 import fs from 'node:fs'
 import path from 'node:path'
-import { UUID } from '../domain'
-import { throwIfUndefined } from './env'
+import zod from 'zod'
 import { PhotoId } from '../domain/PhotoId'
-import { AppUserId } from '../domain/AppUserId'
+import { throwIfUndefined } from './env'
 
 const { PHOTO_STORAGE } = zod.object({ PHOTO_STORAGE: zod.enum(['S3', 'local']) }).parse(process.env)
 

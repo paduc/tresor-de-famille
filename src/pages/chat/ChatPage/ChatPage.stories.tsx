@@ -1,11 +1,11 @@
 import * as React from 'react'
 import { SessionContext } from '../../_components'
 
-import { UUID } from '../../../domain'
 import { ChatPage } from './ChatPage'
 
-import { getUuid } from '../../../libs/getUuid'
 import { Epoch } from '../../../libs/typeguards'
+import { makeThreadId } from '../../../libs/makeThreadId'
+import { PhotoId } from '../../../domain/PhotoId'
 
 export default {
   title: 'Histoires et anecdotes',
@@ -39,7 +39,7 @@ const HOUR = 3600 * 1000
 
 export const AvecUnMelangeDePhotoEtMessage = () => (
   <ChatPage
-    chatId={getUuid()}
+    chatId={makeThreadId()}
     lastUpdated={t0 as Epoch}
     title='Ceci est le titre'
     contentAsJSON={{
@@ -57,8 +57,8 @@ export const AvecUnMelangeDePhotoEtMessage = () => (
         {
           type: 'photoNode',
           attrs: {
-            chatId: getUuid(),
-            photoId: 'photo123' as UUID,
+            chatId: makeThreadId(),
+            photoId: 'photo123' as PhotoId,
             url: 'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=500&h=500&q=80',
             description: 'Ici la description',
             personsInPhoto: encodeURIComponent(JSON.stringify(['Jean', 'Marie', 'Philippe', 'Joseph', 'Helicopter', 'Banane'])),
@@ -86,8 +86,8 @@ export const AvecUnMelangeDePhotoEtMessage = () => (
         {
           type: 'photoNode',
           attrs: {
-            chatId: getUuid(),
-            photoId: 'photo123' as UUID,
+            chatId: makeThreadId(),
+            photoId: 'photo123' as PhotoId,
             url: 'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=500&h=500&q=80',
             description: '',
             personsInPhoto: encodeURIComponent(JSON.stringify([])),

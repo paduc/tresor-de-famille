@@ -1,15 +1,14 @@
 import * as React from 'react'
 
 import { CameraIcon, CheckIcon, ChevronRightIcon, PencilSquareIcon, XMarkIcon } from '@heroicons/react/24/outline'
-import { UUID } from '../../domain'
+import { FaceId } from '../../domain/FaceId'
+import { PersonId } from '../../domain/PersonId'
+import { PhotoId } from '../../domain/PhotoId'
 import { withBrowserBundle } from '../../libs/ssr/withBrowserBundle'
 import { buttonIconStyles, primaryButtonStyles, secondaryButtonStyles } from '../_components/Button'
 import { InlinePhotoUploadBtn } from '../_components/InlinePhotoUploadBtn'
 import { TDFModal } from '../_components/TDFModal'
 import { AppLayout } from '../_components/layout/AppLayout'
-import { FaceId } from '../../domain/FaceId'
-import { PersonId } from '../../domain/PersonId'
-import { PhotoId } from '../../domain/PhotoId'
 
 // @ts-ignore
 function classNames(...classes) {

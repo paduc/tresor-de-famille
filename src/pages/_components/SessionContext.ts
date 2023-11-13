@@ -1,5 +1,4 @@
 import React from 'react'
-import { UUID } from '../../domain/UUID'
 import { PersonId } from '../../domain/PersonId'
 
 export type Session =

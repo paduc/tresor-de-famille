@@ -5,7 +5,9 @@ import { Dialog, Transition } from '@headlessui/react'
 import { XMarkIcon } from '@heroicons/react/20/solid'
 import { EyeIcon, EyeSlashIcon, TrashIcon } from '@heroicons/react/24/outline'
 import { FaceId } from '../../../domain/FaceId'
-import { UUID } from '../../../domain/UUID'
+import { PersonId } from '../../../domain/PersonId'
+import { PhotoId } from '../../../domain/PhotoId'
+import { ThreadId } from '../../../domain/ThreadId'
 import { withBrowserBundle } from '../../../libs/ssr/withBrowserBundle'
 import {
   linkStylesDarkMode,
@@ -19,9 +21,6 @@ import { TDFModal } from '../../_components/TDFModal'
 import { usePersonSearch } from '../../_components/usePersonSearch'
 import { PhotoListPageUrl } from '../../listPhotos/PhotoListPageUrl'
 import { PersonPageURL } from '../../person/PersonPageURL'
-import { PersonId } from '../../../domain/PersonId'
-import { PhotoId } from '../../../domain/PhotoId'
-import { ThreadId } from '../../../domain/ThreadId'
 
 type PhotoFace = {
   faceId: FaceId

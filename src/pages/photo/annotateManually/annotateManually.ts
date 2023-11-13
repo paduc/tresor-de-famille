@@ -5,7 +5,6 @@ import { AppUserId } from '../../../domain/AppUserId'
 import { FaceId } from '../../../domain/FaceId'
 import { PersonId } from '../../../domain/PersonId'
 import { PhotoId } from '../../../domain/PhotoId'
-import { UUID } from '../../../domain/UUID'
 import { AWSDetectedFacesInPhoto } from '../recognizeFacesInChatPhoto/AWSDetectedFacesInPhoto'
 import { PhotoManuallyAnnotated } from './PhotoManuallyAnnotated'
 

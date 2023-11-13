@@ -4,9 +4,10 @@ import { FaceId } from '../../../domain/FaceId'
 import { PersonId } from '../../../domain/PersonId'
 import { PhotoId } from '../../../domain/PhotoId'
 import { ThreadId } from '../../../domain/ThreadId'
+import { DeductionId } from '../../../domain/DeductionId'
 
 type Deduction = {
-  deductionId: UUID
+  deductionId: DeductionId
   personId: PersonId
   faceId: FaceId
   photoId: PhotoId

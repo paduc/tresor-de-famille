@@ -1,11 +1,9 @@
 import zod from 'zod'
-import fs from 'node:fs'
 import { requireAuth } from '../dependencies/authn'
-import { actionsRouter } from './actionsRouter'
-import { zIsUUID } from '../domain'
 import { downloadPhoto } from '../dependencies/photo-storage'
-import { doesPhotoExist } from '../pages/_doesPhotoExist'
 import { zIsPhotoId } from '../domain/PhotoId'
+import { doesPhotoExist } from '../pages/_doesPhotoExist'
+import { actionsRouter } from './actionsRouter'
 
 actionsRouter.route('/photos/:photoId').get(requireAuth(), async (request, response) => {
   try {

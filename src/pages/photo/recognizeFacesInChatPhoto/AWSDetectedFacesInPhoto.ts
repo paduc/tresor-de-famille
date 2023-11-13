@@ -1,4 +1,3 @@
-import { UUID } from '../../../domain'
 import { DomainEvent, makeDomainEvent } from '../../../dependencies/DomainEvent'
 import { FaceId } from '../../../domain/FaceId'
 import { PhotoId } from '../../../domain/PhotoId'

@@ -6,7 +6,7 @@ import { normalizeBBOX } from '../../../dependencies/face-recognition'
 import { AppUserId } from '../../../domain/AppUserId'
 import { FaceId } from '../../../domain/FaceId'
 import { PhotoId } from '../../../domain/PhotoId'
-import { getUuid } from '../../../libs/getUuid'
+import { makeDeductionId } from '../../../libs/makeDeductionId'
 import { makePersonId } from '../../../libs/makePersonId'
 import { getPersonById } from '../../_getPersonById'
 import { getPersonIdForUserId } from '../../_getPersonIdForUserId.query'
@@ -102,7 +102,7 @@ You: { "steps": "`
       if (!personId) {
         deductions.push({
           type: 'face-is-new-person',
-          deductionId: getUuid(),
+          deductionId: makeDeductionId(),
           faceId: photoFacesDescription.faceCodeMap.codeToId(faceCode)!,
           personId: makePersonId(),
           name: person,
@@ -112,7 +112,7 @@ You: { "steps": "`
       }
       deductions.push({
         type: 'face-is-person',
-        deductionId: getUuid(),
+        deductionId: makeDeductionId(),
         faceId: photoFacesDescription.faceCodeMap.codeToId(faceCode)!,
         personId,
         photoId,

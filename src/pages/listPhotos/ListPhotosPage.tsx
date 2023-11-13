@@ -1,12 +1,11 @@
 import * as React from 'react'
 
-import { UUID } from '../../domain'
+import { PhotoId } from '../../domain/PhotoId'
 import { withBrowserBundle } from '../../libs/ssr/withBrowserBundle'
 import { InlinePhotoUploadBtn } from '../_components/InlinePhotoUploadBtn'
 import { SuccessError } from '../_components/SuccessError'
 import { AppLayout } from '../_components/layout/AppLayout'
 import { PhotoIcon } from '../photo/PhotoPage/PhotoIcon'
-import { PhotoId } from '../../domain/PhotoId'
 
 // @ts-ignore
 function classNames(...classes) {
