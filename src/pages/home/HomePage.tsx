@@ -10,7 +10,7 @@ import { SessionContext } from '../_components/SessionContext'
 import { buttonIconStyles, primaryButtonStyles, primaryGreenButtonStyles, secondaryButtonStyles } from '../_components/Button'
 import { InlinePhotoUploadBtn } from '../_components/InlinePhotoUploadBtn'
 import { AppLayout } from '../_components/layout/AppLayout'
-import { SendIcon } from '../thread/ChatPage/SendIcon'
+import { SendIcon } from '../thread/ThreadPage/SendIcon'
 
 type Steps = GetUserName & UploadProfilePicture
 export type HomePageProps =

@@ -11,11 +11,11 @@ import { makeThreadId } from '../../libs/makeThreadId'
 import { responseAsHtml } from '../../libs/ssr/responseAsHtml'
 import { pageRouter } from '../pageRouter'
 import { detectFacesInPhotoUsingAWS } from '../photo/recognizeFacesInChatPhoto/detectFacesInPhotoUsingAWS'
-import { ChatPage } from './ChatPage/ChatPage'
+import { ThreadPage } from './ThreadPage/ThreadPage'
 import { decodeTipTapJSON, encodeStringy } from './TipTapTypes'
 import { UserInsertedPhotoInRichTextThread } from './UserInsertedPhotoInRichTextThread'
 import { UserSetChatTitle } from './UserSetChatTitle'
-import { getChatPageProps } from './getChatHistory/getChatPageProps'
+import { getThreadPageProps } from './getThreadPageProps'
 import { UserSentMessageToChat } from './sendMessageToChat/UserSentMessageToChat'
 
 const fakeProfilePicUrl =
@@ -59,21 +59,21 @@ pageRouter
   })
 
 pageRouter
-  .route('/chat/:chatId/chat.html')
+  .route('/chat/:threadId/chat.html')
   .get(requireAuth(), async (request, response) => {
-    const { chatId } = z.object({ chatId: zIsThreadId }).parse(request.params)
+    const { threadId } = z.object({ threadId: zIsThreadId }).parse(request.params)
     const userId = request.session.user!.id
 
-    const props = await getChatPageProps({ chatId, userId })
+    const props = await getThreadPageProps({ threadId: threadId, userId })
 
     // console.log(JSON.stringify({ props }, null, 2))
 
-    responseAsHtml(request, response, ChatPage(props))
+    responseAsHtml(request, response, ThreadPage(props))
   })
   .post(requireAuth(), upload.single('photo'), async (request, response) => {
     try {
       const userId = request.session.user!.id
-      const { chatId } = z.object({ chatId: zIsThreadId }).parse(request.params)
+      const { threadId } = z.object({ threadId: zIsThreadId }).parse(request.params)
 
       const { action } = z
         .object({
@@ -94,7 +94,7 @@ pageRouter
         if (message.trim().length) {
           await addToHistory(
             UserSentMessageToChat({
-              chatId,
+              chatId: threadId,
               userId,
               message: message.trim(),
               messageId,
@@ -106,7 +106,7 @@ pageRouter
 
         await addToHistory(
           UserSetChatTitle({
-            chatId,
+            chatId: threadId,
             userId,
             title: title.trim(),
           })
@@ -127,7 +127,14 @@ pageRouter
 
         contentAsJSON.content.splice(markerIndex, 1, {
           type: 'photoNode',
-          attrs: { photoId, chatId, personsInPhoto: encodeStringy([]), unrecognizedFacesInPhoto: 0, description: '', url: '' },
+          attrs: {
+            photoId,
+            threadId,
+            personsInPhoto: encodeStringy([]),
+            unrecognizedFacesInPhoto: 0,
+            description: '',
+            url: '',
+          },
         })
 
         // Remove old markers just in case
@@ -137,7 +144,7 @@ pageRouter
 
         await addToHistory(
           UserInsertedPhotoInRichTextThread({
-            chatId,
+            chatId: threadId,
             photoId,
             userId,
             location,
@@ -149,7 +156,7 @@ pageRouter
       }
 
       // TODO: try catch error and send it back as HTML (or redirect if OK)
-      return response.redirect(`/chat/${chatId}/chat.html`)
+      return response.redirect(`/chat/${threadId}/chat.html`)
     } catch (error) {
       console.error(error)
       return response.status(500).send(

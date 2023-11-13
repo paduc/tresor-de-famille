@@ -1,36 +1,42 @@
-import { getEventList } from '../../../dependencies/getEventList'
-import { getSingleEvent } from '../../../dependencies/getSingleEvent'
-import { getPhotoUrlFromId } from '../../../dependencies/photo-storage'
-import { AppUserId } from '../../../domain/AppUserId'
-import { FaceId } from '../../../domain/FaceId'
-import { PersonId } from '../../../domain/PersonId'
-import { PhotoId } from '../../../domain/PhotoId'
-import { ThreadId } from '../../../domain/ThreadId'
-import { FaceIgnoredInPhoto } from '../../../events/onboarding/FaceIgnoredInPhoto'
-import { UserNamedPersonInPhoto } from '../../../events/onboarding/UserNamedPersonInPhoto'
-import { UserRecognizedPersonInPhoto } from '../../../events/onboarding/UserRecognizedPersonInPhoto'
-import { Epoch } from '../../../libs/typeguards'
-import { getPersonById, getPersonByIdOrThrow } from '../../_getPersonById'
-import { getPersonIdsForFaceId } from '../../_getPersonsIdsForFaceId'
-import { UserAddedCaptionToPhoto } from '../../photo/UserAddedCaptionToPhoto'
-import { AWSDetectedFacesInPhoto } from '../../photo/recognizeFacesInChatPhoto/AWSDetectedFacesInPhoto'
-import { ChatPageProps } from '../ChatPage/ChatPage'
-import { TipTapContentAsJSON, encodeStringy } from '../TipTapTypes'
-import { UserInsertedPhotoInRichTextThread } from '../UserInsertedPhotoInRichTextThread'
-import { UserSetChatTitle } from '../UserSetChatTitle'
-import { UserUpdatedThreadAsRichText } from '../UserUpdatedThreadAsRichText'
-import { UserSentMessageToChat } from '../sendMessageToChat/UserSentMessageToChat'
-import { UserUploadedPhotoToChat } from '../uploadPhotoToChat/UserUploadedPhotoToChat'
+import { getEventList } from '../../dependencies/getEventList'
+import { getSingleEvent } from '../../dependencies/getSingleEvent'
+import { getPhotoUrlFromId } from '../../dependencies/photo-storage'
+import { AppUserId } from '../../domain/AppUserId'
+import { FaceId } from '../../domain/FaceId'
+import { PersonId } from '../../domain/PersonId'
+import { PhotoId } from '../../domain/PhotoId'
+import { ThreadId } from '../../domain/ThreadId'
+import { FaceIgnoredInPhoto } from '../../events/onboarding/FaceIgnoredInPhoto'
+import { UserNamedPersonInPhoto } from '../../events/onboarding/UserNamedPersonInPhoto'
+import { UserRecognizedPersonInPhoto } from '../../events/onboarding/UserRecognizedPersonInPhoto'
+import { Epoch } from '../../libs/typeguards'
+import { getPersonById, getPersonByIdOrThrow } from '../_getPersonById'
+import { getPersonIdsForFaceId } from '../_getPersonsIdsForFaceId'
+import { UserAddedCaptionToPhoto } from '../photo/UserAddedCaptionToPhoto'
+import { AWSDetectedFacesInPhoto } from '../photo/recognizeFacesInChatPhoto/AWSDetectedFacesInPhoto'
+import { ThreadPageProps } from './ThreadPage/ThreadPage'
+import { TipTapContentAsJSON, encodeStringy } from './TipTapTypes'
+import { UserInsertedPhotoInRichTextThread } from './UserInsertedPhotoInRichTextThread'
+import { UserSetChatTitle } from './UserSetChatTitle'
+import { UserUpdatedThreadAsRichText } from './UserUpdatedThreadAsRichText'
+import { UserSentMessageToChat } from './sendMessageToChat/UserSentMessageToChat'
+import { UserUploadedPhotoToChat } from './uploadPhotoToChat/UserUploadedPhotoToChat'
 
-export const getChatPageProps = async ({ chatId, userId }: { chatId: ThreadId; userId: AppUserId }): Promise<ChatPageProps> => {
-  const titleSet = await getSingleEvent<UserSetChatTitle>('UserSetChatTitle', { chatId })
+export const getThreadPageProps = async ({
+  threadId,
+  userId,
+}: {
+  threadId: ThreadId
+  userId: AppUserId
+}): Promise<ThreadPageProps> => {
+  const titleSet = await getSingleEvent<UserSetChatTitle>('UserSetChatTitle', { chatId: threadId })
 
   const title = titleSet?.payload.title
 
   const latestEvent = await getSingleEvent<
     UserSentMessageToChat | UserUploadedPhotoToChat | UserUpdatedThreadAsRichText | UserInsertedPhotoInRichTextThread
   >(['UserSentMessageToChat', 'UserUpdatedThreadAsRichText', 'UserUploadedPhotoToChat', 'UserInsertedPhotoInRichTextThread'], {
-    chatId,
+    chatId: threadId,
   })
 
   if (
@@ -48,9 +54,9 @@ export const getChatPageProps = async ({ chatId, userId }: { chatId: ThreadId; u
         contentAsJSON.content.push(contentNode)
         continue
       }
-      const { photoId, chatId } = contentNode.attrs
+      const { photoId, threadId } = contentNode.attrs
 
-      if (!photoId || !chatId) continue
+      if (!photoId || !threadId) continue
 
       const photoInfo = await retrievePhotoInfo({ photoId, userId })
 
@@ -60,7 +66,7 @@ export const getChatPageProps = async ({ chatId, userId }: { chatId: ThreadId; u
 
       const newAttrs = {
         photoId,
-        chatId,
+        threadId,
         description,
         personsInPhoto: encodeStringy(personsInPhoto),
         unrecognizedFacesInPhoto,
@@ -74,43 +80,44 @@ export const getChatPageProps = async ({ chatId, userId }: { chatId: ThreadId; u
     }
 
     return {
-      chatId,
+      threadId,
       contentAsJSON,
       lastUpdated: latestEvent.occurredAt.getTime() as Epoch,
       title: title || '',
     }
   }
 
-  const chatEvents = await getEventList<
+  const threadEvents = await getEventList<
     UserSentMessageToChat | UserUploadedPhotoToChat | UserUpdatedThreadAsRichText | UserInsertedPhotoInRichTextThread
   >(['UserSentMessageToChat', 'UserUploadedPhotoToChat', 'UserUpdatedThreadAsRichText', 'UserInsertedPhotoInRichTextThread'], {
-    chatId,
+    chatId: threadId,
   })
 
   const indexOfLatestRichTextEvent = findLastIndex(
-    chatEvents,
-    (chatEvent) => chatEvent.type === 'UserUpdatedThreadAsRichText' || chatEvent.type === 'UserInsertedPhotoInRichTextThread'
+    threadEvents,
+    (threadEvent) =>
+      threadEvent.type === 'UserUpdatedThreadAsRichText' || threadEvent.type === 'UserInsertedPhotoInRichTextThread'
   )
 
-  const latestRichTextEvent = chatEvents.at(indexOfLatestRichTextEvent) as
+  const latestRichTextEvent = threadEvents.at(indexOfLatestRichTextEvent) as
     | UserUpdatedThreadAsRichText
     | UserInsertedPhotoInRichTextThread
 
   const contentAsJSON = latestRichTextEvent?.payload.contentAsJSON || { type: 'doc', content: [] }
 
-  for (const chatEvent of chatEvents.slice(indexOfLatestRichTextEvent + 1)) {
-    if (chatEvent.type === 'UserUpdatedThreadAsRichText') continue // should never occur but this helps with types
+  for (const threadEvent of threadEvents.slice(indexOfLatestRichTextEvent + 1)) {
+    if (threadEvent.type === 'UserUpdatedThreadAsRichText') continue // should never occur but this helps with types
 
-    if (chatEvent.type === 'UserSentMessageToChat') {
+    if (threadEvent.type === 'UserSentMessageToChat') {
       contentAsJSON.content.push({
         type: 'paragraph',
-        content: [{ type: 'text', text: chatEvent.payload.message }],
+        content: [{ type: 'text', text: threadEvent.payload.message }],
       })
       continue
     }
 
-    if (chatEvent.type === 'UserUploadedPhotoToChat') {
-      const photoId = chatEvent.payload.photoId
+    if (threadEvent.type === 'UserUploadedPhotoToChat') {
+      const photoId = threadEvent.payload.photoId
       const photoInfo = await retrievePhotoInfo({ photoId, userId })
       if (!photoInfo) continue
 
@@ -120,7 +127,7 @@ export const getChatPageProps = async ({ chatId, userId }: { chatId: ThreadId; u
         type: 'photoNode',
         attrs: {
           photoId,
-          chatId,
+          threadId,
           description,
           personsInPhoto: encodeURIComponent(JSON.stringify(personsInPhoto)),
           unrecognizedFacesInPhoto,
@@ -133,7 +140,7 @@ export const getChatPageProps = async ({ chatId, userId }: { chatId: ThreadId; u
   }
 
   return {
-    chatId,
+    threadId,
     contentAsJSON,
     lastUpdated: latestEvent?.occurredAt.getTime() as Epoch,
     title: title || '',

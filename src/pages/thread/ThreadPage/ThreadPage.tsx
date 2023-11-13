@@ -34,26 +34,26 @@ function classNames(...classes) {
   return classes.filter(Boolean).join(' ')
 }
 
-export type ChatPageProps = {
+export type ThreadPageProps = {
   title?: string
   contentAsJSON: TipTapContentAsJSON
   lastUpdated: Epoch | undefined
-  chatId: ThreadId
+  threadId: ThreadId
 }
 
 const isBrowserContext = typeof window !== 'undefined'
 
-export const ChatPage = withBrowserBundle(
-  ({ title, contentAsJSON: contentAsJSONFromServer, lastUpdated, chatId }: ChatPageProps) => {
+export const ThreadPage = withBrowserBundle(
+  ({ title, contentAsJSON: contentAsJSONFromServer, lastUpdated, threadId }: ThreadPageProps) => {
     const newMessageAreaRef = React.useRef<HTMLTextAreaElement>(null)
 
     const richTextEditorRef = React.useRef<RichTextEditorRef>(null)
 
     let contentAsJSON = contentAsJSONFromServer
 
-    if (isBrowserContext && localStorage.getItem(chatId)) {
+    if (isBrowserContext && localStorage.getItem(threadId)) {
       try {
-        const { timestamp, contentAsJSON: contentAsJSONFromLocalStorage } = JSON.parse(localStorage.getItem(chatId)!)
+        const { timestamp, contentAsJSON: contentAsJSONFromLocalStorage } = JSON.parse(localStorage.getItem(threadId)!)
         // console.log({ lastUpdated, timestamp })
 
         if (!lastUpdated || timestamp > lastUpdated) {
@@ -74,9 +74,9 @@ export const ChatPage = withBrowserBundle(
       <AppLayout>
         <div className='w-full sm:ml-6 max-w-2xl pt-3 pb-40'>
           <div className='divide-y divide-gray-200 overflow-hidden sm:rounded-lg bg-white shadow'>
-            <Title title={title} chatId={chatId} />
+            <Title title={title} threadId={threadId} />
             <div className=''>
-              <RichTextEditor ref={richTextEditorRef} content={contentAsJSON} chatId={chatId} lastUpdated={lastUpdated} />
+              <RichTextEditor ref={richTextEditorRef} content={contentAsJSON} threadId={threadId} lastUpdated={lastUpdated} />
             </div>
           </div>
         </div>
@@ -91,13 +91,13 @@ export type PhotoItemProps = {
   description?: string
   personsInPhoto: string[]
   unrecognizedFacesInPhoto: number
-  chatId: ThreadId
+  threadId: ThreadId
 }
 const PhotoItem = (props: PhotoItemProps) => {
   const { description, url, personsInPhoto, unrecognizedFacesInPhoto } = props
   const descriptionOfPeople = personsInPhoto.join(', ')
 
-  const photoPageUrl = `/photo/${props.photoId}/photo.html?threadId=${props.chatId}`
+  const photoPageUrl = `/photo/${props.photoId}/photo.html?threadId=${props.threadId}`
 
   return (
     <div className='grid grid-cols-1 w-full px-4 sm:px-0 py-2'>
@@ -122,13 +122,13 @@ const PhotoItem = (props: PhotoItemProps) => {
   )
 }
 
-const Title = ({ title, chatId }: { title: string | undefined; chatId: ThreadId }) => {
+const Title = ({ title, threadId }: { title: string | undefined; threadId: ThreadId }) => {
   const [latestTitle, setLatestTitle] = useState<string | undefined>(title)
   const [status, setStatus] = useState<AutosaveStatus>('idle')
 
   const save = (newTitle: string) => {
     setStatus('saving')
-    fetch(`/chat/${chatId}/chat.html`, {
+    fetch(`/chat/${threadId}/chat.html`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action: 'clientsideTitleUpdate', title: newTitle }),
@@ -173,7 +173,7 @@ const Title = ({ title, chatId }: { title: string | undefined; chatId: ThreadId 
 type AutosaveStatus = 'idle' | 'saving' | 'saved' | 'error'
 const useAutosaveEditor = (
   editor: Editor | null,
-  chatId: ThreadId,
+  threadId: ThreadId,
   initialLastUpdated: Epoch | undefined
 ): { status: AutosaveStatus; lastUpdated: Epoch | undefined } => {
   // console.log('useAutosaveEditor', editor)
@@ -191,8 +191,8 @@ const useAutosaveEditor = (
     //     setStatus('idle')
     //   }, 2000)
     // }, 2000)
-    localStorage.setItem(chatId, JSON.stringify({ timestamp: Date.now(), contentAsJSON: newJSON }))
-    fetch(`/chat/${chatId}/chat.html`, {
+    localStorage.setItem(threadId, JSON.stringify({ timestamp: Date.now(), contentAsJSON: newJSON }))
+    fetch(`/chat/${threadId}/chat.html`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action: 'clientsideUpdate', contentAsJSON: newJSON }),
@@ -245,7 +245,7 @@ const useAutosaveEditor = (
 
 type RichTextEditorProps = {
   content: Content
-  chatId: ThreadId
+  threadId: ThreadId
   lastUpdated: Epoch | undefined
 }
 
@@ -276,7 +276,7 @@ const RichTextEditor = fixedForwardRef<RichTextEditorRef, RichTextEditorProps>((
     },
   })
 
-  const { status, lastUpdated } = useAutosaveEditor(editor, props.chatId, props.lastUpdated)
+  const { status, lastUpdated } = useAutosaveEditor(editor, props.threadId, props.lastUpdated)
 
   const photoUploadForm = React.useRef<HTMLFormElement>(null)
 
@@ -385,12 +385,12 @@ const PhotoItemWrappedForTipTap = (props: {
 
     const remixedProps: PhotoItemProps = { ...props.node.attrs, personsInPhoto: parsedPersonsInPhoto }
 
-    const { chatId, photoId, url, description, personsInPhoto, unrecognizedFacesInPhoto } = remixedProps
+    const { threadId, photoId, url, description, personsInPhoto, unrecognizedFacesInPhoto } = remixedProps
 
     return (
       <NodeViewWrapper className='tdf-photo'>
         <PhotoItem
-          chatId={chatId}
+          threadId={threadId}
           personsInPhoto={personsInPhoto}
           photoId={photoId}
           unrecognizedFacesInPhoto={unrecognizedFacesInPhoto}
@@ -419,7 +419,7 @@ const TipTapPhotoNode = Node.create({
 
   addAttributes(): (Attributes | {}) & { [Attr in keyof PhotoItemProps]: any } {
     return {
-      chatId: {},
+      threadId: {},
       photoId: {},
       url: {},
       description: {},

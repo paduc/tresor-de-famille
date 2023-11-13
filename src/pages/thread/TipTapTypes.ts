@@ -1,7 +1,7 @@
 import { JSON } from '../../dependencies/DomainEvent'
 import { PhotoId } from '../../domain/PhotoId'
 import { UUID } from '../../domain/UUID'
-import { PhotoItemProps } from './ChatPage/ChatPage'
+import { PhotoItemProps } from './ThreadPage/ThreadPage'
 
 export type PhotoNode = {
   type: 'photoNode'

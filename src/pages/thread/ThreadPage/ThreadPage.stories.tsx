@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { SessionContext } from '../../_components/SessionContext'
 
-import { ChatPage } from './ChatPage'
+import { ThreadPage } from './ThreadPage'
 
 import { Epoch } from '../../../libs/typeguards'
 import { makeThreadId } from '../../../libs/makeThreadId'
@@ -9,7 +9,7 @@ import { PhotoId } from '../../../domain/PhotoId'
 
 export default {
   title: 'Histoires et anecdotes',
-  component: ChatPage,
+  component: ThreadPage,
   parameters: {
     layout: 'fullscreen',
   },
@@ -38,7 +38,7 @@ const t0 = Date.now()
 const HOUR = 3600 * 1000
 
 export const AvecUnMelangeDePhotoEtMessage = () => (
-  <ChatPage
+  <ThreadPage
     chatId={makeThreadId()}
     lastUpdated={t0 as Epoch}
     title='Ceci est le titre'
