@@ -2,7 +2,7 @@ import c from 'classnames'
 import { XCircleIcon } from '@heroicons/react/20/solid'
 import * as React from 'react'
 import { Logo } from '../_components/Logo'
-import { Layout } from '../_components/layout/Layout'
+import { BareLayout } from '../_components/layout/Layout'
 
 type ConnexionPageProps = {
   loginType?: 'login' | 'register'
@@ -13,7 +13,7 @@ type ConnexionPageProps = {
 }
 export const ConnexionPage = ({ loginType = 'login', email, redirectTo, code, errors }: ConnexionPageProps) => {
   return (
-    <Layout>
+    <BareLayout>
       <div className='min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8'>
         <div className='sm:mx-auto sm:w-full sm:max-w-md'>
           <div className='mx-auto h-12' style={{ width: 60 }}>
@@ -175,6 +175,6 @@ export const ConnexionPage = ({ loginType = 'login', email, redirectTo, code, er
           </div>
         </div>
       </div>
-    </Layout>
+    </BareLayout>
   )
 }

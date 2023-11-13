@@ -1,9 +1,9 @@
 import React from 'react'
 
-export type LayoutProps = {
+export type BareLayoutProps = {
   children: React.ReactNode
 }
 
-export function Layout({ children }: LayoutProps) {
+export function BareLayout({ children }: BareLayoutProps) {
   return <>{children}</>
 }
