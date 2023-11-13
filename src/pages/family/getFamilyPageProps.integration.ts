@@ -47,7 +47,7 @@ describe('getFamilyProps', () => {
               personId: newPersonId,
               name: 'new name',
             },
-            relationship: { id: getUuid(), type: 'parent', parentId: makePersonId(), childId: newPersonId },
+            relationship: { id: makeRelationshipId(), type: 'parent', parentId: makePersonId(), childId: newPersonId },
           })
         )
       })
@@ -105,7 +105,7 @@ describe('getFamilyProps', () => {
               personId: newPersonId,
               name: 'new name',
             },
-            relationship: { id: getUuid(), type: 'spouses', spouseIds: [makePersonId(), newPersonId] },
+            relationship: { id: makeRelationshipId(), type: 'spouses', spouseIds: [makePersonId(), newPersonId] },
           })
         )
       })
@@ -162,7 +162,7 @@ describe('getFamilyProps', () => {
               personId: newPersonId,
               name: 'new name',
             },
-            relationship: { id: getUuid(), type: 'friends', friendIds: [makePersonId(), newPersonId] },
+            relationship: { id: makeRelationshipId(), type: 'friends', friendIds: [makePersonId(), newPersonId] },
           })
         )
       })
@@ -189,10 +189,10 @@ describe('getFamilyProps', () => {
 
     describe('when the same happens from UserCreatedNewRelationship', () => {
       const newPersonId = makePersonId()
-      const friendRelationshipId = getUuid()
-      const spouseRelId = getUuid()
+      const friendRelationshipId = makeRelationshipId()
+      const spouseRelId = makeRelationshipId()
 
-      const parentRelId = getUuid()
+      const parentRelId = makeRelationshipId()
       beforeAll(async () => {
         await resetDatabase()
         await addToHistory(
@@ -263,7 +263,7 @@ describe('getFamilyProps', () => {
     })
     describe('when the same happens after UserRemovedRelationship', () => {
       const newPersonId = makePersonId()
-      const removedRelationshipId = getUuid()
+      const removedRelationshipId = makeRelationshipId()
 
       beforeAll(async () => {
         await resetDatabase()
@@ -293,7 +293,7 @@ describe('getFamilyProps', () => {
         await addToHistory(
           UserCreatedNewRelationship({
             userId,
-            relationship: { id: getUuid(), type: 'spouses', spouseIds: [personId, newPersonId] },
+            relationship: { id: makeRelationshipId(), type: 'spouses', spouseIds: [personId, newPersonId] },
           })
         )
 

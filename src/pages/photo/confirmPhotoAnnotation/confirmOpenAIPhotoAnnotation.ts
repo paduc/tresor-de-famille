@@ -1,18 +1,19 @@
 import { addToHistory } from '../../../dependencies/addToHistory'
 import { postgres } from '../../../dependencies/database'
 import { normalizeBBOX } from '../../../dependencies/face-recognition'
+import { personsIndex } from '../../../dependencies/search'
 import { UUID } from '../../../domain'
-import { PhotoAnnotationConfirmed } from './PhotoAnnotationConfirmed'
-import { PhotoAnnotatedUsingOpenAI } from '../annotatePhotoUsingOpenAI/PhotoAnnotatedUsingOpenAI'
-import { AWSDetectedFacesInPhoto } from '../recognizeFacesInChatPhoto/AWSDetectedFacesInPhoto'
-import { personsIndex, searchClient } from '../../../dependencies/search'
+import { AppUserId } from '../../../domain/AppUserId'
 import { FaceId } from '../../../domain/FaceId'
 import { PhotoId } from '../../../domain/PhotoId'
+import { PhotoAnnotatedUsingOpenAI } from '../annotatePhotoUsingOpenAI/PhotoAnnotatedUsingOpenAI'
+import { AWSDetectedFacesInPhoto } from '../recognizeFacesInChatPhoto/AWSDetectedFacesInPhoto'
+import { PhotoAnnotationConfirmed } from './PhotoAnnotationConfirmed'
 
 type ConfirmOpenAIPhotoAnnotationArgs = {
   photoId: PhotoId
   deductionId: UUID
-  confirmedBy: UUID
+  confirmedBy: AppUserId
 }
 
 export const confirmOpenAIPhotoAnnotation = async ({ photoId, deductionId, confirmedBy }: ConfirmOpenAIPhotoAnnotationArgs) => {

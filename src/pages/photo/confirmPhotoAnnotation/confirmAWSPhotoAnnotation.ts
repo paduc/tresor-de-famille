@@ -1,7 +1,7 @@
 import { addToHistory } from '../../../dependencies/addToHistory'
 import { postgres } from '../../../dependencies/database'
 import { normalizeBBOX } from '../../../dependencies/face-recognition'
-import { UUID } from '../../../domain'
+import { AppUserId } from '../../../domain/AppUserId'
 import { FaceId } from '../../../domain/FaceId'
 import { PersonId } from '../../../domain/PersonId'
 import { PhotoId } from '../../../domain/PhotoId'
@@ -12,7 +12,7 @@ type ConfirmAWSPhotoAnnotationArgs = {
   photoId: PhotoId
   personId: PersonId
   faceId: FaceId
-  confirmedBy: UUID
+  confirmedBy: AppUserId
 }
 
 export const confirmAWSPhotoAnnotation = async ({ photoId, faceId, personId, confirmedBy }: ConfirmAWSPhotoAnnotationArgs) => {

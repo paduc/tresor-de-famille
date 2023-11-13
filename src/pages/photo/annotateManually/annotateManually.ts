@@ -1,6 +1,7 @@
 import { addToHistory } from '../../../dependencies/addToHistory'
 import { postgres } from '../../../dependencies/database'
 import { normalizeBBOX } from '../../../dependencies/face-recognition'
+import { AppUserId } from '../../../domain/AppUserId'
 import { FaceId } from '../../../domain/FaceId'
 import { PersonId } from '../../../domain/PersonId'
 import { PhotoId } from '../../../domain/PhotoId'
@@ -12,7 +13,7 @@ type AnnotateManuallyArgs = {
   photoId: PhotoId
   faceId: FaceId
   personId: PersonId
-  annotatedBy: UUID
+  annotatedBy: AppUserId
 }
 
 export const annotateManually = async ({ photoId, faceId, personId, annotatedBy }: AnnotateManuallyArgs) => {
