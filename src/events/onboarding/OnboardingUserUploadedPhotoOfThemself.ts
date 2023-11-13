@@ -1,5 +1,6 @@
 import { DomainEvent, makeDomainEvent } from '../../dependencies/DomainEvent'
 import { AppUserId } from '../../domain/AppUserId'
+import { FamilyId } from '../../domain/FamilyId'
 import { PhotoId } from '../../domain/PhotoId'
 
 export type OnboardingUserUploadedPhotoOfThemself = DomainEvent<
@@ -15,6 +16,7 @@ export type OnboardingUserUploadedPhotoOfThemself = DomainEvent<
         }
       | { type: 'localfile' }
     uploadedBy: AppUserId
+    familyId?: FamilyId
   }
 >
 

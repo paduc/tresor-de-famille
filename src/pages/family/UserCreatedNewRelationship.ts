@@ -1,5 +1,6 @@
 import { DomainEvent, makeDomainEvent } from '../../dependencies/DomainEvent'
 import { AppUserId } from '../../domain/AppUserId'
+import { FamilyId } from '../../domain/FamilyId'
 import { PersonId } from '../../domain/PersonId'
 import { RelationshipId } from '../../domain/RelationshipId'
 
@@ -24,6 +25,7 @@ export type UserCreatedNewRelationship = DomainEvent<
   {
     relationship: Relationship
     userId: AppUserId
+    familyId?: FamilyId
   }
 >
 

@@ -1,5 +1,6 @@
 import { DomainEvent, makeDomainEvent } from '../../dependencies/DomainEvent'
 import { AppUserId } from '../../domain/AppUserId'
+import { FamilyId } from '../../domain/FamilyId'
 import { PersonId } from '../../domain/PersonId'
 
 export type UserChangedPersonName = DomainEvent<
@@ -8,6 +9,7 @@ export type UserChangedPersonName = DomainEvent<
     personId: PersonId
     name: string
     userId: AppUserId
+    familyId?: FamilyId
   }
 >
 

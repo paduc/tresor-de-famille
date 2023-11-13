@@ -2,6 +2,7 @@ import { UUID } from '../../../domain'
 import { DomainEvent, makeDomainEvent } from '../../../dependencies/DomainEvent'
 import { ThreadId } from '../../../domain/ThreadId'
 import { AppUserId } from '../../../domain/AppUserId'
+import { FamilyId } from '../../../domain/FamilyId'
 
 export type UserSentMessageToChat = DomainEvent<
   'UserSentMessageToChat',
@@ -10,6 +11,7 @@ export type UserSentMessageToChat = DomainEvent<
     message: string
     messageId: UUID
     userId: AppUserId
+    familyId?: FamilyId
   }
 >
 

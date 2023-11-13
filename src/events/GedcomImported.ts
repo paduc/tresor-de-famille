@@ -1,5 +1,6 @@
 import { DomainEvent, makeDomainEvent } from '../dependencies/DomainEvent'
 import { AppUserId } from '../domain/AppUserId'
+import { FamilyId } from '../domain/FamilyId'
 import { PersonId } from '../domain/PersonId'
 
 type Relationship = {
@@ -24,6 +25,7 @@ export type GedcomImported = DomainEvent<
     relationships: Relationship[]
     persons: Person[]
     importedBy: AppUserId
+    familyId?: FamilyId
   }
 >
 

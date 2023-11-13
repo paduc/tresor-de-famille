@@ -1,4 +1,5 @@
 import { DomainEvent, makeDomainEvent } from '../../../dependencies/DomainEvent'
+import { FamilyId } from '../../../domain/FamilyId'
 import { PhotoId } from '../../../domain/PhotoId'
 
 export type PhotoAnnotationUsingOpenAIFailed = DomainEvent<
@@ -9,6 +10,7 @@ export type PhotoAnnotationUsingOpenAIFailed = DomainEvent<
     prompt: string
     response?: string
     error?: string
+    familyId?: FamilyId
   }
 >
 
