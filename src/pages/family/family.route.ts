@@ -41,7 +41,7 @@ pageRouter.route('/family/saveNewRelationship').post(requireAuth(), async (reque
     .object({
       newPerson: z.object({ personId: zIsPersonId, name: z.string() }).optional(),
       relationship: zIsRelationship,
-      secondaryRelationships: z.array(zIsRelationship),
+      secondaryRelationships: z.array(zIsRelationship).optional(),
     })
     .parse(request.body)
 
@@ -78,13 +78,15 @@ pageRouter.route('/family/saveNewRelationship').post(requireAuth(), async (reque
     )
   }
 
-  for (const secondaryRelationship of secondaryRelationships) {
-    await addToHistory(
-      UserCreatedNewRelationship({
-        relationship: secondaryRelationship,
-        userId,
-      })
-    )
+  if (secondaryRelationships) {
+    for (const secondaryRelationship of secondaryRelationships) {
+      await addToHistory(
+        UserCreatedNewRelationship({
+          relationship: secondaryRelationship,
+          userId,
+        })
+      )
+    }
   }
 
   return response.status(200).send()
