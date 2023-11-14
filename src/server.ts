@@ -1,10 +1,11 @@
 import express, { Express, NextFunction, Request, Response } from 'express'
 import session from 'express-session'
+import * as Sentry from '@sentry/node'
 import path from 'node:path'
 require('express-async-errors')
 
 import { actionsRouter } from './actions'
-import { SESSION_SECRET } from './dependencies/env'
+import { SENTRY_DSN, SESSION_SECRET } from './dependencies/env'
 import { sessionStore } from './dependencies/session'
 import { pageRouter } from './pages'
 import { createHistoryTable } from './dependencies/addToHistory'
@@ -14,6 +15,13 @@ import { factViewerRouter } from './facts/viewer/factViewer.route'
 const PORT: number = parseInt(process.env.PORT ?? '3000')
 
 const app: Express = express()
+
+Sentry.init({
+  dsn: SENTRY_DSN,
+})
+
+// The request handler must be the first middleware on the app
+app.use(Sentry.Handlers.requestHandler())
 
 app.use(
   express.urlencoded({
@@ -46,10 +54,19 @@ app.use(factViewerRouter)
 
 app.use(express.static(path.join(__dirname, 'assets')))
 
-app.use((err: Error, _: Request, res: Response, next: NextFunction) => {
-  res.status(500).send()
+// app.use((err: Error, _: Request, res: Response, next: NextFunction) => {
+//   res.status(500).send()
+// })
 
-  next(err)
+// The error handler must be registered before any other error middleware and after all controllers
+app.use(Sentry.Handlers.errorHandler())
+
+// Optional fallthrough error handler
+app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+  // The error id is attached to `res.sentry` to be returned
+  // and optionally displayed to the user for support.
+  // @ts-ignore
+  res.status(500).send(`Oops! Une erreur s'est produite. L'administrateur a été prévenu. (code: ${res.sentry})`)
 })
 
 app.listen(PORT, async (): Promise<void> => {
