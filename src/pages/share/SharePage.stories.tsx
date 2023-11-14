@@ -5,7 +5,7 @@ import { makePersonId } from '../../libs/makePersonId'
 
 export default { title: 'Partage', component: SharePage, parameters: { layout: 'fullscreen' } }
 
-export const PageVide = () => (
+export const PremiereNouvelleFamille = () => (
   <SessionContext.Provider
     value={{
       isLoggedIn: true,
