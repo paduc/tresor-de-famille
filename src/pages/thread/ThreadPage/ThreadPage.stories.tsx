@@ -6,6 +6,8 @@ import { ThreadPage } from './ThreadPage'
 import { Epoch } from '../../../libs/typeguards'
 import { makeThreadId } from '../../../libs/makeThreadId'
 import { PhotoId } from '../../../domain/PhotoId'
+import { AppUserId } from '../../../domain/AppUserId'
+import { FamilyId } from '../../../domain/FamilyId'
 
 export default {
   title: 'Histoires et anecdotes',
@@ -19,6 +21,10 @@ export default {
         <SessionContext.Provider
           value={{
             isLoggedIn: true,
+            userId: 'a' as AppUserId,
+
+            userFamilies: [],
+            currentFamilyId: 'a' as FamilyId,
             userName: 'Jean-Michel Trotro',
             profilePic: null,
             isAdmin: false,

@@ -1,14 +1,11 @@
-import { getEventList } from '../../dependencies/getEventList'
 import { AppUserId } from '../../domain/AppUserId'
+import { getUserFamilies } from '../_getUserFamilies'
 import { InvitationWithCodeUrl } from './InvitationWithCodeUrl'
 import { SharePageProps } from './SharePage'
-import { UserCreatedNewFamily } from './UserCreatedNewFamily'
 
 export const getSharePageProps = async (userId: AppUserId): Promise<SharePageProps> => {
-  const userFamiliesEvent = await getEventList<UserCreatedNewFamily>('UserCreatedNewFamily', { userId })
-
   return {
-    userFamilies: userFamiliesEvent.map(({ payload: { familyId, familyName, shareCode, about } }) => {
+    userFamilies: (await getUserFamilies(userId)).map(({ familyId, familyName, shareCode, about }) => {
       return {
         familyId,
         name: familyName,

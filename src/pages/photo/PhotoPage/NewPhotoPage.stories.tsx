@@ -4,6 +4,8 @@ import { getUuid } from '../../../libs/getUuid'
 import { SessionContext } from '../../_components/SessionContext'
 import { PersonSearchContext } from '../../_components/usePersonSearch'
 import { NewPhotoPage } from './NewPhotoPage'
+import { AppUserId } from '../../../domain/AppUserId'
+import { FamilyId } from '../../../domain/FamilyId'
 
 const fakePersonSearch = async (query: string) => {
   return {
@@ -38,6 +40,10 @@ export default {
         <SessionContext.Provider
           value={{
             isLoggedIn: true,
+            userId: 'a' as AppUserId,
+
+            userFamilies: [],
+            currentFamilyId: 'a' as FamilyId,
             userName: 'Toto',
             profilePic: fakePhoto({ width: 100, height: 100 }),
             isAdmin: false,

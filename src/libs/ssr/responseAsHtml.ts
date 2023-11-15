@@ -2,21 +2,16 @@ import { SearchIndex } from 'algoliasearch/lite'
 import type { Request, Response } from 'express'
 import ReactDOMServer from 'react-dom/server'
 import { ADMIN_USERID, IS_SHARING_ENABLED } from '../../dependencies/env'
-import { getSingleEvent } from '../../dependencies/getSingleEvent'
-import { OnboardingUserStartedFirstThread } from '../../events/onboarding/OnboardingUserStartedFirstThread'
-import { OnboardingUserUploadedPhotoOfFamily } from '../../events/onboarding/OnboardingUserUploadedPhotoOfFamily'
-import { OnboardingUserUploadedPhotoOfThemself } from '../../events/onboarding/OnboardingUserUploadedPhotoOfThemself'
-import { UserNamedPersonInPhoto } from '../../events/onboarding/UserNamedPersonInPhoto'
 import { LocationContext } from '../../pages/_components/LocationContext'
 import { Session, SessionContext } from '../../pages/_components/SessionContext'
 import { PersonSearchContext } from '../../pages/_components/usePersonSearch'
 import { getProfilePicUrlForUser } from '../../pages/_getProfilePicUrlForUser'
-import { UserSentMessageToChat } from '../../pages/thread/sendMessageToChat/UserSentMessageToChat'
-import { UserUploadedPhotoToChat } from '../../pages/thread/uploadPhotoToChat/UserUploadedPhotoToChat'
 import { withContext } from './withContext'
 
 import manifest from '../../assets/js/manifest.json'
 import { getPersonIdForUserId } from '../../pages/_getPersonIdForUserId'
+import { getUserFamilies } from '../../pages/_getUserFamilies'
+import { FamilyId } from '../../domain/FamilyId'
 
 const html = String.raw
 
@@ -136,10 +131,20 @@ async function getSession(request: Request): Promise<Session> {
 
     const profilePic = await getProfilePicUrlForUser(userId)
 
+    const userFamilies = [
+      { familyId: user.id as string as FamilyId, familyName: 'Votre espace Personnel' },
+      ...(await getUserFamilies(user.id)).map(({ familyId, familyName }) => ({ familyId, familyName })),
+    ]
+
+    const currentFamilyId = request.session.currentFamilyId!
+
     return {
       isLoggedIn: true,
       userName: user.name,
+      userId: user.id,
       personId,
+      userFamilies,
+      currentFamilyId,
       isAdmin: userId === ADMIN_USERID,
       profilePic,
       arePhotosEnabled: !!user.name,

@@ -4,11 +4,21 @@ import { SessionContext } from '../_components/SessionContext'
 import { getUuid } from '../../libs/getUuid'
 import { makePhotoId } from '../../libs/makePhotoId'
 import { makeFaceId } from '../../libs/makeFaceId'
+import { AppUserId } from '../../domain/AppUserId'
+import { FamilyId } from '../../domain/FamilyId'
 
 export default { title: 'Page Personne', component: PersonPage, parameters: { layout: 'fullscreen' } }
 
 export const AvecDesPhotos = () => (
-  <SessionContext.Provider value={{ isLoggedIn: true, userName: 'toto', isAdmin: false }}>
+  <SessionContext.Provider
+    value={{
+      isLoggedIn: true,
+      userId: 'a' as AppUserId,
+      userFamilies: [],
+      currentFamilyId: 'a' as FamilyId,
+      userName: 'toto',
+      isAdmin: false,
+    }}>
     <PersonPage
       person={{
         name: 'John Doe',

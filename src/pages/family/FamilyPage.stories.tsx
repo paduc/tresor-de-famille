@@ -8,6 +8,8 @@ import { PersonSearchContext } from '../_components/usePersonSearch'
 import { makeRelationshipId } from '../../libs/makeRelationshipId'
 import { makePersonId } from '../../libs/makePersonId'
 import { PersonId } from '../../domain/PersonId'
+import { AppUserId } from '../../domain/AppUserId'
+import { FamilyId } from '../../domain/FamilyId'
 
 const fakeProfilePicUrl =
   'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80'
@@ -88,6 +90,10 @@ export default {
         <SessionContext.Provider
           value={{
             isLoggedIn: true,
+            userId: 'a' as AppUserId,
+
+            userFamilies: [],
+            currentFamilyId: 'a' as FamilyId,
             userName: 'Toto',
             profilePic: fakeProfilePicUrl,
             isAdmin: false,
@@ -111,6 +117,10 @@ export default {
 //     <SessionContext.Provider
 //       value={{
 //         isLoggedIn: true,
+// userId: 'a' as AppUserId,
+
+// userFamilies: [],
+// currentFamilyId: "a" as FamilyId,
 //         userName: 'toto',
 //         isAdmin: false,
 //         profilePic: fakeProfilePicUrl,
@@ -134,6 +144,10 @@ export const PlusieursPersonnes = () => {
     <SessionContext.Provider
       value={{
         isLoggedIn: true,
+        userId: 'a' as AppUserId,
+
+        userFamilies: [],
+        currentFamilyId: 'a' as FamilyId,
         userName: 'toto',
         isAdmin: false,
         profilePic: fakeProfilePicUrl,

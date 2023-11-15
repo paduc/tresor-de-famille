@@ -8,6 +8,8 @@ import { makePersonId } from '../../libs/makePersonId'
 import { makeFaceId } from '../../libs/makeFaceId'
 import { SessionContext } from '../_components/SessionContext'
 import { makeThreadId } from '../../libs/makeThreadId'
+import { AppUserId } from '../../domain/AppUserId'
+import { FamilyId } from '../../domain/FamilyId'
 
 const fakePersonSearch = async (query: string) => {
   return {
@@ -29,6 +31,9 @@ export default {
         <SessionContext.Provider
           value={{
             isLoggedIn: true,
+            userId: 'a' as AppUserId,
+            userFamilies: [],
+            currentFamilyId: 'a' as FamilyId,
             userName: '',
             profilePic: null,
             isAdmin: false,
@@ -50,6 +55,9 @@ export const AfterOnboarding = () => (
   <SessionContext.Provider
     value={{
       isLoggedIn: true,
+      userId: 'a' as AppUserId,
+      userFamilies: [],
+      currentFamilyId: 'a' as FamilyId,
       userName: 'John Doe Adear',
       profilePic:
         'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=200&h=200&q=80',
@@ -69,6 +77,9 @@ export const AfterOnboardingAvecSouvenirs = () => (
   <SessionContext.Provider
     value={{
       isLoggedIn: true,
+      userId: 'a' as AppUserId,
+      userFamilies: [],
+      currentFamilyId: 'a' as FamilyId,
       userName: 'John Doe Adear',
       profilePic:
         'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=200&h=200&q=80',
@@ -111,6 +122,9 @@ export const WaitingForPhoto = () => (
   <SessionContext.Provider
     value={{
       isLoggedIn: true,
+      userId: 'a' as AppUserId,
+      userFamilies: [],
+      currentFamilyId: 'a' as FamilyId,
       userName: 'John Doe',
       profilePic: null,
       isAdmin: false,

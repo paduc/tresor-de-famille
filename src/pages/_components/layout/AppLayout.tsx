@@ -63,7 +63,43 @@ export function AppLayout({ children }: AppLayoutProps) {
     return <p>Session not available</p>
   }
 
-  const { arePhotosEnabled, areThreadsEnabled, isFamilyPageEnabled, isSharingEnabled, profilePic } = session
+  const {
+    arePhotosEnabled,
+    areThreadsEnabled,
+    isFamilyPageEnabled,
+    isSharingEnabled,
+    profilePic,
+    userFamilies,
+    currentFamilyId,
+    userId,
+  } = session
+
+  type CurrentFamilySituation =
+    | {
+        showBanner: true
+        familyName: string
+      }
+    | {
+        showBanner: false
+      }
+
+  function getCurrentFamilySituation(): CurrentFamilySituation {
+    const onlyPersonnalSpace =
+      !userFamilies.length || userFamilies.every(({ familyId }) => (familyId as string) === (userId as string))
+
+    if (onlyPersonnalSpace) {
+      return {
+        showBanner: false,
+      }
+    }
+
+    return {
+      showBanner: true,
+      familyName: userFamilies.find(({ familyId }) => familyId === currentFamilyId)!.familyName,
+    }
+  }
+
+  const currentFamilySituation = getCurrentFamilySituation()
 
   const userName = session.userName || ''
 
@@ -121,6 +157,11 @@ export function AppLayout({ children }: AppLayoutProps) {
       */}
 
       <div>
+        <FamilyBanner
+          position='top'
+          showBanner={currentFamilySituation.showBanner}
+          familyName={currentFamilySituation.showBanner ? currentFamilySituation.familyName : ''}
+        />
         {session.arePersonsEnabled ? (
           <PersonSearch
             open={personSearchOpen}
@@ -261,6 +302,11 @@ export function AppLayout({ children }: AppLayoutProps) {
           className={`hidden lg:fixed lg:inset-y-0 lg:z-40 lg:flex lg:w-72 lg:flex-col ${
             sidebarAccessible ? '' : 'lg:hidden'
           }`}>
+          <FamilyBanner
+            position='static-sidebar'
+            showBanner={currentFamilySituation.showBanner}
+            familyName={currentFamilySituation.showBanner ? currentFamilySituation.familyName : ''}
+          />
           {/* Sidebar component, swap this element with another sidebar if you like */}
           <div className='flex grow flex-col gap-y-5 overflow-y-auto bg-indigo-600 px-6 pb-4'>
             <div className='flex h-16 shrink-0 items-center'>
@@ -468,5 +514,28 @@ export function AppLayout({ children }: AppLayoutProps) {
         </div>
       </div>
     </LoaderProvider>
+  )
+}
+
+type BannerProps = { position: 'top' | 'static-sidebar' } & (
+  | {
+      showBanner: false
+    }
+  | {
+      showBanner: true
+      familyName: string
+    }
+)
+
+const FamilyBanner = ({ position, ...props }: BannerProps) => {
+  if (!props.showBanner) return null
+  const { familyName } = props
+  return (
+    <div
+      className={`${position === 'top' ? 'sticky flex lg:hidden' : ''} ${
+        position === 'static-sidebar' ? 'hidden lg:flex' : ''
+      } top-0 h-16 items-center bg-yellow-300`}>
+      <div className='mx-auto px-2 py-1 h-16 flex text-center place-items-center'>Vous êtes sur "{familyName}"</div>
+    </div>
   )
 }
