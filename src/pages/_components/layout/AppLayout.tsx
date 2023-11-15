@@ -12,10 +12,12 @@
   }
   ```
 */
-import { Dialog, Menu, Transition } from '@headlessui/react'
+import { Dialog, Listbox, Menu, Transition } from '@headlessui/react'
 import {
   Bars3Icon,
   BookOpenIcon,
+  CheckIcon,
+  ChevronDownIcon,
   HomeIcon,
   MagnifyingGlassIcon,
   PhotoIcon,
@@ -32,6 +34,7 @@ import { LocationContext } from '../LocationContext'
 import { Logo } from '../Logo'
 import { SessionContext } from '../SessionContext'
 import { LoaderProvider } from './LoaderContext'
+import { ClientOnly } from '../ClientOnly'
 
 // @ts-ignore
 function classNames(...classes) {
@@ -157,11 +160,13 @@ export function AppLayout({ children }: AppLayoutProps) {
       */}
 
       <div>
-        <FamilyBanner
-          position='top'
-          showBanner={currentFamilySituation.showBanner}
-          familyName={currentFamilySituation.showBanner ? currentFamilySituation.familyName : ''}
-        />
+        {isSharingEnabled ? (
+          <FamilyBanner
+            position='top'
+            showBanner={currentFamilySituation.showBanner}
+            familyName={currentFamilySituation.showBanner ? currentFamilySituation.familyName : ''}
+          />
+        ) : null}
         {session.arePersonsEnabled ? (
           <PersonSearch
             open={personSearchOpen}
@@ -222,6 +227,11 @@ export function AppLayout({ children }: AppLayoutProps) {
                     </div>
                     <nav className='flex flex-1 flex-col'>
                       <ul role='list' className='flex flex-1 flex-col gap-y-7'>
+                        {isSharingEnabled ? (
+                          <li>
+                            <FamilySwitcher />
+                          </li>
+                        ) : null}
                         <li>
                           <ul role='list' className='-mx-2 mt-2 space-y-3'>
                             {areThreadsEnabled ? (
@@ -302,20 +312,28 @@ export function AppLayout({ children }: AppLayoutProps) {
           className={`hidden lg:fixed lg:inset-y-0 lg:z-40 lg:flex lg:w-72 lg:flex-col ${
             sidebarAccessible ? '' : 'lg:hidden'
           }`}>
-          <FamilyBanner
-            position='static-sidebar'
-            showBanner={currentFamilySituation.showBanner}
-            familyName={currentFamilySituation.showBanner ? currentFamilySituation.familyName : ''}
-          />
+          {isSharingEnabled ? (
+            <FamilyBanner
+              position='static-sidebar'
+              showBanner={currentFamilySituation.showBanner}
+              familyName={currentFamilySituation.showBanner ? currentFamilySituation.familyName : ''}
+            />
+          ) : null}
           {/* Sidebar component, swap this element with another sidebar if you like */}
           <div className='flex grow flex-col gap-y-5 overflow-y-auto bg-indigo-600 px-6 pb-4'>
             <div className='flex h-16 shrink-0 items-center'>
               <a href='/'>
                 <Logo className='h-10 w-auto cursor-pointer invert mix-blend-luminosity' />
               </a>
+              <span className='group ml-3 text-indigo-100 rounded-md flex items-center text-md font-md'>Trésor de famille</span>
             </div>
             <nav className='flex flex-1 flex-col'>
               <ul role='list' className='flex flex-1 flex-col gap-y-7'>
+                {isSharingEnabled ? (
+                  <li>
+                    <FamilySwitcher />
+                  </li>
+                ) : null}
                 <li>
                   <ul role='list' className='-mx-2 mt-2 space-y-3'>
                     {areThreadsEnabled ? (
@@ -538,4 +556,102 @@ const FamilyBanner = ({ position, ...props }: BannerProps) => {
       <div className='mx-auto px-2 py-1 h-16 flex text-center place-items-center'>Vous êtes sur "{familyName}"</div>
     </div>
   )
+}
+
+type FamilySwitcherProps = {}
+
+const FamilySwitcher = (props: FamilySwitcherProps) => {
+  const session = React.useContext(SessionContext)
+  const formRef = React.useRef<HTMLFormElement>(null)
+
+  if (!session.isLoggedIn) return null
+
+  const { userFamilies, currentFamilyId } = session
+
+  if (!userFamilies || !currentFamilyId) return null
+
+  const selected = userFamilies.find(({ familyId }) => familyId === currentFamilyId)!
+
+  if (!selected) return null
+
+  const handleChange = (newFamily: typeof userFamilies[number]) => {
+    if (newFamily.familyId === selected.familyId) return
+
+    if (formRef.current !== null) {
+      const form = formRef.current
+
+      const inputs = form.getElementsByTagName('input')
+
+      const newFamilyIdInput = Array.from(inputs).find((input) => input.name === 'newFamilyId')
+
+      if (newFamilyIdInput) {
+        newFamilyIdInput.value = newFamily.familyId
+      }
+
+      form.submit()
+    }
+  }
+
+  return (
+    <div className='max-w-fit'>
+      <form method='POST' action='/switchFamily' ref={formRef}>
+        <input type='hidden' name='newFamilyId' value={selected.familyId} />
+        <ClientOnly>
+          <InputWithUrl />
+        </ClientOnly>
+      </form>
+      <Listbox value={selected} onChange={handleChange}>
+        {({ open }) => (
+          <>
+            <Listbox.Label className='sr-only'>Changer de famille</Listbox.Label>
+            <div className='relative'>
+              <div className='inline-flex divide-x divide-indigo-700 rounded-md shadow-sm'>
+                <Listbox.Button className='-mx-2 inline-flex items-center gap-x-1.5 rounded-md px-2.5 py-1.5 text-sm text-white border-1 ring-1 ring-inset ring-indigo-200 shadow-sm hover:bg-white/20'>
+                  <ChevronDownIcon className='-ml-0.5 h-5 w-5 text-white' aria-hidden='true' />
+                  Changer d'espace
+                  <span className='sr-only'>Changer de famille</span>
+                </Listbox.Button>
+              </div>
+
+              <Transition
+                show={open}
+                as={Fragment}
+                leave='transition ease-in duration-100'
+                leaveFrom='opacity-100'
+                leaveTo='opacity-0'>
+                <Listbox.Options className='absolute -left-2 z-50 mt-2 w-64 origin-top-left divide-y divide-gray-200 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none'>
+                  {userFamilies.map((family) => (
+                    <Listbox.Option
+                      key={family.familyId}
+                      className={({ active }) =>
+                        classNames(active ? 'bg-indigo-100' : '', 'cursor-default rounded-md select-none p-4 text-sm')
+                      }
+                      value={family}>
+                      {({ selected, active }) => (
+                        <div className={`${selected ? '' : 'cursor-pointer'} flex flex-col`}>
+                          <div className='flex justify-between'>
+                            <p className={selected ? 'font-semibold' : 'font-normal'}>{family.familyName}</p>
+                            {selected ? (
+                              <span className={'text-indigo-600'}>
+                                <CheckIcon className='h-5 w-5' aria-hidden='true' />
+                              </span>
+                            ) : null}
+                          </div>
+                          <p className={classNames('mt-2 text-gray-500')}>{family.about}</p>
+                        </div>
+                      )}
+                    </Listbox.Option>
+                  ))}
+                </Listbox.Options>
+              </Transition>
+            </div>
+          </>
+        )}
+      </Listbox>
+    </div>
+  )
+}
+
+function InputWithUrl() {
+  return <input type='hidden' name='currentPage' value={window.location.href} />
 }

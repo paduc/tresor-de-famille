@@ -43,7 +43,7 @@ export const SharePage = withBrowserBundle(({ userFamilies }: SharePageProps) =>
               La création d'une famille est la première étape du partage. Construire un trésor de famille à plusieurs, c'est
               plus facile et convivial !
             </p>
-            <p className='mt-5 max-w-full overflow-hidden md:max-w-xl text-sm leading-6 text-gray-600'>
+            <div className='mt-5 max-w-full overflow-hidden md:max-w-xl text-sm leading-6 text-gray-600'>
               Pour partager
               <ul className=' text-gray-500 py-1'>
                 <li className='flex items-center py-2'>
@@ -64,7 +64,7 @@ export const SharePage = withBrowserBundle(({ userFamilies }: SharePageProps) =>
                   </div>
                 </li>
               </ul>
-            </p>
+            </div>
             <p className='mt-2 max-w-full overflow-hidden md:max-w-xl text-sm leading-6 text-gray-600'>
               Les contenus qui ne sont <b>pas explicitement partagés</b> avec cette famille, resteront <b>confidentiels</b> à
               vous.

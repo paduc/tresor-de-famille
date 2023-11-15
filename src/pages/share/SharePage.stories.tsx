@@ -17,6 +17,7 @@ export const PremiereNouvelleFamille = () => (
         {
           familyId: 'a' as FamilyId,
           familyName: 'Espace personnel',
+          about: '',
         },
       ],
       currentFamilyId: 'a' as FamilyId,
@@ -46,6 +47,7 @@ export const UneFamilleExistante = () => (
         {
           familyId,
           familyName: 'Ma famille avec un nom trop trop trop trop long',
+          about: '',
         },
       ],
       currentFamilyId: familyId,
@@ -83,10 +85,12 @@ export const UneFamilleCréée = () => (
         {
           familyId: 'a' as FamilyId,
           familyName: 'Espace personnel',
+          about: '',
         },
         {
           familyId: familyId,
           familyName: 'Ma famille',
+          about: 'Voila une description de ma famille, avec quelques longs passages.',
         },
       ],
       currentFamilyId: familyId,
@@ -125,10 +129,12 @@ export const PlusieursFamilleExistantes = () => (
         {
           familyId: henriFamilyId,
           familyName: 'Duchateau Henri Family',
+          about: 'Les descendants de Henri Duchateau',
         },
         {
           familyId: makeFamilyId(),
           familyName: 'Duchateau Louis Family',
+          about: 'Les descendants de Louis Duchateau',
         },
       ],
       currentFamilyId: henriFamilyId,

@@ -131,9 +131,10 @@ async function getSession(request: Request): Promise<Session> {
 
     const profilePic = await getProfilePicUrlForUser(userId)
 
+    // TODO: do not add personnal space for users that have been invited
     const userFamilies = [
-      { familyId: user.id as string as FamilyId, familyName: 'Votre espace Personnel' },
-      ...(await getUserFamilies(user.id)).map(({ familyId, familyName }) => ({ familyId, familyName })),
+      { familyId: user.id as string as FamilyId, familyName: 'Votre espace Personnel', about: '' },
+      ...(await getUserFamilies(user.id)).map(({ familyId, familyName, about }) => ({ familyId, familyName, about })),
     ]
 
     const currentFamilyId = request.session.currentFamilyId!

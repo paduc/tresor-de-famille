@@ -15,6 +15,7 @@ export type Session =
       profilePic: string | null
       userFamilies: {
         familyName: string
+        about: string
         familyId: FamilyId
       }[]
       currentFamilyId: FamilyId

@@ -46,6 +46,8 @@ pageRouter
         })
       )
 
+      request.session.currentFamilyId = familyId
+
       return response.redirect('/share.html')
     }
 

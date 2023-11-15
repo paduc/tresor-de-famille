@@ -16,8 +16,10 @@ import ReactFlow, {
 import { Dialog } from '@headlessui/react'
 import { EllipsisHorizontalIcon, UserPlusIcon, XMarkIcon } from '@heroicons/react/24/outline'
 import { useCallback, useMemo, useRef, useState } from 'react'
-import { UUID } from '../../domain'
-import { getUuid } from '../../libs/getUuid'
+import { PersonId } from '../../domain/PersonId'
+import { RelationshipId } from '../../domain/RelationshipId'
+import { makePersonId } from '../../libs/makePersonId'
+import { makeRelationshipId } from '../../libs/makeRelationshipId'
 import { withBrowserBundle } from '../../libs/ssr/withBrowserBundle'
 import { primaryButtonStyles, secondaryButtonStyles, smallButtonIconStyles, smallButtonStyles } from '../_components/Button'
 import { ClientOnly } from '../_components/ClientOnly'
@@ -25,10 +27,6 @@ import { PersonAutocomplete } from '../_components/PersonAutocomplete'
 import { TDFModal } from '../_components/TDFModal'
 import { AppLayout } from '../_components/layout/AppLayout'
 import { PersonPageURL } from '../person/PersonPageURL'
-import { PersonId } from '../../domain/PersonId'
-import { makePersonId } from '../../libs/makePersonId'
-import { RelationshipId } from '../../domain/RelationshipId'
-import { makeRelationshipId } from '../../libs/makeRelationshipId'
 
 // @ts-ignore
 function classNames(...classes) {
