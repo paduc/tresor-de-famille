@@ -28,7 +28,7 @@ pageRouter
       return response.status(500).send("Le chargement du profile n'a pas fonctionné.")
     }
   })
-  .post(async (request, response) => {
+  .post(requireAuth(), async (request, response) => {
     try {
       const { action } = z
         .object({
@@ -92,6 +92,6 @@ pageRouter
       throw new Error('POST on person route without or unknown action')
     } catch (error) {
       console.error('Failed to select new profile pic', error)
-      return response.status(500).send("La sélection de la nouvelle photo de profile n'a pas fonctionné.")
+      return response.status(500).send("Quelque n'a pas fonctionné dans votre demande.")
     }
   })

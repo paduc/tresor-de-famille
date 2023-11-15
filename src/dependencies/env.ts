@@ -30,3 +30,5 @@ export const IS_SHARING_ENABLED = process.env.IS_SHARING_ENABLED === '1'
 export const SHARING_CODE_HASH_SEED = throwIfUndefined('SHARING_CODE_HASH_SEED', IS_SHARING_ENABLED)
 
 export const SENTRY_DSN = throwIfUndefined('SENTRY_DSN', process.env.NODE_ENV === 'production')
+
+export const BASE_URL = throwIfUndefined('BASE_URL', true)
