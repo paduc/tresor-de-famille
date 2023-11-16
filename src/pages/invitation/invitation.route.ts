@@ -1,5 +1,5 @@
 import bcrypt from 'bcryptjs'
-import { z } from 'zod'
+import { ZodError, z } from 'zod'
 import { addToHistory } from '../../dependencies/addToHistory'
 import { ALGOLIA_SEARCHKEY, PASSWORD_SALT } from '../../dependencies/env'
 import { getSingleEvent } from '../../dependencies/getSingleEvent'
@@ -15,6 +15,7 @@ import { getInvitationPageProps } from './getInvitationPageProps'
 import { searchClient } from '../../dependencies/search'
 import { buildSession } from '../auth/buildSession'
 import { getUserFamilies } from '../_getUserFamilies'
+import { parseZodErrors } from '../../libs/parseZodErrors'
 
 const registerWithInvite = makeRegisterWithInvite({
   addToHistory: addToHistory,
@@ -76,18 +77,35 @@ pageRouter
         request.session.currentFamilyId = familyId
       }
     } else if (action === 'registerWithInvite') {
-      const { email, password } = z
-        .object({
-          email: z.string().email(),
-          password: z.string().min(8),
-        })
-        .parse(request.body)
+      try {
+        const { email, password } = z
+          .object({
+            email: z.string().email(),
+            password: z.string().min(8),
+          })
+          .parse(request.body)
 
-      const userId = await registerWithInvite({ email, password, familyId, shareCode: code })
+        const userId = await registerWithInvite({ email, password, familyId, shareCode: code })
 
-      buildSession({ userId, request })
+        buildSession({ userId, request })
 
-      request.session.currentFamilyId = familyId
+        request.session.currentFamilyId = familyId
+      } catch (error) {
+        const props = await getInvitationPageProps(familyId, code)
+        const { email } = request.body
+        return responseAsHtml(
+          request,
+          response,
+          InvitationPage({
+            ...props,
+            email,
+            errors:
+              error instanceof ZodError
+                ? parseZodErrors(error)
+                : { other: error instanceof Error ? error.message : 'Erreur inconnue' },
+          })
+        )
+      }
     }
 
     response.redirect('/')

@@ -18,7 +18,7 @@ function classNames(...classes) {
 }
 
 export type InvitationPageProps =
-  | { errors?: { password?: string; email?: string; other?: string } } & (
+  | { errors?: { password?: string; email?: string; other?: string }; email?: string } & (
       | {
           error: false
           family: {
@@ -90,7 +90,8 @@ export const InvitationPage = withBrowserBundle((props: InvitationPageProps) => 
                         id='emailField'
                         name='email'
                         autoComplete='email'
-                        autoFocus
+                        defaultValue={props.email}
+                        autoFocus={!props.email}
                         aria-invalid={Boolean(errors?.email)}
                         aria-describedby={errors?.email ? 'email-error' : undefined}
                         required
@@ -132,6 +133,7 @@ export const InvitationPage = withBrowserBundle((props: InvitationPageProps) => 
                         name='password'
                         type='password'
                         required
+                        autoFocus={!!props.email}
                         className={classNames(
                           'appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm',
                           {

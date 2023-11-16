@@ -28,7 +28,7 @@ export const makeRegisterWithInvite =
     )
 
     if (accountExists) {
-      throw new Error('Email already taken')
+      throw new Error('Cette adresse email est déjà connue. Auriez-vous déjà un compte ?')
     }
 
     const passwordHash = await hashPassword(password)
