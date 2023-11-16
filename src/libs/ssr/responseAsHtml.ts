@@ -12,6 +12,7 @@ import manifest from '../../assets/js/manifest.json'
 import { getPersonIdForUserId } from '../../pages/_getPersonIdForUserId'
 import { getUserFamilies } from '../../pages/_getUserFamilies'
 import { FamilyId } from '../../domain/FamilyId'
+import { FamilyShareCode } from '../../domain/FamilyShareCode'
 
 const html = String.raw
 
@@ -135,10 +136,19 @@ async function getSession(request: Request): Promise<Session> {
     const profilePic = await getProfilePicUrlForUser(userId)
 
     // TODO: do not add personnal space for users that have been invited
-    const userFamilies = [
-      { familyId: user.id as string as FamilyId, familyName: 'Votre espace Personnel', about: '' },
-      ...(await getUserFamilies(user.id)).map(({ familyId, familyName, about }) => ({ familyId, familyName, about })),
-    ]
+    const userFamilies = await getUserFamilies(user.id)
+
+    if (!userFamilies.some((f) => f.isRegistrationFamily)) {
+      // If the user has not register via a family invite
+      // Add a personnal space
+      userFamilies.push({
+        familyId: user.id as string as FamilyId,
+        familyName: 'Votre espace Personnel',
+        about: '',
+        shareCode: '' as string as FamilyShareCode,
+        isRegistrationFamily: false,
+      })
+    }
 
     const currentFamilyId = request.session.currentFamilyId!
 
@@ -147,7 +157,7 @@ async function getSession(request: Request): Promise<Session> {
       userName: user.name,
       userId: user.id,
       personId,
-      userFamilies,
+      userFamilies: userFamilies.map(({ familyId, familyName, about }) => ({ familyId, familyName, about })),
       currentFamilyId,
       isAdmin: userId === ADMIN_USERID,
       profilePic,

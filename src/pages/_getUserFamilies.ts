@@ -9,7 +9,9 @@ import { UserCreatedNewFamily } from './share/UserCreatedNewFamily'
 
 export const getUserFamilies = async (
   userId: AppUserId
-): Promise<{ familyId: FamilyId; familyName: string; about: string; shareCode: FamilyShareCode }[]> => {
+): Promise<
+  { familyId: FamilyId; familyName: string; about: string; shareCode: FamilyShareCode; isRegistrationFamily: boolean }[]
+> => {
   const userCreatedFamilyEvents = await getEventList<UserCreatedNewFamily>('UserCreatedNewFamily', { userId })
 
   const userCreatedFamilies = userCreatedFamilyEvents.map(({ payload: { familyId, familyName, about, shareCode } }) => ({
@@ -17,6 +19,7 @@ export const getUserFamilies = async (
     familyName,
     about,
     shareCode,
+    isRegistrationFamily: false,
   }))
 
   const userFamilies = [...userCreatedFamilies]
@@ -34,7 +37,13 @@ export const getUserFamilies = async (
       const {
         payload: { familyName, about },
       } = familyInfoEvent
-      userFamilies.push({ familyId, familyName, about, shareCode })
+      userFamilies.push({
+        familyId,
+        familyName,
+        about,
+        shareCode,
+        isRegistrationFamily: acceptedInvitationEvent.type === 'UserRegisteredWithInvitation',
+      })
     }
   }
 
