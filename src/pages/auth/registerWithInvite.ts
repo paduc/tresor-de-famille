@@ -1,16 +1,25 @@
 import { DomainEvent } from '../../dependencies/DomainEvent'
 import { getSingleEvent } from '../../dependencies/getSingleEvent'
+import { FamilyId } from '../../domain/FamilyId'
+import { FamilyShareCode } from '../../domain/FamilyShareCode'
 import { UserRegisteredWithEmailAndPassword } from '../../events/UserRegisteredWithEmailAndPassword'
 import { UserRegisteredWithInvitation } from '../../events/UserRegisteredWithInvitation'
 import { makeAppUserId } from '../../libs/makeUserId'
 
-type RegisterDeps = {
+type RegisterWithInviteDeps = {
   addToHistory: (event: DomainEvent) => unknown
   hashPassword: (password: string) => Promise<string>
 }
-export const makeRegister =
-  ({ addToHistory, hashPassword }: RegisterDeps) =>
-  async (email: string, password: string, code?: string) => {
+type RegisterWithInviteArgs = {
+  email: string
+  password: string
+  familyId: FamilyId
+  shareCode: FamilyShareCode
+}
+
+export const makeRegisterWithInvite =
+  ({ addToHistory, hashPassword }: RegisterWithInviteDeps) =>
+  async ({ email, password, familyId, shareCode }: RegisterWithInviteArgs) => {
     const lowerCaseEmail = email.toLowerCase().trim()
 
     const accountExists = await getSingleEvent<UserRegisteredWithEmailAndPassword | UserRegisteredWithInvitation>(
@@ -26,11 +35,12 @@ export const makeRegister =
 
     const userId = makeAppUserId()
     await addToHistory(
-      UserRegisteredWithEmailAndPassword({
+      UserRegisteredWithInvitation({
         userId,
         email: lowerCaseEmail,
         passwordHash,
-        code,
+        familyId,
+        shareCode,
       })
     )
 

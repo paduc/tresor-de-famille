@@ -5,6 +5,7 @@ import { makePersonId } from '../../libs/makePersonId'
 import { SessionContext } from '../_components/SessionContext'
 import { InvitationPage } from './InvitationPage'
 import { makeFamilyId } from '../../libs/makeFamilyId'
+import { FamilyShareCode } from '../../domain/FamilyShareCode'
 
 export default { title: 'Page Invitation', component: InvitationPage, parameters: { layout: 'fullscreen' } }
 
@@ -40,6 +41,26 @@ export const UtilisateurConnecté = () => (
         name: 'Les Duduchs',
         about: 'La famille Duchateau François avec les enfants, petits-enfants et pièces rajoutées',
       }}
+      code={'a' as FamilyShareCode}
+      inviterName='Pierrot La lune'
+    />
+  </SessionContext.Provider>
+)
+
+export const UtilisateurDéconnecté = () => (
+  <SessionContext.Provider
+    value={{
+      isLoggedIn: false,
+      isSharingEnabled: true,
+    }}>
+    <InvitationPage
+      error={false}
+      family={{
+        familyId: makeFamilyId(),
+        name: 'Les Duduchs',
+        about: 'La famille Duchateau François avec les enfants, petits-enfants et pièces rajoutées',
+      }}
+      code={'a' as FamilyShareCode}
       inviterName='Pierrot La lune'
     />
   </SessionContext.Provider>

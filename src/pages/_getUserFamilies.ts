@@ -3,6 +3,7 @@ import { getSingleEvent } from '../dependencies/getSingleEvent'
 import { AppUserId } from '../domain/AppUserId'
 import { FamilyId } from '../domain/FamilyId'
 import { FamilyShareCode } from '../domain/FamilyShareCode'
+import { UserRegisteredWithInvitation } from '../events/UserRegisteredWithInvitation'
 import { UserAcceptedInvitation } from './invitation/UserAcceptedInvitation'
 import { UserCreatedNewFamily } from './share/UserCreatedNewFamily'
 
@@ -20,15 +21,18 @@ export const getUserFamilies = async (
 
   const userFamilies = [...userCreatedFamilies]
 
-  const acceptedInvitationEvents = await getEventList<UserAcceptedInvitation>('UserAcceptedInvitation', { userId })
+  const acceptedInvitationEvents = await getEventList<UserAcceptedInvitation | UserRegisteredWithInvitation>(
+    ['UserAcceptedInvitation', 'UserRegisteredWithInvitation'],
+    { userId }
+  )
   for (const acceptedInvitationEvent of acceptedInvitationEvents) {
-    const { familyId } = acceptedInvitationEvent.payload
+    const { familyId, shareCode } = acceptedInvitationEvent.payload
 
     const familyInfoEvent = await getSingleEvent<UserCreatedNewFamily>('UserCreatedNewFamily', { familyId })
 
     if (familyInfoEvent) {
       const {
-        payload: { familyName, about, shareCode },
+        payload: { familyName, about },
       } = familyInfoEvent
       userFamilies.push({ familyId, familyName, about, shareCode })
     }

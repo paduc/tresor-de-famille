@@ -1,19 +1,19 @@
-import z, { ZodError } from 'zod'
 import bcrypt from 'bcryptjs'
+import z, { ZodError } from 'zod'
 
+import { addToHistory } from '../../dependencies/addToHistory'
+import { ALGOLIA_SEARCHKEY, PASSWORD_SALT, REGISTRATION_CODE } from '../../dependencies/env'
+import { searchClient } from '../../dependencies/search'
+import { FamilyId } from '../../domain/FamilyId'
+import { parseZodErrors } from '../../libs/parseZodErrors'
 import { responseAsHtml } from '../../libs/ssr/responseAsHtml'
+import { getPersonByIdOrThrow } from '../_getPersonById'
+import { getPersonIdForUserId } from '../_getPersonIdForUserId'
 import { pageRouter } from '../pageRouter'
 import { ConnexionPage } from './ConnexionPage'
 import { makeLogin } from './login'
 import { makeRegister } from './register'
-import { addToHistory } from '../../dependencies/addToHistory'
-import { ALGOLIA_SEARCHKEY, PASSWORD_SALT, REGISTRATION_CODE } from '../../dependencies/env'
-import { parseZodErrors } from '../../libs/parseZodErrors'
-import { getPersonByIdOrThrow } from '../_getPersonById'
-import { getPersonIdForUserId } from '../_getPersonIdForUserId'
-import { searchClient } from '../../dependencies/search'
-import { FamilyId } from '../../domain/FamilyId'
-import { UUID } from '../../domain/UUID'
+import { buildSession } from './buildSession'
 
 const login = makeLogin(bcrypt.compare)
 const register = makeRegister({
@@ -70,11 +70,7 @@ pageRouter
 
         const userId = await register(email, password, code)
 
-        request.session.user = { id: userId, name: '' }
-
-        request.session.searchKey = searchClient.generateSecuredApiKey(ALGOLIA_SEARCHKEY, {
-          filters: `visible_by:user/${userId}`,
-        })
+        buildSession({ userId, request })
 
         request.session.currentFamilyId = userId as string as FamilyId
 
@@ -90,16 +86,12 @@ pageRouter
           const person = await getPersonByIdOrThrow(personId)
           personName = person.name
         } catch (error) {}
-        request.session.user = { id: userId, name: personName }
-        request.session.searchKey = searchClient.generateSecuredApiKey(ALGOLIA_SEARCHKEY, {
-          filters: `visible_by:user/${userId}`,
-        })
+
+        buildSession({ userId, name: personName, request })
+
         request.session.currentFamilyId = userId as string as FamilyId
       } catch (error) {
-        request.session.searchKey = searchClient.generateSecuredApiKey(ALGOLIA_SEARCHKEY, {
-          filters: `visible_by:user/${userId}`,
-        })
-        request.session.user = { id: userId, name: '' }
+        buildSession({ userId, request })
       }
 
       response.redirect(redirectTo || '/')
