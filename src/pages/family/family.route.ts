@@ -16,9 +16,13 @@ import { UserRemovedRelationship } from './UserRemovedRelationship'
 import { getFamilyPageProps } from './getFamilyPageProps'
 
 pageRouter.route(FamilyPageURL()).get(requireAuth(), async (request, response) => {
-  const props = await getFamilyPageProps(request.session.user!.id)
-
-  responseAsHtml(request, response, FamilyPage(props))
+  try {
+    const props = await getFamilyPageProps(request.session.user!.id)
+    responseAsHtml(request, response, FamilyPage(props))
+  } catch (error) {
+    console.error("La personne essaie d'aller sur la page famille alors qu'elle ne s'est pas encore présentée")
+    response.redirect('/')
+  }
 })
 
 const zIsRelationship = z

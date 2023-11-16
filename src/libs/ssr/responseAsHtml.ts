@@ -127,7 +127,10 @@ async function getSession(request: Request): Promise<Session> {
 
     // const hasPersons = await getSingleEvent<UserNamedPersonInPhoto>('UserNamedPersonInPhoto', { userId })
 
-    const personId = await getPersonIdForUserId(userId)
+    let personId = undefined
+    try {
+      personId = await getPersonIdForUserId(userId)
+    } catch (error) {}
 
     const profilePic = await getProfilePicUrlForUser(userId)
 

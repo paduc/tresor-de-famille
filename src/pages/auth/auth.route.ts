@@ -84,11 +84,15 @@ pageRouter
       // Login case
       const userId = await login(email, password)
       try {
-        const personId = await getPersonIdForUserId(userId)
-        const person = await getPersonByIdOrThrow(personId)
-        request.session.user = { id: userId, name: person.name }
+        let personName = ''
+        try {
+          const personId = await getPersonIdForUserId(userId)
+          const person = await getPersonByIdOrThrow(personId)
+          personName = person.name
+        } catch (error) {}
+        request.session.user = { id: userId, name: personName }
         request.session.searchKey = searchClient.generateSecuredApiKey(ALGOLIA_SEARCHKEY, {
-          filters: `visible_by:user/${userId} OR visible_by:person/${personId}`,
+          filters: `visible_by:user/${userId}`,
         })
         request.session.currentFamilyId = userId as string as FamilyId
       } catch (error) {
