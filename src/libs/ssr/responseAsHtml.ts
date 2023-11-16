@@ -160,7 +160,7 @@ async function getSession(request: Request): Promise<Session> {
     }
   }
 
-  return { isLoggedIn: false }
+  return { isLoggedIn: false, isSharingEnabled: IS_SHARING_ENABLED }
 }
 
 type BundleInfo =

@@ -47,18 +47,16 @@ export const SharePage = withBrowserBundle(({ userFamilies }: SharePageProps) =>
               Pour partager
               <ul className=' text-gray-500 py-1'>
                 <li className='flex items-center py-2'>
-                  <CheckCircleIcon className='h-6 w-6 mr-2 text-green-600' />
-                  Vous créez une famille sur cette page,
+                  <CheckCircleIcon className='shrink-0 h-6 w-6 mr-2 text-green-600' />
+                  <div className='flex-1'>Vous créez une famille sur cette page,</div>
                 </li>
                 <li className='flex items-center py-2'>
-                  <CheckCircleIcon className='h-6 w-6 mr-2 text-green-600' />
-                  Vous invitez d'autres personnes grace à un lien spécial,
+                  <CheckCircleIcon className='shrink-0 h-6 w-6 mr-2 text-green-600' />
+                  <div className='flex-1'>Vous invitez d'autres personnes grace à un lien spécial,</div>
                 </li>
                 <li className='flex py-2'>
-                  <div>
-                    <CheckCircleIcon className='h-6 w-6 mr-2 text-green-600' />
-                  </div>
-                  <div>
+                  <CheckCircleIcon className='shrink-0 h-6 w-6 mr-2 text-green-600' />
+                  <div className='flex-1'>
                     Vous et les membres de la famille rajoutez du contenu. Celui-ci sera immédiatement accessible aux autres
                     membres de la famille.
                   </div>
