@@ -227,7 +227,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                     </div>
                     <nav className='flex flex-1 flex-col'>
                       <ul role='list' className='flex flex-1 flex-col gap-y-7'>
-                        {isSharingEnabled ? (
+                        {isSharingEnabled && currentFamilySituation.showBanner && currentFamilySituation.showBanner ? (
                           <li>
                             <FamilySwitcher />
                           </li>
@@ -312,7 +312,7 @@ export function AppLayout({ children }: AppLayoutProps) {
           className={`hidden lg:fixed lg:inset-y-0 lg:z-40 lg:flex lg:w-72 lg:flex-col ${
             sidebarAccessible ? '' : 'lg:hidden'
           }`}>
-          {isSharingEnabled ? (
+          {isSharingEnabled && currentFamilySituation.showBanner ? (
             <FamilyBanner
               position='static-sidebar'
               showBanner={currentFamilySituation.showBanner}
@@ -329,7 +329,7 @@ export function AppLayout({ children }: AppLayoutProps) {
             </div>
             <nav className='flex flex-1 flex-col'>
               <ul role='list' className='flex flex-1 flex-col gap-y-7'>
-                {isSharingEnabled ? (
+                {isSharingEnabled && currentFamilySituation.showBanner ? (
                   <li>
                     <FamilySwitcher />
                   </li>
@@ -568,7 +568,7 @@ const FamilySwitcher = (props: FamilySwitcherProps) => {
 
   const { userFamilies, currentFamilyId } = session
 
-  if (!userFamilies || !currentFamilyId) return null
+  if (!userFamilies || userFamilies.length < 2 || !currentFamilyId) return null
 
   const selected = userFamilies.find(({ familyId }) => familyId === currentFamilyId)!
 
