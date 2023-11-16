@@ -1,18 +1,11 @@
 import * as React from 'react'
 
-import { withBrowserBundle } from '../../libs/ssr/withBrowserBundle'
-import { AppLayout } from '../_components/layout/AppLayout'
-import { SessionContext } from '../_components/SessionContext'
-import {
-  CheckCircleIcon,
-  DocumentDuplicateIcon,
-  ExclamationCircleIcon,
-  PhotoIcon,
-  UserCircleIcon,
-} from '@heroicons/react/24/outline'
-import { linkStyles, primaryButtonStyles, secondaryButtonStyles, secondaryRedButtonStyles } from '../_components/Button'
+import { CheckCircleIcon, ExclamationCircleIcon } from '@heroicons/react/24/outline'
 import { FamilyId } from '../../domain/FamilyId'
 import { FamilyShareCode } from '../../domain/FamilyShareCode'
+import { withBrowserBundle } from '../../libs/ssr/withBrowserBundle'
+import { SessionContext } from '../_components/SessionContext'
+import { AppLayout } from '../_components/layout/AppLayout'
 import { BareLayout } from '../_components/layout/Layout'
 
 // @ts-ignore
@@ -29,6 +22,7 @@ export type InvitationPageProps =
         about: string
       }
       inviterName: string
+      code: FamilyShareCode
     }
   | { error: true }
 
@@ -43,11 +37,11 @@ export const InvitationPage = withBrowserBundle((props: InvitationPageProps) => 
     return <BareLayout>Une erreur est survenue. Il est possible que ce lien soit mal copié (incomplet) ou périmé.</BareLayout>
   }
 
-  const { family, inviterName } = props
+  const { family, inviterName, code } = props
 
   return (
     <AppLayout>
-      <div className='bg-white shadow sm:rounded-lg md:max-w-lg mt-6 md:ml-4'>
+      <div className='bg-white shadow sm:rounded-lg md:max-w-lg mt-6 md:ml-8'>
         <div className='px-4 py-5 sm:p-6  border-b border-gray-300'>
           <div className='mb-3'>{inviterName} vous invite à rejoindre:</div>
           <h3 className='text-base font-semibold leading-6 text-gray-900'>{family.name}</h3>
@@ -55,11 +49,16 @@ export const InvitationPage = withBrowserBundle((props: InvitationPageProps) => 
             <p>{family.about}</p>
           </div>
           <div className='mt-5'>
-            <button
-              type='button'
-              className='inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500'>
-              Accepter
-            </button>
+            <form method='POST'>
+              <input type='hidden' name='action' value='accept' />
+              <input type='hidden' name='familyId' value={family.familyId} />
+              <input type='hidden' name='code' value={code} />
+              <button
+                type='submit'
+                className='inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500'>
+                Accepter
+              </button>
+            </form>
           </div>
         </div>
         <div className='px-4 py-5 sm:px-6'>
