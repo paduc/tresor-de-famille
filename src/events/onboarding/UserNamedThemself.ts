@@ -10,7 +10,7 @@ export type UserNamedThemself = DomainEvent<
     personId: PersonId // new person
     name: string
 
-    familyId?: FamilyId
+    familyId: FamilyId
   }
 >
 

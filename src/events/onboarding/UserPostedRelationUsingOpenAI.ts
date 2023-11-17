@@ -19,7 +19,7 @@ export type UserPostedRelationUsingOpenAI = DomainEvent<
     relationship: FamilyMemberRelationship
 
     userId: AppUserId
-    familyId?: FamilyId
+    familyId: FamilyId
   }
 >
 

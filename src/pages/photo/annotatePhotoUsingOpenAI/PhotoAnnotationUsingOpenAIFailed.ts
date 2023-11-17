@@ -10,7 +10,7 @@ export type PhotoAnnotationUsingOpenAIFailed = DomainEvent<
     prompt: string
     response?: string
     error?: string
-    familyId?: FamilyId
+    familyId: FamilyId
   }
 >
 

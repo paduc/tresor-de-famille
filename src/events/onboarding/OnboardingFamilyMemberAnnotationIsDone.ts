@@ -7,7 +7,7 @@ export type OnboardingFamilyMemberAnnotationIsDone = DomainEvent<
   {
     userId: AppUserId
 
-    familyId?: FamilyId
+    familyId: FamilyId
   }
 >
 

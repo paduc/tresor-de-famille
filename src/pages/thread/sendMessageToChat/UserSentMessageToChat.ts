@@ -11,7 +11,7 @@ export type UserSentMessageToChat = DomainEvent<
     message: string
     messageId: UUID
     userId: AppUserId
-    familyId?: FamilyId
+    familyId: FamilyId
   }
 >
 

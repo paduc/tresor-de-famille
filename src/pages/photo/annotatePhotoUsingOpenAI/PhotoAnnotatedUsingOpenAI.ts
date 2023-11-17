@@ -31,7 +31,7 @@ export type PhotoAnnotatedUsingOpenAI = DomainEvent<
     response?: string
     deductions: Deduction[]
 
-    familyId?: FamilyId
+    familyId: FamilyId
   }
 >
 

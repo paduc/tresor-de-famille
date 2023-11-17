@@ -13,7 +13,7 @@ export type UserCreatedRelationshipWithNewPerson = DomainEvent<
       name: string
     }
     userId: AppUserId
-    familyId?: FamilyId
+    familyId: FamilyId
   }
 >
 

@@ -14,7 +14,7 @@ export type UserInsertedPhotoInRichTextThread = DomainEvent<
     userId: AppUserId
     location: PhotoLocation
     contentAsJSON: TipTapContentAsJSON
-    familyId?: FamilyId
+    familyId: FamilyId
   }
 >
 

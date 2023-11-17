@@ -21,7 +21,7 @@ export type UserUploadedPhotoToChat = DomainEvent<
     location: PhotoLocation
     uploadedBy: AppUserId
 
-    familyId?: FamilyId
+    familyId: FamilyId
   }
 >
 

@@ -25,7 +25,7 @@ export type UserCreatedNewRelationship = DomainEvent<
   {
     relationship: Relationship
     userId: AppUserId
-    familyId?: FamilyId
+    familyId: FamilyId
   }
 >
 

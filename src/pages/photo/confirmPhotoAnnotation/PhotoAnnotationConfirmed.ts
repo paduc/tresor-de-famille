@@ -27,7 +27,7 @@ export type PhotoAnnotationConfirmed = DomainEvent<
     // using this face (Rekognition)
     faceId: FaceId
 
-    familyId?: FamilyId
+    familyId: FamilyId
   }
 >
 

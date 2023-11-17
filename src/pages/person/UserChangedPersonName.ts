@@ -9,7 +9,7 @@ export type UserChangedPersonName = DomainEvent<
     personId: PersonId
     name: string
     userId: AppUserId
-    familyId?: FamilyId
+    familyId: FamilyId
   }
 >
 

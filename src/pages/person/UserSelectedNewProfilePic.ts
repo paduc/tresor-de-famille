@@ -12,7 +12,7 @@ export type UserSelectedNewProfilePic = DomainEvent<
     photoId: PhotoId
     faceId: FaceId
     userId: AppUserId
-    familyId?: FamilyId
+    familyId: FamilyId
   }
 >
 

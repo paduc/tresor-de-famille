@@ -24,7 +24,7 @@ export type PhotoManuallyAnnotated = DomainEvent<
     // using this face (Rekognition)
     faceId: FaceId
 
-    familyId?: FamilyId
+    familyId: FamilyId
   }
 >
 

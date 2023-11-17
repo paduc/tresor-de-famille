@@ -8,7 +8,7 @@ export type UserRemovedRelationship = DomainEvent<
   {
     relationshipId: RelationshipId
     userId: AppUserId
-    familyId?: FamilyId
+    familyId: FamilyId
   }
 >
 

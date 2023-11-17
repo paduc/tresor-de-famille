@@ -6,7 +6,7 @@ export type OnboardingReadyForBeneficiaries = DomainEvent<
   'OnboardingReadyForBeneficiaries',
   {
     userId: AppUserId
-    familyId?: FamilyId
+    familyId: FamilyId
   }
 >
 

@@ -9,7 +9,7 @@ export type UserIgnoredRelationship = DomainEvent<
     personId: PersonId
 
     userId: AppUserId
-    familyId?: FamilyId
+    familyId: FamilyId
   }
 >
 

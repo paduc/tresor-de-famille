@@ -12,7 +12,7 @@ export type FaceIgnoredInPhoto = DomainEvent<
 
     ignoredBy: AppUserId
 
-    familyId?: FamilyId
+    familyId: FamilyId
   }
 >
 

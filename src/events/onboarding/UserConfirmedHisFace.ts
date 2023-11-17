@@ -13,7 +13,7 @@ export type UserConfirmedHisFace = DomainEvent<
     photoId: PhotoId
     personId: PersonId
 
-    familyId?: FamilyId
+    familyId: FamilyId
   }
 >
 

@@ -9,7 +9,7 @@ export type UserSetChatTitle = DomainEvent<
     chatId: ThreadId
     title: string
     userId: AppUserId
-    familyId?: FamilyId
+    familyId: FamilyId
   }
 >
 

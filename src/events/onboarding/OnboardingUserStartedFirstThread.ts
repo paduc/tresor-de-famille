@@ -9,7 +9,7 @@ export type OnboardingUserStartedFirstThread = DomainEvent<
     message: string
     threadId: ThreadId
     userId: AppUserId
-    familyId?: FamilyId
+    familyId: FamilyId
   }
 >
 

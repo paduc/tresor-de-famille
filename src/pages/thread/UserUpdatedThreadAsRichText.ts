@@ -10,7 +10,7 @@ export type UserUpdatedThreadAsRichText = DomainEvent<
     chatId: ThreadId
     contentAsJSON: TipTapContentAsJSON
     userId: AppUserId
-    familyId?: FamilyId
+    familyId: FamilyId
   }
 >
 

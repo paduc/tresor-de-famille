@@ -8,7 +8,7 @@ export type UserDeletedPhoto = DomainEvent<
   {
     photoId: PhotoId
     userId: AppUserId
-    familyId?: FamilyId
+    familyId: FamilyId
   }
 >
 

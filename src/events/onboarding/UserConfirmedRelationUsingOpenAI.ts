@@ -13,7 +13,7 @@ export type UserConfirmedRelationUsingOpenAI = DomainEvent<
 
     userId: AppUserId
 
-    familyId?: FamilyId
+    familyId: FamilyId
   }
 >
 
