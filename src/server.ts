@@ -11,6 +11,8 @@ import { pageRouter } from './pages'
 import { createHistoryTable } from './dependencies/addToHistory'
 import { postgres } from './dependencies/database'
 import { factViewerRouter } from './facts/viewer/factViewer.route'
+import { getEventList } from './dependencies/getEventList'
+import { DomainEvent } from './dependencies/DomainEvent'
 
 const PORT: number = parseInt(process.env.PORT ?? '3000')
 
@@ -71,7 +73,82 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
 
 app.listen(PORT, async (): Promise<void> => {
   await createHistoryTable()
+  await migrateAddFamilyId()
 
   // eslint-disable-next-line no-console
   console.log('Server listening to port', PORT)
 })
+
+async function migrateAddFamilyId() {
+  console.log('Starting familyId migration')
+  // For each event
+  // 1) if its in the no-family id types, ignore
+  // 2) if its in the payload.userId = userId types, set familyId=userId
+  // 3) Special cases : "uploadedBy", etc. set familyId=uploadedBy, etc.
+
+  // ONLY IF FAMILYID IS NOT SET
+
+  // Check if history table is empty
+  const { rows } = await postgres.query<DomainEvent>('SELECT * FROM history')
+
+  let queryCount = 0
+
+  async function update(event: DomainEvent, key: string) {
+    await postgres.query(`UPDATE history SET payload=payload||$1 where id=$2;`, [
+      `{"familyId":"${event.payload[key]}"}`,
+      event.id,
+    ])
+    queryCount++
+  }
+
+  const events = rows
+    .filter(
+      ({ type }) =>
+        ![
+          'UserRegisteredWithEmailAndPassword',
+          'BeneficiariesChosen',
+          'AWSDetectedFacesInPhoto',
+          'OpenAIFailedToMakeDeductions',
+          'OpenAIMadeDeductions',
+          'OpenAIPrompted',
+        ].includes(type)
+    )
+    .filter(({ payload }) => !payload.familyId)
+
+  for (const event of events) {
+    if (event.payload.userId) {
+      await update(event, 'userId')
+      continue
+    }
+
+    if (event.payload.importedBy) {
+      await update(event, 'importedBy')
+      continue
+    }
+
+    if (event.payload.ignoredBy) {
+      await update(event, 'ignoredBy')
+      continue
+    }
+
+    if (event.payload.uploadedBy) {
+      await update(event, 'uploadedBy')
+      continue
+    }
+
+    if (event.payload.addedBy) {
+      await update(event, 'addedBy')
+      continue
+    }
+    if (event.payload.annotatedBy) {
+      await update(event, 'annotatedBy')
+      continue
+    }
+    if (event.payload.confirmedBy) {
+      await update(event, 'confirmedBy')
+      continue
+    }
+  }
+
+  console.log(`Migration done with ${queryCount} queries`)
+}
