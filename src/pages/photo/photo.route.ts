@@ -44,7 +44,11 @@ pageRouter
         .object({ threadId: zIsThreadId.optional(), profileId: zIsPersonId.optional(), updated: z.string().optional() })
         .parse(request.query)
 
-      const props = await getNewPhotoPageProps({ photoId, userId: request.session.user!.id })
+      const props = await getNewPhotoPageProps({
+        photoId,
+        userId: request.session.user!.id,
+        familyId: request.session.currentFamilyId!,
+      })
 
       if (threadId) {
         props.context = { type: 'thread', threadId }
@@ -212,9 +216,10 @@ pageRouter.route('/delete-photo').post(requireAuth(), async (request, response) 
   try {
     const { photoId } = zod.object({ photoId: zIsPhotoId }).parse(request.body)
     const userId = request.session.user!.id
+    const familyId = request.session.currentFamilyId!
 
     // Make sure the user is the author of the photo
-    const isAllowed = await doesPhotoExist({ photoId, userId })
+    const isAllowed = await doesPhotoExist({ photoId, familyId })
 
     if (!isAllowed) {
       return response.status(403).send("La suppression de la photo a échoué parce que vous n'en êtes pas l'auteur.")
@@ -225,7 +230,7 @@ pageRouter.route('/delete-photo').post(requireAuth(), async (request, response) 
       UserDeletedPhoto({
         photoId,
         userId,
-        familyId: request.session.currentFamilyId!,
+        familyId,
       })
     )
 

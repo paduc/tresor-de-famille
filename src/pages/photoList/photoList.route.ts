@@ -6,7 +6,7 @@ import { getListPhotosProps } from './getListPhotosProps'
 import { PhotoListPageUrl } from './PhotoListPageUrl'
 
 pageRouter.route(PhotoListPageUrl).get(requireAuth(), async (request, response) => {
-  const props = await getListPhotosProps(request.session.user!.id)
+  const props = await getListPhotosProps(request.session.currentFamilyId!)
 
   responseAsHtml(request, response, ListPhotosPage(props))
 })

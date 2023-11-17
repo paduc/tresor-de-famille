@@ -1,54 +1,32 @@
-import { postgres } from '../dependencies/database'
 import { getEventList } from '../dependencies/getEventList'
 import { AppUserId } from '../domain/AppUserId'
 import { FaceId } from '../domain/FaceId'
+import { FamilyId } from '../domain/FamilyId'
 import { PersonId } from '../domain/PersonId'
 import { PhotoId } from '../domain/PhotoId'
 import { UserConfirmedHisFace } from '../events/onboarding/UserConfirmedHisFace'
 import { UserNamedPersonInPhoto } from '../events/onboarding/UserNamedPersonInPhoto'
 import { UserRecognizedPersonInPhoto } from '../events/onboarding/UserRecognizedPersonInPhoto'
 import { PhotoManuallyAnnotated } from './photo/annotateManually/PhotoManuallyAnnotated'
-import { PhotoAnnotationConfirmed } from './photo/confirmPhotoAnnotation/PhotoAnnotationConfirmed'
 
-export const getPersonIdsForFaceIdOld = async (faceId: FaceId): Promise<PersonId[]> => {
-  const { rows } = await postgres.query<
-    | PhotoAnnotationConfirmed
-    | PhotoManuallyAnnotated
-    | UserConfirmedHisFace
-    | UserNamedPersonInPhoto
-    | UserRecognizedPersonInPhoto
-  >(
-    "SELECT * FROM history WHERE type IN ('PhotoAnnotationConfirmed','PhotoManuallyAnnotated', 'UserConfirmedHisFace', 'UserNamedPersonInPhoto', 'UserRecognizedPersonInPhoto') AND payload->>'faceId'=$1",
-    [faceId]
-  )
-
-  return Array.from(new Set(rows.map((row) => row.payload.personId)))
-}
-
-export const getPersonIdsForFaceId = async ({ faceId, userId }: { faceId: FaceId; userId: AppUserId }): Promise<PersonId[]> => {
+export const getPersonIdsForFaceId = async ({
+  faceId,
+  userId,
+  familyId,
+}: {
+  faceId: FaceId
+  userId: AppUserId
+  familyId: FamilyId
+}): Promise<PersonId[]> => {
   const annotationEvents = (
-    await getEventList<
-      | PhotoAnnotationConfirmed
-      | PhotoManuallyAnnotated
-      | UserConfirmedHisFace
-      | UserNamedPersonInPhoto
-      | UserRecognizedPersonInPhoto
-    >(
-      [
-        'PhotoAnnotationConfirmed',
-        'PhotoManuallyAnnotated',
-        'UserConfirmedHisFace',
-        'UserNamedPersonInPhoto',
-        'UserRecognizedPersonInPhoto',
-      ],
-      { faceId }
+    await getEventList<PhotoManuallyAnnotated | UserConfirmedHisFace | UserNamedPersonInPhoto | UserRecognizedPersonInPhoto>(
+      ['PhotoManuallyAnnotated', 'UserConfirmedHisFace', 'UserNamedPersonInPhoto', 'UserRecognizedPersonInPhoto'],
+      { faceId, familyId }
     )
   ).filter((event) => {
     // Only keep user events
     // (could have been done in the query but the userId is in different payload fields)
     switch (event.type) {
-      case 'PhotoAnnotationConfirmed':
-        return event.payload.confirmedBy === userId
       case 'PhotoManuallyAnnotated':
         return event.payload.annotatedBy === userId
       default:

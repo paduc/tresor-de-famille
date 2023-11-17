@@ -3,6 +3,7 @@ import { getSingleEvent } from '../../dependencies/getSingleEvent'
 import { getPhotoUrlFromId } from '../../dependencies/photo-storage'
 import { AppUserId } from '../../domain/AppUserId'
 import { FaceId } from '../../domain/FaceId'
+import { FamilyId } from '../../domain/FamilyId'
 import { PersonId } from '../../domain/PersonId'
 import { PhotoId } from '../../domain/PhotoId'
 import { ThreadId } from '../../domain/ThreadId'
@@ -25,9 +26,11 @@ import { UserUploadedPhotoToChat } from './uploadPhotoToChat/UserUploadedPhotoTo
 export const getThreadPageProps = async ({
   threadId,
   userId,
+  familyId,
 }: {
   threadId: ThreadId
   userId: AppUserId
+  familyId: FamilyId
 }): Promise<ThreadPageProps> => {
   const titleSet = await getSingleEvent<UserSetChatTitle>('UserSetChatTitle', { chatId: threadId })
 
@@ -58,7 +61,7 @@ export const getThreadPageProps = async ({
 
       if (!photoId || !threadId) continue
 
-      const photoInfo = await retrievePhotoInfo({ photoId, userId })
+      const photoInfo = await retrievePhotoInfo({ photoId, userId, familyId })
 
       if (!photoInfo) continue
 
@@ -118,7 +121,7 @@ export const getThreadPageProps = async ({
 
     if (threadEvent.type === 'UserUploadedPhotoToChat') {
       const photoId = threadEvent.payload.photoId
-      const photoInfo = await retrievePhotoInfo({ photoId, userId })
+      const photoInfo = await retrievePhotoInfo({ photoId, userId, familyId })
       if (!photoInfo) continue
 
       const { description, personsInPhoto, unrecognizedFacesInPhoto } = photoInfo
@@ -147,7 +150,15 @@ export const getThreadPageProps = async ({
   }
 }
 
-export async function retrievePhotoInfo({ photoId, userId }: { photoId: PhotoId; userId: AppUserId }): Promise<{
+export async function retrievePhotoInfo({
+  photoId,
+  userId,
+  familyId,
+}: {
+  photoId: PhotoId
+  userId: AppUserId
+  familyId: FamilyId
+}): Promise<{
   description: string
   personsInPhoto: string[]
   unrecognizedFacesInPhoto: number
@@ -166,7 +177,7 @@ export async function retrievePhotoInfo({ photoId, userId }: { photoId: PhotoId;
   const detectedFaces = facesDetected?.payload.faces || []
 
   const faces: PhotoFace[] = detectedFaces
-    ? await Promise.all(detectedFaces.map(({ faceId }) => getFamilyDetectedFace({ faceId, photoId, userId })))
+    ? await Promise.all(detectedFaces.map(({ faceId }) => getFamilyDetectedFace({ faceId, photoId, userId, familyId })))
     : []
 
   const personsInPhoto = faces
@@ -205,8 +216,13 @@ type PhotoFace = {
 )
 
 // Copy from getNewPhotoPageProps()
-async function getFamilyDetectedFace(args: { faceId: FaceId; photoId: PhotoId; userId: AppUserId }): Promise<PhotoFace> {
-  const { faceId, photoId, userId } = args
+async function getFamilyDetectedFace(args: {
+  faceId: FaceId
+  photoId: PhotoId
+  userId: AppUserId
+  familyId: FamilyId
+}): Promise<PhotoFace> {
+  const { faceId, photoId, userId, familyId } = args
 
   const personNamedOrRecognizedEvent = await getSingleEvent<UserNamedPersonInPhoto | UserRecognizedPersonInPhoto>(
     ['UserNamedPersonInPhoto', 'UserRecognizedPersonInPhoto'],
@@ -257,7 +273,7 @@ async function getFamilyDetectedFace(args: { faceId: FaceId; photoId: PhotoId; u
   }
 
   // Do we recognize this face from elsewhere ?
-  const persons = await getPersonIdsForFaceId({ faceId, userId })
+  const persons = await getPersonIdsForFaceId({ faceId, userId, familyId })
   if (persons.length) {
     const personId = persons[0]
     const person = await getPersonById(personId)
