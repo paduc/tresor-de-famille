@@ -1,6 +1,5 @@
 import { requireAuth } from '../dependencies/authn'
 import { postgres } from '../dependencies/database'
-import { REGISTRATION_CODE } from '../dependencies/env'
 import { getEventList } from '../dependencies/getEventList'
 import { personsIndex } from '../dependencies/search'
 import { UUID } from '../domain'
@@ -94,7 +93,7 @@ async function indexUserNamedThemself() {
       objectID: personId,
       id: personId,
       name,
-      visible_by: [`person/${personId}`, `user/${onboardedPerson.payload.userId}`],
+      visible_by: [`family/${onboardedPerson.payload.familyId}`, `user/${onboardedPerson.payload.userId}`],
     })
   }
 }
@@ -110,23 +109,23 @@ async function indexPersonCreatedWithRelationship() {
       objectID: personId,
       id: personId,
       name,
-      visible_by: [`person/${personId}`, `user/${newPerson.payload.userId}`],
+      visible_by: [`family/${newPerson.payload.familyId}`, `user/${newPerson.payload.userId}`],
     })
   }
 }
 
 async function indexUserNamedPersonInPhoto() {
-  const { rows: onboardedPersons } = await postgres.query<UserNamedPersonInPhoto>(
+  const { rows: userNamedPersons } = await postgres.query<UserNamedPersonInPhoto>(
     "SELECT * FROM history WHERE type = 'UserNamedPersonInPhoto'"
   )
 
-  for (const onboardedPerson of onboardedPersons) {
-    const { personId, name } = onboardedPerson.payload
+  for (const userNamedPerson of userNamedPersons) {
+    const { personId, name } = userNamedPerson.payload
     await personsIndex.saveObject({
       objectID: personId,
       id: personId,
       name,
-      visible_by: [`person/${personId}`, `user/${onboardedPerson.payload.userId}`],
+      visible_by: [`family/${userNamedPerson.payload.familyId}`, `user/${userNamedPerson.payload.userId}`],
     })
   }
 }
@@ -152,7 +151,7 @@ async function indexPhotoAnnotationConfirmed() {
             objectID: personId,
             id: personId,
             name,
-            visible_by: [`person/${personId}`, `user/${confirmation.payload.confirmedBy}`],
+            visible_by: [`family/${payload.familyId}`, `user/${confirmation.payload.confirmedBy}`],
           })
         }
       }
@@ -169,43 +168,43 @@ async function indexGedcom() {
     return null
   }
 
-  const { persons, relationships } = gedcom.payload
+  for (const gedcom of rows) {
+    const { persons, relationships, familyId } = gedcom.payload
 
-  const relationshipsById = relationships.reduce((relationshipsByPersonId, relationship) => {
-    const { childId, parentId } = relationship
+    const relationshipsById = relationships.reduce((relationshipsByPersonId, relationship) => {
+      const { childId, parentId } = relationship
 
-    if (!relationshipsByPersonId[childId]) {
-      relationshipsByPersonId[childId] = { children: new Set(), parents: new Set() }
-    }
+      if (!relationshipsByPersonId[childId]) {
+        relationshipsByPersonId[childId] = { children: new Set(), parents: new Set() }
+      }
 
-    relationshipsByPersonId[childId].parents.add(parentId)
+      relationshipsByPersonId[childId].parents.add(parentId)
 
-    if (!relationshipsByPersonId[parentId]) {
-      relationshipsByPersonId[parentId] = { children: new Set(), parents: new Set() }
-    }
+      if (!relationshipsByPersonId[parentId]) {
+        relationshipsByPersonId[parentId] = { children: new Set(), parents: new Set() }
+      }
 
-    relationshipsByPersonId[parentId].children.add(childId)
+      relationshipsByPersonId[parentId].children.add(childId)
 
-    return relationshipsByPersonId
-  }, {} as Record<string, { children: Set<string>; parents: Set<string> }>)
+      return relationshipsByPersonId
+    }, {} as Record<string, { children: Set<string>; parents: Set<string> }>)
 
-  const personById = persons.reduce((record, person) => ({ ...record, [person.id]: person }), {} as Record<string, any>)
+    const personById = persons.reduce((record, person) => ({ ...record, [person.id]: person }), {} as Record<string, any>)
 
-  const personsForIndex = persons.map(({ id, name, bornOn, bornIn, passedOn, passedIn, sex }) => ({
-    objectID: id,
-    personId: id,
-    name,
-    bornOn,
-    bornIn,
-    passedOn,
-    passedIn,
-    sex,
-    parents: Array.from(relationshipsById[id]?.parents || []).map((personId) => personById[personId]?.name),
-    children: Array.from(relationshipsById[id]?.children || []).map((personId) => personById[personId]?.name),
-    visible_by: [`person/${id}`, `user/${gedcom.payload.importedBy}`, `family/${REGISTRATION_CODE}`],
-  }))
+    const personsForIndex = persons.map(({ id, name, bornOn, bornIn, passedOn, passedIn, sex }) => ({
+      objectID: id,
+      personId: id,
+      name,
+      bornOn,
+      bornIn,
+      passedOn,
+      passedIn,
+      sex,
+      parents: Array.from(relationshipsById[id]?.parents || []).map((personId) => personById[personId]?.name),
+      children: Array.from(relationshipsById[id]?.children || []).map((personId) => personById[personId]?.name),
+      visible_by: [`family/${familyId}`, `user/${gedcom.payload.importedBy}`],
+    }))
 
-  // console.log(JSON.stringify(personsForIndex.slice(0, 10), null, 2))
-
-  await personsIndex.replaceAllObjects(personsForIndex)
+    await personsIndex.saveObjects(personsForIndex)
+  }
 }

@@ -79,6 +79,7 @@ pageRouter
         .parse(request.params)
 
       if (action) {
+        const currentFamilyId = request.session.currentFamilyId!
         if (action === 'addCaption') {
           const { caption } = zod
             .object({
@@ -95,7 +96,7 @@ pageRouter
                 body: caption,
               },
               addedBy: userId,
-              familyId: request.session.currentFamilyId!,
+              familyId: currentFamilyId,
             })
           )
         } else if (action === 'submitFamilyMemberName') {
@@ -115,7 +116,7 @@ pageRouter
                 faceId,
                 personId,
                 name: newFamilyMemberName,
-                familyId: request.session.currentFamilyId!,
+                familyId: currentFamilyId,
               })
             )
 
@@ -124,7 +125,7 @@ pageRouter
                 objectID: personId,
                 personId,
                 name: newFamilyMemberName,
-                visible_by: [`person/${personId}`, `user/${userId}`],
+                visible_by: [`family/${currentFamilyId}`, `user/${userId}`],
               })
             } catch (error) {
               console.error('Could not add new family member to algolia index', error)
@@ -142,7 +143,7 @@ pageRouter
                 photoId,
                 faceId,
                 personId: existingFamilyMemberId,
-                familyId: request.session.currentFamilyId!,
+                familyId: currentFamilyId,
               })
             )
           }
@@ -157,7 +158,7 @@ pageRouter
               ignoredBy: userId,
               photoId,
               faceId,
-              familyId: request.session.currentFamilyId!,
+              familyId: currentFamilyId,
             })
           )
         }

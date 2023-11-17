@@ -6,7 +6,6 @@ import { personsIndex } from '../../dependencies/search'
 import { AppUserId } from '../../domain/AppUserId'
 import { zIsPersonId } from '../../domain/PersonId'
 import { RelationshipId, zIsRelationshipId } from '../../domain/RelationshipId'
-import { responseAsHtml } from '../../libs/ssr/responseAsHtml'
 import { pageRouter } from '../pageRouter'
 import { FamilyPage } from './FamilyPage'
 import { FamilyPageURL } from './FamilyPageURL'
@@ -14,6 +13,7 @@ import { UserCreatedNewRelationship } from './UserCreatedNewRelationship'
 import { UserCreatedRelationshipWithNewPerson } from './UserCreatedRelationshipWithNewPerson'
 import { UserRemovedRelationship } from './UserRemovedRelationship'
 import { getFamilyPageProps } from './getFamilyPageProps'
+import { responseAsHtml } from '../../libs/ssr/responseAsHtml'
 
 pageRouter.route(FamilyPageURL()).get(requireAuth(), async (request, response) => {
   try {
@@ -53,13 +53,15 @@ pageRouter.route('/family/saveNewRelationship').post(requireAuth(), async (reque
     return response.status(403).send()
   }
 
+  const currentFamilyId = request.session.currentFamilyId!
+
   if (newPerson) {
     await addToHistory(
       UserCreatedRelationshipWithNewPerson({
         relationship,
         newPerson,
         userId,
-        familyId: request.session.currentFamilyId!,
+        familyId: currentFamilyId,
       })
     )
 
@@ -69,7 +71,7 @@ pageRouter.route('/family/saveNewRelationship').post(requireAuth(), async (reque
         objectID: personId,
         personId,
         name,
-        visible_by: [`person/${personId}`, `user/${userId}`],
+        visible_by: [`family/${currentFamilyId}`, `user/${userId}`],
       })
     } catch (error) {
       console.error('Could not add new family member to algolia index', error)
@@ -79,7 +81,7 @@ pageRouter.route('/family/saveNewRelationship').post(requireAuth(), async (reque
       UserCreatedNewRelationship({
         relationship,
         userId,
-        familyId: request.session.currentFamilyId!,
+        familyId: currentFamilyId,
       })
     )
   }
@@ -90,7 +92,7 @@ pageRouter.route('/family/saveNewRelationship').post(requireAuth(), async (reque
         UserCreatedNewRelationship({
           relationship: secondaryRelationship,
           userId,
-          familyId: request.session.currentFamilyId!,
+          familyId: currentFamilyId,
         })
       )
     }

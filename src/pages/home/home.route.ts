@@ -50,6 +50,7 @@ pageRouter
 
     const userId = request.session.user!.id
 
+    const currentFamilyId = request.session.currentFamilyId!
     if (action === 'submitPresentation') {
       const { presentation } = z
         .object({
@@ -63,7 +64,7 @@ pageRouter
           userId,
           personId,
           name: presentation,
-          familyId: request.session.currentFamilyId!,
+          familyId: currentFamilyId,
         })
       )
 
@@ -74,7 +75,7 @@ pageRouter
           objectID: personId,
           personId,
           name: presentation,
-          visible_by: [`person/${personId}`, `user/${userId}`],
+          visible_by: [`family/${currentFamilyId}`, `user/${userId}`],
         })
       } catch (error) {
         console.error('Could not add new user to algolia index', error)
@@ -84,7 +85,7 @@ pageRouter
 
       if (!file) return new Error('We did not receive any image.')
 
-      await uploadUserPhotoOfThemself({ file, userId, familyId: request.session.currentFamilyId! })
+      await uploadUserPhotoOfThemself({ file, userId, familyId: currentFamilyId })
     } else if (action === 'confirmFaceIsUser') {
       const { faceId, photoId } = z
         .object({
@@ -100,7 +101,7 @@ pageRouter
           photoId,
           faceId,
           personId,
-          familyId: request.session.currentFamilyId!,
+          familyId: currentFamilyId,
         })
       )
     }
@@ -163,7 +164,7 @@ async function uploadUserPhotoOfThemself({ file, userId, familyId }: UploadUserP
 //         objectID: personId,
 //         personId,
 //         name: presentation,
-//         visible_by: [`person/${personId}`, `user/${userId}`],
+//         visible_by: [`family/${currentFamilyId}`, `user/${userId}`],
 //       })
 //     } catch (error) {
 //       console.error('Could not add new user to algolia index', error)
@@ -223,7 +224,7 @@ async function uploadUserPhotoOfThemself({ file, userId, familyId }: UploadUserP
 //           objectID: personId,
 //           personId,
 //           name: newFamilyMemberName,
-//           visible_by: [`person/${personId}`, `user/${userId}`],
+//           visible_by: [`family/${currentFamilyId}`, `user/${userId}`],
 //         })
 //       } catch (error) {
 //         console.error('Could not add new family member to algolia index', error)
