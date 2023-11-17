@@ -50,6 +50,7 @@ pageRouter
           userId,
           message,
           messageId,
+          familyId: request.session.currentFamilyId!,
         })
       )
     }
@@ -98,6 +99,7 @@ pageRouter
               userId,
               message: message.trim(),
               messageId,
+              familyId: request.session.currentFamilyId!,
             })
           )
         }
@@ -109,6 +111,7 @@ pageRouter
             chatId: threadId,
             userId,
             title: title.trim(),
+            familyId: request.session.currentFamilyId!,
           })
         )
       } else if (action === 'insertPhotoAtMarker') {
@@ -149,6 +152,7 @@ pageRouter
             userId,
             location,
             contentAsJSON,
+            familyId: request.session.currentFamilyId!,
           })
         )
 

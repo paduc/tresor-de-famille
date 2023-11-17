@@ -21,6 +21,7 @@ import { makePersonId } from '../../libs/makePersonId'
 import { zIsPhotoId } from '../../domain/PhotoId'
 import { makePhotoId } from '../../libs/makePhotoId'
 import { AppUserId } from '../../domain/AppUserId'
+import { FamilyId } from '../../domain/FamilyId'
 
 const FILE_SIZE_LIMIT_MB = 50
 const upload = multer({
@@ -62,6 +63,7 @@ pageRouter
           userId,
           personId,
           name: presentation,
+          familyId: request.session.currentFamilyId!,
         })
       )
 
@@ -82,7 +84,7 @@ pageRouter
 
       if (!file) return new Error('We did not receive any image.')
 
-      await uploadUserPhotoOfThemself({ file, userId })
+      await uploadUserPhotoOfThemself({ file, userId, familyId: request.session.currentFamilyId! })
     } else if (action === 'confirmFaceIsUser') {
       const { faceId, photoId } = z
         .object({
@@ -98,6 +100,7 @@ pageRouter
           photoId,
           faceId,
           personId,
+          familyId: request.session.currentFamilyId!,
         })
       )
     }
@@ -107,8 +110,9 @@ pageRouter
 type UploadUserPhotoOfThemselfArgs = {
   file: Express.Multer.File
   userId: AppUserId
+  familyId: FamilyId
 }
-async function uploadUserPhotoOfThemself({ file, userId }: UploadUserPhotoOfThemselfArgs) {
+async function uploadUserPhotoOfThemself({ file, userId, familyId }: UploadUserPhotoOfThemselfArgs) {
   const { path: originalPath } = file
   const photoId = makePhotoId()
 
@@ -119,6 +123,7 @@ async function uploadUserPhotoOfThemself({ file, userId }: UploadUserPhotoOfThem
       photoId,
       location,
       uploadedBy: userId,
+      familyId,
     })
   )
 

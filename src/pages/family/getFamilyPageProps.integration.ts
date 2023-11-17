@@ -1,5 +1,6 @@
 import { resetDatabase } from '../../dependencies/__test__/resetDatabase'
 import { addToHistory } from '../../dependencies/addToHistory'
+import { FamilyId } from '../../domain/FamilyId'
 import { UserNamedThemself } from '../../events/onboarding/UserNamedThemself'
 import { getUuid } from '../../libs/getUuid'
 import { makePersonId } from '../../libs/makePersonId'
@@ -26,11 +27,13 @@ describe('getFamilyProps', () => {
             userId,
             personId,
             name: 'person',
+            familyId: '' as FamilyId,
           })
         )
         await addToHistory(
           UserCreatedRelationshipWithNewPerson({
             userId,
+            familyId: '' as FamilyId,
             newPerson: {
               personId: newPersonId,
               name: 'new name',
@@ -43,6 +46,7 @@ describe('getFamilyProps', () => {
         await addToHistory(
           UserCreatedRelationshipWithNewPerson({
             userId,
+            familyId: '' as FamilyId,
             newPerson: {
               personId: newPersonId,
               name: 'new name',
@@ -82,6 +86,7 @@ describe('getFamilyProps', () => {
         await addToHistory(
           UserNamedThemself({
             userId,
+            familyId: '' as FamilyId,
             personId,
             name: 'person',
           })
@@ -89,6 +94,7 @@ describe('getFamilyProps', () => {
         await addToHistory(
           UserCreatedRelationshipWithNewPerson({
             userId,
+            familyId: '' as FamilyId,
             newPerson: {
               personId: newPersonId,
               name: 'new name',
@@ -101,6 +107,7 @@ describe('getFamilyProps', () => {
         await addToHistory(
           UserCreatedRelationshipWithNewPerson({
             userId,
+            familyId: '' as FamilyId,
             newPerson: {
               personId: newPersonId,
               name: 'new name',
@@ -139,6 +146,7 @@ describe('getFamilyProps', () => {
         await addToHistory(
           UserNamedThemself({
             userId,
+            familyId: '' as FamilyId,
             personId,
             name: 'person',
           })
@@ -146,6 +154,7 @@ describe('getFamilyProps', () => {
         await addToHistory(
           UserCreatedRelationshipWithNewPerson({
             userId,
+            familyId: '' as FamilyId,
             newPerson: {
               personId: newPersonId,
               name: 'new name',
@@ -158,6 +167,7 @@ describe('getFamilyProps', () => {
         await addToHistory(
           UserCreatedRelationshipWithNewPerson({
             userId,
+            familyId: '' as FamilyId,
             newPerson: {
               personId: newPersonId,
               name: 'new name',
@@ -198,6 +208,7 @@ describe('getFamilyProps', () => {
         await addToHistory(
           UserNamedThemself({
             userId,
+            familyId: '' as FamilyId,
             personId,
             name: 'person',
           })
@@ -205,6 +216,7 @@ describe('getFamilyProps', () => {
         await addToHistory(
           UserNamedThemself({
             userId,
+            familyId: '' as FamilyId,
             personId: newPersonId,
             name: 'new name',
           })
@@ -212,6 +224,7 @@ describe('getFamilyProps', () => {
         await addToHistory(
           UserCreatedNewRelationship({
             userId,
+            familyId: '' as FamilyId,
             relationship: { id: friendRelationshipId, type: 'friends', friendIds: [personId, newPersonId] },
           })
         )
@@ -219,6 +232,7 @@ describe('getFamilyProps', () => {
         await addToHistory(
           UserCreatedNewRelationship({
             userId,
+            familyId: '' as FamilyId,
             relationship: { id: spouseRelId, type: 'spouses', spouseIds: [personId, newPersonId] },
           })
         )
@@ -226,6 +240,7 @@ describe('getFamilyProps', () => {
         await addToHistory(
           UserCreatedNewRelationship({
             userId,
+            familyId: '' as FamilyId,
             relationship: { id: parentRelId, type: 'parent', parentId: personId, childId: newPersonId },
           })
         )
@@ -270,6 +285,7 @@ describe('getFamilyProps', () => {
         await addToHistory(
           UserNamedThemself({
             userId,
+            familyId: '' as FamilyId,
             personId,
             name: 'person',
           })
@@ -277,6 +293,7 @@ describe('getFamilyProps', () => {
         await addToHistory(
           UserNamedThemself({
             userId,
+            familyId: '' as FamilyId,
             personId: newPersonId,
             name: 'new name',
           })
@@ -285,6 +302,7 @@ describe('getFamilyProps', () => {
         await addToHistory(
           UserCreatedNewRelationship({
             userId,
+            familyId: '' as FamilyId,
             relationship: { id: removedRelationshipId, type: 'parent', parentId: personId, childId: newPersonId },
           })
         )
@@ -293,6 +311,7 @@ describe('getFamilyProps', () => {
         await addToHistory(
           UserCreatedNewRelationship({
             userId,
+            familyId: '' as FamilyId,
             relationship: { id: makeRelationshipId(), type: 'spouses', spouseIds: [personId, newPersonId] },
           })
         )
@@ -300,6 +319,7 @@ describe('getFamilyProps', () => {
         await addToHistory(
           UserRemovedRelationship({
             userId,
+            familyId: '' as FamilyId,
             relationshipId: removedRelationshipId,
           })
         )

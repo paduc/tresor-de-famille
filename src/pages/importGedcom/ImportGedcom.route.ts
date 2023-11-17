@@ -94,6 +94,7 @@ pageRouter.route('/importGedcom.html').post(
             sex,
           })),
           importedBy: userId,
+          familyId: request.session.currentFamilyId!,
         })
       )
     } catch (error) {

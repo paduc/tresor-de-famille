@@ -1,6 +1,7 @@
 import { resetDatabase } from '../../../dependencies/__test__/resetDatabase'
 import { addToHistory } from '../../../dependencies/addToHistory'
 import { AppUserId } from '../../../domain/AppUserId'
+import { FamilyId } from '../../../domain/FamilyId'
 import { GedcomImported } from '../../../events/GedcomImported'
 import { makePersonId } from '../../../libs/makePersonId'
 import { describeFamily } from './describeFamily'
@@ -158,6 +159,7 @@ describe('describeFamily', () => {
           },
         ],
         importedBy: '' as AppUserId,
+        familyId: '' as FamilyId,
       })
     )
   })

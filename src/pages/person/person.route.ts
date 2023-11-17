@@ -53,6 +53,7 @@ pageRouter
             photoId,
             faceId,
             userId,
+            familyId: request.session.currentFamilyId!,
           })
         )
         return response.redirect(PersonPageURL(personId))
@@ -73,6 +74,7 @@ pageRouter
               personId,
               name: newName,
               userId,
+              familyId: request.session.currentFamilyId!,
             })
           )
 

@@ -95,6 +95,7 @@ pageRouter
                 body: caption,
               },
               addedBy: userId,
+              familyId: request.session.currentFamilyId!,
             })
           )
         } else if (action === 'submitFamilyMemberName') {
@@ -114,6 +115,7 @@ pageRouter
                 faceId,
                 personId,
                 name: newFamilyMemberName,
+                familyId: request.session.currentFamilyId!,
               })
             )
 
@@ -140,6 +142,7 @@ pageRouter
                 photoId,
                 faceId,
                 personId: existingFamilyMemberId,
+                familyId: request.session.currentFamilyId!,
               })
             )
           }
@@ -154,6 +157,7 @@ pageRouter
               ignoredBy: userId,
               photoId,
               faceId,
+              familyId: request.session.currentFamilyId!,
             })
           )
         }
@@ -184,7 +188,7 @@ pageRouter.route('/add-photo.html').post(requireAuth(), upload.single('photo'), 
     if (!file) return new Error('We did not receive any image.')
     const photoId = makePhotoId()
 
-    await uploadPhotoToChat({ file, photoId, chatId, userId })
+    await uploadPhotoToChat({ file, photoId, chatId, userId, familyId: request.session.currentFamilyId! })
 
     await detectFacesInPhotoUsingAWS({ file, photoId })
 
@@ -216,7 +220,13 @@ pageRouter.route('/delete-photo').post(requireAuth(), async (request, response) 
     }
 
     // Emit
-    await addToHistory(UserDeletedPhoto({ photoId, userId }))
+    await addToHistory(
+      UserDeletedPhoto({
+        photoId,
+        userId,
+        familyId: request.session.currentFamilyId!,
+      })
+    )
 
     return response.redirect(PhotoListPageUrl)
   } catch (error) {

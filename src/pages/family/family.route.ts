@@ -59,6 +59,7 @@ pageRouter.route('/family/saveNewRelationship').post(requireAuth(), async (reque
         relationship,
         newPerson,
         userId,
+        familyId: request.session.currentFamilyId!,
       })
     )
 
@@ -78,6 +79,7 @@ pageRouter.route('/family/saveNewRelationship').post(requireAuth(), async (reque
       UserCreatedNewRelationship({
         relationship,
         userId,
+        familyId: request.session.currentFamilyId!,
       })
     )
   }
@@ -88,6 +90,7 @@ pageRouter.route('/family/saveNewRelationship').post(requireAuth(), async (reque
         UserCreatedNewRelationship({
           relationship: secondaryRelationship,
           userId,
+          familyId: request.session.currentFamilyId!,
         })
       )
     }
@@ -105,7 +108,13 @@ pageRouter.route('/family/removeRelationship').post(requireAuth(), async (reques
     .parse(request.body)
 
   if (await relationshipExists({ userId, relationshipId })) {
-    await addToHistory(UserRemovedRelationship({ relationshipId, userId }))
+    await addToHistory(
+      UserRemovedRelationship({
+        relationshipId,
+        userId,
+        familyId: request.session.currentFamilyId!,
+      })
+    )
   }
 
   return response.status(200).send()
