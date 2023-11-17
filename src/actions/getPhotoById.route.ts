@@ -8,12 +8,12 @@ import { actionsRouter } from './actionsRouter'
 actionsRouter.route('/photos/:photoId').get(requireAuth(), async (request, response) => {
   try {
     const { photoId } = zod.object({ photoId: zIsPhotoId }).parse(request.params)
-    const userId = request.session.user!.id
+    const familyId = request.session.currentFamilyId!
 
     response.set('Content-Type', 'image/*')
     response.set('Cache-Control', 'private, max-age=15552000')
 
-    const photoExists = await doesPhotoExist({ photoId, userId })
+    const photoExists = await doesPhotoExist({ photoId, familyId })
     if (!photoExists) return response.sendStatus(404)
 
     downloadPhoto(photoId).pipe(response)

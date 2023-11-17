@@ -2,6 +2,7 @@ import { getSingleEvent } from '../../dependencies/getSingleEvent'
 import { getPhotoUrlFromId } from '../../dependencies/photo-storage'
 import { AppUserId } from '../../domain/AppUserId'
 import { FaceId } from '../../domain/FaceId'
+import { FamilyId } from '../../domain/FamilyId'
 import { PhotoId } from '../../domain/PhotoId'
 import { FaceIgnoredInPhoto } from '../../events/onboarding/FaceIgnoredInPhoto'
 import { UserNamedPersonInPhoto } from '../../events/onboarding/UserNamedPersonInPhoto'
@@ -19,21 +20,23 @@ type PhotoFace = NewPhotoPageProps['faces'][number]
 export const getNewPhotoPageProps = async ({
   photoId,
   userId,
+  familyId,
 }: {
   photoId: PhotoId
   userId: AppUserId
+  familyId: FamilyId
 }): Promise<NewPhotoPageProps> => {
-  const photoExists = await doesPhotoExist({ photoId, userId })
+  const photoExists = await doesPhotoExist({ photoId, familyId })
   if (!photoExists) throw new Error('Photo does not exist')
 
-  const captionSet = await getSingleEvent<UserAddedCaptionToPhoto>('UserAddedCaptionToPhoto', { photoId })
+  const captionSet = await getSingleEvent<UserAddedCaptionToPhoto>('UserAddedCaptionToPhoto', { photoId, familyId })
 
-  const facesDetected = await getSingleEvent<AWSDetectedFacesInPhoto>('AWSDetectedFacesInPhoto', { photoId })
+  const awsFacesDetectedEvents = await getSingleEvent<AWSDetectedFacesInPhoto>('AWSDetectedFacesInPhoto', { photoId })
 
-  const detectedFaces = facesDetected?.payload.faces || []
+  const detectedFaces = awsFacesDetectedEvents?.payload.faces || []
 
   const faces: PhotoFace[] = detectedFaces
-    ? await Promise.all(detectedFaces.map(({ faceId }) => getFamilyDetectedFace({ faceId, photoId, userId })))
+    ? await Promise.all(detectedFaces.map(({ faceId }) => getFamilyDetectedFace({ faceId, photoId, userId, familyId })))
     : []
 
   return {
@@ -45,8 +48,13 @@ export const getNewPhotoPageProps = async ({
 }
 
 // Copy from getChatPageProps()
-async function getFamilyDetectedFace(args: { faceId: FaceId; photoId: PhotoId; userId: AppUserId }): Promise<PhotoFace> {
-  const { faceId, photoId, userId } = args
+async function getFamilyDetectedFace(args: {
+  faceId: FaceId
+  photoId: PhotoId
+  userId: AppUserId
+  familyId: FamilyId
+}): Promise<PhotoFace> {
+  const { faceId, photoId, userId, familyId } = args
 
   const personNamedOrRecognizedEvent = await getSingleEvent<UserNamedPersonInPhoto | UserRecognizedPersonInPhoto>(
     ['UserNamedPersonInPhoto', 'UserRecognizedPersonInPhoto'],
@@ -54,6 +62,7 @@ async function getFamilyDetectedFace(args: { faceId: FaceId; photoId: PhotoId; u
       faceId,
       photoId,
       userId,
+      familyId,
     }
   )
 
@@ -61,6 +70,7 @@ async function getFamilyDetectedFace(args: { faceId: FaceId; photoId: PhotoId; u
     photoId,
     faceId,
     ignoredBy: userId,
+    familyId,
   })
 
   type Defined = Exclude<typeof personNamedOrRecognizedEvent | typeof faceIgnoredEvent, undefined>
@@ -97,7 +107,7 @@ async function getFamilyDetectedFace(args: { faceId: FaceId; photoId: PhotoId; u
   }
 
   // Do we recognize this face from elsewhere ?
-  const persons = await getPersonIdsForFaceId({ faceId, userId })
+  const persons = await getPersonIdsForFaceId({ faceId, userId, familyId })
   if (persons.length) {
     const personId = persons[0]
     const person = await getPersonById(personId)

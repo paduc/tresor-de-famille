@@ -7,19 +7,20 @@ import { UserInsertedPhotoInRichTextThread } from '../thread/UserInsertedPhotoIn
 import { UserUploadedPhotoToChat } from '../thread/uploadPhotoToChat/UserUploadedPhotoToChat'
 import { UserDeletedPhoto } from '../photo/UserDeletedPhoto'
 import { ListPhotosProps } from './ListPhotosPage'
+import { FamilyId } from '../../domain/FamilyId'
 
-export const getListPhotosProps = async (userId: AppUserId): Promise<ListPhotosProps> => {
+export const getListPhotosProps = async (familyId: FamilyId): Promise<ListPhotosProps> => {
   const uploadedPhotos = await getEventList<
     UserUploadedPhotoToChat | OnboardingUserUploadedPhotoOfFamily | OnboardingUserUploadedPhotoOfThemself
   >(['OnboardingUserUploadedPhotoOfFamily', 'OnboardingUserUploadedPhotoOfThemself', 'UserUploadedPhotoToChat'], {
-    uploadedBy: userId,
+    familyId,
   })
 
   const insertedPhotos = await getEventList<UserInsertedPhotoInRichTextThread>('UserInsertedPhotoInRichTextThread', {
-    userId,
+    familyId,
   })
 
-  const deletedPhotosEvents = await getEventList<UserDeletedPhoto>('UserDeletedPhoto', { userId })
+  const deletedPhotosEvents = await getEventList<UserDeletedPhoto>('UserDeletedPhoto', { familyId })
   const deletedPhotoIds = deletedPhotosEvents.map((deletionEvent) => deletionEvent.payload.photoId)
 
   const photos = [...uploadedPhotos, ...insertedPhotos].filter(

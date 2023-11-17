@@ -67,7 +67,7 @@ pageRouter
     const { threadId } = z.object({ threadId: zIsThreadId }).parse(request.params)
     const userId = request.session.user!.id
 
-    const props = await getThreadPageProps({ threadId: threadId, userId })
+    const props = await getThreadPageProps({ threadId: threadId, userId, familyId: request.session.currentFamilyId! })
 
     // console.log(JSON.stringify({ props }, null, 2))
 
