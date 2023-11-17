@@ -2,8 +2,7 @@ import bcrypt from 'bcryptjs'
 import z, { ZodError } from 'zod'
 
 import { addToHistory } from '../../dependencies/addToHistory'
-import { ALGOLIA_SEARCHKEY, PASSWORD_SALT, REGISTRATION_CODE } from '../../dependencies/env'
-import { searchClient } from '../../dependencies/search'
+import { PASSWORD_SALT, REGISTRATION_CODE } from '../../dependencies/env'
 import { FamilyId } from '../../domain/FamilyId'
 import { parseZodErrors } from '../../libs/parseZodErrors'
 import { responseAsHtml } from '../../libs/ssr/responseAsHtml'
@@ -11,9 +10,9 @@ import { getPersonByIdOrThrow } from '../_getPersonById'
 import { getPersonIdForUserId } from '../_getPersonIdForUserId'
 import { pageRouter } from '../pageRouter'
 import { ConnexionPage } from './ConnexionPage'
+import { buildSession } from './buildSession'
 import { makeLogin } from './login'
 import { makeRegister } from './register'
-import { buildSession } from './buildSession'
 
 const login = makeLogin(bcrypt.compare)
 const register = makeRegister({

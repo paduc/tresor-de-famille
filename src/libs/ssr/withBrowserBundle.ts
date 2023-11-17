@@ -2,7 +2,7 @@ import callsites from 'callsites'
 import React, { FunctionComponent } from 'react'
 import { hydrateRoot } from 'react-dom/client'
 import { LocationContext } from '../../pages/_components/LocationContext'
-import { SessionContext } from '../../pages/_components/SessionContext'
+import { Session, SessionContext } from '../../pages/_components/SessionContext'
 import { withContext } from './withContext'
 import algoliasearch, { SearchIndex } from 'algoliasearch/lite'
 import { PersonSearchContext } from '../../pages/_components/usePersonSearch'
@@ -48,14 +48,14 @@ const browserCode = <ComponentType extends FunctionComponent>(Component: Compone
     // (see responseAsHtml)
 
     const props = (window as any).__INITIAL_PROPS__
-    const session = (window as any).__SESSION__
+    const session: Session | undefined = (window as any).__SESSION__
     const url = (window as any).__URL__
-    const algolia = (window as any).__ALGOLIA__ as { appId: string; searchKey: string | undefined } | null
+    const appId: string | undefined = (window as any).__ALGOLIA_APPID__
 
     let index: SearchIndex | null = null
 
-    if (algolia && algolia.searchKey) {
-      const { appId, searchKey } = algolia
+    if (appId && session?.isLoggedIn && session.searchKey) {
+      const { searchKey } = session
 
       const searchClient = algoliasearch(appId, searchKey)
       index = searchClient.initIndex('persons')

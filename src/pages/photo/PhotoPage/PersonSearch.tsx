@@ -3,6 +3,7 @@ import { CheckIcon, MagnifyingGlassIcon } from '@heroicons/react/20/solid'
 import React, { Fragment, useState } from 'react'
 import { PersonId } from '../../../domain/PersonId'
 import { usePersonSearch } from '../../_components/usePersonSearch'
+import { ClientOnly } from '../../_components/ClientOnly'
 
 type SearchPersonHitDTO = {
   objectID: string
@@ -23,7 +24,15 @@ function classNames(...classes) {
   return classes.filter(Boolean).join(' ')
 }
 
-export const PersonSearch = ({ onPersonSelected, open, setOpen, personFaceUrl }: PersonSearchProps) => {
+export const PersonSearch = (props: PersonSearchProps) => {
+  return (
+    <ClientOnly>
+      <ClientSidePersonSearch {...props} />
+    </ClientOnly>
+  )
+}
+
+const ClientSidePersonSearch = ({ onPersonSelected, open, setOpen, personFaceUrl }: PersonSearchProps) => {
   const [query, setQuery] = useState('')
 
   const index = usePersonSearch()

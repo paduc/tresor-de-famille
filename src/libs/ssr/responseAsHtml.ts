@@ -13,6 +13,7 @@ import { getPersonIdForUserId } from '../../pages/_getPersonIdForUserId'
 import { getUserFamilies } from '../../pages/_getUserFamilies'
 import { FamilyId } from '../../domain/FamilyId'
 import { FamilyShareCode } from '../../domain/FamilyShareCode'
+import { makeSearchKey } from '../../dependencies/search'
 
 const html = String.raw
 
@@ -36,8 +37,6 @@ export async function responseAsHtml(
   const bundle = extractBundleInfo(element)
 
   const session = await getSession(request)
-
-  const searchKey = request.session.searchKey
 
   const { ALGOLIA_APPID } = process.env
 
@@ -90,7 +89,11 @@ export async function responseAsHtml(
             withContext(
               LocationContext,
               request.url,
-              withContext(SessionContext, session, withContext(PersonSearchContext, null as SearchIndex | null, element))
+              withContext(
+                SessionContext,
+                session as Session | undefined,
+                withContext(PersonSearchContext, null as SearchIndex | null, element)
+              )
             )
           )}</div>
           ${bundle.shouldIncludeBrowserBundle
@@ -99,7 +102,7 @@ export async function responseAsHtml(
                 <script>
                   window.__INITIAL_PROPS__ = ${JSON.stringify(bundle.props || {})};
                   window.__SESSION__ = ${JSON.stringify(session || {})};
-                  window.__ALGOLIA__ = ${JSON.stringify({ appId: ALGOLIA_APPID!, searchKey } || {})};
+                  window.__ALGOLIA_APPID__ = "${ALGOLIA_APPID!}";
                   window.__URL__ = '${request.url}';
                 </script>
               `
@@ -150,6 +153,11 @@ async function getSession(request: Request): Promise<Session> {
       })
     }
 
+    const searchKey = makeSearchKey(
+      user.id,
+      userFamilies.map((f) => f.familyId)
+    )
+
     const currentFamilyId = request.session.currentFamilyId!
 
     return {
@@ -159,6 +167,7 @@ async function getSession(request: Request): Promise<Session> {
       personId,
       userFamilies: userFamilies.map(({ familyId, familyName, about }) => ({ familyId, familyName, about })),
       currentFamilyId,
+      searchKey,
       isAdmin: userId === ADMIN_USERID,
       profilePic,
       arePhotosEnabled: !!user.name,

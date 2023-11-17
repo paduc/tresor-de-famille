@@ -1,12 +1,11 @@
 import * as React from 'react'
 
-import { withBrowserBundle } from '../../libs/ssr/withBrowserBundle'
-import { AppLayout } from '../_components/layout/AppLayout'
-import { SessionContext } from '../_components/SessionContext'
-import { CheckCircleIcon, DocumentDuplicateIcon, PhotoIcon, UserCircleIcon } from '@heroicons/react/24/outline'
-import { linkStyles, primaryButtonStyles, secondaryButtonStyles, secondaryRedButtonStyles } from '../_components/Button'
+import { CheckCircleIcon, DocumentDuplicateIcon } from '@heroicons/react/24/outline'
 import { FamilyId } from '../../domain/FamilyId'
-import { FamilyShareCode } from '../../domain/FamilyShareCode'
+import { withBrowserBundle } from '../../libs/ssr/withBrowserBundle'
+import { primaryButtonStyles } from '../_components/Button'
+import { useSession } from '../_components/SessionContext'
+import { AppLayout } from '../_components/layout/AppLayout'
 
 // @ts-ignore
 function classNames(...classes) {
@@ -23,7 +22,7 @@ export type SharePageProps = {
 }
 
 export const SharePage = withBrowserBundle(({ userFamilies }: SharePageProps) => {
-  const session = React.useContext(SessionContext)
+  const session = useSession()
 
   if (!session.isLoggedIn || !session.isSharingEnabled) {
     return <div />

@@ -16,11 +16,11 @@ import {
   secondaryRedButtonStyles,
   smallButtonStyles,
 } from '../../_components/Button'
-import { SessionContext } from '../../_components/SessionContext'
+import { useSession } from '../../_components/SessionContext'
 import { TDFModal } from '../../_components/TDFModal'
 import { usePersonSearch } from '../../_components/usePersonSearch'
-import { PhotoListPageUrl } from '../../photoList/PhotoListPageUrl'
 import { PersonPageURL } from '../../person/PersonPageURL'
+import { PhotoListPageUrl } from '../../photoList/PhotoListPageUrl'
 
 type PhotoFace = {
   faceId: FaceId
@@ -52,7 +52,7 @@ export type NewPhotoPageProps = {
 }
 
 export const NewPhotoPage = withBrowserBundle(({ context, caption, photoId, photoUrl, faces }: NewPhotoPageProps) => {
-  const session = React.useContext(SessionContext)
+  const session = useSession()
 
   const [selectedFaceForMenu, setSelectedFaceForMenu] = useState<PhotoFace | null>(null)
   const [selectedFaceForPersonSelector, setSelectedFaceForPersonSelector] = useState<PhotoFace | null>(null)
@@ -429,9 +429,7 @@ type PersonAutocompleteProps = {
 
 const PersonAutocomplete = ({ faceId, className, selectedPersonName }: PersonAutocompleteProps) => {
   const [query, setQuery] = useState('')
-
   const index = usePersonSearch()
-  if (index === null) return null
 
   const [hits, setHits] = React.useState<SearchPersonHitDTO[]>([])
 

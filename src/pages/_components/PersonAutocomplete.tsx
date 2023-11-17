@@ -30,9 +30,7 @@ export const PersonAutocomplete = ({
   unselectableIds,
 }: PersonAutocompleteProps) => {
   const [query, setQuery] = useState('Jo')
-
   const index = usePersonSearch()
-  if (index === null) return null
 
   const [hits, setHits] = React.useState<SearchPersonHitDTO[]>([])
 

@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useContext } from 'react'
 import { PersonId } from '../../domain/PersonId'
 import { FamilyId } from '../../domain/FamilyId'
 import { AppUserId } from '../../domain/AppUserId'
@@ -19,6 +19,7 @@ export type Session =
             about: string
             familyId: FamilyId
           }[]
+          searchKey: string
           currentFamilyId: FamilyId
           isAdmin: boolean
           arePhotosEnabled: boolean
@@ -29,4 +30,14 @@ export type Session =
         }
     )
 
-export const SessionContext = React.createContext<Session>({ isLoggedIn: false, isSharingEnabled: false })
+export const SessionContext = React.createContext<Session | undefined>(undefined)
+
+export const useSession = () => {
+  const session = useContext(SessionContext)
+
+  if (!session) {
+    throw new Error('useSession can only be used in a SessionContext Provider')
+  }
+
+  return session
+}

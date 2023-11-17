@@ -29,12 +29,12 @@ import {
 import React, { Fragment, useContext, useState } from 'react'
 import { PersonPageURL } from '../../person/PersonPageURL'
 import { PersonSearch } from '../../photo/PhotoPage/PersonSearch'
+import { ClientOnly } from '../ClientOnly'
 import { InlinePhotoUploadBtn } from '../InlinePhotoUploadBtn'
 import { LocationContext } from '../LocationContext'
 import { Logo } from '../Logo'
-import { SessionContext } from '../SessionContext'
+import { useSession } from '../SessionContext'
 import { LoaderProvider } from './LoaderContext'
-import { ClientOnly } from '../ClientOnly'
 
 // @ts-ignore
 function classNames(...classes) {
@@ -46,7 +46,7 @@ export type AppLayoutProps = {
 }
 
 export function AppLayout({ children }: AppLayoutProps) {
-  const session = useContext(SessionContext)
+  const session = useSession()
   const url = useContext(LocationContext)
 
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -561,7 +561,7 @@ const FamilyBanner = ({ position, ...props }: BannerProps) => {
 type FamilySwitcherProps = {}
 
 const FamilySwitcher = (props: FamilySwitcherProps) => {
-  const session = React.useContext(SessionContext)
+  const session = useSession()
   const formRef = React.useRef<HTMLFormElement>(null)
 
   if (!session.isLoggedIn) return null

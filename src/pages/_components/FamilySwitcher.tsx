@@ -1,14 +1,14 @@
-import React, { Fragment, useRef, useState } from 'react'
-import { SessionContext } from './SessionContext'
 import { Listbox, Transition } from '@headlessui/react'
 import { CheckIcon, ChevronDownIcon } from '@heroicons/react/24/outline'
 import classNames from 'classnames'
+import React, { Fragment } from 'react'
 import { ClientOnly } from './ClientOnly'
+import { useSession } from './SessionContext'
 
 type FamilySwitcherProps = {}
 
 export const FamilySwitcher = (props: FamilySwitcherProps) => {
-  const session = React.useContext(SessionContext)
+  const session = useSession()
   const formRef = React.useRef<HTMLFormElement>(null)
 
   if (!session.isLoggedIn) return null

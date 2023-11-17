@@ -6,7 +6,7 @@ import { PersonId } from '../../domain/PersonId'
 import { PhotoId } from '../../domain/PhotoId'
 import { ThreadId } from '../../domain/ThreadId'
 import { withBrowserBundle } from '../../libs/ssr/withBrowserBundle'
-import { SessionContext } from '../_components/SessionContext'
+import { SessionContext, useSession } from '../_components/SessionContext'
 import { buttonIconStyles, primaryButtonStyles, primaryGreenButtonStyles, secondaryButtonStyles } from '../_components/Button'
 import { InlinePhotoUploadBtn } from '../_components/InlinePhotoUploadBtn'
 import { AppLayout } from '../_components/layout/AppLayout'
@@ -131,7 +131,7 @@ export const HomePage = withBrowserBundle((props: HomePageProps) => {
 })
 
 function Wrapper({ children }: React.PropsWithChildren) {
-  const session = React.useContext(SessionContext)
+  const session = useSession()
 
   if (!session.isLoggedIn) return null
 

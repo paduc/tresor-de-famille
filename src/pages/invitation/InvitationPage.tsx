@@ -4,13 +4,13 @@ import { CheckCircleIcon, ExclamationCircleIcon, XCircleIcon } from '@heroicons/
 import { FamilyId } from '../../domain/FamilyId'
 import { FamilyShareCode } from '../../domain/FamilyShareCode'
 import { withBrowserBundle } from '../../libs/ssr/withBrowserBundle'
-import { SessionContext } from '../_components/SessionContext'
-import { AppLayout } from '../_components/layout/AppLayout'
-import { BareLayout } from '../_components/layout/Layout'
-import { Logo } from '../_components/Logo'
-import { SuccessError } from '../_components/SuccessError'
 import { linkStyles } from '../_components/Button'
 import { ClientOnly } from '../_components/ClientOnly'
+import { Logo } from '../_components/Logo'
+import { useSession } from '../_components/SessionContext'
+import { SuccessError } from '../_components/SuccessError'
+import { AppLayout } from '../_components/layout/AppLayout'
+import { BareLayout } from '../_components/layout/Layout'
 
 // @ts-ignore
 function classNames(...classes) {
@@ -33,7 +33,7 @@ export type InvitationPageProps =
     )
 
 export const InvitationPage = withBrowserBundle((props: InvitationPageProps) => {
-  const session = React.useContext(SessionContext)
+  const session = useSession()
 
   if (!session.isSharingEnabled) {
     return <div />
