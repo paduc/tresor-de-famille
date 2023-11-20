@@ -18,12 +18,12 @@ const PORT: number = parseInt(process.env.PORT ?? '3000')
 
 const app: Express = express()
 
-Sentry.init({
-  dsn: SENTRY_DSN,
-})
+// Sentry.init({
+//   dsn: SENTRY_DSN,
+// })
 
 // The request handler must be the first middleware on the app
-app.use(Sentry.Handlers.requestHandler())
+// app.use(Sentry.Handlers.requestHandler())
 
 app.use(
   express.urlencoded({
@@ -56,12 +56,12 @@ app.use(factViewerRouter)
 
 app.use(express.static(path.join(__dirname, 'assets')))
 
-// app.use((err: Error, _: Request, res: Response, next: NextFunction) => {
-//   res.status(500).send()
-// })
+app.use((err: Error, _: Request, res: Response, next: NextFunction) => {
+  res.status(500).send()
+})
 
 // The error handler must be registered before any other error middleware and after all controllers
-app.use(Sentry.Handlers.errorHandler())
+// app.use(Sentry.Handlers.errorHandler())
 
 // Optional fallthrough error handler
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
