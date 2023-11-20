@@ -11,6 +11,7 @@ import { getSharePageProps } from './getSharePageProps'
 import { getPersonForUserInFamily } from '../_getPersonForUserInFamily'
 import { PersonClonedForSharing } from './PersonClonedForSharing'
 import { makePersonId } from '../../libs/makePersonId'
+import { getFaceAndPhotoForPerson } from '../_getProfilePicUrlForPerson'
 
 pageRouter
   .route('/share.html')
@@ -53,12 +54,24 @@ pageRouter
       const previousFamilyId = request.session.currentFamilyId!
       const userPerson = await getPersonForUserInFamily({ userId, familyId: previousFamilyId })
       if (userPerson) {
+        let profilePicPhotoId
+        let faceId
+
+        const faceAndPhoto = await getFaceAndPhotoForPerson({ userId, familyId, personId: userPerson.personId })
+
+        if (faceAndPhoto) {
+          faceId = faceAndPhoto.faceId
+          profilePicPhotoId = faceAndPhoto.photoId
+        }
+
         await addToHistory(
           PersonClonedForSharing({
             familyId,
             userId,
             personId: makePersonId(),
             name: userPerson.name,
+            profilePicPhotoId,
+            faceId,
             clonedFrom: {
               personId: userPerson.personId,
               familyId: previousFamilyId,

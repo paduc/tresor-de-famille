@@ -1,12 +1,15 @@
 import { getEventList } from '../dependencies/getEventList'
 import { getSingleEvent } from '../dependencies/getSingleEvent'
 import { AppUserId } from '../domain/AppUserId'
+import { FaceId } from '../domain/FaceId'
 import { FamilyId } from '../domain/FamilyId'
 import { PersonId } from '../domain/PersonId'
+import { PhotoId } from '../domain/PhotoId'
 import { UserConfirmedHisFace } from '../events/onboarding/UserConfirmedHisFace'
 import { UserNamedPersonInPhoto } from '../events/onboarding/UserNamedPersonInPhoto'
 import { UserRecognizedPersonInPhoto } from '../events/onboarding/UserRecognizedPersonInPhoto'
 import { UserSelectedNewProfilePic } from './person/UserSelectedNewProfilePic'
+import { PersonClonedForSharing } from './share/PersonClonedForSharing'
 
 export const getProfilePicUrlForPerson = async ({
   userId,
@@ -17,6 +20,25 @@ export const getProfilePicUrlForPerson = async ({
   familyId: FamilyId
   personId: PersonId
 }): Promise<string | null> => {
+  const faceAndPhoto = await getFaceAndPhotoForPerson({ userId, familyId, personId })
+
+  if (faceAndPhoto) {
+    const { faceId, photoId } = faceAndPhoto
+    return `/photo/${photoId}/face/${faceId}`
+  }
+
+  return null
+}
+
+export const getFaceAndPhotoForPerson = async ({
+  userId,
+  familyId,
+  personId,
+}: {
+  userId: AppUserId
+  familyId: FamilyId
+  personId: PersonId
+}): Promise<{ faceId: FaceId; photoId: PhotoId } | null> => {
   const preferredProfilePic = await getSingleEvent<UserSelectedNewProfilePic>(['UserSelectedNewProfilePic'], {
     userId,
     personId,
@@ -25,7 +47,7 @@ export const getProfilePicUrlForPerson = async ({
 
   if (preferredProfilePic) {
     const { faceId, photoId } = preferredProfilePic.payload
-    return `/photo/${photoId}/face/${faceId}`
+    return { faceId, photoId }
   }
 
   const faceEvent = await getSingleEvent<UserConfirmedHisFace>(['UserConfirmedHisFace'], { personId })
@@ -33,7 +55,17 @@ export const getProfilePicUrlForPerson = async ({
   if (faceEvent) {
     const { photoId, faceId } = faceEvent.payload
 
-    return `/photo/${photoId}/face/${faceId}`
+    return { faceId, photoId }
+  }
+
+  const cloneEvent = await getSingleEvent<PersonClonedForSharing>(['PersonClonedForSharing'], { personId })
+
+  if (cloneEvent) {
+    const { profilePicPhotoId, faceId } = cloneEvent.payload
+
+    if (faceId && profilePicPhotoId) {
+      return { faceId, photoId: profilePicPhotoId }
+    }
   }
 
   const personInPhotoEvents = await getEventList<UserNamedPersonInPhoto | UserRecognizedPersonInPhoto>(
@@ -47,7 +79,7 @@ export const getProfilePicUrlForPerson = async ({
 
   if (personInPhotoEvents.length) {
     const { faceId, photoId } = personInPhotoEvents.at(0)!.payload
-    return `/photo/${photoId}/face/${faceId}`
+    return { faceId, photoId }
   }
 
   return null
