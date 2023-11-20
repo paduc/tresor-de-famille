@@ -7,12 +7,13 @@ import { FamilyId } from '../../domain/FamilyId'
 import { parseZodErrors } from '../../libs/parseZodErrors'
 import { responseAsHtml } from '../../libs/ssr/responseAsHtml'
 import { getPersonByIdOrThrow } from '../_getPersonById'
-import { getPersonIdForUserId } from '../_getPersonIdForUserId'
+import { getPersonForUserInFamily } from '../_getPersonForUserInFamily'
 import { pageRouter } from '../pageRouter'
 import { ConnexionPage } from './ConnexionPage'
 import { buildSession } from './buildSession'
 import { makeLogin } from './login'
 import { makeRegister } from './register'
+import { getUserFamilies } from '../_getUserFamilies'
 
 const login = makeLogin(bcrypt.compare)
 const register = makeRegister({
@@ -79,16 +80,31 @@ pageRouter
       // Login case
       const userId = await login(email, password)
       try {
-        let personName = ''
-        try {
-          const personId = await getPersonIdForUserId(userId)
-          const person = await getPersonByIdOrThrow(personId)
-          personName = person.name
-        } catch (error) {}
+        let currentFamilyId: FamilyId | undefined = undefined
 
-        buildSession({ userId, name: personName, request })
+        const userFamilies = await getUserFamilies(userId)
+        if (!userFamilies.length) {
+          currentFamilyId = userId as string as FamilyId
+        } else {
+          const registrationFamily = userFamilies.find((f) => f.isRegistrationFamily)
+          if (registrationFamily) {
+            currentFamilyId = registrationFamily.familyId
+          } else {
+            currentFamilyId = userFamilies[0].familyId
+          }
+        }
 
-        request.session.currentFamilyId = userId as string as FamilyId
+        if (!currentFamilyId) {
+          throw new Error("Vous n'êtes attaché à aucune famille.")
+        }
+
+        const userPerson = await getPersonForUserInFamily({ userId, familyId: currentFamilyId })
+
+        const name = userPerson?.name || ''
+
+        buildSession({ userId, name, request })
+
+        request.session.currentFamilyId = currentFamilyId
       } catch (error) {
         buildSession({ userId, request })
       }

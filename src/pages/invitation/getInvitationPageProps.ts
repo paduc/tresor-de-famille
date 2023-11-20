@@ -1,8 +1,7 @@
 import { getSingleEvent } from '../../dependencies/getSingleEvent'
 import { FamilyId } from '../../domain/FamilyId'
 import { FamilyShareCode } from '../../domain/FamilyShareCode'
-import { getPersonById } from '../_getPersonById'
-import { getPersonIdForUserId } from '../_getPersonIdForUserId'
+import { getPersonForUserInFamily } from '../_getPersonForUserInFamily'
 import { UserCreatedNewFamily } from '../share/UserCreatedNewFamily'
 import { InvitationPageProps } from './InvitationPage'
 
@@ -17,8 +16,7 @@ export const getInvitationPageProps = async (familyId: FamilyId, code: FamilySha
 
   let inviterName = "Quelqu'un"
   try {
-    const personId = await getPersonIdForUserId(userId)
-    const person = await getPersonById(personId)
+    const person = await getPersonForUserInFamily({ userId, familyId })
 
     if (person) {
       inviterName = person?.name

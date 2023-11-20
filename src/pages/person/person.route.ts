@@ -20,7 +20,7 @@ pageRouter
       const { personId } = z.object({ personId: zIsPersonId }).parse(request.params)
       const userId = request.session.user!.id
 
-      const props = await getPersonPageProps(personId, userId)
+      const props = await getPersonPageProps({ personId, userId, familyId: request.session.currentFamilyId! })
 
       responseAsHtml(request, response, PersonPage(props))
     } catch (error) {

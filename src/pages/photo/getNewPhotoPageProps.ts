@@ -95,7 +95,7 @@ async function getFamilyDetectedFace(args: {
     if (type === 'UserNamedPersonInPhoto') {
       name = payload.name
     } else {
-      name = (await getPersonByIdOrThrow(personId)).name
+      name = (await getPersonByIdOrThrow({ personId, familyId })).name
     }
 
     return {
@@ -110,7 +110,7 @@ async function getFamilyDetectedFace(args: {
   const persons = await getPersonIdsForFaceId({ faceId, userId, familyId })
   if (persons.length) {
     const personId = persons[0]
-    const person = await getPersonById(personId)
+    const person = await getPersonById({ personId, familyId })
 
     if (person) {
       return {

@@ -9,7 +9,7 @@ import { getProfilePicUrlForUser } from '../../pages/_getProfilePicUrlForUser'
 import { withContext } from './withContext'
 
 import manifest from '../../assets/js/manifest.json'
-import { getPersonIdForUserId } from '../../pages/_getPersonIdForUserId'
+import { getPersonForUserInFamily } from '../../pages/_getPersonForUserInFamily'
 import { getUserFamilies } from '../../pages/_getUserFamilies'
 import { FamilyId } from '../../domain/FamilyId'
 import { FamilyShareCode } from '../../domain/FamilyShareCode'
@@ -131,11 +131,6 @@ async function getSession(request: Request): Promise<Session> {
 
     // const hasPersons = await getSingleEvent<UserNamedPersonInPhoto>('UserNamedPersonInPhoto', { userId })
 
-    let personId = undefined
-    try {
-      personId = await getPersonIdForUserId(userId)
-    } catch (error) {}
-
     const profilePic = await getProfilePicUrlForUser(userId)
 
     // TODO: do not add personnal space for users that have been invited
@@ -159,12 +154,13 @@ async function getSession(request: Request): Promise<Session> {
     )
 
     const currentFamilyId = request.session.currentFamilyId!
+    const personInCurrentFamily = await getPersonForUserInFamily({ userId, familyId: currentFamilyId })
 
     return {
       isLoggedIn: true,
       userName: user.name,
       userId: user.id,
-      personId,
+      personId: personInCurrentFamily?.personId,
       userFamilies: userFamilies.map(({ familyId, familyName, about }) => ({ familyId, familyName, about })),
       currentFamilyId,
       searchKey,

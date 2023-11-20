@@ -6,6 +6,7 @@ import { personsIndex } from '../../dependencies/search'
 import { AppUserId } from '../../domain/AppUserId'
 import { zIsPersonId } from '../../domain/PersonId'
 import { RelationshipId, zIsRelationshipId } from '../../domain/RelationshipId'
+import { responseAsHtml } from '../../libs/ssr/responseAsHtml'
 import { pageRouter } from '../pageRouter'
 import { FamilyPage } from './FamilyPage'
 import { FamilyPageURL } from './FamilyPageURL'
@@ -13,11 +14,10 @@ import { UserCreatedNewRelationship } from './UserCreatedNewRelationship'
 import { UserCreatedRelationshipWithNewPerson } from './UserCreatedRelationshipWithNewPerson'
 import { UserRemovedRelationship } from './UserRemovedRelationship'
 import { getFamilyPageProps } from './getFamilyPageProps'
-import { responseAsHtml } from '../../libs/ssr/responseAsHtml'
 
 pageRouter.route(FamilyPageURL()).get(requireAuth(), async (request, response) => {
   try {
-    const props = await getFamilyPageProps(request.session.user!.id)
+    const props = await getFamilyPageProps({ userId: request.session.user!.id, familyId: request.session.currentFamilyId! })
     responseAsHtml(request, response, FamilyPage(props))
   } catch (error) {
     console.error("La personne essaie d'aller sur la page famille alors qu'elle ne s'est pas encore présentée")

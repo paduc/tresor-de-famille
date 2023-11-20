@@ -2,10 +2,11 @@ import { postgres } from '../../dependencies/database'
 import { getEventList } from '../../dependencies/getEventList'
 import { getSingleEvent } from '../../dependencies/getSingleEvent'
 import { AppUserId } from '../../domain/AppUserId'
+import { FamilyId } from '../../domain/FamilyId'
 import { PersonId } from '../../domain/PersonId'
 import { UserNamedPersonInPhoto } from '../../events/onboarding/UserNamedPersonInPhoto'
 import { UserNamedThemself } from '../../events/onboarding/UserNamedThemself'
-import { getPersonIdForUserId } from '../_getPersonIdForUserId'
+import { getPersonForUserInFamily } from '../_getPersonForUserInFamily'
 import { getProfilePicUrlForPerson } from '../_getProfilePicUrlForPerson'
 import { UserChangedPersonName } from '../person/UserChangedPersonName'
 
@@ -14,8 +15,14 @@ import { UserCreatedNewRelationship } from './UserCreatedNewRelationship'
 import { UserCreatedRelationshipWithNewPerson } from './UserCreatedRelationshipWithNewPerson'
 import { UserRemovedRelationship } from './UserRemovedRelationship'
 
-export const getFamilyPageProps = async (userId: AppUserId): Promise<FamilyPageProps> => {
-  const userPersonId = await getPersonIdForUserId(userId)
+export const getFamilyPageProps = async ({
+  userId,
+  familyId,
+}: {
+  userId: AppUserId
+  familyId: FamilyId
+}): Promise<FamilyPageProps> => {
+  const userPersonInFamily = await getPersonForUserInFamily({ userId, familyId })
 
   const persons = await getUserFamilyPersonIds(userId)
   const relationships = await getFamilyRelationships(
@@ -23,7 +30,14 @@ export const getFamilyPageProps = async (userId: AppUserId): Promise<FamilyPageP
     userId
   )
 
-  return { initialPersons: persons, initialRelationships: relationships, initialOriginPersonId: userPersonId }
+  if (!persons.length) {
+    // TODO: traiter ce cas de figure qui pourrait bien arriver dans le contexte d'une nouvelle famille
+    // => Créer une personne pour cette famille (un utilisateur doit etre lié à une personne dans chaque famille)
+    // => Proposer à l'utilisateur de s'ajouter ou d'ajouter une personne pour démarrer la famille)
+    throw new Error("Il n'y a personne dans cette famille")
+  }
+
+  return { initialPersons: persons, initialRelationships: relationships, initialOriginPersonId: userPersonInFamily?.personId }
 }
 
 type Person = FamilyPageProps['initialPersons'][number]
