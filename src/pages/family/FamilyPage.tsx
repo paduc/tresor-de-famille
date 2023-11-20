@@ -537,7 +537,7 @@ const nodeTypes = {
 export type FamilyPageProps = {
   initialPersons: Person[]
   initialRelationships: Relationship[]
-  initialOriginPersonId: PersonId
+  initialOriginPersonId: PersonId | undefined
 }
 
 export const FamilyPage = withBrowserBundle((props: FamilyPageProps) => {
@@ -559,7 +559,7 @@ const ClientOnlyFamilyPage = ({ initialPersons, initialRelationships, initialOri
   const [persons, setPersons] = useState(initialPersons)
   const [relationships, setRelationships] = useState(initialRelationships)
   const [origin, setOrigin] = useState<{ personId: PersonId; x: number; y: number }>({
-    personId: initialOriginPersonId,
+    personId: initialOriginPersonId || persons[0].personId,
     x: 0,
     y: 0,
   })

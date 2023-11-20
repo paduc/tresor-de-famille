@@ -12,7 +12,7 @@ import { UUID, zIsUUID } from '../../domain'
 import { UserConfirmedHisFace } from '../../events/onboarding/UserConfirmedHisFace'
 import { UserNamedThemself } from '../../events/onboarding/UserNamedThemself'
 import { getUuid } from '../../libs/getUuid'
-import { getPersonIdForUserId } from '../_getPersonIdForUserId'
+import { getPersonForUserInFamily } from '../_getPersonForUserInFamily'
 import { uploadPhoto } from '../../dependencies/photo-storage'
 import { OnboardingUserUploadedPhotoOfThemself } from '../../events/onboarding/OnboardingUserUploadedPhotoOfThemself'
 import { detectFacesInPhotoUsingAWS } from '../photo/recognizeFacesInChatPhoto/detectFacesInPhotoUsingAWS'
@@ -49,6 +49,7 @@ pageRouter
       .parse(request.body)
 
     const userId = request.session.user!.id
+    const familyId = request.session.currentFamilyId!
 
     const currentFamilyId = request.session.currentFamilyId!
     if (action === 'submitPresentation') {
@@ -94,13 +95,16 @@ pageRouter
         })
         .parse(request.body)
 
-      const personId = await getPersonIdForUserId(userId)
+      const person = await getPersonForUserInFamily({ userId, familyId })
+      if (!person) {
+        throw new Error("Impossible d'ajouter un visage à une personne inexistante.")
+      }
       await addToHistory(
         UserConfirmedHisFace({
           userId,
           photoId,
           faceId,
-          personId,
+          personId: person.personId,
           familyId: currentFamilyId,
         })
       )

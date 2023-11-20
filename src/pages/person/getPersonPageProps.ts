@@ -14,11 +14,20 @@ import { getProfilePicUrlForPerson } from '../_getProfilePicUrlForPerson'
 import { UserDeletedPhoto } from '../photo/UserDeletedPhoto'
 import { PhotoManuallyAnnotated } from '../photo/annotateManually/PhotoManuallyAnnotated'
 import { PersonPageProps } from './PersonPage'
+import { FamilyId } from '../../domain/FamilyId'
 
-export const getPersonPageProps = async (personId: PersonId, userId: AppUserId): Promise<PersonPageProps> => {
+export const getPersonPageProps = async ({
+  personId,
+  userId,
+  familyId,
+}: {
+  personId: PersonId
+  userId: AppUserId
+  familyId: FamilyId
+}): Promise<PersonPageProps> => {
   const { photos, alternateProfilePics } = await getPersonPhotos(personId, userId)
 
-  const { name } = (await getPersonById(personId)) || { name: 'N/A' }
+  const { name } = (await getPersonById({ personId, familyId })) || { name: 'N/A' }
 
   const profilePicUrl = await getProfilePicUrlForPerson(personId, userId)
 
