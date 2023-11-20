@@ -7,6 +7,7 @@ import { UserNamedThemself } from '../events/onboarding/UserNamedThemself'
 
 import { UserCreatedRelationshipWithNewPerson } from './family/UserCreatedRelationshipWithNewPerson'
 import { UserChangedPersonName } from './person/UserChangedPersonName'
+import { PersonClonedForSharing } from './share/PersonClonedForSharing'
 
 export type PersonById = { name: string }
 
@@ -24,13 +25,12 @@ export const getPersonById = async ({
 
   let name = personsAddedWithNewRelationship[0]?.payload.newPerson.name
 
-  const userNamedEvent = await getSingleEvent<UserNamedThemself | UserNamedPersonInPhoto | UserChangedPersonName>(
-    ['UserNamedThemself', 'UserNamedPersonInPhoto', 'UserChangedPersonName'],
-    {
-      personId,
-      familyId,
-    }
-  )
+  const userNamedEvent = await getSingleEvent<
+    UserNamedThemself | UserNamedPersonInPhoto | UserChangedPersonName | PersonClonedForSharing
+  >(['UserNamedThemself', 'UserNamedPersonInPhoto', 'UserChangedPersonName', 'PersonClonedForSharing'], {
+    personId,
+    familyId,
+  })
 
   if (userNamedEvent) {
     name = userNamedEvent.payload.name

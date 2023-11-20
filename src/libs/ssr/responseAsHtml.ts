@@ -131,8 +131,6 @@ async function getSession(request: Request): Promise<Session> {
 
     // const hasPersons = await getSingleEvent<UserNamedPersonInPhoto>('UserNamedPersonInPhoto', { userId })
 
-    const profilePic = await getProfilePicUrlForUser(userId)
-
     // TODO: do not add personnal space for users that have been invited
     const userFamilies = await getUserFamilies(user.id)
 
@@ -155,6 +153,8 @@ async function getSession(request: Request): Promise<Session> {
 
     const currentFamilyId = request.session.currentFamilyId!
     const personInCurrentFamily = await getPersonForUserInFamily({ userId, familyId: currentFamilyId })
+
+    const profilePic = await getProfilePicUrlForUser(userId, currentFamilyId)
 
     return {
       isLoggedIn: true,

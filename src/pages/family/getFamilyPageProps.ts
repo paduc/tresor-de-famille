@@ -9,6 +9,7 @@ import { UserNamedThemself } from '../../events/onboarding/UserNamedThemself'
 import { getPersonForUserInFamily } from '../_getPersonForUserInFamily'
 import { getProfilePicUrlForPerson } from '../_getProfilePicUrlForPerson'
 import { UserChangedPersonName } from '../person/UserChangedPersonName'
+import { PersonClonedForSharing } from '../share/PersonClonedForSharing'
 
 import { FamilyPageProps } from './FamilyPage'
 import { UserCreatedNewRelationship } from './UserCreatedNewRelationship'
@@ -24,16 +25,14 @@ export const getFamilyPageProps = async ({
 }): Promise<FamilyPageProps> => {
   const userPersonInFamily = await getPersonForUserInFamily({ userId, familyId })
 
-  const persons = await getUserFamilyPersonIds(userId)
+  const persons = await getFamilyPersons({ userId, familyId })
   const relationships = await getFamilyRelationships(
     persons.map((p) => p.personId),
-    userId
+    familyId
   )
 
   if (!persons.length) {
-    // TODO: traiter ce cas de figure qui pourrait bien arriver dans le contexte d'une nouvelle famille
-    // => Créer une personne pour cette famille (un utilisateur doit etre lié à une personne dans chaque famille)
-    // => Proposer à l'utilisateur de s'ajouter ou d'ajouter une personne pour démarrer la famille)
+    // Ce cas ne devrait pas exister puisque lors de la création d'une famille, nous "clone" la personne de l'utilisateur
     throw new Error("Il n'y a personne dans cette famille")
   }
 
@@ -41,11 +40,13 @@ export const getFamilyPageProps = async ({
 }
 
 type Person = FamilyPageProps['initialPersons'][number]
-async function getUserFamilyPersonIds(userId: AppUserId): Promise<Person[]> {
-  const events = await getEventList<UserNamedPersonInPhoto | UserNamedThemself | UserCreatedRelationshipWithNewPerson>(
-    ['UserNamedPersonInPhoto', 'UserNamedThemself', 'UserCreatedRelationshipWithNewPerson'],
-    { userId }
-  )
+
+async function getFamilyPersons({ userId, familyId }: { userId: AppUserId; familyId: FamilyId }): Promise<Person[]> {
+  const events = await getEventList<
+    UserNamedPersonInPhoto | UserNamedThemself | UserCreatedRelationshipWithNewPerson | PersonClonedForSharing
+  >(['UserNamedPersonInPhoto', 'UserNamedThemself', 'UserCreatedRelationshipWithNewPerson', 'PersonClonedForSharing'], {
+    familyId,
+  })
 
   const persons = new Map<PersonId, Person>()
   for (const event of events) {
@@ -59,7 +60,7 @@ async function getUserFamilyPersonIds(userId: AppUserId): Promise<Person[]> {
       : event.type === 'UserCreatedRelationshipWithNewPerson'
       ? event.payload.newPerson
       : event.payload
-    const profilePicUrl = await getProfilePicUrlForPerson(personId, userId)
+    const profilePicUrl = await getProfilePicUrlForPerson({ personId, userId, familyId })
     persons.set(personId, { personId, name, profilePicUrl })
   }
 
@@ -67,17 +68,18 @@ async function getUserFamilyPersonIds(userId: AppUserId): Promise<Person[]> {
 }
 
 type Relationship = FamilyPageProps['initialRelationships'][number]
-async function getFamilyRelationships(personIds: PersonId[], userId: AppUserId): Promise<Relationship[]> {
+
+async function getFamilyRelationships(personIds: PersonId[], familyId: FamilyId): Promise<Relationship[]> {
   const relationships: Relationship[] = []
 
-  const removedRelationshipIds = (await getEventList<UserRemovedRelationship>('UserRemovedRelationship', { userId })).map(
+  const removedRelationshipIds = (await getEventList<UserRemovedRelationship>('UserRemovedRelationship', { familyId })).map(
     (event) => event.payload.relationshipId
   )
 
   for (const personId of personIds) {
     const parentRelWithNewPerson = await postgres.query<UserCreatedRelationshipWithNewPerson | UserCreatedNewRelationship>(
-      `SELECT * FROM history WHERE type = ANY ($1) AND payload->'relationship'->>'type'='parent' AND payload->'relationship'->>'parentId'=$2 ORDER BY "occurredAt" ASC`,
-      [['UserCreatedRelationshipWithNewPerson', 'UserCreatedNewRelationship'], personId]
+      `SELECT * FROM history WHERE type = ANY ($1) AND      payload->>'familyId'=$3 AND payload->'relationship'->>'type'='parent' AND payload->'relationship'->>'parentId'=$2 ORDER BY "occurredAt" ASC`,
+      [['UserCreatedRelationshipWithNewPerson', 'UserCreatedNewRelationship'], personId, familyId]
     )
 
     for (const rel of parentRelWithNewPerson.rows) {
@@ -89,8 +91,8 @@ async function getFamilyRelationships(personIds: PersonId[], userId: AppUserId):
     }
 
     const spouseRelWithNewPerson = await postgres.query<UserCreatedRelationshipWithNewPerson | UserCreatedNewRelationship>(
-      `SELECT * FROM history WHERE type = ANY ($1) AND payload->'relationship'->>'type'='spouses' AND payload->'relationship'->'spouseIds'->>0 = $2 ORDER BY "occurredAt" ASC`,
-      [['UserCreatedRelationshipWithNewPerson', 'UserCreatedNewRelationship'], personId]
+      `SELECT * FROM history WHERE type = ANY ($1) AND      payload->>'familyId'=$3 AND payload->'relationship'->>'type'='spouses' AND payload->'relationship'->'spouseIds'->>0 = $2 ORDER BY "occurredAt" ASC`,
+      [['UserCreatedRelationshipWithNewPerson', 'UserCreatedNewRelationship'], personId, familyId]
     )
 
     for (const rel of spouseRelWithNewPerson.rows) {
@@ -102,8 +104,8 @@ async function getFamilyRelationships(personIds: PersonId[], userId: AppUserId):
     }
 
     const friendRelWithNewPerson = await postgres.query<UserCreatedRelationshipWithNewPerson | UserCreatedNewRelationship>(
-      `SELECT * FROM history WHERE type = ANY ($1) AND payload->'relationship'->>'type'='friends' AND payload->'relationship'->'friendIds'->>0 = $2 ORDER BY "occurredAt" ASC`,
-      [['UserCreatedRelationshipWithNewPerson', 'UserCreatedNewRelationship'], personId]
+      `SELECT * FROM history WHERE type = ANY ($1) AND      payload->>'familyId'=$3 AND payload->'relationship'->>'type'='friends' AND payload->'relationship'->'friendIds'->>0 = $2 ORDER BY "occurredAt" ASC`,
+      [['UserCreatedRelationshipWithNewPerson', 'UserCreatedNewRelationship'], personId, familyId]
     )
 
     for (const rel of friendRelWithNewPerson.rows) {

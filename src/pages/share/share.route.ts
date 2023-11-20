@@ -8,6 +8,9 @@ import { pageRouter } from '../pageRouter'
 import { SharePage } from './SharePage'
 import { UserCreatedNewFamily } from './UserCreatedNewFamily'
 import { getSharePageProps } from './getSharePageProps'
+import { getPersonForUserInFamily } from '../_getPersonForUserInFamily'
+import { PersonClonedForSharing } from './PersonClonedForSharing'
+import { makePersonId } from '../../libs/makePersonId'
 
 pageRouter
   .route('/share.html')
@@ -45,6 +48,24 @@ pageRouter
           userId,
         })
       )
+
+      // Create a new person identical to the user's person
+      const previousFamilyId = request.session.currentFamilyId!
+      const userPerson = await getPersonForUserInFamily({ userId, familyId: previousFamilyId })
+      if (userPerson) {
+        await addToHistory(
+          PersonClonedForSharing({
+            familyId,
+            userId,
+            personId: makePersonId(),
+            name: userPerson.name,
+            clonedFrom: {
+              personId: userPerson.personId,
+              familyId: previousFamilyId,
+            },
+          })
+        )
+      }
 
       request.session.currentFamilyId = familyId
 

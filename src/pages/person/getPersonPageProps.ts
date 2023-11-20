@@ -29,7 +29,7 @@ export const getPersonPageProps = async ({
 
   const { name } = (await getPersonById({ personId, familyId })) || { name: 'N/A' }
 
-  const profilePicUrl = await getProfilePicUrlForPerson(personId, userId)
+  const profilePicUrl = await getProfilePicUrlForPerson({ personId, userId, familyId })
 
   return {
     person: { personId, name, profilePicUrl },
