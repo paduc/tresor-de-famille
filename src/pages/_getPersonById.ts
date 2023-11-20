@@ -1,19 +1,38 @@
 import { postgres } from '../dependencies/database'
 import { getSingleEvent } from '../dependencies/getSingleEvent'
+import { FamilyId } from '../domain/FamilyId'
 import { PersonId } from '../domain/PersonId'
 import { GedcomImported } from '../events/GedcomImported'
 import { UserNamedPersonInPhoto } from '../events/onboarding/UserNamedPersonInPhoto'
 import { UserNamedThemself } from '../events/onboarding/UserNamedThemself'
 
-import { OpenAIMadeDeductions } from './thread/sendToOpenAIForDeductions/OpenAIMadeDeductions'
 import { UserCreatedRelationshipWithNewPerson } from './family/UserCreatedRelationshipWithNewPerson'
 import { UserChangedPersonName } from './person/UserChangedPersonName'
-import { PhotoAnnotatedUsingOpenAI } from './photo/annotatePhotoUsingOpenAI/PhotoAnnotatedUsingOpenAI'
 
-type OpenAIDeductionPerson = { name: string }
-type GedcomPerson = GedcomImported['payload']['persons'][number]
+export type PersonById = { name: string }
 
-export type PersonById = GedcomPerson | OpenAIDeductionPerson
+export const getPersonById2 = async ({
+  personId,
+  familyId,
+}: {
+  personId: PersonId
+  familyId: FamilyId
+}): Promise<PersonById | null> => {
+  const userNamedEvents = getSingleEvent<UserNamedThemself | UserNamedPersonInPhoto | UserChangedPersonName>(
+    ['UserNamedThemself', 'UserNamedPersonInPhoto', 'UserChangedPersonName'],
+    {
+      personId,
+      familyId,
+    }
+  )
+
+  const { rows: personsAddedWithNewRelationship } = await postgres.query<UserCreatedRelationshipWithNewPerson>(
+    "SELECT * FROM history WHERE type = 'UserCreatedRelationshipWithNewPerson' AND payload->'newPerson'->>'personId'=$1",
+    [personId]
+  )
+
+  return null
+}
 
 // This is a helper because it has become frequent
 export const getPersonById = async (personId: PersonId): Promise<PersonById | null> => {
@@ -23,38 +42,16 @@ export const getPersonById = async (personId: PersonId): Promise<PersonById | nu
     personIdMap.set(personId, Object.assign(personIdMap.get(personId) || {}, info))
   }
 
-  const { rows: gedcomImportedRows } = await postgres.query<GedcomImported>(
-    "SELECT * FROM history WHERE type = 'GedcomImported' LIMIT 1"
-  )
+  // const { rows: gedcomImportedRows } = await postgres.query<GedcomImported>(
+  //   "SELECT * FROM history WHERE type = 'GedcomImported' LIMIT 1"
+  // )
 
-  if (gedcomImportedRows.length) {
-    const gedcomPersons = gedcomImportedRows[0].payload.persons
-    for (const person of gedcomPersons) {
-      addOrMerge(person.id, person)
-    }
-  }
-
-  const { rows: deductionRows } = await postgres.query<OpenAIMadeDeductions>(
-    'SELECT * FROM history WHERE type = \'OpenAIMadeDeductions\' ORDER BY "occurredAt" ASC'
-  )
-  for (const { payload } of deductionRows) {
-    const personsFromDeductions = payload.deductions.filter(isNewPersonDeduction)
-
-    for (const { personId, name } of personsFromDeductions) {
-      addOrMerge(personId, { name })
-    }
-  }
-
-  const { rows: openAIAnnotationRows } = await postgres.query<PhotoAnnotatedUsingOpenAI>(
-    'SELECT * FROM history WHERE type = \'PhotoAnnotatedUsingOpenAI\' ORDER BY "occurredAt" ASC'
-  )
-  for (const { payload } of openAIAnnotationRows) {
-    const personsFromDeductions = payload.deductions.filter(isNewPersonDeduction)
-
-    for (const { personId, name } of personsFromDeductions) {
-      addOrMerge(personId, { name })
-    }
-  }
+  // if (gedcomImportedRows.length) {
+  //   const gedcomPersons = gedcomImportedRows[0].payload.persons
+  //   for (const person of gedcomPersons) {
+  //     addOrMerge(person.id, person)
+  //   }
+  // }
 
   const { rows: onboardedPersons } = await postgres.query<UserNamedThemself>(
     "SELECT * FROM history WHERE type = 'UserNamedThemself'"
@@ -111,9 +108,4 @@ export const getPersonByIdOrThrow = async (personId: PersonId): Promise<PersonBy
   }
 
   return person
-}
-
-type Deduction = OpenAIMadeDeductions['payload']['deductions'][number]
-function isNewPersonDeduction(deduction: Deduction): deduction is Deduction & { type: 'face-is-new-person' } {
-  return deduction.type === 'face-is-new-person'
 }

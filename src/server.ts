@@ -103,15 +103,7 @@ async function migrateAddFamilyId() {
 
   const events = rows
     .filter(
-      ({ type }) =>
-        ![
-          'UserRegisteredWithEmailAndPassword',
-          'BeneficiariesChosen',
-          'AWSDetectedFacesInPhoto',
-          'OpenAIFailedToMakeDeductions',
-          'OpenAIMadeDeductions',
-          'OpenAIPrompted',
-        ].includes(type)
+      ({ type }) => !['UserRegisteredWithEmailAndPassword', 'BeneficiariesChosen', 'AWSDetectedFacesInPhoto'].includes(type)
     )
     .filter(({ payload }) => !payload.familyId)
 
