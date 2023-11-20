@@ -20,7 +20,7 @@ pageRouter.route(FamilyPageURL()).get(requireAuth(), async (request, response) =
     const props = await getFamilyPageProps({ userId: request.session.user!.id, familyId: request.session.currentFamilyId! })
     responseAsHtml(request, response, FamilyPage(props))
   } catch (error) {
-    console.error("La personne essaie d'aller sur la page famille alors qu'elle ne s'est pas encore présentée")
+    console.error("La personne essaie d'aller sur la page famille alors qu'elle ne s'est pas encore présentée", error)
     response.redirect('/')
   }
 })
