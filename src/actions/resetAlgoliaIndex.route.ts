@@ -8,8 +8,6 @@ import { UserNamedPersonInPhoto } from '../events/onboarding/UserNamedPersonInPh
 import { UserNamedThemself } from '../events/onboarding/UserNamedThemself'
 import { UserCreatedRelationshipWithNewPerson } from '../pages/family/UserCreatedRelationshipWithNewPerson'
 import { UserChangedPersonName } from '../pages/person/UserChangedPersonName'
-import { PhotoAnnotatedUsingOpenAI } from '../pages/photo/annotatePhotoUsingOpenAI/PhotoAnnotatedUsingOpenAI'
-import { PhotoAnnotationConfirmed } from '../pages/photo/confirmPhotoAnnotation/PhotoAnnotationConfirmed'
 import { actionsRouter } from './actionsRouter'
 
 actionsRouter.get('/resetAlgoliaIndex', requireAuth(), async (request, response) => {
@@ -19,15 +17,6 @@ actionsRouter.get('/resetAlgoliaIndex', requireAuth(), async (request, response)
   // insert gedcom
   try {
     await indexGedcom()
-  } catch (error) {
-    console.error(error)
-    // @ts-ignore
-    response.send(error.message).status(400)
-  }
-
-  // index face-is-new-person + PhotoAnnotationConfirmed
-  try {
-    await indexPhotoAnnotationConfirmed()
   } catch (error) {
     console.error(error)
     // @ts-ignore
@@ -127,35 +116,6 @@ async function indexUserNamedPersonInPhoto() {
       name,
       visible_by: [`family/${userNamedPerson.payload.familyId}`, `user/${userNamedPerson.payload.userId}`],
     })
-  }
-}
-
-async function indexPhotoAnnotationConfirmed() {
-  const { rows: annotationConfirmedRows } = await postgres.query<PhotoAnnotationConfirmed>(
-    "SELECT * FROM history where type = 'PhotoAnnotationConfirmed'"
-  )
-  const { rows: annotationRows } = await postgres.query<PhotoAnnotatedUsingOpenAI>(
-    "SELECT * FROM history where type = 'PhotoAnnotatedUsingOpenAI'"
-  )
-
-  for (const { payload } of annotationRows) {
-    const { deductions } = payload
-
-    for (const deduction of deductions) {
-      if (deduction.type === 'face-is-new-person') {
-        // check if the deduction has been confirmed
-        const confirmation = annotationConfirmedRows.find(({ payload }) => payload.deductionId === deduction.deductionId)
-        if (!!confirmation) {
-          const { personId, name } = deduction
-          await personsIndex.saveObject({
-            objectID: personId,
-            id: personId,
-            name,
-            visible_by: [`family/${payload.familyId}`, `user/${confirmation.payload.confirmedBy}`],
-          })
-        }
-      }
-    }
   }
 }
 

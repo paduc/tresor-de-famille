@@ -13,7 +13,6 @@ import { UserRecognizedPersonInPhoto } from '../../events/onboarding/UserRecogni
 import { getProfilePicUrlForPerson } from '../_getProfilePicUrlForPerson'
 import { UserDeletedPhoto } from '../photo/UserDeletedPhoto'
 import { PhotoManuallyAnnotated } from '../photo/annotateManually/PhotoManuallyAnnotated'
-import { PhotoAnnotationConfirmed } from '../photo/confirmPhotoAnnotation/PhotoAnnotationConfirmed'
 import { PersonPageProps } from './PersonPage'
 
 export const getPersonPageProps = async (personId: PersonId, userId: AppUserId): Promise<PersonPageProps> => {
@@ -31,23 +30,10 @@ export const getPersonPageProps = async (personId: PersonId, userId: AppUserId):
 }
 async function getPersonPhotos(personId: PersonId, userId: AppUserId) {
   const photoEvents = await getEventList<
-    | PhotoAnnotationConfirmed
-    | PhotoManuallyAnnotated
-    | UserRecognizedPersonInPhoto
-    | UserNamedPersonInPhoto
-    | UserConfirmedHisFace
-  >(
-    [
-      'PhotoAnnotationConfirmed',
-      'PhotoManuallyAnnotated',
-      'UserRecognizedPersonInPhoto',
-      'UserNamedPersonInPhoto',
-      'UserConfirmedHisFace',
-    ],
-    {
-      personId,
-    }
-  )
+    PhotoManuallyAnnotated | UserRecognizedPersonInPhoto | UserNamedPersonInPhoto | UserConfirmedHisFace
+  >(['PhotoManuallyAnnotated', 'UserRecognizedPersonInPhoto', 'UserNamedPersonInPhoto', 'UserConfirmedHisFace'], {
+    personId,
+  })
 
   const deletedPhotosEvents = await getEventList<UserDeletedPhoto>('UserDeletedPhoto', { userId })
   const deletedPhotoIds = deletedPhotosEvents.map((deletionEvent) => deletionEvent.payload.photoId)

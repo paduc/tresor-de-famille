@@ -17,8 +17,6 @@ export const REGISTRATION_CODE = process.env.REGISTRATION_CODE || ''
 export const ADMIN_USERID = throwIfUndefined('ADMIN_USERID', process.env.NODE_ENV === 'production')!
 
 export const SESSION_SECRET = throwIfUndefined('SESSION_SECRET', true)!
-export const OPENAI_API_KEY = throwIfUndefined('OPENAI_API_KEY', true)!
-export const OPENAI_ORG = throwIfUndefined('OPENAI_ORG', true)!
 
 export const ALGOLIA_APPID = throwIfUndefined('ALGOLIA_APPID', true)!
 export const ALGOLIA_APPKEY = throwIfUndefined('ALGOLIA_APPKEY', true)!
