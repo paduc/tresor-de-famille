@@ -15,6 +15,7 @@ import { getPersonById, getPersonByIdOrThrow } from '../_getPersonById'
 import { getPersonIdsForFaceId } from '../_getPersonsIdsForFaceId'
 import { UserAddedCaptionToPhoto } from '../photo/UserAddedCaptionToPhoto'
 import { AWSDetectedFacesInPhoto } from '../photo/recognizeFacesInChatPhoto/AWSDetectedFacesInPhoto'
+import { ThreadClonedForSharing } from './ThreadPage/ThreadClonedForSharing'
 import { ThreadPageProps } from './ThreadPage/ThreadPage'
 import { TipTapContentAsJSON, encodeStringy } from './TipTapTypes'
 import { UserInsertedPhotoInRichTextThread } from './UserInsertedPhotoInRichTextThread'
@@ -26,25 +27,47 @@ import { UserUploadedPhotoToChat } from './uploadPhotoToChat/UserUploadedPhotoTo
 export const getThreadPageProps = async ({
   threadId,
   userId,
-  familyId,
 }: {
   threadId: ThreadId
   userId: AppUserId
-  familyId: FamilyId
 }): Promise<ThreadPageProps> => {
   const titleSet = await getSingleEvent<UserSetChatTitle>('UserSetChatTitle', { chatId: threadId })
 
   const title = titleSet?.payload.title
 
-  const latestEvent = await getSingleEvent<
+  const latestUpdateEvent = await getSingleEvent<
     UserSentMessageToChat | UserUploadedPhotoToChat | UserUpdatedThreadAsRichText | UserInsertedPhotoInRichTextThread
   >(['UserSentMessageToChat', 'UserUpdatedThreadAsRichText', 'UserUploadedPhotoToChat', 'UserInsertedPhotoInRichTextThread'], {
     chatId: threadId,
   })
 
+  const cloneEvent = await getSingleEvent<ThreadClonedForSharing>('ThreadClonedForSharing', { threadId })
+
+  let latestEvent:
+    | UserSentMessageToChat
+    | UserUploadedPhotoToChat
+    | UserUpdatedThreadAsRichText
+    | UserInsertedPhotoInRichTextThread
+    | ThreadClonedForSharing
+    | undefined = latestUpdateEvent
+
+  if (cloneEvent) {
+    if (!latestEvent || latestEvent.occurredAt.getTime() > cloneEvent.occurredAt.getTime()) {
+      // The latest on this thread is the cloneEvent
+      latestEvent = cloneEvent
+    }
+  }
+
+  if (!latestEvent) {
+    throw new Error('Thread with this is not found')
+  }
+
+  const familyId = latestEvent.payload.familyId
+
   if (
-    latestEvent &&
-    (latestEvent.type === 'UserUpdatedThreadAsRichText' || latestEvent.type === 'UserInsertedPhotoInRichTextThread')
+    latestEvent.type === 'ThreadClonedForSharing' ||
+    latestEvent.type === 'UserUpdatedThreadAsRichText' ||
+    latestEvent.type === 'UserInsertedPhotoInRichTextThread'
   ) {
     const {
       contentAsJSON: { content },
@@ -87,6 +110,7 @@ export const getThreadPageProps = async ({
       contentAsJSON,
       lastUpdated: latestEvent.occurredAt.getTime() as Epoch,
       title: title || '',
+      familyId,
     }
   }
 
@@ -147,6 +171,7 @@ export const getThreadPageProps = async ({
     contentAsJSON,
     lastUpdated: latestEvent?.occurredAt.getTime() as Epoch,
     title: title || '',
+    familyId,
   }
 }
 
@@ -301,4 +326,28 @@ function findLastIndex<T>(array: T[], callback: (item: T) => boolean): number {
     return -1 // Object not found in the array
   }
   return array.length - 1 - index // Adjust the index to the original array
+}
+
+export async function getThreadContents(
+  threadId: ThreadId
+): Promise<{ contentAsJSON: TipTapContentAsJSON; title: string | undefined } | null> {
+  const titleSet = await getSingleEvent<UserSetChatTitle>('UserSetChatTitle', { chatId: threadId })
+
+  const title = titleSet?.payload.title
+
+  const latestEvent = await getSingleEvent<UserUpdatedThreadAsRichText | UserInsertedPhotoInRichTextThread>(
+    ['UserUpdatedThreadAsRichText', 'UserInsertedPhotoInRichTextThread'],
+    {
+      chatId: threadId,
+    }
+  )
+
+  if (!latestEvent) {
+    return null
+  }
+
+  return {
+    contentAsJSON: latestEvent.payload.contentAsJSON,
+    title,
+  }
 }

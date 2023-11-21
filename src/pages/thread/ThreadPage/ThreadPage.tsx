@@ -4,7 +4,7 @@ import debounce from 'lodash.debounce'
 import React, { useCallback, useEffect, useState } from 'react'
 import { UUID } from '../../../domain'
 import { withBrowserBundle } from '../../../libs/ssr/withBrowserBundle'
-import { buttonIconStyles } from '../../_components/Button'
+import { buttonIconStyles, primaryButtonStyles, secondaryButtonStyles } from '../../_components/Button'
 import { AppLayout } from '../../_components/layout/AppLayout'
 import { ProgressiveImg } from '../../_components/ProgressiveImg'
 
@@ -29,6 +29,9 @@ import { useLoader } from '../../_components/layout/LoaderContext'
 import { PhotoId } from '../../../domain/PhotoId'
 import { ThreadId } from '../../../domain/ThreadId'
 import { PhotoIcon } from '@heroicons/react/20/solid'
+import { FamilyId } from '../../../domain/FamilyId'
+import { useSession } from '../../_components/SessionContext'
+import { TDFModal } from '../../_components/TDFModal'
 
 // @ts-ignore
 function classNames(...classes) {
@@ -40,13 +43,21 @@ export type ThreadPageProps = {
   contentAsJSON: TipTapContentAsJSON
   lastUpdated: Epoch | undefined
   threadId: ThreadId
+  familyId: FamilyId
 }
 
 const isBrowserContext = typeof window !== 'undefined'
 
 export const ThreadPage = withBrowserBundle(
-  ({ title, contentAsJSON: contentAsJSONFromServer, lastUpdated, threadId }: ThreadPageProps) => {
-    const newMessageAreaRef = React.useRef<HTMLTextAreaElement>(null)
+  ({ title, contentAsJSON: contentAsJSONFromServer, lastUpdated, threadId, familyId }: ThreadPageProps) => {
+    const session = useSession()
+    if (!session.isLoggedIn) {
+      return <div />
+    }
+
+    const familyName = session.userFamilies.find((f) => f.familyId === familyId)?.familyName || 'Personnel'
+
+    const [isFamilyModalOpen, openFamilyModal] = useState<boolean>(false)
 
     const richTextEditorRef = React.useRef<RichTextEditorRef>(null)
 
@@ -73,7 +84,55 @@ export const ThreadPage = withBrowserBundle(
 
     return (
       <AppLayout>
+        <TDFModal
+          title='Choisissez la famille avec laquelle vous voulez partager cette histoire'
+          isOpen={isFamilyModalOpen}
+          close={() => openFamilyModal(false)}>
+          <div className='mt-8'>
+            {session.userFamilies.map((family) => (
+              <form key={`select_${family.familyId}`} method='POST'>
+                <input type='hidden' name='action' value='shareWithFamily' />
+                <input type='hidden' name='familyId' value={family.familyId} />
+                <button
+                  key={`add_to_${family.familyId}`}
+                  type='submit'
+                  className={`mb-4 ${secondaryButtonStyles.replace(/inline\-flex/g, '')}  w-full text-center`}>
+                  {family.familyName}
+                </button>
+              </form>
+            ))}
+            {/* <button
+              onClick={() => {
+                alert('TODO')
+              }}
+              className={`mb-4 ${primaryButtonStyles.replace(/inline\-flex/g, '')}  w-full text-center`}>
+              Créer une famille
+            </button> */}
+            <button
+              onClick={() => {
+                openFamilyModal(false)
+              }}
+              className={`mb-4 ${primaryButtonStyles.replace(/inline\-flex/g, '')}  w-full text-center`}>
+              Annuler
+            </button>
+          </div>
+        </TDFModal>
         <div className='w-full sm:ml-6 max-w-2xl pt-3 pb-40'>
+          <div className='w-full mb-3 inline-flex items-center place-content-end'>
+            {(familyId as string) === (session.userId as string) ? (
+              <>
+                <span className='text-gray-500 mr-2'>Uniquement vous pouvez voir cette histoire.</span>
+                <button className={`${primaryButtonStyles}`} onClick={() => openFamilyModal(true)}>
+                  Partager
+                </button>
+              </>
+            ) : (
+              <>
+                <span className='text-gray-500 mr-2'>Partagé avec les membres de</span>
+                <button className={`${secondaryButtonStyles}`}>{familyName}</button>
+              </>
+            )}
+          </div>
           <div className='divide-y divide-gray-200 overflow-hidden sm:rounded-lg bg-white shadow'>
             <Title title={title} threadId={threadId} />
             <div className=''>

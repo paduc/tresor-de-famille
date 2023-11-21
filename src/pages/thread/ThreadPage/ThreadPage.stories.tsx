@@ -11,6 +11,7 @@ import { FamilyId } from '../../../domain/FamilyId'
 import { PersonSearchContext } from '../../_components/usePersonSearch'
 import { SearchIndex } from 'algoliasearch/lite'
 import { makeAppUserId } from '../../../libs/makeUserId'
+import { makeFamilyId } from '../../../libs/makeFamilyId'
 
 const fakePersonSearch = async (query: string) => {
   return {
@@ -35,8 +36,23 @@ export default {
           value={{
             isLoggedIn: true,
             userId: 'a' as AppUserId,
-
-            userFamilies: [],
+            userFamilies: [
+              {
+                familyId: 'a' as FamilyId,
+                familyName: 'Famille A',
+                about: 'La famille A',
+              },
+              {
+                familyId: makeFamilyId(),
+                familyName: 'Famille B',
+                about: 'La famille B',
+              },
+              {
+                familyId: makeFamilyId(),
+                familyName: 'Famille C',
+                about: 'La famille C',
+              },
+            ],
             currentFamilyId: 'a' as FamilyId,
             userName: 'Jean-Michel Trotro',
             profilePic: null,
@@ -60,7 +76,11 @@ const HOUR = 3600 * 1000
 
 export const AvecUnMelangeDePhotoEtMessage = () => (
   <ThreadPage
-    chatId={makeThreadId()}
+    threadId={makeThreadId()}
+    family={{
+      familyId: makeFamilyId(),
+      name: 'Famille ABC',
+    }}
     lastUpdated={t0 as Epoch}
     title='Ceci est le titre'
     contentAsJSON={{
@@ -78,7 +98,7 @@ export const AvecUnMelangeDePhotoEtMessage = () => (
         {
           type: 'photoNode',
           attrs: {
-            chatId: makeThreadId(),
+            threadId: makeThreadId(),
             photoId: 'photo123' as PhotoId,
             url: 'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=500&h=500&q=80',
             // url: 'http://localhost:6006/img.jpeg',
@@ -108,13 +128,65 @@ export const AvecUnMelangeDePhotoEtMessage = () => (
         {
           type: 'photoNode',
           attrs: {
-            chatId: makeThreadId(),
+            threadId: makeThreadId(),
             photoId: 'photo123' as PhotoId,
             url: 'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=500&h=500&q=80',
             description: '',
             personsInPhoto: encodeURIComponent(JSON.stringify([])),
             unrecognizedFacesInPhoto: 10,
           },
+        },
+      ],
+    }}
+  />
+)
+
+export const Personnel = () => (
+  <ThreadPage
+    threadId={makeThreadId()}
+    family={{
+      familyId: 'a' as FamilyId,
+      name: undefined,
+    }}
+    lastUpdated={t0 as Epoch}
+    title='Ceci est le titre'
+    contentAsJSON={{
+      type: 'doc',
+      content: [
+        {
+          type: 'paragraph',
+          content: [
+            {
+              type: 'text',
+              text: 'Message',
+            },
+          ],
+        },
+      ],
+    }}
+  />
+)
+
+export const Partagé = () => (
+  <ThreadPage
+    threadId={makeThreadId()}
+    family={{
+      familyId: makeFamilyId(),
+      name: 'Famille ABC',
+    }}
+    lastUpdated={t0 as Epoch}
+    title='Ceci est le titre'
+    contentAsJSON={{
+      type: 'doc',
+      content: [
+        {
+          type: 'paragraph',
+          content: [
+            {
+              type: 'text',
+              text: 'Message',
+            },
+          ],
         },
       ],
     }}
