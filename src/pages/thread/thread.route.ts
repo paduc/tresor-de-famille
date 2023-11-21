@@ -4,6 +4,7 @@ import z from 'zod'
 import { addToHistory } from '../../dependencies/addToHistory'
 import { requireAuth } from '../../dependencies/authn'
 import { uploadPhoto } from '../../dependencies/photo-storage'
+import { zIsFamilyId } from '../../domain/FamilyId'
 import { zIsThreadId } from '../../domain/ThreadId'
 import { getUuid } from '../../libs/getUuid'
 import { makePhotoId } from '../../libs/makePhotoId'
@@ -11,12 +12,13 @@ import { makeThreadId } from '../../libs/makeThreadId'
 import { responseAsHtml } from '../../libs/ssr/responseAsHtml'
 import { pageRouter } from '../pageRouter'
 import { detectFacesInPhotoUsingAWS } from '../photo/recognizeFacesInChatPhoto/detectFacesInPhotoUsingAWS'
+import { ThreadClonedForSharing } from './ThreadPage/ThreadClonedForSharing'
 import { ThreadPage } from './ThreadPage/ThreadPage'
 import { decodeTipTapJSON, encodeStringy } from './TipTapTypes'
 import { UserInsertedPhotoInRichTextThread } from './UserInsertedPhotoInRichTextThread'
 import { UserSetChatTitle } from './UserSetChatTitle'
 import { UserUpdatedThreadAsRichText } from './UserUpdatedThreadAsRichText'
-import { getThreadPageProps } from './getThreadPageProps'
+import { getThreadContents, getThreadPageProps } from './getThreadPageProps'
 import { UserSentMessageToChat } from './sendMessageToChat/UserSentMessageToChat'
 
 const fakeProfilePicUrl =
@@ -66,7 +68,7 @@ pageRouter
     const { threadId } = z.object({ threadId: zIsThreadId }).parse(request.params)
     const userId = request.session.user!.id
 
-    const props = await getThreadPageProps({ threadId: threadId, userId, familyId: request.session.currentFamilyId! })
+    const props = await getThreadPageProps({ threadId: threadId, userId })
 
     // console.log(JSON.stringify({ props }, null, 2))
 
@@ -85,6 +87,7 @@ pageRouter
             'saveRichContentsAsJSON',
             'insertPhotoAtMarker',
             'clientsideUpdate',
+            'shareWithFamily',
           ]),
         })
         .parse(request.body)
@@ -176,6 +179,33 @@ pageRouter
         )
 
         await detectFacesInPhotoUsingAWS({ file, photoId })
+      } else if (action === 'shareWithFamily') {
+        const { familyId } = z.object({ familyId: zIsFamilyId }).parse(request.body)
+
+        // TODO: Check rights
+
+        const cloneThreadId = makeThreadId()
+
+        const contents = await getThreadContents(threadId)
+        if (contents === null) {
+          throw new Error('Histoire introuvable.')
+        }
+        const { title, contentAsJSON } = contents
+
+        await addToHistory(
+          ThreadClonedForSharing({
+            threadId: cloneThreadId,
+            userId,
+            familyId,
+            title,
+            contentAsJSON,
+            clonedFrom: {
+              threadId,
+              familyId,
+            },
+          })
+        )
+        return response.redirect(`/chat/${cloneThreadId}/chat.html`)
       }
 
       // TODO: try catch error and send it back as HTML (or redirect if OK)

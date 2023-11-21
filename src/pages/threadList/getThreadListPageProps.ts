@@ -4,6 +4,7 @@ import { AppUserId } from '../../domain/AppUserId'
 import { ThreadId } from '../../domain/ThreadId'
 import { OnboardingUserStartedFirstThread } from '../../events/onboarding/OnboardingUserStartedFirstThread'
 import { UserCreatedNewFamily } from '../share/UserCreatedNewFamily'
+import { ThreadClonedForSharing } from '../thread/ThreadPage/ThreadClonedForSharing'
 import { UserInsertedPhotoInRichTextThread } from '../thread/UserInsertedPhotoInRichTextThread'
 import { UserSetChatTitle } from '../thread/UserSetChatTitle'
 import { UserUpdatedThreadAsRichText } from '../thread/UserUpdatedThreadAsRichText'
@@ -16,6 +17,7 @@ export const getThreadListPageProps = async (userId: AppUserId): Promise<ThreadL
     | OnboardingUserStartedFirstThread
     | UserUpdatedThreadAsRichText
     | UserInsertedPhotoInRichTextThread
+    | ThreadClonedForSharing
 
   const messagesEvents = await getEventList<MessageEvent>(
     [
@@ -23,6 +25,7 @@ export const getThreadListPageProps = async (userId: AppUserId): Promise<ThreadL
       'UserSentMessageToChat',
       'UserUpdatedThreadAsRichText',
       'UserInsertedPhotoInRichTextThread',
+      'ThreadClonedForSharing',
     ],
     { userId }
   )
@@ -36,7 +39,11 @@ export const getThreadListPageProps = async (userId: AppUserId): Promise<ThreadL
   const uniqueThreads = new Map<ThreadId, ThreadEvent[]>()
   for (const threadEvent of threadEvents) {
     const threadId =
-      threadEvent.type === 'OnboardingUserStartedFirstThread' ? threadEvent.payload.threadId : threadEvent.payload.chatId
+      threadEvent.type === 'OnboardingUserStartedFirstThread'
+        ? threadEvent.payload.threadId
+        : threadEvent.type === 'ThreadClonedForSharing'
+        ? threadEvent.payload.threadId
+        : threadEvent.payload.chatId
 
     if (!uniqueThreads.has(threadId)) {
       uniqueThreads.set(threadId, [])
