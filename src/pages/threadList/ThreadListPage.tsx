@@ -6,6 +6,9 @@ import { withBrowserBundle } from '../../libs/ssr/withBrowserBundle'
 import { primaryButtonStyles } from '../_components/Button'
 import { SuccessError } from '../_components/SuccessError'
 import { AppLayout } from '../_components/layout/AppLayout'
+import { FamilyId } from '../../domain/FamilyId'
+import { useSession } from '../_components/SessionContext'
+import { LockClosedIcon, UsersIcon } from '@heroicons/react/20/solid'
 
 // @ts-ignore
 function classNames(...classes) {
@@ -19,10 +22,44 @@ export type ThreadListPageProps = {
     threadId: ThreadId
     title: string
     lastUpdatedOn: number
+    family: {
+      familyId: FamilyId
+      name: string | undefined
+    }
   }[]
 }
 
+const colorCodes = [
+  'bg-red-50 text-red-700 ring-red-600/10',
+  'bg-yellow-50 text-yellow-800 ring-yellow-600/20',
+  'bg-green-50 text-green-700 ring-green-600/20',
+  'bg-blue-50 text-blue-700 ring-blue-700/10',
+  'bg-indigo-50 text-indigo-700 ring-indigo-700/10',
+  'bg-purple-50 text-purple-700 ring-purple-700/10',
+  'bg-pink-50 text-pink-700 ring-pink-700/10',
+]
+
 export const ThreadListPage = withBrowserBundle(({ error, success, threads }: ThreadListPageProps) => {
+  const session = useSession()
+
+  if (!session.isLoggedIn) {
+    return <div />
+  }
+
+  // Each family has a distinct color
+  const familyColors = new Map<FamilyId, string>()
+  let index = 0
+  for (const { family } of threads) {
+    familyColors.set(family.familyId, colorCodes[index++ % colorCodes.length])
+  }
+
+  // For personal docs, use indigo
+  familyColors.set(session.userId as string as FamilyId, colorCodes[4])
+
+  function getFamilyColor(familyId: FamilyId) {
+    return familyColors.get(familyId)
+  }
+
   return (
     <AppLayout>
       <div className='bg-white py-6'>
@@ -38,14 +75,30 @@ export const ThreadListPage = withBrowserBundle(({ error, success, threads }: Th
                     <a href={chatPageUrl} className='w-full py-5 px-6 hover:bg-gray-50'>
                       <p className='text-base text-gray-900'>{thread.title}</p>
                       <div className='mt-1 flex items-center gap-x-2 text-xs leading-5 text-gray-500'>
-                        {/* <p>
-                          <a href='' className='hover:underline'>
-                            Autre ligne
-                          </a>
-                        </p>
-                        <svg viewBox='0 0 2 2' className='h-0.5 w-0.5 fill-current'>
-                          <circle cx={1} cy={1} r={1} />
-                        </svg> */}
+                        {session.hasFamiliesOtherThanDefault ? (
+                          <>
+                            <p>
+                              <span
+                                className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ring-1 ring-inset ${getFamilyColor(
+                                  thread.family.familyId
+                                )}`}>
+                                {thread.family.name ? (
+                                  <>
+                                    <UsersIcon className='h-4 w-4 mr-1' />
+                                    {thread.family.name}
+                                  </>
+                                ) : (
+                                  <>
+                                    <LockClosedIcon className='h-4 w-4 mr-1' /> Personnel
+                                  </>
+                                )}
+                              </span>
+                            </p>
+                            <svg viewBox='0 0 2 2' className='h-0.5 w-0.5 fill-current'>
+                              <circle cx={1} cy={1} r={1} />
+                            </svg>
+                          </>
+                        ) : null}
                         <p>
                           Dernière mise à jour le{' '}
                           <time dateTime={new Date(thread.lastUpdatedOn).toISOString()}>
