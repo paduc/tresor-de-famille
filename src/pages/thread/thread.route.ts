@@ -15,10 +15,9 @@ import { ThreadPage } from './ThreadPage/ThreadPage'
 import { decodeTipTapJSON, encodeStringy } from './TipTapTypes'
 import { UserInsertedPhotoInRichTextThread } from './UserInsertedPhotoInRichTextThread'
 import { UserSetChatTitle } from './UserSetChatTitle'
+import { UserUpdatedThreadAsRichText } from './UserUpdatedThreadAsRichText'
 import { getThreadPageProps } from './getThreadPageProps'
 import { UserSentMessageToChat } from './sendMessageToChat/UserSentMessageToChat'
-import { zIsUUID } from '../../domain'
-import { UserUpdatedThreadAsRichText } from './UserUpdatedThreadAsRichText'
 
 const fakeProfilePicUrl =
   'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80'
@@ -90,6 +89,8 @@ pageRouter
         })
         .parse(request.body)
 
+      const familyId = request.session.currentFamilyId!
+
       if (action === 'newMessage') {
         const { message } = z.object({ message: z.string() }).parse(request.body)
         const messageId = getUuid()
@@ -101,7 +102,7 @@ pageRouter
               userId,
               message: message.trim(),
               messageId,
-              familyId: request.session.currentFamilyId!,
+              familyId,
             })
           )
         }
@@ -114,7 +115,7 @@ pageRouter
               chatId: threadId,
               contentAsJSON,
               userId,
-              familyId: request.session.currentFamilyId!,
+              familyId,
             })
           )
           return response.status(200).send('ok')
@@ -131,7 +132,7 @@ pageRouter
             chatId: threadId,
             userId,
             title: title.trim(),
-            familyId: request.session.currentFamilyId!,
+            familyId,
           })
         )
       } else if (action === 'insertPhotoAtMarker') {
@@ -142,9 +143,7 @@ pageRouter
         if (!file) return new Error('We did not receive any image.')
         const { path: originalPath } = file
 
-        const { contentAsJSONEncoded, markerId } = z
-          .object({ contentAsJSONEncoded: z.string(), markerId: zIsUUID.optional() })
-          .parse(request.body)
+        const { contentAsJSONEncoded } = z.object({ contentAsJSONEncoded: z.string() }).parse(request.body)
 
         const contentAsJSON = decodeTipTapJSON(contentAsJSONEncoded)
 
@@ -172,7 +171,7 @@ pageRouter
             userId,
             location,
             contentAsJSON,
-            familyId: request.session.currentFamilyId!,
+            familyId,
           })
         )
 

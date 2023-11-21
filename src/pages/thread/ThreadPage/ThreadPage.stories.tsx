@@ -8,9 +8,9 @@ import { makeThreadId } from '../../../libs/makeThreadId'
 import { PhotoId } from '../../../domain/PhotoId'
 import { AppUserId } from '../../../domain/AppUserId'
 import { FamilyId } from '../../../domain/FamilyId'
-import { makeAppUserId } from '../../../libs/makeUserId'
-import { SearchIndex } from 'algoliasearch'
 import { PersonSearchContext } from '../../_components/usePersonSearch'
+import { SearchIndex } from 'algoliasearch/lite'
+import { makeAppUserId } from '../../../libs/makeUserId'
 
 const fakePersonSearch = async (query: string) => {
   return {

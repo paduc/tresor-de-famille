@@ -3,6 +3,7 @@ import { getSingleEvent } from '../../dependencies/getSingleEvent'
 import { AppUserId } from '../../domain/AppUserId'
 import { ThreadId } from '../../domain/ThreadId'
 import { OnboardingUserStartedFirstThread } from '../../events/onboarding/OnboardingUserStartedFirstThread'
+import { UserCreatedNewFamily } from '../share/UserCreatedNewFamily'
 import { UserInsertedPhotoInRichTextThread } from '../thread/UserInsertedPhotoInRichTextThread'
 import { UserSetChatTitle } from '../thread/UserSetChatTitle'
 import { UserUpdatedThreadAsRichText } from '../thread/UserUpdatedThreadAsRichText'
@@ -45,7 +46,8 @@ export const getThreadListPageProps = async (userId: AppUserId): Promise<ThreadL
   }
 
   const titleForThreadId = new Map<ThreadId, string | undefined>()
-  for (const uniqueThreadId of uniqueThreads.keys()) {
+  const familyInfoForThreadId = new Map<ThreadId, { name: string | undefined }>()
+  for (const [uniqueThreadId, messages] of uniqueThreads.entries()) {
     const titleSet = await getSingleEvent<UserSetChatTitle>('UserSetChatTitle', { chatId: uniqueThreadId })
 
     const lastSetTitle = titleSet?.payload.title
@@ -53,6 +55,16 @@ export const getThreadListPageProps = async (userId: AppUserId): Promise<ThreadL
       titleForThreadId.set(uniqueThreadId, lastSetTitle)
     } else {
       titleForThreadId.delete(uniqueThreadId)
+    }
+
+    const familyEvent = await getSingleEvent<UserCreatedNewFamily>('UserCreatedNewFamily', {
+      familyId: messages[0].payload.familyId,
+    })
+
+    if (familyEvent) {
+      familyInfoForThreadId.set(uniqueThreadId, { name: familyEvent?.payload.familyName || 'Famille sans nom' })
+    } else {
+      familyInfoForThreadId.set(uniqueThreadId, { name: undefined })
     }
   }
 
@@ -62,7 +74,6 @@ export const getThreadListPageProps = async (userId: AppUserId): Promise<ThreadL
         const latestRow = rows.at(-1)!
 
         let title = titleForThreadId.get(threadId)
-
         if (!title) {
           const firstMessage = rows.find(
             (row): row is OnboardingUserStartedFirstThread | UserSentMessageToChat =>
@@ -72,10 +83,17 @@ export const getThreadListPageProps = async (userId: AppUserId): Promise<ThreadL
           title = firstMessage ? firstMessage.payload.message : 'Fil sans titre'
         }
 
+        const familyInfo = familyInfoForThreadId.get(threadId)
+        const name = familyInfo && familyInfo.name
+
         return {
           threadId,
           title,
           lastUpdatedOn: latestRow.occurredAt.getTime(),
+          family: {
+            familyId: latestRow.payload.familyId,
+            name,
+          },
         }
       })
       .sort((a, b) => b.lastUpdatedOn - a.lastUpdatedOn),
