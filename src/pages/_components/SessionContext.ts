@@ -19,6 +19,7 @@ export type Session =
             about: string
             familyId: FamilyId
           }[]
+          hasFamiliesOtherThanDefault: boolean
           searchKey: string
           currentFamilyId: FamilyId
           isAdmin: boolean
