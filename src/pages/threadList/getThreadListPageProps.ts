@@ -29,6 +29,7 @@ export const getThreadListPageProps = async (userId: AppUserId): Promise<ThreadL
       | UserUpdatedThreadAsRichText
       | UserInsertedPhotoInRichTextThread
       | ThreadClonedForSharing
+      | UserSetChatTitle
 
     const threadEvents = await getEventList<ThreadEvent>(
       [
@@ -37,6 +38,7 @@ export const getThreadListPageProps = async (userId: AppUserId): Promise<ThreadL
         'UserUpdatedThreadAsRichText',
         'UserInsertedPhotoInRichTextThread',
         'ThreadClonedForSharing',
+        'UserSetChatTitle',
       ],
       { familyId: userFamilyId }
     )
