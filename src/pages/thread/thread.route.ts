@@ -185,7 +185,6 @@ pageRouter
         // TODO: Check rights
 
         const cloneThreadId = makeThreadId()
-
         const contents = await getThreadContents(threadId)
         if (contents === null) {
           throw new Error('Histoire introuvable.')

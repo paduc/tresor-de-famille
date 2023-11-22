@@ -39,6 +39,12 @@ export default {
             userFamilies: [
               {
                 familyId: 'a' as FamilyId,
+                familyName: 'Perso',
+                about: '',
+              },
+
+              {
+                familyId: 'b' as FamilyId,
                 familyName: 'Famille A',
                 about: 'La famille A',
               },
@@ -77,11 +83,9 @@ const HOUR = 3600 * 1000
 export const AvecUnMelangeDePhotoEtMessage = () => (
   <ThreadPage
     threadId={makeThreadId()}
-    family={{
-      familyId: makeFamilyId(),
-      name: 'Famille ABC',
-    }}
+    familyId={'a' as FamilyId}
     lastUpdated={t0 as Epoch}
+    isAuthor={true}
     title='Ceci est le titre'
     contentAsJSON={{
       type: 'doc',
@@ -144,10 +148,8 @@ export const AvecUnMelangeDePhotoEtMessage = () => (
 export const Personnel = () => (
   <ThreadPage
     threadId={makeThreadId()}
-    family={{
-      familyId: 'a' as FamilyId,
-      name: undefined,
-    }}
+    familyId={'a' as FamilyId}
+    isAuthor={true}
     lastUpdated={t0 as Epoch}
     title='Ceci est le titre'
     contentAsJSON={{
@@ -167,13 +169,34 @@ export const Personnel = () => (
   />
 )
 
-export const Partagé = () => (
+export const PartagéNonAuteur = () => (
   <ThreadPage
     threadId={makeThreadId()}
-    family={{
-      familyId: makeFamilyId(),
-      name: 'Famille ABC',
+    familyId={'b' as FamilyId}
+    isAuthor={false}
+    lastUpdated={t0 as Epoch}
+    title='Ceci est le titre'
+    contentAsJSON={{
+      type: 'doc',
+      content: [
+        {
+          type: 'paragraph',
+          content: [
+            {
+              type: 'text',
+              text: 'Message',
+            },
+          ],
+        },
+      ],
     }}
+  />
+)
+export const PartagéAuteur = () => (
+  <ThreadPage
+    threadId={makeThreadId()}
+    familyId={'b' as FamilyId}
+    isAuthor={true}
     lastUpdated={t0 as Epoch}
     title='Ceci est le titre'
     contentAsJSON={{
