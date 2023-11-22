@@ -10,7 +10,7 @@ import { ThreadId } from '../../domain/ThreadId'
 import { FaceIgnoredInPhoto } from '../../events/onboarding/FaceIgnoredInPhoto'
 import { UserNamedPersonInPhoto } from '../../events/onboarding/UserNamedPersonInPhoto'
 import { UserRecognizedPersonInPhoto } from '../../events/onboarding/UserRecognizedPersonInPhoto'
-import { Epoch } from '../../libs/typeguards'
+import { Epoch, getEpoch } from '../../libs/typeguards'
 import { getPersonById, getPersonByIdOrThrow } from '../_getPersonById'
 import { getPersonIdsForFaceId } from '../_getPersonsIdsForFaceId'
 import { UserAddedCaptionToPhoto } from '../photo/UserAddedCaptionToPhoto'
@@ -24,6 +24,8 @@ import { UserUpdatedThreadAsRichText } from './UserUpdatedThreadAsRichText'
 import { UserSentMessageToChat } from './sendMessageToChat/UserSentMessageToChat'
 import { UserUploadedPhotoToChat } from './uploadPhotoToChat/UserUploadedPhotoToChat'
 
+const DEFAULT_CONTENT: TipTapContentAsJSON = { type: 'doc', content: [] }
+
 export const getThreadPageProps = async ({
   threadId,
   userId,
@@ -31,9 +33,9 @@ export const getThreadPageProps = async ({
   threadId: ThreadId
   userId: AppUserId
 }): Promise<ThreadPageProps> => {
-  const titleSet = await getSingleEvent<UserSetChatTitle>('UserSetChatTitle', { chatId: threadId })
+  const setTitleEvent = await getSingleEvent<UserSetChatTitle>('UserSetChatTitle', { chatId: threadId })
 
-  const title = titleSet?.payload.title
+  const title = setTitleEvent?.payload.title
 
   const latestUpdateEvent = await getSingleEvent<
     UserSentMessageToChat | UserUploadedPhotoToChat | UserUpdatedThreadAsRichText | UserInsertedPhotoInRichTextThread
@@ -59,7 +61,25 @@ export const getThreadPageProps = async ({
   }
 
   if (!latestEvent) {
-    throw new Error('Thread with this is not found')
+    if (title) {
+      // Thread with only a title
+      return {
+        threadId,
+        contentAsJSON: DEFAULT_CONTENT,
+        lastUpdated: getEpoch(setTitleEvent.occurredAt),
+        title,
+        familyId: setTitleEvent.payload.familyId,
+      }
+    }
+
+    // New thread
+    return {
+      threadId,
+      contentAsJSON: DEFAULT_CONTENT,
+      lastUpdated: getEpoch(new Date()),
+      title: title || '',
+      familyId: userId as string as FamilyId,
+    }
   }
 
   const familyId = latestEvent.payload.familyId
@@ -73,7 +93,7 @@ export const getThreadPageProps = async ({
       contentAsJSON: { content },
     } = latestEvent.payload
 
-    const contentAsJSON: TipTapContentAsJSON = { type: 'doc', content: [] }
+    const contentAsJSON: TipTapContentAsJSON = DEFAULT_CONTENT
 
     for (const contentNode of content) {
       if (contentNode.type !== 'photoNode') {
@@ -130,7 +150,7 @@ export const getThreadPageProps = async ({
     | UserUpdatedThreadAsRichText
     | UserInsertedPhotoInRichTextThread
 
-  const contentAsJSON = latestRichTextEvent?.payload.contentAsJSON || { type: 'doc', content: [] }
+  const contentAsJSON = latestRichTextEvent?.payload.contentAsJSON || DEFAULT_CONTENT
 
   for (const threadEvent of threadEvents.slice(indexOfLatestRichTextEvent + 1)) {
     if (threadEvent.type === 'UserUpdatedThreadAsRichText') continue // should never occur but this helps with types
@@ -331,9 +351,9 @@ function findLastIndex<T>(array: T[], callback: (item: T) => boolean): number {
 export async function getThreadContents(
   threadId: ThreadId
 ): Promise<{ contentAsJSON: TipTapContentAsJSON; title: string | undefined } | null> {
-  const titleSet = await getSingleEvent<UserSetChatTitle>('UserSetChatTitle', { chatId: threadId })
+  const setTitleEvent = await getSingleEvent<UserSetChatTitle>('UserSetChatTitle', { chatId: threadId })
 
-  const title = titleSet?.payload.title
+  const title = setTitleEvent?.payload.title
 
   const latestEvent = await getSingleEvent<UserUpdatedThreadAsRichText | UserInsertedPhotoInRichTextThread>(
     ['UserUpdatedThreadAsRichText', 'UserInsertedPhotoInRichTextThread'],
@@ -342,12 +362,12 @@ export async function getThreadContents(
     }
   )
 
-  if (!latestEvent) {
+  if (!latestEvent && !setTitleEvent) {
     return null
   }
 
   return {
-    contentAsJSON: latestEvent.payload.contentAsJSON,
+    contentAsJSON: latestEvent?.payload.contentAsJSON || DEFAULT_CONTENT,
     title,
   }
 }
