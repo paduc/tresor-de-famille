@@ -43,13 +43,14 @@ export type ThreadPageProps = {
   contentAsJSON: TipTapContentAsJSON
   lastUpdated: Epoch | undefined
   threadId: ThreadId
+  isAuthor: boolean
   familyId: FamilyId
 }
 
 const isBrowserContext = typeof window !== 'undefined'
 
 export const ThreadPage = withBrowserBundle(
-  ({ title, contentAsJSON: contentAsJSONFromServer, lastUpdated, threadId, familyId }: ThreadPageProps) => {
+  ({ title, contentAsJSON: contentAsJSONFromServer, lastUpdated, threadId, familyId, isAuthor }: ThreadPageProps) => {
     const session = useSession()
     if (!session.isLoggedIn) {
       return <div />
@@ -90,7 +91,7 @@ export const ThreadPage = withBrowserBundle(
           close={() => openFamilyModal(false)}>
           <div className='mt-8'>
             {session.userFamilies
-              .filter((f) => (f.familyId as string) !== session.userId)
+              .filter((f) => f.familyId !== familyId)
               .map((family) => (
                 <form key={`select_${family.familyId}`} method='POST'>
                   <input type='hidden' name='action' value='shareWithFamily' />
@@ -131,7 +132,16 @@ export const ThreadPage = withBrowserBundle(
             ) : (
               <>
                 <span className='text-gray-500 mr-2'>Partagé avec les membres de</span>
-                <button className={`${secondaryButtonStyles}`}>{familyName}</button>
+                {isAuthor ? (
+                  <button onClick={() => openFamilyModal(true)} className={`${secondaryButtonStyles}`}>
+                    {familyName}
+                  </button>
+                ) : (
+                  <span
+                    className={`inline-flex items-center px-3 py-1.5 border border-transparent text-md font-medium rounded-full shadow-sm bg-white ring-inset ring-2 text-indigo-600 ring-indigo-600`}>
+                    {familyName}
+                  </span>
+                )}
               </>
             )}
           </div>

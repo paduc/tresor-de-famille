@@ -24,8 +24,6 @@ import { UserUpdatedThreadAsRichText } from './UserUpdatedThreadAsRichText'
 import { UserSentMessageToChat } from './sendMessageToChat/UserSentMessageToChat'
 import { UserUploadedPhotoToChat } from './uploadPhotoToChat/UserUploadedPhotoToChat'
 
-const DEFAULT_CONTENT: TipTapContentAsJSON = { type: 'doc', content: [] }
-
 export const getThreadPageProps = async ({
   threadId,
   userId,
@@ -33,6 +31,8 @@ export const getThreadPageProps = async ({
   threadId: ThreadId
   userId: AppUserId
 }): Promise<ThreadPageProps> => {
+  const DEFAULT_CONTENT: TipTapContentAsJSON = { type: 'doc', content: [] }
+
   const setTitleEvent = await getSingleEvent<UserSetChatTitle>('UserSetChatTitle', { chatId: threadId })
 
   const title = setTitleEvent?.payload.title
@@ -69,6 +69,7 @@ export const getThreadPageProps = async ({
         lastUpdated: getEpoch(setTitleEvent.occurredAt),
         title,
         familyId: setTitleEvent.payload.familyId,
+        isAuthor: setTitleEvent.payload.userId === userId,
       }
     }
 
@@ -79,6 +80,7 @@ export const getThreadPageProps = async ({
       lastUpdated: getEpoch(new Date()),
       title: title || '',
       familyId: userId as string as FamilyId,
+      isAuthor: true,
     }
   }
 
@@ -131,6 +133,7 @@ export const getThreadPageProps = async ({
       lastUpdated: latestEvent.occurredAt.getTime() as Epoch,
       title: title || cloneEvent?.payload.title || '',
       familyId,
+      isAuthor: latestEvent.payload.userId === userId,
     }
   }
 
@@ -139,6 +142,8 @@ export const getThreadPageProps = async ({
   >(['UserSentMessageToChat', 'UserUploadedPhotoToChat', 'UserUpdatedThreadAsRichText', 'UserInsertedPhotoInRichTextThread'], {
     chatId: threadId,
   })
+
+  latestEvent = threadEvents.at(-1)
 
   const indexOfLatestRichTextEvent = findLastIndex(
     threadEvents,
@@ -186,12 +191,20 @@ export const getThreadPageProps = async ({
     }
   }
 
+  const authorId =
+    latestEvent?.type === 'UserUploadedPhotoToChat'
+      ? latestEvent.payload.uploadedBy
+      : latestEvent
+      ? latestEvent.payload.userId
+      : null
+
   return {
     threadId,
     contentAsJSON,
     lastUpdated: latestEvent?.occurredAt.getTime() as Epoch,
     title: title || '',
     familyId,
+    isAuthor: authorId ? authorId === userId : false,
   }
 }
 
@@ -350,24 +363,40 @@ function findLastIndex<T>(array: T[], callback: (item: T) => boolean): number {
 
 export async function getThreadContents(
   threadId: ThreadId
-): Promise<{ contentAsJSON: TipTapContentAsJSON; title: string | undefined } | null> {
-  const setTitleEvent = await getSingleEvent<UserSetChatTitle>('UserSetChatTitle', { chatId: threadId })
+): Promise<{ contentAsJSON: TipTapContentAsJSON; title: string | undefined; authorId: AppUserId } | null> {
+  const DEFAULT_CONTENT: TipTapContentAsJSON = { type: 'doc', content: [] }
 
-  const title = setTitleEvent?.payload.title
-
-  const latestEvent = await getSingleEvent<UserUpdatedThreadAsRichText | UserInsertedPhotoInRichTextThread>(
+  let latestEvent:
+    | UserUpdatedThreadAsRichText
+    | UserInsertedPhotoInRichTextThread
+    | ThreadClonedForSharing // to make latestEvent compatible with cloneEvent below
+    | undefined = await getSingleEvent<UserUpdatedThreadAsRichText | UserInsertedPhotoInRichTextThread>(
     ['UserUpdatedThreadAsRichText', 'UserInsertedPhotoInRichTextThread'],
     {
       chatId: threadId,
     }
   )
 
+  const cloneEvent = await getSingleEvent<ThreadClonedForSharing>('ThreadClonedForSharing', { threadId })
+
+  if (cloneEvent) {
+    if (!latestEvent || latestEvent.occurredAt.getTime() > cloneEvent.occurredAt.getTime()) {
+      // The latest on this thread is the cloneEvent
+      latestEvent = cloneEvent
+    }
+  }
+
+  const setTitleEvent = await getSingleEvent<UserSetChatTitle>('UserSetChatTitle', { chatId: threadId })
+
   if (!latestEvent && !setTitleEvent) {
     return null
   }
 
+  const title = (setTitleEvent || cloneEvent)?.payload.title
+
   return {
     contentAsJSON: latestEvent?.payload.contentAsJSON || DEFAULT_CONTENT,
     title,
+    authorId: (latestEvent || setTitleEvent)!.payload.userId,
   }
 }
