@@ -1,9 +1,10 @@
 import { getEventList } from '../../dependencies/getEventList'
 import { getSingleEvent } from '../../dependencies/getSingleEvent'
 import { AppUserId } from '../../domain/AppUserId'
+import { FamilyId } from '../../domain/FamilyId'
 import { ThreadId } from '../../domain/ThreadId'
 import { OnboardingUserStartedFirstThread } from '../../events/onboarding/OnboardingUserStartedFirstThread'
-import { UserCreatedNewFamily } from '../share/UserCreatedNewFamily'
+import { getUserFamilies } from '../_getUserFamilies'
 import { ThreadClonedForSharing } from '../thread/ThreadPage/ThreadClonedForSharing'
 import { UserInsertedPhotoInRichTextThread } from '../thread/UserInsertedPhotoInRichTextThread'
 import { UserSetChatTitle } from '../thread/UserSetChatTitle'
@@ -12,97 +13,77 @@ import { UserSentMessageToChat } from '../thread/sendMessageToChat/UserSentMessa
 import { ThreadListPageProps } from './ThreadListPage'
 
 export const getThreadListPageProps = async (userId: AppUserId): Promise<ThreadListPageProps> => {
-  type MessageEvent =
-    | UserSentMessageToChat
-    | OnboardingUserStartedFirstThread
-    | UserUpdatedThreadAsRichText
-    | UserInsertedPhotoInRichTextThread
-    | ThreadClonedForSharing
+  const userFamilyIds = (await getUserFamilies(userId)).map((f) => f.familyId)
+  userFamilyIds.push(userId as string as FamilyId)
 
-  const messagesEvents = await getEventList<MessageEvent>(
-    [
-      'OnboardingUserStartedFirstThread',
-      'UserSentMessageToChat',
-      'UserUpdatedThreadAsRichText',
-      'UserInsertedPhotoInRichTextThread',
-      'ThreadClonedForSharing',
-    ],
-    { userId }
-  )
+  type Thread = ThreadListPageProps['threads'][number]
+  const threads: Thread[] = []
+  const clonedThreadIds = new Set<ThreadId>()
 
-  // const userUploadedEvents = await getEventList<UserUploadedPhotoToChat>('UserUploadedPhotoToChat', { uploadedBy: userId })
+  for (const userFamilyId of userFamilyIds) {
+    // Get threads
 
-  // type ThreadEvent = MessageEvent | UserUploadedPhotoToChat
-  type ThreadEvent = MessageEvent
-  const threadEvents: ThreadEvent[] = messagesEvents
+    type ThreadEvent =
+      | UserSentMessageToChat
+      | OnboardingUserStartedFirstThread
+      | UserUpdatedThreadAsRichText
+      | UserInsertedPhotoInRichTextThread
+      | ThreadClonedForSharing
 
-  const uniqueThreads = new Map<ThreadId, ThreadEvent[]>()
-  for (const threadEvent of threadEvents) {
-    const threadId =
-      threadEvent.type === 'OnboardingUserStartedFirstThread'
-        ? threadEvent.payload.threadId
-        : threadEvent.type === 'ThreadClonedForSharing'
-        ? threadEvent.payload.threadId
-        : threadEvent.payload.chatId
+    const threadEvents = await getEventList<ThreadEvent>(
+      [
+        'OnboardingUserStartedFirstThread',
+        'UserSentMessageToChat',
+        'UserUpdatedThreadAsRichText',
+        'UserInsertedPhotoInRichTextThread',
+        'ThreadClonedForSharing',
+      ],
+      { familyId: userFamilyId }
+    )
 
-    if (!uniqueThreads.has(threadId)) {
-      uniqueThreads.set(threadId, [])
+    const uniqueThreads = new Map<ThreadId, ThreadEvent[]>()
+    for (const threadEvent of threadEvents) {
+      const threadId =
+        threadEvent.type === 'OnboardingUserStartedFirstThread'
+          ? threadEvent.payload.threadId
+          : threadEvent.type === 'ThreadClonedForSharing'
+          ? threadEvent.payload.threadId
+          : threadEvent.payload.chatId
+
+      if (!uniqueThreads.has(threadId)) {
+        uniqueThreads.set(threadId, [])
+      }
+
+      uniqueThreads.get(threadId)!.push(threadEvent)
     }
 
-    uniqueThreads.get(threadId)!.push(threadEvent)
-  }
+    for (const [threadId, threadEvents] of uniqueThreads.entries()) {
+      const cloneEvent = threadEvents.find(
+        (event: ThreadEvent): event is ThreadClonedForSharing => event.type === 'ThreadClonedForSharing'
+      )
+      if (cloneEvent) {
+        // Keep a list of all the threads that have been cloned (ie shared)
+        clonedThreadIds.add(cloneEvent.payload.clonedFrom.threadId)
+      }
 
-  const titleForThreadId = new Map<ThreadId, string | undefined>()
-  const familyInfoForThreadId = new Map<ThreadId, { name: string | undefined }>()
-  for (const [uniqueThreadId, messages] of uniqueThreads.entries()) {
-    const titleSet = await getSingleEvent<UserSetChatTitle>('UserSetChatTitle', { chatId: uniqueThreadId })
+      const title =
+        (await getSingleEvent<UserSetChatTitle>('UserSetChatTitle', { chatId: threadId }))?.payload.title ||
+        cloneEvent?.payload.title ||
+        'Fil sans titre'
 
-    const lastSetTitle = titleSet?.payload.title
-    if (lastSetTitle?.length) {
-      titleForThreadId.set(uniqueThreadId, lastSetTitle)
-    } else {
-      titleForThreadId.delete(uniqueThreadId)
-    }
+      const latestEvent = threadEvents.at(-1)!
 
-    const familyEvent = await getSingleEvent<UserCreatedNewFamily>('UserCreatedNewFamily', {
-      familyId: messages[0].payload.familyId,
-    })
-
-    if (familyEvent) {
-      familyInfoForThreadId.set(uniqueThreadId, { name: familyEvent?.payload.familyName || 'Famille sans nom' })
-    } else {
-      familyInfoForThreadId.set(uniqueThreadId, { name: undefined })
-    }
-  }
-
-  return {
-    threads: Array.from(uniqueThreads.entries())
-      .map(([threadId, rows]) => {
-        const latestRow = rows.at(-1)!
-
-        let title = titleForThreadId.get(threadId)
-        if (!title) {
-          const firstMessage = rows.find(
-            (row): row is OnboardingUserStartedFirstThread | UserSentMessageToChat =>
-              row.type === 'OnboardingUserStartedFirstThread' || row.type === 'UserSentMessageToChat'
-          )
-
-          title = firstMessage ? firstMessage.payload.message : 'Fil sans titre'
-        }
-
-        const familyInfo = familyInfoForThreadId.get(threadId)
-        const name = familyInfo && familyInfo.name
-
-        return {
-          threadId,
-          title,
-          lastUpdatedOn: latestRow.occurredAt.getTime(),
-          family: {
-            familyId: latestRow.payload.familyId,
-            name,
-          },
-        }
+      threads.push({
+        threadId,
+        title,
+        lastUpdatedOn: latestEvent.occurredAt.getTime(),
+        familyId: userFamilyId,
       })
-      .sort((a, b) => b.lastUpdatedOn - a.lastUpdatedOn),
+    }
+  }
+
+  // Hide cloned threads
+  return {
+    threads: threads.filter(({ threadId }) => !clonedThreadIds.has(threadId)).sort((a, b) => b.lastUpdatedOn - a.lastUpdatedOn),
   }
 }

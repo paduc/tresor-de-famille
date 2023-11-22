@@ -22,10 +22,11 @@ export type ThreadListPageProps = {
     threadId: ThreadId
     title: string
     lastUpdatedOn: number
-    family: {
+    clonedFrom?: {
       familyId: FamilyId
-      name: string | undefined
+      threadId: ThreadId
     }
+    familyId: FamilyId
   }[]
 }
 
@@ -49,8 +50,8 @@ export const ThreadListPage = withBrowserBundle(({ error, success, threads }: Th
   // Each family has a distinct color
   const familyColors = new Map<FamilyId, string>()
   let index = 0
-  for (const { family } of threads) {
-    familyColors.set(family.familyId, colorCodes[index++ % colorCodes.length])
+  for (const { familyId } of threads) {
+    familyColors.set(familyId, colorCodes[index++ % colorCodes.length])
   }
 
   // For personal docs, use indigo
@@ -58,6 +59,12 @@ export const ThreadListPage = withBrowserBundle(({ error, success, threads }: Th
 
   function getFamilyColor(familyId: FamilyId) {
     return familyColors.get(familyId)
+  }
+
+  function getFamily(familyId: FamilyId) {
+    if (session.isLoggedIn) {
+      return session.userFamilies.find((f) => f.familyId === familyId)
+    }
   }
 
   return (
@@ -70,6 +77,7 @@ export const ThreadListPage = withBrowserBundle(({ error, success, threads }: Th
             <ul role='list' className='divide-y divide-gray-100'>
               {threads.map((thread) => {
                 const chatPageUrl = '/chat/' + thread.threadId + '/chat.html'
+                const threadFamily = getFamily(thread.familyId)
                 return (
                   <li key={thread.threadId} className='flex flex-wrap items-center justify-between gap-y-4 ml-0 sm:flex-nowrap'>
                     <a href={chatPageUrl} className='w-full py-5 px-6 hover:bg-gray-50'>
@@ -80,12 +88,12 @@ export const ThreadListPage = withBrowserBundle(({ error, success, threads }: Th
                             <p>
                               <span
                                 className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ring-1 ring-inset ${getFamilyColor(
-                                  thread.family.familyId
+                                  thread.familyId
                                 )}`}>
-                                {thread.family.name ? (
+                                {threadFamily?.familyName ? (
                                   <>
                                     <UsersIcon className='h-4 w-4 mr-1' />
-                                    {thread.family.name}
+                                    {threadFamily.familyName}
                                   </>
                                 ) : (
                                   <>

@@ -89,18 +89,20 @@ export const ThreadPage = withBrowserBundle(
           isOpen={isFamilyModalOpen}
           close={() => openFamilyModal(false)}>
           <div className='mt-8'>
-            {session.userFamilies.map((family) => (
-              <form key={`select_${family.familyId}`} method='POST'>
-                <input type='hidden' name='action' value='shareWithFamily' />
-                <input type='hidden' name='familyId' value={family.familyId} />
-                <button
-                  key={`add_to_${family.familyId}`}
-                  type='submit'
-                  className={`mb-4 ${secondaryButtonStyles.replace(/inline\-flex/g, '')}  w-full text-center`}>
-                  {family.familyName}
-                </button>
-              </form>
-            ))}
+            {session.userFamilies
+              .filter((f) => (f.familyId as string) !== session.userId)
+              .map((family) => (
+                <form key={`select_${family.familyId}`} method='POST'>
+                  <input type='hidden' name='action' value='shareWithFamily' />
+                  <input type='hidden' name='familyId' value={family.familyId} />
+                  <button
+                    key={`add_to_${family.familyId}`}
+                    type='submit'
+                    className={`mb-4 ${secondaryButtonStyles.replace(/inline\-flex/g, '')}  w-full text-center`}>
+                    {family.familyName}
+                  </button>
+                </form>
+              ))}
             {/* <button
               onClick={() => {
                 alert('TODO')
