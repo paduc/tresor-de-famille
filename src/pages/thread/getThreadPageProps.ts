@@ -109,7 +109,7 @@ export const getThreadPageProps = async ({
       threadId,
       contentAsJSON,
       lastUpdated: latestEvent.occurredAt.getTime() as Epoch,
-      title: title || '',
+      title: title || cloneEvent?.payload.title || '',
       familyId,
     }
   }
