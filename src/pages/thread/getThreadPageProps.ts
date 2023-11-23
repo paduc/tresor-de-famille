@@ -106,7 +106,7 @@ export const getThreadPageProps = async ({
 
       if (!photoId || !threadId) continue
 
-      const photoInfo = await retrievePhotoInfo({ photoId, userId, familyId })
+      const photoInfo = await retrievePhotoInfo({ photoId, familyId })
 
       if (!photoInfo) continue
 
@@ -170,7 +170,7 @@ export const getThreadPageProps = async ({
 
     if (threadEvent.type === 'UserUploadedPhotoToChat') {
       const photoId = threadEvent.payload.photoId
-      const photoInfo = await retrievePhotoInfo({ photoId, userId, familyId })
+      const photoInfo = await retrievePhotoInfo({ photoId, familyId })
       if (!photoInfo) continue
 
       const { description, personsInPhoto, unrecognizedFacesInPhoto } = photoInfo
@@ -208,15 +208,7 @@ export const getThreadPageProps = async ({
   }
 }
 
-export async function retrievePhotoInfo({
-  photoId,
-  userId,
-  familyId,
-}: {
-  photoId: PhotoId
-  userId: AppUserId
-  familyId: FamilyId
-}): Promise<{
+export async function retrievePhotoInfo({ photoId, familyId }: { photoId: PhotoId; familyId: FamilyId }): Promise<{
   description: string
   personsInPhoto: string[]
   unrecognizedFacesInPhoto: number
@@ -230,12 +222,14 @@ export async function retrievePhotoInfo({
 
   if (!photoRow) return null
 
+  // This need to be replaced by a generic getFacesInPhoto(photoId, familyId)
+  // in order to accept cloneds photos
   const facesDetected = await getSingleEvent<AWSDetectedFacesInPhoto>('AWSDetectedFacesInPhoto', { photoId })
 
   const detectedFaces = facesDetected?.payload.faces || []
 
   const faces: PhotoFace[] = detectedFaces
-    ? await Promise.all(detectedFaces.map(({ faceId }) => getFamilyDetectedFace({ faceId, photoId, userId, familyId })))
+    ? await Promise.all(detectedFaces.map(({ faceId }) => getFamilyDetectedFace({ faceId, photoId, familyId })))
     : []
 
   const personsInPhoto = faces
@@ -274,27 +268,23 @@ type PhotoFace = {
 )
 
 // Copy from getNewPhotoPageProps()
-async function getFamilyDetectedFace(args: {
-  faceId: FaceId
-  photoId: PhotoId
-  userId: AppUserId
-  familyId: FamilyId
-}): Promise<PhotoFace> {
-  const { faceId, photoId, userId, familyId } = args
+async function getFamilyDetectedFace(args: { faceId: FaceId; photoId: PhotoId; familyId: FamilyId }): Promise<PhotoFace> {
+  const { faceId, photoId, familyId } = args
 
+  // TODO: generic function to include PhotoCloned events
   const personNamedOrRecognizedEvent = await getSingleEvent<UserNamedPersonInPhoto | UserRecognizedPersonInPhoto>(
     ['UserNamedPersonInPhoto', 'UserRecognizedPersonInPhoto'],
     {
       faceId,
       photoId,
-      userId,
+      familyId,
     }
   )
 
   const faceIgnoredEvent = await getSingleEvent<FaceIgnoredInPhoto>('FaceIgnoredInPhoto', {
     photoId,
     faceId,
-    ignoredBy: userId,
+    familyId,
   })
 
   type Defined = Exclude<typeof personNamedOrRecognizedEvent | typeof faceIgnoredEvent, undefined>
@@ -331,7 +321,7 @@ async function getFamilyDetectedFace(args: {
   }
 
   // Do we recognize this face from elsewhere ?
-  const persons = await getPersonIdsForFaceId({ faceId, userId, familyId })
+  const persons = await getPersonIdsForFaceId({ faceId, familyId })
   if (persons.length) {
     const personId = persons[0]
     const person = await getPersonById({ personId, familyId })
@@ -363,7 +353,7 @@ function findLastIndex<T>(array: T[], callback: (item: T) => boolean): number {
 
 export async function getThreadContents(
   threadId: ThreadId
-): Promise<{ contentAsJSON: TipTapContentAsJSON; title: string | undefined; authorId: AppUserId } | null> {
+): Promise<{ contentAsJSON: TipTapContentAsJSON; title: string | undefined; authorId: AppUserId; familyId: FamilyId } | null> {
   const DEFAULT_CONTENT: TipTapContentAsJSON = { type: 'doc', content: [] }
 
   let latestEvent:
@@ -398,5 +388,6 @@ export async function getThreadContents(
     contentAsJSON: latestEvent?.payload.contentAsJSON || DEFAULT_CONTENT,
     title,
     authorId: (latestEvent || setTitleEvent)!.payload.userId,
+    familyId: (latestEvent || setTitleEvent)!.payload.familyId,
   }
 }

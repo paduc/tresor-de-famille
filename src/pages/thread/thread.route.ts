@@ -3,18 +3,33 @@ import fs from 'node:fs'
 import z from 'zod'
 import { addToHistory } from '../../dependencies/addToHistory'
 import { requireAuth } from '../../dependencies/authn'
+import { postgres } from '../../dependencies/database'
+import { getSingleEvent } from '../../dependencies/getSingleEvent'
 import { uploadPhoto } from '../../dependencies/photo-storage'
-import { zIsFamilyId } from '../../domain/FamilyId'
-import { zIsThreadId } from '../../domain/ThreadId'
+import { AppUserId } from '../../domain/AppUserId'
+import { FaceId } from '../../domain/FaceId'
+import { FamilyId, zIsFamilyId } from '../../domain/FamilyId'
+import { PersonId } from '../../domain/PersonId'
+import { PhotoId } from '../../domain/PhotoId'
+import { ThreadId, zIsThreadId } from '../../domain/ThreadId'
+import { FaceIgnoredInPhoto } from '../../events/onboarding/FaceIgnoredInPhoto'
+import { UserNamedPersonInPhoto } from '../../events/onboarding/UserNamedPersonInPhoto'
+import { UserRecognizedPersonInPhoto } from '../../events/onboarding/UserRecognizedPersonInPhoto'
 import { getUuid } from '../../libs/getUuid'
+import { makePersonId } from '../../libs/makePersonId'
 import { makePhotoId } from '../../libs/makePhotoId'
 import { makeThreadId } from '../../libs/makeThreadId'
 import { responseAsHtml } from '../../libs/ssr/responseAsHtml'
+import { getPersonByIdOrThrow } from '../_getPersonById'
 import { pageRouter } from '../pageRouter'
+import { UserAddedCaptionToPhoto } from '../photo/UserAddedCaptionToPhoto'
+import { AWSDetectedFacesInPhoto } from '../photo/recognizeFacesInChatPhoto/AWSDetectedFacesInPhoto'
 import { detectFacesInPhotoUsingAWS } from '../photo/recognizeFacesInChatPhoto/detectFacesInPhotoUsingAWS'
+import { PersonClonedForSharing } from '../share/PersonClonedForSharing'
+import { PhotoClonedForSharing } from './ThreadPage/PhotoClonedForSharing'
 import { ThreadClonedForSharing } from './ThreadPage/ThreadClonedForSharing'
 import { ThreadPage } from './ThreadPage/ThreadPage'
-import { decodeTipTapJSON, encodeStringy } from './TipTapTypes'
+import { TipTapContentAsJSON, decodeTipTapJSON, encodeStringy } from './TipTapTypes'
 import { UserInsertedPhotoInRichTextThread } from './UserInsertedPhotoInRichTextThread'
 import { UserSetChatTitle } from './UserSetChatTitle'
 import { UserUpdatedThreadAsRichText } from './UserUpdatedThreadAsRichText'
@@ -180,7 +195,7 @@ pageRouter
 
         await detectFacesInPhotoUsingAWS({ file, photoId })
       } else if (action === 'shareWithFamily') {
-        const { familyId } = z.object({ familyId: zIsFamilyId }).parse(request.body)
+        const { familyId: destinationFamilyId } = z.object({ familyId: zIsFamilyId }).parse(request.body)
 
         // TODO: Check rights
 
@@ -189,18 +204,27 @@ pageRouter
         if (contents === null) {
           throw new Error('Histoire introuvable.')
         }
-        const { title, contentAsJSON } = contents
+        const { title, contentAsJSON: originalContents, familyId: originalFamilyId } = contents
+
+        const cloneContentAsJSON = await makeCloneOfContentAsJSON({
+          originalContents,
+          userId,
+          originalFamilyId,
+          destinationFamilyId,
+          cloneThreadId,
+          originalThreadId: threadId,
+        })
 
         await addToHistory(
           ThreadClonedForSharing({
             threadId: cloneThreadId,
             userId,
-            familyId,
+            familyId: destinationFamilyId,
             title,
-            contentAsJSON,
+            contentAsJSON: cloneContentAsJSON,
             clonedFrom: {
               threadId,
-              familyId,
+              familyId: originalFamilyId,
             },
           })
         )
@@ -218,3 +242,232 @@ pageRouter
       )
     }
   })
+
+async function makeCloneOfContentAsJSON({
+  originalContents,
+  userId,
+  destinationFamilyId,
+  cloneThreadId,
+  originalFamilyId,
+  originalThreadId,
+}: {
+  userId: AppUserId
+  originalFamilyId: FamilyId
+  destinationFamilyId: FamilyId
+  originalContents: TipTapContentAsJSON
+  cloneThreadId: ThreadId
+  originalThreadId: ThreadId
+}): Promise<TipTapContentAsJSON> {
+  const cloneContentAsJSON: TipTapContentAsJSON = { type: 'doc', content: [] }
+  for (const contentNode of originalContents.content) {
+    if (contentNode.type !== 'photoNode') {
+      cloneContentAsJSON.content.push(contentNode)
+      continue
+    }
+
+    const { photoId: originalPhotoId } = contentNode.attrs
+
+    if (!originalPhotoId) continue
+
+    const destinationPhotoId = makePhotoId()
+
+    const caption = await getCaptionByPhotoId(originalPhotoId)
+
+    const faces = await makeCloneOfFacesInPhoto({
+      userId,
+      originalPhotoId,
+      destinationPhotoId,
+      originalFamilyId,
+      destinationFamilyId,
+    })
+
+    await addToHistory(
+      PhotoClonedForSharing({
+        userId,
+        familyId: destinationFamilyId,
+
+        photoId: destinationPhotoId,
+
+        faces,
+        caption,
+
+        threadId: cloneThreadId,
+
+        clonedFrom: {
+          familyId: originalFamilyId,
+          photoId: originalPhotoId,
+          threadId: originalThreadId,
+        },
+      })
+    )
+
+    // TODO: clone the people tagged in the photos (if don't exist in the family)
+    cloneContentAsJSON.content.push({
+      type: 'photoNode',
+      attrs: {
+        photoId: originalPhotoId,
+        threadId: originalThreadId,
+        description: '',
+        personsInPhoto: encodeStringy([]),
+        unrecognizedFacesInPhoto: 0,
+        url: '',
+      },
+    })
+  }
+  return cloneContentAsJSON
+}
+
+async function getCaptionByPhotoId(originalPhotoId: PhotoId) {
+  return (await getSingleEvent<UserAddedCaptionToPhoto>('UserAddedCaptionToPhoto', { photoId: originalPhotoId }))?.payload
+    .caption.body
+}
+
+async function makeCloneOfFacesInPhoto({
+  userId,
+  originalPhotoId,
+  destinationPhotoId,
+  originalFamilyId,
+  destinationFamilyId,
+}: {
+  userId: AppUserId
+  originalPhotoId: PhotoId
+  destinationPhotoId: PhotoId
+  originalFamilyId: FamilyId
+  destinationFamilyId: FamilyId
+}): Promise<
+  {
+    faceId: FaceId
+    personId?: PersonId | undefined
+    isIgnored?: boolean
+  }[]
+> {
+  // Get all faces from original photo
+  // Get the persons that have been tagged (in original family)
+  // Get the faces that were ignored (in original family)
+  const facesInOriginalFamily = await getFacesInPhoto({ photoId: originalPhotoId, familyId: originalFamilyId })
+
+  for (const face of facesInOriginalFamily) {
+    if (face.personId) {
+      const { rows } = await postgres.query<PersonClonedForSharing>(
+        `SELECT * FROM history WHERE type='PersonClonedForSharing' AND payload->'clonedFrom'->>'personId'=$1 LIMIT 1`,
+        [face.personId]
+      )
+
+      const personClonedEvent = rows[0]
+
+      if (personClonedEvent) {
+        // there is an equivalent, substitute
+        face.personId = personClonedEvent.payload.personId
+        continue
+      }
+
+      const personId = makePersonId()
+      const { name } = await getPersonByIdOrThrow({ personId: face.personId, familyId: originalFamilyId })
+
+      // No equivalent, time to create one !
+      await addToHistory(
+        PersonClonedForSharing({
+          userId,
+          familyId: destinationFamilyId,
+          personId,
+
+          name,
+          faceId: face.faceId,
+          profilePicPhotoId: destinationPhotoId,
+
+          clonedFrom: {
+            familyId: originalFamilyId,
+            personId: face.personId,
+          },
+        })
+      )
+    }
+  }
+
+  // Replace all personIds from the original family to the destinationFamily
+  // If personId, get the equivalent thanks to PersonClonedForSharing
+  // or clone the original if no equivalent exists
+
+  throw 'not implemented'
+}
+
+async function getFacesInPhoto({ photoId, familyId }: { photoId: PhotoId; familyId: FamilyId }) {
+  const originalPhotoId = await getOriginalPhoto(photoId)
+
+  const awsFacesDetectedEvent = await getSingleEvent<AWSDetectedFacesInPhoto>('AWSDetectedFacesInPhoto', {
+    photoId: originalPhotoId,
+  })
+
+  const awsDetectedFaces = awsFacesDetectedEvent?.payload.faces || []
+
+  const detectedFaceIds = awsDetectedFaces.map((awsFace) => awsFace.faceId)
+
+  const detectedFaceInfo = await Promise.all(
+    detectedFaceIds.map((faceId) => getFaceInfoForPhotoInFamily({ faceId, photoId, familyId }))
+  )
+
+  return detectedFaceInfo
+}
+
+type FaceInfoForPhotoInFamily = PhotoClonedForSharing['payload']['faces'][number]
+
+async function getFaceInfoForPhotoInFamily({
+  faceId,
+  photoId,
+  familyId,
+}: {
+  faceId: FaceId
+  photoId: PhotoId
+  familyId: FamilyId
+}): Promise<FaceInfoForPhotoInFamily> {
+  const personNamedOrRecognizedEvent = await getSingleEvent<UserNamedPersonInPhoto | UserRecognizedPersonInPhoto>(
+    ['UserNamedPersonInPhoto', 'UserRecognizedPersonInPhoto'],
+    {
+      faceId,
+      photoId,
+      familyId,
+    }
+  )
+
+  const faceIgnoredEvent = await getSingleEvent<FaceIgnoredInPhoto>('FaceIgnoredInPhoto', {
+    faceId,
+    photoId,
+    familyId,
+  })
+
+  type Defined = Exclude<typeof personNamedOrRecognizedEvent | typeof faceIgnoredEvent, undefined>
+
+  const latestEvent = [personNamedOrRecognizedEvent, faceIgnoredEvent]
+    .filter((event): event is Defined => !!event)
+    .sort((a, b) => a.occurredAt.getTime() - b.occurredAt.getTime())
+    .at(-1)
+
+  if (latestEvent) {
+    switch (latestEvent.type) {
+      case 'FaceIgnoredInPhoto':
+        return { faceId, isIgnored: true }
+      case 'UserRecognizedPersonInPhoto':
+      case 'UserNamedPersonInPhoto':
+        return { faceId, personId: latestEvent.payload.personId }
+        break
+    }
+  }
+
+  const photoClonedEvent = await getSingleEvent<PhotoClonedForSharing>('PhotoClonedForSharing', { photoId, familyId })
+  if (photoClonedEvent) {
+    const faceInfoInCloneEvent = photoClonedEvent.payload.faces.find((face) => face.faceId === faceId)
+    if (faceInfoInCloneEvent) return faceInfoInCloneEvent
+  }
+
+  return { faceId }
+}
+
+async function getOriginalPhoto(photoId: PhotoId): Promise<PhotoId> {
+  const isPhotoCloned = await getSingleEvent<PhotoClonedForSharing>('PhotoClonedForSharing', { photoId })
+
+  if (isPhotoCloned) {
+    return getOriginalPhoto(isPhotoCloned.payload.clonedFrom.photoId)
+  }
+
+  return photoId
+}

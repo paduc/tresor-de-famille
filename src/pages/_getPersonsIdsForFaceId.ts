@@ -1,5 +1,4 @@
 import { getEventList } from '../dependencies/getEventList'
-import { AppUserId } from '../domain/AppUserId'
 import { FaceId } from '../domain/FaceId'
 import { FamilyId } from '../domain/FamilyId'
 import { PersonId } from '../domain/PersonId'
@@ -8,36 +7,49 @@ import { UserConfirmedHisFace } from '../events/onboarding/UserConfirmedHisFace'
 import { UserNamedPersonInPhoto } from '../events/onboarding/UserNamedPersonInPhoto'
 import { UserRecognizedPersonInPhoto } from '../events/onboarding/UserRecognizedPersonInPhoto'
 import { PhotoManuallyAnnotated } from './photo/annotateManually/PhotoManuallyAnnotated'
+import { PhotoClonedForSharing } from './thread/ThreadPage/PhotoClonedForSharing'
 
 export const getPersonIdsForFaceId = async ({
   faceId,
-  userId,
   familyId,
 }: {
   faceId: FaceId
-  userId: AppUserId
   familyId: FamilyId
 }): Promise<PersonId[]> => {
-  const annotationEvents = (
-    await getEventList<PhotoManuallyAnnotated | UserConfirmedHisFace | UserNamedPersonInPhoto | UserRecognizedPersonInPhoto>(
-      ['PhotoManuallyAnnotated', 'UserConfirmedHisFace', 'UserNamedPersonInPhoto', 'UserRecognizedPersonInPhoto'],
-      { faceId, familyId }
+  const annotationEvents: (
+    | PhotoManuallyAnnotated
+    | UserConfirmedHisFace
+    | UserNamedPersonInPhoto
+    | UserRecognizedPersonInPhoto
+    | PhotoClonedForSharing
+  )[] = []
+
+  annotationEvents.push(
+    ...(await getEventList<
+      PhotoManuallyAnnotated | UserConfirmedHisFace | UserNamedPersonInPhoto | UserRecognizedPersonInPhoto
+    >(['PhotoManuallyAnnotated', 'UserConfirmedHisFace', 'UserNamedPersonInPhoto', 'UserRecognizedPersonInPhoto'], {
+      faceId,
+      familyId,
+    }))
+  )
+
+  annotationEvents.push(
+    ...(await getEventList<PhotoClonedForSharing>('PhotoClonedForSharing', { familyId })).filter((event) =>
+      event.payload.faces.map((face) => face.faceId).includes(faceId)
     )
-  ).filter((event) => {
-    // Only keep user events
-    // (could have been done in the query but the userId is in different payload fields)
-    switch (event.type) {
-      case 'PhotoManuallyAnnotated':
-        return event.payload.annotatedBy === userId
-      default:
-        return event.payload.userId === userId
-    }
-  })
+  )
 
   const uniqueByPhotoId = new Map<PhotoId, PersonId>()
   for (const annotationEvent of annotationEvents) {
-    const { photoId, personId } = annotationEvent.payload
-    uniqueByPhotoId.set(photoId, personId)
+    const { photoId } = annotationEvent.payload
+    const personId =
+      annotationEvent.type === 'PhotoClonedForSharing'
+        ? annotationEvent.payload.faces.find((face) => face.faceId === faceId)?.personId
+        : annotationEvent.payload.personId
+
+    if (personId) {
+      uniqueByPhotoId.set(photoId, personId)
+    }
   }
 
   // Count how many photos of each person for this face (so the first 'try' is more probably the best)

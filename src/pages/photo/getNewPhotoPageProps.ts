@@ -107,7 +107,7 @@ async function getFamilyDetectedFace(args: {
   }
 
   // Do we recognize this face from elsewhere ?
-  const persons = await getPersonIdsForFaceId({ faceId, userId, familyId })
+  const persons = await getPersonIdsForFaceId({ faceId, familyId })
   if (persons.length) {
     const personId = persons[0]
     const person = await getPersonById({ personId, familyId })
