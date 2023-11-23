@@ -1,3 +1,4 @@
+import { postgres } from '../../dependencies/database'
 import { getEventList } from '../../dependencies/getEventList'
 import { getSingleEvent } from '../../dependencies/getSingleEvent'
 import { AppUserId } from '../../domain/AppUserId'
@@ -63,9 +64,11 @@ export const getThreadListPageProps = async (userId: AppUserId): Promise<ThreadL
       const cloneEvent = threadEvents.find(
         (event: ThreadEvent): event is ThreadClonedForSharing => event.type === 'ThreadClonedForSharing'
       )
-      if (cloneEvent) {
+
+      const isCloned = await isThreadCloned(threadId)
+      if (isCloned) {
         // Keep a list of all the threads that have been cloned (ie shared)
-        clonedThreadIds.add(cloneEvent.payload.clonedFrom.threadId)
+        clonedThreadIds.add(threadId)
       }
 
       const title =
@@ -88,4 +91,15 @@ export const getThreadListPageProps = async (userId: AppUserId): Promise<ThreadL
   return {
     threads: threads.filter(({ threadId }) => !clonedThreadIds.has(threadId)).sort((a, b) => b.lastUpdatedOn - a.lastUpdatedOn),
   }
+}
+
+async function isThreadCloned(threadId: ThreadId): Promise<boolean> {
+  const { rows } = await postgres.query(
+    `SELECT count(*) FROM history WHERE type='ThreadClonedForSharing' AND payload->'clonedFrom'->>'threadId'=$1 LIMIT 1;`,
+    [threadId]
+  )
+
+  const count = Number(rows[0].count)
+
+  return count > 0
 }
