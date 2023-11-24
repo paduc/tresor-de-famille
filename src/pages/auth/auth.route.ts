@@ -14,6 +14,8 @@ import { buildSession } from './buildSession'
 import { makeLogin } from './login'
 import { makeRegister } from './register'
 import { getUserFamilies } from '../_getUserFamilies'
+import { getSingleEvent } from '../../dependencies/getSingleEvent'
+import { UserNamedThemself } from '../../events/onboarding/UserNamedThemself'
 
 const login = makeLogin(bcrypt.compare)
 const register = makeRegister({
@@ -80,31 +82,13 @@ pageRouter
       // Login case
       const userId = await login(email, password)
       try {
-        let currentFamilyId: FamilyId | undefined = undefined
+        const userNamedThemselfEvent = await getSingleEvent<UserNamedThemself>('UserNamedThemself', { userId })
 
-        const userFamilies = await getUserFamilies(userId)
-        if (!userFamilies.length) {
-          currentFamilyId = userId as string as FamilyId
-        } else {
-          const registrationFamily = userFamilies.find((f) => f.isRegistrationFamily)
-          if (registrationFamily) {
-            currentFamilyId = registrationFamily.familyId
-          } else {
-            currentFamilyId = userFamilies[0].familyId
-          }
-        }
-
-        if (!currentFamilyId) {
-          throw new Error("Vous n'êtes attaché à aucune famille.")
-        }
-
-        const userPerson = await getPersonForUserInFamily({ userId, familyId: currentFamilyId })
-
-        const name = userPerson?.name || ''
+        const name = userNamedThemselfEvent?.payload.name || ''
 
         buildSession({ userId, name, request })
 
-        request.session.currentFamilyId = currentFamilyId
+        request.session.currentFamilyId = userNamedThemselfEvent?.payload.familyId || (userId as string as FamilyId)
       } catch (error) {
         buildSession({ userId, request })
       }
