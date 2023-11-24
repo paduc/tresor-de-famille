@@ -56,6 +56,8 @@ export const ThreadPage = withBrowserBundle(
       return <div />
     }
 
+    console.log('ThreadPage', contentAsJSONFromServer, lastUpdated)
+
     const familyName = session.userFamilies.find((f) => f.familyId === familyId)?.familyName || 'Personnel'
 
     const [isFamilyModalOpen, openFamilyModal] = useState<boolean>(false)
@@ -166,6 +168,7 @@ export type PhotoItemProps = {
   threadId: ThreadId
 }
 const PhotoItem = (props: PhotoItemProps) => {
+  console.log('PhotoItem', props, null, 2)
   const { description, url, personsInPhoto, unrecognizedFacesInPhoto } = props
   const descriptionOfPeople = personsInPhoto.join(', ')
 
@@ -451,6 +454,7 @@ const PhotoItemWrappedForTipTap = (props: {
   }
 }) => {
   try {
+    console.log('PhotoItem wrapper', props)
     const parsedPersonsInPhoto: string[] = JSON.parse(decodeURIComponent(props.node.attrs.personsInPhoto))
 
     if (!Array.isArray(parsedPersonsInPhoto) || parsedPersonsInPhoto.some((nom) => typeof nom !== 'string')) {
