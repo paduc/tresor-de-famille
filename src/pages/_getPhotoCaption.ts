@@ -1,13 +1,12 @@
 import { getSingleEvent } from '../dependencies/getSingleEvent'
-import { FamilyId } from '../domain/FamilyId'
 import { PhotoId } from '../domain/PhotoId'
 import { UserAddedCaptionToPhoto } from './photo/UserAddedCaptionToPhoto'
 import { PhotoClonedForSharing } from './thread/ThreadPage/PhotoClonedForSharing'
 
-export async function getPhotoCaption({ photoId, familyId }: { photoId: PhotoId; familyId: FamilyId }) {
+export async function getPhotoCaption({ photoId }: { photoId: PhotoId }) {
   const captionEvent = await getSingleEvent<UserAddedCaptionToPhoto | PhotoClonedForSharing>(
     ['UserAddedCaptionToPhoto', 'PhotoClonedForSharing'],
-    { photoId, familyId }
+    { photoId }
   )
 
   if (captionEvent) {

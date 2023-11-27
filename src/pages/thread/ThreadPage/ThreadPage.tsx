@@ -56,8 +56,6 @@ export const ThreadPage = withBrowserBundle(
       return <div />
     }
 
-    console.log('ThreadPage', contentAsJSONFromServer, lastUpdated)
-
     const familyName = session.userFamilies.find((f) => f.familyId === familyId)?.familyName || 'Personnel'
 
     const [isFamilyModalOpen, openFamilyModal] = useState<boolean>(false)
