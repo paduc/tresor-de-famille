@@ -1,4 +1,3 @@
-import { getEventList } from '../../dependencies/getEventList'
 import { getSingleEvent } from '../../dependencies/getSingleEvent'
 import { getPhotoUrlFromId } from '../../dependencies/photo-storage'
 import { AppUserId } from '../../domain/AppUserId'
@@ -16,6 +15,8 @@ import { TipTapContentAsJSON, encodeStringy } from './TipTapTypes'
 import { UserInsertedPhotoInRichTextThread } from './UserInsertedPhotoInRichTextThread'
 import { UserSetChatTitle } from './UserSetChatTitle'
 import { UserUpdatedThreadAsRichText } from './UserUpdatedThreadAsRichText'
+import { getThreadAuthor } from './_getThreadAuthor'
+import { ThreadEvent, getThreadEvents } from './_getThreadEvents'
 
 export const getThreadPageProps = async ({
   threadId,
@@ -25,6 +26,9 @@ export const getThreadPageProps = async ({
   userId: AppUserId
 }): Promise<ThreadPageProps> => {
   const DEFAULT_CONTENT: TipTapContentAsJSON = { type: 'doc', content: [] }
+
+  const threadAuthorId = await getThreadAuthor(threadId)
+  const isAuthor = threadAuthorId === userId
 
   const threadEvents = await getThreadEvents(threadId)
 
@@ -36,7 +40,7 @@ export const getThreadPageProps = async ({
       lastUpdated: undefined,
       title: '',
       familyId: userId as string as FamilyId,
-      isAuthor: true,
+      isAuthor,
     }
   }
 
@@ -44,14 +48,14 @@ export const getThreadPageProps = async ({
     // All events are title events
 
     const latestSetTitleEvent = threadEvents.at(-1)!
-    const { title, familyId, userId } = latestSetTitleEvent.payload
+    const { title, familyId, userId: authorId } = latestSetTitleEvent.payload
     return {
       threadId,
       contentAsJSON: DEFAULT_CONTENT,
       lastUpdated: getEpoch(latestSetTitleEvent.occurredAt),
       title,
       familyId,
-      isAuthor: userId === userId,
+      isAuthor,
     }
   }
 
@@ -112,81 +116,8 @@ export const getThreadPageProps = async ({
     lastUpdated: getEpoch(threadEvents.at(-1)!.occurredAt),
     title: latestTitleEvent?.payload.title || '',
     familyId,
-    isAuthor: firstEventPayload.userId === userId,
+    isAuthor,
   }
-
-  // const setTitleEvent = await getSingleEvent<UserSetChatTitle>('UserSetChatTitle', { chatId: threadId })
-
-  // const threadClonedEvent = await getSingleEvent<ThreadClonedForSharing>('ThreadClonedForSharing', { threadId })
-
-  // const title = (setTitleEvent || threadClonedEvent)?.payload.title
-
-  // if (!latestEvent) {
-  //   if (title) {
-  //     // Thread with only a title
-  //     return {
-  //       threadId,
-  //       contentAsJSON: DEFAULT_CONTENT,
-  //       lastUpdated: getEpoch(setTitleEvent.occurredAt),
-  //       title,
-  //       familyId: setTitleEvent.payload.familyId,
-  //       isAuthor: setTitleEvent.payload.userId === userId,
-  //     }
-  //   }
-  // }
-
-  // const familyId = latestEvent.payload.familyId
-
-  // if (
-  //   latestEvent.type === 'ThreadClonedForSharing' ||
-  //   latestEvent.type === 'UserUpdatedThreadAsRichText' ||
-  //   latestEvent.type === 'UserInsertedPhotoInRichTextThread'
-  // ) {
-  //   const {
-  //     contentAsJSON: { content },
-  //   } = latestEvent.payload
-
-  //   const contentAsJSON: TipTapContentAsJSON = DEFAULT_CONTENT
-
-  //   for (const contentNode of content) {
-  //     if (contentNode.type !== 'photoNode') {
-  //       contentAsJSON.content.push(contentNode)
-  //       continue
-  //     }
-  //     const { photoId, threadId } = contentNode.attrs
-
-  //     if (!photoId || !threadId) continue
-
-  //     const photoInfo = await retrievePhotoInfo({ photoId, familyId })
-
-  //     if (!photoInfo) continue
-
-  //     const { description, personsInPhoto, unrecognizedFacesInPhoto } = photoInfo
-
-  //     const newAttrs = {
-  //       photoId,
-  //       threadId,
-  //       description,
-  //       personsInPhoto: encodeStringy(personsInPhoto),
-  //       unrecognizedFacesInPhoto,
-  //       url: getPhotoUrlFromId(photoId),
-  //     }
-
-  //     contentAsJSON.content.push({
-  //       type: 'photoNode',
-  //       attrs: newAttrs,
-  //     })
-  //   }
-
-  //   return {
-  //     threadId,
-  //     contentAsJSON,
-  //     lastUpdated: latestEvent.occurredAt.getTime() as Epoch,
-  //     title: title || threadClonedEvent?.payload.title || '',
-  //     familyId,
-  //     isAuthor: latestEvent.payload.userId === userId,
-  //   }
-  // }
 }
 
 async function retrievePhotoInfo({ photoId, familyId }: { photoId: PhotoId; familyId: FamilyId }): Promise<{
@@ -264,30 +195,4 @@ export async function getThreadContents(
     authorId: (latestEvent || setTitleEvent)!.payload.userId,
     familyId: (latestEvent || setTitleEvent)!.payload.familyId,
   }
-}
-
-type ThreadEvent =
-  | UserSetChatTitle
-  // | UserSentMessageToChat
-  // | UserUploadedPhotoToChat
-  | UserUpdatedThreadAsRichText
-  | UserInsertedPhotoInRichTextThread
-  | ThreadClonedForSharing
-
-async function getThreadEvents(threadId: ThreadId): Promise<ThreadEvent[]> {
-  const threadClonedEvent = await getSingleEvent<ThreadClonedForSharing>('ThreadClonedForSharing', { threadId })
-
-  const updateEvents = await getEventList<
-    | UserSetChatTitle
-    // | UserSentMessageToChat
-    // | UserUploadedPhotoToChat
-    | UserUpdatedThreadAsRichText
-    | UserInsertedPhotoInRichTextThread
-  >(['UserSetChatTitle', 'UserUpdatedThreadAsRichText', 'UserInsertedPhotoInRichTextThread'], {
-    chatId: threadId,
-  })
-
-  return [threadClonedEvent, ...updateEvents]
-    .filter((event): event is ThreadEvent => !!event)
-    .sort((a, b) => a.occurredAt.getTime() - b.occurredAt.getTime())
 }

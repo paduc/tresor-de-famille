@@ -1,16 +1,10 @@
-import { getSingleEvent } from '../../dependencies/getSingleEvent'
 import { getPhotoUrlFromId } from '../../dependencies/photo-storage'
 import { AppUserId } from '../../domain/AppUserId'
-import { FaceId } from '../../domain/FaceId'
 import { FamilyId } from '../../domain/FamilyId'
 import { PhotoId } from '../../domain/PhotoId'
-import { FaceIgnoredInPhoto } from '../../events/onboarding/FaceIgnoredInPhoto'
-import { UserNamedPersonInPhoto } from '../../events/onboarding/UserNamedPersonInPhoto'
-import { UserRecognizedPersonInPhoto } from '../../events/onboarding/UserRecognizedPersonInPhoto'
 import { doesPhotoExist } from '../_doesPhotoExist'
 import { getFacesInPhoto } from '../_getFacesInPhoto'
-import { getPersonById, getPersonByIdOrThrow } from '../_getPersonById'
-import { getPersonIdsForFaceId } from '../_getPersonsIdsForFaceId'
+import { getPersonByIdOrThrow } from '../_getPersonById'
 import { getPhotoCaption } from '../_getPhotoCaption'
 
 import { NewPhotoPageProps } from './PhotoPage/NewPhotoPage'
@@ -28,7 +22,7 @@ export const getNewPhotoPageProps = async ({
 }): Promise<NewPhotoPageProps> => {
   // TODO: Check rights
 
-  const photoExists = await doesPhotoExist({ photoId, familyId })
+  const photoExists = await doesPhotoExist({ photoId })
   if (!photoExists) throw new Error('Photo does not exist')
 
   const faces: PhotoFace[] = await Promise.all(
