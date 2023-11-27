@@ -194,9 +194,6 @@ async function retrievePhotoInfo({ photoId, familyId }: { photoId: PhotoId; fami
   personsInPhoto: string[]
   unrecognizedFacesInPhoto: number
 } | null> {
-  // This need to be replaced by a generic getFacesInPhoto(photoId, familyId)
-  // in order to accept cloneds photos
-
   const facesInPhoto = await getFacesInPhoto({ photoId, familyId })
 
   const personsInPhoto = (
@@ -204,7 +201,7 @@ async function retrievePhotoInfo({ photoId, familyId }: { photoId: PhotoId; fami
       facesInPhoto
         .map((face) => face.personId)
         .filter((personIdOrNot): personIdOrNot is PersonId => !!personIdOrNot)
-        .map((personId) => getPersonByIdOrThrow({ personId, familyId }))
+        .map((personId) => getPersonByIdOrThrow({ personId }))
     )
   ).map((person) => person.name)
 
