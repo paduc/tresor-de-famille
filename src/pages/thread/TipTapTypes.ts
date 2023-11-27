@@ -1,20 +1,24 @@
 import { JSON } from '../../dependencies/DomainEvent'
 import { PhotoId } from '../../domain/PhotoId'
+import { ThreadId } from '../../domain/ThreadId'
 import { UUID } from '../../domain/UUID'
 import { PhotoItemProps } from './ThreadPage/ThreadPage'
 
 export type PhotoNode = {
   type: 'photoNode'
-  attrs: {
-    // Sort of stringified version of PhotoItemProps
-    [Attr in keyof PhotoItemProps]: PhotoItemProps[Attr] extends PhotoId
-      ? PhotoId
-      : PhotoItemProps[Attr] extends UUID
-      ? UUID
-      : PhotoItemProps[Attr] extends number
-      ? number
-      : string
-  }
+  attrs: TipTapAttrs<PhotoItemProps>
+}
+
+export type TipTapAttrs<ItemProps extends {}> = {
+  [Attr in keyof ItemProps]: ItemProps[Attr] extends ThreadId
+    ? ThreadId
+    : ItemProps[Attr] extends PhotoId
+    ? PhotoId
+    : ItemProps[Attr] extends UUID
+    ? UUID
+    : ItemProps[Attr] extends number
+    ? number
+    : string
 }
 
 export type ParagraphNode = {

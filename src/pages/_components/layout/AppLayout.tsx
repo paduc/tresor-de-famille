@@ -237,7 +237,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                             {areThreadsEnabled ? (
                               <li>
                                 <a
-                                  href='/chat.html'
+                                  href='/thread.html'
                                   className='button inline-flex items-center gap-x-1.5 rounded-md  px-2.5 py-1.5 text-sm text-white border-1 ring-1 ring-inset ring-indigo-200 shadow-sm hover:bg-white/20'>
                                   <PlusSmallIcon className='-ml-0.5 h-5 w-5' aria-hidden='true' />
                                   Nouvelle anecdote
@@ -339,7 +339,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                     {areThreadsEnabled ? (
                       <li>
                         <a
-                          href='/chat.html'
+                          href='/thread.html'
                           className='button inline-flex items-center gap-x-1.5 rounded-md  px-2.5 py-1.5 text-sm text-white border-1 ring-1 ring-inset ring-indigo-200 shadow-sm hover:bg-white/20'>
                           <PlusSmallIcon className='-ml-0.5 h-5 w-5' aria-hidden='true' />
                           Nouvelle anecdote

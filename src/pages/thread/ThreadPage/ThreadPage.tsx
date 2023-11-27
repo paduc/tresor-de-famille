@@ -32,6 +32,8 @@ import { PhotoIcon } from '@heroicons/react/20/solid'
 import { FamilyId } from '../../../domain/FamilyId'
 import { useSession } from '../../_components/SessionContext'
 import { TDFModal } from '../../_components/TDFModal'
+import { ReadWriteToggle } from './ReadWriteToggle'
+import { ThreadUrl } from '../ThreadUrl'
 
 // @ts-ignore
 function classNames(...classes) {
@@ -121,29 +123,35 @@ export const ThreadPage = withBrowserBundle(
           </div>
         </TDFModal>
         <div className='w-full sm:ml-6 max-w-2xl pt-3 pb-40'>
-          <div className='w-full mb-3 inline-flex items-center place-content-end'>
-            {(familyId as string) === (session.userId as string) ? (
-              <>
-                <span className='text-gray-500 mr-2'>Uniquement vous pouvez voir cette histoire.</span>
-                <button className={`${primaryButtonStyles}`} onClick={() => openFamilyModal(true)}>
-                  Partager
-                </button>
-              </>
-            ) : (
-              <>
-                <span className='text-gray-500 mr-2'>Partagé avec les membres de</span>
-                {isAuthor ? (
-                  <button onClick={() => openFamilyModal(true)} className={`${secondaryButtonStyles}`}>
-                    {familyName}
+          <div className='w-full mb-3'>
+            <div className='w-full inline-flex items-center place-content-end'>
+              {(familyId as string) === (session.userId as string) ? (
+                <>
+                  <span className='text-gray-500 mr-2'>Uniquement vous pouvez voir cette histoire.</span>
+                  <button className={`${primaryButtonStyles}`} onClick={() => openFamilyModal(true)}>
+                    Partager
                   </button>
-                ) : (
-                  <span
-                    className={`inline-flex items-center px-3 py-1.5 border border-transparent text-md font-medium rounded-full shadow-sm bg-white ring-inset ring-2 text-indigo-600 ring-indigo-600`}>
-                    {familyName}
-                  </span>
-                )}
-              </>
-            )}
+                </>
+              ) : (
+                <>
+                  <span className='text-gray-500 mr-2'>Partagé avec les membres de</span>
+                  {isAuthor ? (
+                    <button onClick={() => openFamilyModal(true)} className={`${secondaryButtonStyles}`}>
+                      {familyName}
+                    </button>
+                  ) : (
+                    <span
+                      className={`inline-flex items-center px-3 py-1.5 border border-transparent text-md font-medium rounded-full shadow-sm bg-white ring-inset ring-2 text-indigo-600 ring-indigo-600`}>
+                      {familyName}
+                    </span>
+                  )}
+                </>
+              )}
+            </div>
+
+            <div className='w-full inline-flex items-center place-content-start'>
+              <ReadWriteToggle threadId={threadId} />
+            </div>
           </div>
           <div className='divide-y divide-gray-200 overflow-hidden sm:rounded-lg bg-white shadow'>
             <Title title={title} threadId={threadId} />
@@ -203,7 +211,7 @@ const Title = ({ title, threadId }: { title: string | undefined; threadId: Threa
 
   const save = (newTitle: string) => {
     setStatus('saving')
-    fetch(`/chat/${threadId}/chat.html`, {
+    fetch(ThreadUrl(threadId), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action: 'clientsideTitleUpdate', title: newTitle }),
@@ -267,7 +275,7 @@ const useAutosaveEditor = (
     //   }, 2000)
     // }, 2000)
     localStorage.setItem(threadId, JSON.stringify({ timestamp: Date.now(), contentAsJSON: newJSON }))
-    fetch(`/chat/${threadId}/chat.html`, {
+    fetch(ThreadUrl(threadId), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action: 'clientsideUpdate', contentAsJSON: newJSON }),

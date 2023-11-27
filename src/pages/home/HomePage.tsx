@@ -11,6 +11,7 @@ import { buttonIconStyles, primaryButtonStyles, primaryGreenButtonStyles, second
 import { InlinePhotoUploadBtn } from '../_components/InlinePhotoUploadBtn'
 import { AppLayout } from '../_components/layout/AppLayout'
 import { SendIcon } from '../thread/ThreadPage/SendIcon'
+import { ThreadUrl } from '../thread/ThreadUrl'
 
 type Steps = GetUserName & UploadProfilePicture
 export type HomePageProps =
@@ -66,7 +67,7 @@ export const HomePage = withBrowserBundle((props: HomePageProps) => {
           <div className='bg-white border border-gray-300 shadow-sm sm:max-w-lg md:max-w-xl'>
             <ul role='list' className='divide-y divide-gray-100'>
               {props.latestThreads.map((thread) => {
-                const chatPageUrl = '/chat/' + thread.threadId + '/chat.html'
+                const chatPageUrl = ThreadUrl(thread.threadId)
                 return (
                   <li key={thread.threadId} className='flex flex-wrap items-center justify-between gap-y-1 ml-0 sm:flex-nowrap'>
                     <a href={chatPageUrl} className='w-full py-3 px-3 hover:bg-gray-50'>
@@ -109,7 +110,7 @@ export const HomePage = withBrowserBundle((props: HomePageProps) => {
 
       <div className='mt-3'>
         <Paragraph>Commencez un nouveau souvenir</Paragraph>
-        <ThreadTextarea formAction='/chat.html' />
+        <ThreadTextarea formAction='/thread.html' />
         <ul className='mt-2 px-1 text-gray-500 text-base list-inside list-disc'>
           Exemples:
           <li>Mon lieux de vacances quand j'étais enfant</li>
