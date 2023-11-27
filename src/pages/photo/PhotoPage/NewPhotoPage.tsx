@@ -21,6 +21,7 @@ import { TDFModal } from '../../_components/TDFModal'
 import { usePersonSearch } from '../../_components/usePersonSearch'
 import { PersonPageURL } from '../../person/PersonPageURL'
 import { PhotoListPageUrl } from '../../photoList/PhotoListPageUrl'
+import { ThreadUrl } from '../../thread/ThreadUrl'
 
 type PhotoFace = {
   faceId: FaceId
@@ -104,7 +105,7 @@ export const NewPhotoPage = withBrowserBundle(({ context, caption, photoId, phot
           href={`${
             context
               ? context.type === 'thread'
-                ? getThreadUrl(context.threadId)
+                ? ThreadUrl(context.threadId)
                 : PersonPageURL(context.profileId)
               : PhotoListPageUrl
           }`}
@@ -308,10 +309,6 @@ function SelectPersonForFacePanel({ close, selectedFace, photoId }: SelectPerson
       </Dialog>
     </Transition.Root>
   )
-}
-
-function getThreadUrl(threadId: ThreadId) {
-  return `/chat/${threadId}/chat.html`
 }
 
 type ContextualMenuProps = {

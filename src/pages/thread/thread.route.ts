@@ -34,6 +34,8 @@ import { getThreadContents, getThreadPageProps } from './getThreadPageProps'
 import { UserSentMessageToChat } from './sendMessageToChat/UserSentMessageToChat'
 import { getThreadFamily } from './_getThreadFamily'
 import { getThreadAuthor } from './_getThreadAuthor'
+import { ReadOnlyThreadPage } from './ThreadPage/ReadonlyThreadPage'
+import { ThreadUrl } from './ThreadUrl'
 
 const fakeProfilePicUrl =
   'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80'
@@ -45,16 +47,16 @@ const upload = multer({
 })
 
 pageRouter
-  .route('/chat.html')
+  .route('/thread.html')
   .get(requireAuth(), async (request, response) => {
-    const newChatId = getUuid()
+    const newThreadId = makeThreadId()
 
-    response.redirect(`/chat/${newChatId}/chat.html`)
+    response.redirect(ThreadUrl(newThreadId, true))
   })
   .post(requireAuth(), async (request, response) => {
     const userId = request.session.user!.id
 
-    const chatId = makeThreadId()
+    const threadId = makeThreadId()
 
     const { message } = request.body
 
@@ -63,7 +65,7 @@ pageRouter
 
       await addToHistory(
         UserSentMessageToChat({
-          chatId,
+          chatId: threadId,
           userId,
           message,
           messageId,
@@ -73,20 +75,30 @@ pageRouter
     }
 
     // TODO: try catch error and send it back as HTML (or redirect if OK)
-    return response.redirect(`/chat/${chatId}/chat.html`)
+    return response.redirect(ThreadUrl(threadId, true))
   })
 
 pageRouter
-  .route('/chat/:threadId/chat.html')
+  .route(ThreadUrl())
   .get(requireAuth(), async (request, response) => {
-    const { threadId } = z.object({ threadId: zIsThreadId }).parse(request.params)
+    const { edit, threadId } = z.object({ edit: z.literal('edit').optional(), threadId: zIsThreadId }).parse(request.params)
+
     const userId = request.session.user!.id
+    const isEditable = edit === 'edit'
 
     const props = await getThreadPageProps({ threadId, userId })
 
-    // console.log(JSON.stringify({ props }, null, 2))
+    if (isEditable) {
+      if (props.isAuthor) {
+        return responseAsHtml(request, response, ThreadPage(props))
+      } else {
+        // remove the edit
+        return response.redirect(ThreadUrl(threadId))
+      }
+    }
 
-    responseAsHtml(request, response, ThreadPage(props))
+    // By default, return the readonly version
+    return responseAsHtml(request, response, ReadOnlyThreadPage(props))
   })
   .post(requireAuth(), upload.single('photo'), async (request, response) => {
     try {
@@ -123,6 +135,8 @@ pageRouter
             })
           )
         }
+
+        return response.redirect(ThreadUrl(threadId, true))
       } else if (action === 'clientsideUpdate') {
         try {
           const { contentAsJSON } = z.object({ contentAsJSON: z.any() }).parse(request.body)
@@ -152,6 +166,7 @@ pageRouter
             familyId,
           })
         )
+        return response.redirect(ThreadUrl(threadId, true))
       } else if (action === 'insertPhotoAtMarker') {
         const requestId = getUuid()
         const { file } = request
@@ -193,6 +208,8 @@ pageRouter
         )
 
         await detectFacesInPhotoUsingAWS({ file, photoId })
+
+        return response.redirect(ThreadUrl(threadId, true))
       } else if (action === 'shareWithFamily') {
         const { familyId: destinationFamilyId } = z.object({ familyId: zIsFamilyId }).parse(request.body)
 
@@ -231,11 +248,11 @@ pageRouter
             },
           })
         )
-        return response.redirect(`/chat/${cloneThreadId}/chat.html`)
+        return response.redirect(ThreadUrl(cloneThreadId))
       }
 
       // TODO: try catch error and send it back as HTML (or redirect if OK)
-      return response.redirect(`/chat/${threadId}/chat.html`)
+      return response.redirect(ThreadUrl(threadId))
     } catch (error) {
       console.error(error)
       return response.status(500).send(

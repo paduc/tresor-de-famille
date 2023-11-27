@@ -12,6 +12,8 @@ import { PersonSearchContext } from '../../_components/usePersonSearch'
 import { SearchIndex } from 'algoliasearch/lite'
 import { makeAppUserId } from '../../../libs/makeUserId'
 import { makeFamilyId } from '../../../libs/makeFamilyId'
+import { ReadOnlyThreadPage } from './ReadonlyThreadPage'
+import { LocationContext } from '../../_components/LocationContext'
 
 const fakePersonSearch = async (query: string) => {
   return {
@@ -68,9 +70,11 @@ export default {
             areVideosEnabled: true,
             arePersonsEnabled: true,
           }}>
-          <PersonSearchContext.Provider value={{ search: fakePersonSearch } as unknown as SearchIndex}>
-            <Story />
-          </PersonSearchContext.Provider>
+          <LocationContext.Provider value={window.location.href}>
+            <PersonSearchContext.Provider value={{ search: fakePersonSearch } as unknown as SearchIndex}>
+              <Story />
+            </PersonSearchContext.Provider>
+          </LocationContext.Provider>
         </SessionContext.Provider>
       )
     },
@@ -214,4 +218,29 @@ export const PartagéAuteur = () => (
       ],
     }}
   />
+)
+export const LectureSeule = () => (
+  <LocationContext.Provider value={window.location.href}>
+    <ReadOnlyThreadPage
+      threadId={makeThreadId()}
+      familyId={'b' as FamilyId}
+      isAuthor={true}
+      lastUpdated={t0 as Epoch}
+      title='Ceci est le titre'
+      contentAsJSON={{
+        type: 'doc',
+        content: [
+          {
+            type: 'paragraph',
+            content: [
+              {
+                type: 'text',
+                text: 'Message',
+              },
+            ],
+          },
+        ],
+      }}
+    />
+  </LocationContext.Provider>
 )

@@ -4,7 +4,7 @@ import { AppUserId } from '../../domain/AppUserId'
 import { FamilyId } from '../../domain/FamilyId'
 import { PersonId } from '../../domain/PersonId'
 import { PhotoId } from '../../domain/PhotoId'
-import { ThreadId } from '../../domain/ThreadId'
+import { ThreadId, isThreadId } from '../../domain/ThreadId'
 import { getEpoch } from '../../libs/typeguards'
 import { getFacesInPhoto } from '../_getFacesInPhoto'
 import { getPersonByIdOrThrow } from '../_getPersonById'
@@ -86,7 +86,7 @@ export const getThreadPageProps = async ({
       }
       const { photoId, threadId } = contentNode.attrs
 
-      if (!photoId || !threadId) continue
+      if (!photoId || !threadId || !isThreadId(threadId)) continue
 
       const photoInfo = await retrievePhotoInfo({ photoId, familyId })
 

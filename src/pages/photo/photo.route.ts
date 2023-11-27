@@ -24,6 +24,7 @@ import { UserAddedCaptionToPhoto } from './UserAddedCaptionToPhoto'
 import { UserDeletedPhoto } from './UserDeletedPhoto'
 import { getNewPhotoPageProps } from './getNewPhotoPageProps'
 import { detectFacesInPhotoUsingAWS } from './recognizeFacesInChatPhoto/detectFacesInPhotoUsingAWS'
+import { ThreadUrl } from '../thread/ThreadUrl'
 
 const FILE_SIZE_LIMIT_MB = 50
 const upload = multer({
@@ -202,7 +203,7 @@ pageRouter.route('/add-photo.html').post(requireAuth(), upload.single('photo'), 
     }
 
     if (chatIdFromForm) {
-      return response.redirect(`/chat/${chatId}/chat.html`)
+      return response.redirect(ThreadUrl(chatId, true))
     }
 
     return response.redirect(`/photo/${photoId}/photo.html`)

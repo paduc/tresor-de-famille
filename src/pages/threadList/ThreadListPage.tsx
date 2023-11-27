@@ -9,6 +9,7 @@ import { AppLayout } from '../_components/layout/AppLayout'
 import { FamilyId } from '../../domain/FamilyId'
 import { useSession } from '../_components/SessionContext'
 import { LockClosedIcon, UsersIcon } from '@heroicons/react/20/solid'
+import { ThreadUrl } from '../thread/ThreadUrl'
 
 // @ts-ignore
 function classNames(...classes) {
@@ -76,7 +77,7 @@ export const ThreadListPage = withBrowserBundle(({ error, success, threads }: Th
             <h3 className='text-lg ml-6 font-medium leading-6 mb-1 text-gray-900'>Histoires et anecdotes</h3>
             <ul role='list' className='divide-y divide-gray-100'>
               {threads.map((thread) => {
-                const chatPageUrl = '/chat/' + thread.threadId + '/chat.html'
+                const chatPageUrl = ThreadUrl(thread.threadId)
                 const threadFamily = getFamily(thread.familyId)
                 return (
                   <li key={thread.threadId} className='flex flex-wrap items-center justify-between gap-y-4 ml-0 sm:flex-nowrap'>
@@ -129,7 +130,7 @@ export const ThreadListPage = withBrowserBundle(({ error, success, threads }: Th
               })}
             </ul>
             <p className='mt-5 ml-6 max-w-2xl'>
-              <a href='/chat.html' className={`${primaryButtonStyles}`}>
+              <a href='/thread.html' className={`${primaryButtonStyles}`}>
                 Démarrer une nouvelle anecdote
               </a>
             </p>
@@ -154,7 +155,7 @@ export const ThreadListPage = withBrowserBundle(({ error, success, threads }: Th
             <p className='mt-1 text-sm text-gray-500'>Lancez-vous !</p>
             <div className='mt-6'>
               <a
-                href='/chat.html'
+                href='/thread.html'
                 className='button inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600'>
                 <PlusIcon className='-ml-0.5 mr-1.5 h-5 w-5' aria-hidden='true' />
                 Démarrer une nouvelle anecdote
