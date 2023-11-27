@@ -194,7 +194,7 @@ async function retrievePhotoInfo({ photoId, familyId }: { photoId: PhotoId; fami
   personsInPhoto: string[]
   unrecognizedFacesInPhoto: number
 } | null> {
-  const facesInPhoto = await getFacesInPhoto({ photoId, familyId })
+  const facesInPhoto = await getFacesInPhoto({ photoId })
 
   const personsInPhoto = (
     await Promise.all(
@@ -210,7 +210,7 @@ async function retrievePhotoInfo({ photoId, familyId }: { photoId: PhotoId; fami
   )
 
   return {
-    description: await getPhotoCaption({ photoId, familyId }),
+    description: await getPhotoCaption({ photoId }),
     personsInPhoto,
     unrecognizedFacesInPhoto: unconfirmedFaceIds.size,
   }

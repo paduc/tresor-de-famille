@@ -27,7 +27,7 @@ export const getPersonPageProps = async ({
 }): Promise<PersonPageProps> => {
   const { photos, alternateProfilePics } = await getPersonPhotos(personId, userId)
 
-  const { name } = (await getPersonById({ personId, familyId })) || { name: 'N/A' }
+  const { name } = (await getPersonById({ personId })) || { name: 'N/A' }
 
   const profilePicUrl = await getProfilePicUrlForPerson({ personId, userId, familyId })
 

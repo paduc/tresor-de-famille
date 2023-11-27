@@ -9,7 +9,7 @@ import { getOriginalPhotoId } from './_getOriginalPhotoId'
 import { AWSDetectedFacesInPhoto } from './photo/recognizeFacesInChatPhoto/AWSDetectedFacesInPhoto'
 import { PhotoClonedForSharing } from './thread/ThreadPage/PhotoClonedForSharing'
 
-export async function getFacesInPhoto({ photoId, familyId }: { photoId: PhotoId; familyId: FamilyId }) {
+export async function getFacesInPhoto({ photoId }: { photoId: PhotoId }) {
   const originalPhotoId = await getOriginalPhotoId(photoId)
 
   const awsFacesDetectedEvent = await getSingleEvent<AWSDetectedFacesInPhoto>('AWSDetectedFacesInPhoto', {
@@ -20,9 +20,7 @@ export async function getFacesInPhoto({ photoId, familyId }: { photoId: PhotoId;
 
   const detectedFaceIds = awsDetectedFaces.map((awsFace) => awsFace.faceId)
 
-  const detectedFaceInfo = await Promise.all(
-    detectedFaceIds.map((faceId) => getFaceInfoForPhotoInFamily({ faceId, photoId, familyId }))
-  )
+  const detectedFaceInfo = await Promise.all(detectedFaceIds.map((faceId) => getFaceInfoForPhotoInFamily({ faceId, photoId })))
 
   return detectedFaceInfo
 }
@@ -32,25 +30,21 @@ type FaceInfoForPhotoInFamily = PhotoClonedForSharing['payload']['faces'][number
 async function getFaceInfoForPhotoInFamily({
   faceId,
   photoId,
-  familyId,
 }: {
   faceId: FaceId
   photoId: PhotoId
-  familyId: FamilyId
 }): Promise<FaceInfoForPhotoInFamily> {
   const personNamedOrRecognizedEvent = await getSingleEvent<UserNamedPersonInPhoto | UserRecognizedPersonInPhoto>(
     ['UserNamedPersonInPhoto', 'UserRecognizedPersonInPhoto'],
     {
       faceId,
       photoId,
-      familyId,
     }
   )
 
   const faceIgnoredEvent = await getSingleEvent<FaceIgnoredInPhoto>('FaceIgnoredInPhoto', {
     faceId,
     photoId,
-    familyId,
   })
 
   type Defined = Exclude<typeof personNamedOrRecognizedEvent | typeof faceIgnoredEvent, undefined>
@@ -70,7 +64,7 @@ async function getFaceInfoForPhotoInFamily({
     }
   }
 
-  const photoClonedEvent = await getSingleEvent<PhotoClonedForSharing>('PhotoClonedForSharing', { photoId, familyId })
+  const photoClonedEvent = await getSingleEvent<PhotoClonedForSharing>('PhotoClonedForSharing', { photoId })
   if (photoClonedEvent) {
     const faceInfoInCloneEvent = photoClonedEvent.payload.faces.find((face) => face.faceId === faceId)
     if (faceInfoInCloneEvent) return faceInfoInCloneEvent

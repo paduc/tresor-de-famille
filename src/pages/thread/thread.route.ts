@@ -341,7 +341,13 @@ async function makeCloneOfFacesInPhoto({
   // Get all faces from original photo
   // Get the persons that have been tagged (in original family)
   // Get the faces that were ignored (in original family)
-  const facesInOriginalFamily = await getFacesInPhoto({ photoId: originalPhotoId, familyId: originalFamilyId })
+  const facesInOriginalFamily = await getFacesInPhoto({ photoId: originalPhotoId })
+
+  const facesInDestinationFamily: {
+    faceId: FaceId
+    personId?: PersonId | undefined
+    isIgnored?: boolean
+  }[] = []
 
   for (const face of facesInOriginalFamily) {
     if (face.personId) {
@@ -354,12 +360,15 @@ async function makeCloneOfFacesInPhoto({
 
       if (personClonedEvent) {
         // there is an equivalent, substitute
-        face.personId = personClonedEvent.payload.personId
+        facesInDestinationFamily.push({
+          faceId: face.faceId,
+          personId: personClonedEvent.payload.personId,
+        })
         continue
       }
 
       const personId = makePersonId()
-      const { name } = await getPersonByIdOrThrow({ personId: face.personId, familyId: originalFamilyId })
+      const { name } = await getPersonByIdOrThrow({ personId: face.personId })
 
       // No equivalent, time to create one !
       await addToHistory(
@@ -378,6 +387,16 @@ async function makeCloneOfFacesInPhoto({
           },
         })
       )
+
+      facesInDestinationFamily.push({
+        faceId: face.faceId,
+        personId,
+      })
+    } else {
+      facesInDestinationFamily.push({
+        faceId: face.faceId,
+        isIgnored: face.isIgnored,
+      })
     }
   }
 
@@ -385,5 +404,5 @@ async function makeCloneOfFacesInPhoto({
   // If personId, get the equivalent thanks to PersonClonedForSharing
   // or clone the original if no equivalent exists
 
-  throw 'not implemented'
+  return facesInDestinationFamily
 }

@@ -33,7 +33,7 @@ export const getNewPhotoPageProps = async ({
 
   const faces: PhotoFace[] = await Promise.all(
     (
-      await getFacesInPhoto({ photoId, familyId })
+      await getFacesInPhoto({ photoId })
     ).map(async (face): Promise<PhotoFace> => {
       const { faceId } = face
 
@@ -58,7 +58,7 @@ export const getNewPhotoPageProps = async ({
     })
   )
 
-  const caption = await getPhotoCaption({ photoId, familyId })
+  const caption = await getPhotoCaption({ photoId })
 
   return {
     photoUrl: getPhotoUrlFromId(photoId),
