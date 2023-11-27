@@ -1,6 +1,5 @@
 import { postgres } from '../dependencies/database'
 import { getSingleEvent } from '../dependencies/getSingleEvent'
-import { FamilyId } from '../domain/FamilyId'
 import { PersonId } from '../domain/PersonId'
 import { UserNamedPersonInPhoto } from '../events/onboarding/UserNamedPersonInPhoto'
 import { UserNamedThemself } from '../events/onboarding/UserNamedThemself'
@@ -11,16 +10,10 @@ import { PersonClonedForSharing } from './share/PersonClonedForSharing'
 
 export type PersonById = { name: string }
 
-export const getPersonById = async ({
-  personId,
-  familyId,
-}: {
-  personId: PersonId
-  familyId: FamilyId
-}): Promise<PersonById | null> => {
+export const getPersonById = async ({ personId }: { personId: PersonId }): Promise<PersonById | null> => {
   const { rows: personsAddedWithNewRelationship } = await postgres.query<UserCreatedRelationshipWithNewPerson>(
-    "SELECT * FROM history WHERE type = 'UserCreatedRelationshipWithNewPerson' AND payload->'newPerson'->>'personId'=$1 AND payload->>'family'=$2",
-    [personId, familyId]
+    "SELECT * FROM history WHERE type = 'UserCreatedRelationshipWithNewPerson' AND payload->'newPerson'->>'personId'=$1",
+    [personId]
   )
 
   let name = personsAddedWithNewRelationship[0]?.payload.newPerson.name
@@ -29,7 +22,6 @@ export const getPersonById = async ({
     UserNamedThemself | UserNamedPersonInPhoto | UserChangedPersonName | PersonClonedForSharing
   >(['UserNamedThemself', 'UserNamedPersonInPhoto', 'UserChangedPersonName', 'PersonClonedForSharing'], {
     personId,
-    familyId,
   })
 
   if (userNamedEvent) {
@@ -43,14 +35,8 @@ export const getPersonById = async ({
   return null
 }
 
-export const getPersonByIdOrThrow = async ({
-  personId,
-  familyId,
-}: {
-  personId: PersonId
-  familyId: FamilyId
-}): Promise<PersonById> => {
-  const person = await getPersonById({ personId, familyId })
+export const getPersonByIdOrThrow = async ({ personId }: { personId: PersonId }): Promise<PersonById> => {
+  const person = await getPersonById({ personId })
   if (person === null) {
     throw new Error(`Could not retrieve person for id ${personId}`)
   }

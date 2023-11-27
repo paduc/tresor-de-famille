@@ -8,12 +8,12 @@ import { FaceIgnoredInPhoto } from '../../events/onboarding/FaceIgnoredInPhoto'
 import { UserNamedPersonInPhoto } from '../../events/onboarding/UserNamedPersonInPhoto'
 import { UserRecognizedPersonInPhoto } from '../../events/onboarding/UserRecognizedPersonInPhoto'
 import { doesPhotoExist } from '../_doesPhotoExist'
+import { getFacesInPhoto } from '../_getFacesInPhoto'
 import { getPersonById, getPersonByIdOrThrow } from '../_getPersonById'
 import { getPersonIdsForFaceId } from '../_getPersonsIdsForFaceId'
+import { getPhotoCaption } from '../_getPhotoCaption'
 
 import { NewPhotoPageProps } from './PhotoPage/NewPhotoPage'
-import { UserAddedCaptionToPhoto } from './UserAddedCaptionToPhoto'
-import { AWSDetectedFacesInPhoto } from './recognizeFacesInChatPhoto/AWSDetectedFacesInPhoto'
 
 type PhotoFace = NewPhotoPageProps['faces'][number]
 
@@ -26,104 +26,44 @@ export const getNewPhotoPageProps = async ({
   userId: AppUserId
   familyId: FamilyId
 }): Promise<NewPhotoPageProps> => {
+  // TODO: Check rights
+
   const photoExists = await doesPhotoExist({ photoId, familyId })
   if (!photoExists) throw new Error('Photo does not exist')
 
-  const captionSet = await getSingleEvent<UserAddedCaptionToPhoto>('UserAddedCaptionToPhoto', { photoId, familyId })
+  const faces: PhotoFace[] = await Promise.all(
+    (
+      await getFacesInPhoto({ photoId, familyId })
+    ).map(async (face): Promise<PhotoFace> => {
+      const { faceId } = face
 
-  const awsFacesDetectedEvents = await getSingleEvent<AWSDetectedFacesInPhoto>('AWSDetectedFacesInPhoto', { photoId })
+      if (face.isIgnored) {
+        return {
+          faceId,
+          stage: 'ignored',
+        }
+      }
 
-  const detectedFaces = awsFacesDetectedEvents?.payload.faces || []
+      if (face.personId) {
+        const person = await getPersonByIdOrThrow({ personId: face.personId })
+        return {
+          faceId,
+          stage: 'done',
+          personId: face.personId,
+          name: person.name,
+        }
+      }
 
-  const faces: PhotoFace[] = detectedFaces
-    ? await Promise.all(detectedFaces.map(({ faceId }) => getFamilyDetectedFace({ faceId, photoId, userId, familyId })))
-    : []
+      return { faceId, stage: 'awaiting-name' }
+    })
+  )
+
+  const caption = await getPhotoCaption({ photoId, familyId })
 
   return {
     photoUrl: getPhotoUrlFromId(photoId),
     photoId,
-    caption: captionSet?.payload.caption.body,
+    caption,
     faces,
-  }
-}
-
-// Copy from getChatPageProps()
-async function getFamilyDetectedFace(args: {
-  faceId: FaceId
-  photoId: PhotoId
-  userId: AppUserId
-  familyId: FamilyId
-}): Promise<PhotoFace> {
-  const { faceId, photoId, userId, familyId } = args
-
-  const personNamedOrRecognizedEvent = await getSingleEvent<UserNamedPersonInPhoto | UserRecognizedPersonInPhoto>(
-    ['UserNamedPersonInPhoto', 'UserRecognizedPersonInPhoto'],
-    {
-      faceId,
-      photoId,
-      userId,
-      familyId,
-    }
-  )
-
-  const faceIgnoredEvent = await getSingleEvent<FaceIgnoredInPhoto>('FaceIgnoredInPhoto', {
-    photoId,
-    faceId,
-    ignoredBy: userId,
-    familyId,
-  })
-
-  type Defined = Exclude<typeof personNamedOrRecognizedEvent | typeof faceIgnoredEvent, undefined>
-
-  const latestEvent = [personNamedOrRecognizedEvent, faceIgnoredEvent]
-    .filter((event): event is Defined => !!event)
-    .sort((a, b) => a.occurredAt.getTime() - b.occurredAt.getTime())
-    .at(-1)
-
-  if (latestEvent) {
-    if (latestEvent.type === 'FaceIgnoredInPhoto') {
-      return {
-        faceId,
-        stage: 'ignored',
-      }
-    }
-
-    const { type, payload } = latestEvent
-    const { personId } = payload
-
-    let name: string
-    if (type === 'UserNamedPersonInPhoto') {
-      name = payload.name
-    } else {
-      name = (await getPersonByIdOrThrow({ personId, familyId })).name
-    }
-
-    return {
-      faceId,
-      stage: 'done',
-      personId,
-      name,
-    }
-  }
-
-  // Do we recognize this face from elsewhere ?
-  const persons = await getPersonIdsForFaceId({ faceId, familyId })
-  if (persons.length) {
-    const personId = persons[0]
-    const person = await getPersonById({ personId, familyId })
-
-    if (person) {
-      return {
-        faceId,
-        stage: 'done',
-        personId,
-        name: person.name,
-      }
-    }
-  }
-
-  return {
-    faceId,
-    stage: 'awaiting-name',
   }
 }

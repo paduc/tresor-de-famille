@@ -14,7 +14,7 @@ export const getPersonForUserInFamily = async ({
   userId: AppUserId
   familyId: FamilyId
 }): Promise<Person | null> => {
-  const userNamedThemself = await getSingleEvent<UserNamedThemself>('UserNamedThemself', { userId, familyId })
+  const userNamedThemself = await getSingleEvent<UserNamedThemself>('UserNamedThemself', { userId })
 
   if (!userNamedThemself) {
     return null
@@ -22,7 +22,7 @@ export const getPersonForUserInFamily = async ({
 
   const { personId } = userNamedThemself.payload
 
-  const person = await getPersonById({ personId, familyId })
+  const person = await getPersonById({ personId })
 
   if (!person) return null
 
