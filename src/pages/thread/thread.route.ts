@@ -32,6 +32,8 @@ import { UserSetChatTitle } from './UserSetChatTitle'
 import { UserUpdatedThreadAsRichText } from './UserUpdatedThreadAsRichText'
 import { getThreadContents, getThreadPageProps } from './getThreadPageProps'
 import { UserSentMessageToChat } from './sendMessageToChat/UserSentMessageToChat'
+import { getThreadFamily } from './_getThreadFamily'
+import { getThreadAuthor } from './_getThreadAuthor'
 
 const fakeProfilePicUrl =
   'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80'
@@ -65,7 +67,7 @@ pageRouter
           userId,
           message,
           messageId,
-          familyId: request.session.currentFamilyId!,
+          familyId: userId as string as FamilyId,
         })
       )
     }
@@ -104,7 +106,7 @@ pageRouter
         })
         .parse(request.body)
 
-      const familyId = request.session.currentFamilyId!
+      const familyId = (await getThreadFamily(threadId)) || (userId as string as FamilyId)
 
       if (action === 'newMessage') {
         const { message } = z.object({ message: z.string() }).parse(request.body)
@@ -194,7 +196,11 @@ pageRouter
       } else if (action === 'shareWithFamily') {
         const { familyId: destinationFamilyId } = z.object({ familyId: zIsFamilyId }).parse(request.body)
 
-        // TODO: Check rights
+        const authorId = await getThreadAuthor(threadId)
+
+        if (authorId !== userId) {
+          throw new Error("Seul l'auteur d'une histoire peut la partager.")
+        }
 
         const cloneThreadId = makeThreadId()
         const contents = await getThreadContents(threadId)

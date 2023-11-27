@@ -218,8 +218,8 @@ pageRouter.route('/delete-photo').post(requireAuth(), async (request, response) 
     const userId = request.session.user!.id
     const familyId = request.session.currentFamilyId!
 
-    // Make sure the user is the author of the photo
-    const isAllowed = await doesPhotoExist({ photoId, familyId })
+    // TODO: Make sure the user is the author of the photo
+    const isAllowed = await doesPhotoExist({ photoId })
 
     if (!isAllowed) {
       return response.status(403).send("La suppression de la photo a échoué parce que vous n'en êtes pas l'auteur.")
