@@ -57,6 +57,7 @@ app.use(factViewerRouter)
 app.use(express.static(path.join(__dirname, 'assets')))
 
 app.use((err: Error, _: Request, res: Response, next: NextFunction) => {
+  console.error(err)
   res.status(500).send()
 })
 

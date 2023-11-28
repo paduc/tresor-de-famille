@@ -54,13 +54,15 @@ export const ReadOnlyThreadPage = withBrowserBundle(({ contentAsJSON, title, fam
           <div className='sm:ml-6 max-w-2xl relative'>
             {contentAsJSON.content.map((block, index) => {
               if (block.type === 'paragraph') {
-                return (
-                  <p
-                    key={`block_${index}`}
-                    className='px-4 sm:px-0 py-4 text-gray-800 text-lg  whitespace-pre-wrap [&+p]:-mt-1 [&+p]:border-t-0 [&+p]:pt-0'>
-                    {block.content[0].text}
-                  </p>
-                )
+                if (block.content) {
+                  return (
+                    <p
+                      key={`block_${index}`}
+                      className='px-4 sm:px-0 py-4 text-gray-800 text-lg  whitespace-pre-wrap [&+p]:-mt-1 [&+p]:border-t-0 [&+p]:pt-0'>
+                      {block.content[0]?.text}
+                    </p>
+                  )
+                }
               }
 
               if (block.type === 'photoNode') {
