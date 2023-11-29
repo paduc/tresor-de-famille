@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { FamilyId } from '../../../domain/FamilyId'
 import { PhotoId } from '../../../domain/PhotoId'
 import { ThreadId } from '../../../domain/ThreadId'
@@ -8,6 +8,8 @@ import { useSession } from '../../_components/SessionContext'
 import { AppLayout } from '../../_components/layout/AppLayout'
 import { TipTapAttrs, TipTapContentAsJSON } from '../TipTapTypes'
 import { ReadWriteToggle } from './ReadWriteToggle'
+import { secondaryButtonStyles, primaryButtonStyles } from '../../_components/Button'
+import { TDFModal } from '../../_components/TDFModal'
 
 export type ReadOnlyThreadPageProps = {
   title?: string
@@ -24,16 +26,49 @@ export const ReadOnlyThreadPage = withBrowserBundle(({ contentAsJSON, title, fam
     return <div />
   }
 
+  const [isFamilyModalOpen, openFamilyModal] = useState<boolean>(false)
+
   const familyName = session.userFamilies.find((f) => f.familyId === familyId)?.familyName || 'Personnel'
 
   return (
     <AppLayout>
+      <TDFModal
+        title='Choisissez la famille avec laquelle vous voulez partager cette histoire'
+        isOpen={isFamilyModalOpen}
+        close={() => openFamilyModal(false)}>
+        <div className='mt-8'>
+          {session.userFamilies
+            .filter((f) => f.familyId !== familyId)
+            .map((family) => (
+              <form key={`select_${family.familyId}`} method='POST'>
+                <input type='hidden' name='action' value='shareWithFamily' />
+                <input type='hidden' name='familyId' value={family.familyId} />
+                <button
+                  key={`add_to_${family.familyId}`}
+                  type='submit'
+                  className={`mb-4 ${secondaryButtonStyles.replace(/inline\-flex/g, '')}  w-full text-center`}>
+                  {family.familyName}
+                </button>
+              </form>
+            ))}
+          <button
+            onClick={() => {
+              openFamilyModal(false)
+            }}
+            className={`mb-4 ${primaryButtonStyles.replace(/inline\-flex/g, '')}  w-full text-center`}>
+            Annuler
+          </button>
+        </div>
+      </TDFModal>
       <div className='w-full sm:ml-6 max-w-2xl pt-3 pb-40'>
         <div className='w-full mb-3'>
           <div className='w-full inline-flex items-center place-content-end'>
             {(familyId as string) === (session.userId as string) ? (
               <>
                 <span className='text-gray-500 mr-2'>Uniquement vous pouvez voir cette histoire.</span>
+                <button className={`${primaryButtonStyles}`} onClick={() => openFamilyModal(true)}>
+                  Partager
+                </button>
               </>
             ) : (
               <>
