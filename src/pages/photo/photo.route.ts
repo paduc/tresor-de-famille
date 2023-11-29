@@ -16,7 +16,7 @@ import { makePhotoId } from '../../libs/makePhotoId'
 import { makeThreadId } from '../../libs/makeThreadId'
 import { responseAsHtml } from '../../libs/ssr/responseAsHtml'
 import { doesPhotoExist } from '../_doesPhotoExist'
-import { uploadPhotoToChat } from '../thread/uploadPhotoToChat/uploadPhotoToChat'
+import { uploadPhotoToThread } from '../thread/uploadPhotoToChat/uploadPhotoToChat'
 import { PhotoListPageUrl } from '../photoList/PhotoListPageUrl'
 import { pageRouter } from '../pageRouter'
 import { NewPhotoPage } from './PhotoPage/NewPhotoPage'
@@ -25,6 +25,8 @@ import { UserDeletedPhoto } from './UserDeletedPhoto'
 import { getNewPhotoPageProps } from './getNewPhotoPageProps'
 import { detectFacesInPhotoUsingAWS } from './recognizeFacesInChatPhoto/detectFacesInPhotoUsingAWS'
 import { ThreadUrl } from '../thread/ThreadUrl'
+import { getThreadFamily } from '../thread/_getThreadFamily'
+import { getPhotoFamily } from '../thread/_getPhotoFamily'
 
 const FILE_SIZE_LIMIT_MB = 50
 const upload = multer({
@@ -48,7 +50,6 @@ pageRouter
       const props = await getNewPhotoPageProps({
         photoId,
         userId: request.session.user!.id,
-        familyId: request.session.currentFamilyId!,
       })
 
       if (threadId) {
@@ -84,7 +85,6 @@ pageRouter
         .parse(request.params)
 
       if (action) {
-        const currentFamilyId = request.session.currentFamilyId!
         if (action === 'addCaption') {
           const { caption } = zod
             .object({
@@ -101,7 +101,6 @@ pageRouter
                 body: caption,
               },
               addedBy: userId,
-              familyId: currentFamilyId,
             })
           )
         } else if (action === 'submitFamilyMemberName') {
@@ -121,16 +120,16 @@ pageRouter
                 faceId,
                 personId,
                 name: newFamilyMemberName,
-                familyId: currentFamilyId,
               })
             )
 
             try {
+              const photoFamily = await getPhotoFamily(photoId)
               await personsIndex.saveObject({
                 objectID: personId,
                 personId,
                 name: newFamilyMemberName,
-                visible_by: [`family/${currentFamilyId}`, `user/${userId}`],
+                visible_by: [`family/${photoFamily}`, `user/${userId}`],
               })
             } catch (error) {
               console.error('Could not add new family member to algolia index', error)
@@ -148,7 +147,6 @@ pageRouter
                 photoId,
                 faceId,
                 personId: existingFamilyMemberId,
-                familyId: currentFamilyId,
               })
             )
           }
@@ -163,7 +161,6 @@ pageRouter
               ignoredBy: userId,
               photoId,
               faceId,
-              familyId: currentFamilyId,
             })
           )
         }
@@ -194,7 +191,7 @@ pageRouter.route('/add-photo.html').post(requireAuth(), upload.single('photo'), 
     if (!file) return new Error('We did not receive any image.')
     const photoId = makePhotoId()
 
-    await uploadPhotoToChat({ file, photoId, chatId, userId, familyId: request.session.currentFamilyId! })
+    await uploadPhotoToThread({ file, photoId, threadId: chatId, userId })
 
     await detectFacesInPhotoUsingAWS({ file, photoId })
 
@@ -217,7 +214,6 @@ pageRouter.route('/delete-photo').post(requireAuth(), async (request, response) 
   try {
     const { photoId } = zod.object({ photoId: zIsPhotoId }).parse(request.body)
     const userId = request.session.user!.id
-    const familyId = request.session.currentFamilyId!
 
     // TODO: Make sure the user is the author of the photo
     const isAllowed = await doesPhotoExist({ photoId })
@@ -231,7 +227,6 @@ pageRouter.route('/delete-photo').post(requireAuth(), async (request, response) 
       UserDeletedPhoto({
         photoId,
         userId,
-        familyId,
       })
     )
 

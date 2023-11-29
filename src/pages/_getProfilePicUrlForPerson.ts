@@ -2,7 +2,6 @@ import { getEventList } from '../dependencies/getEventList'
 import { getSingleEvent } from '../dependencies/getSingleEvent'
 import { AppUserId } from '../domain/AppUserId'
 import { FaceId } from '../domain/FaceId'
-import { FamilyId } from '../domain/FamilyId'
 import { PersonId } from '../domain/PersonId'
 import { PhotoId } from '../domain/PhotoId'
 import { UserConfirmedHisFace } from '../events/onboarding/UserConfirmedHisFace'
@@ -13,14 +12,12 @@ import { PersonClonedForSharing } from './share/PersonClonedForSharing'
 
 export const getProfilePicUrlForPerson = async ({
   userId,
-  familyId,
   personId,
 }: {
   userId: AppUserId
-  familyId: FamilyId
   personId: PersonId
 }): Promise<string | null> => {
-  const faceAndPhoto = await getFaceAndPhotoForPerson({ userId, familyId, personId })
+  const faceAndPhoto = await getFaceAndPhotoForPerson({ userId, personId })
 
   if (faceAndPhoto) {
     const { faceId, photoId } = faceAndPhoto
@@ -32,17 +29,14 @@ export const getProfilePicUrlForPerson = async ({
 
 export const getFaceAndPhotoForPerson = async ({
   userId,
-  familyId,
   personId,
 }: {
   userId: AppUserId
-  familyId: FamilyId
   personId: PersonId
 }): Promise<{ faceId: FaceId; photoId: PhotoId } | null> => {
   const preferredProfilePic = await getSingleEvent<UserSelectedNewProfilePic>(['UserSelectedNewProfilePic'], {
     userId,
     personId,
-    familyId,
   })
 
   if (preferredProfilePic) {
@@ -73,7 +67,6 @@ export const getFaceAndPhotoForPerson = async ({
     {
       personId,
       userId,
-      familyId,
     }
   )
 

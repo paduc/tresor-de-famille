@@ -72,8 +72,6 @@ pageRouter
             })
           )
         }
-
-        request.session.currentFamilyId = familyId
       }
     } else if (action === 'registerWithInvite') {
       try {
@@ -87,8 +85,6 @@ pageRouter
         const userId = await registerWithInvite({ email, password, familyId, shareCode: code })
 
         buildSession({ userId, request })
-
-        request.session.currentFamilyId = familyId
       } catch (error) {
         const props = await getInvitationPageProps(familyId, code)
         const { email } = request.body

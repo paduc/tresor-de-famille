@@ -14,7 +14,6 @@ export type UserRecognizedPersonInPhoto = DomainEvent<
     personId: PersonId
 
     userId: AppUserId
-    familyId: FamilyId
   }
 >
 

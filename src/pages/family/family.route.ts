@@ -14,10 +14,14 @@ import { UserCreatedNewRelationship } from './UserCreatedNewRelationship'
 import { UserCreatedRelationshipWithNewPerson } from './UserCreatedRelationshipWithNewPerson'
 import { UserRemovedRelationship } from './UserRemovedRelationship'
 import { getFamilyPageProps } from './getFamilyPageProps'
+import { FamilyId } from '../../domain/FamilyId'
 
 pageRouter.route(FamilyPageURL()).get(requireAuth(), async (request, response) => {
   try {
-    const props = await getFamilyPageProps({ userId: request.session.user!.id, familyId: request.session.currentFamilyId! })
+    const props = await getFamilyPageProps({
+      userId: request.session.user!.id,
+      familyId: request.session.user!.id as string as FamilyId,
+    })
     responseAsHtml(request, response, FamilyPage(props))
   } catch (error) {
     console.error("La personne essaie d'aller sur la page famille alors qu'elle ne s'est pas encore présentée", error)
@@ -53,7 +57,7 @@ pageRouter.route('/family/saveNewRelationship').post(requireAuth(), async (reque
     return response.status(403).send()
   }
 
-  const currentFamilyId = request.session.currentFamilyId!
+  const defaultFamilyId = userId as string as FamilyId
 
   if (newPerson) {
     await addToHistory(
@@ -61,7 +65,7 @@ pageRouter.route('/family/saveNewRelationship').post(requireAuth(), async (reque
         relationship,
         newPerson,
         userId,
-        familyId: currentFamilyId,
+        familyId: defaultFamilyId,
       })
     )
 
@@ -71,7 +75,7 @@ pageRouter.route('/family/saveNewRelationship').post(requireAuth(), async (reque
         objectID: personId,
         personId,
         name,
-        visible_by: [`family/${currentFamilyId}`, `user/${userId}`],
+        visible_by: [`family/${defaultFamilyId}`, `user/${userId}`],
       })
     } catch (error) {
       console.error('Could not add new family member to algolia index', error)
@@ -81,7 +85,7 @@ pageRouter.route('/family/saveNewRelationship').post(requireAuth(), async (reque
       UserCreatedNewRelationship({
         relationship,
         userId,
-        familyId: currentFamilyId,
+        familyId: defaultFamilyId,
       })
     )
   }
@@ -92,7 +96,7 @@ pageRouter.route('/family/saveNewRelationship').post(requireAuth(), async (reque
         UserCreatedNewRelationship({
           relationship: secondaryRelationship,
           userId,
-          familyId: currentFamilyId,
+          familyId: defaultFamilyId,
         })
       )
     }
@@ -103,6 +107,7 @@ pageRouter.route('/family/saveNewRelationship').post(requireAuth(), async (reque
 
 pageRouter.route('/family/removeRelationship').post(requireAuth(), async (request, response) => {
   const userId = request.session.user!.id
+  const defaultFamilyId = userId as string as FamilyId
   const { relationshipId } = z
     .object({
       relationshipId: zIsRelationshipId,
@@ -114,7 +119,7 @@ pageRouter.route('/family/removeRelationship').post(requireAuth(), async (reques
       UserRemovedRelationship({
         relationshipId,
         userId,
-        familyId: request.session.currentFamilyId!,
+        familyId: defaultFamilyId,
       })
     )
   }

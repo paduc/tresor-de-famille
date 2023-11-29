@@ -1,7 +1,6 @@
 import React, { useContext } from 'react'
-import { PersonId } from '../../domain/PersonId'
-import { FamilyId } from '../../domain/FamilyId'
 import { AppUserId } from '../../domain/AppUserId'
+import { FamilyId } from '../../domain/FamilyId'
 
 export type Session =
   | { isSharingEnabled: boolean } & (
@@ -12,7 +11,6 @@ export type Session =
           isLoggedIn: true
           userName: string
           userId: AppUserId
-          personId: PersonId | undefined
           profilePic: string | null
           userFamilies: {
             familyName: string
@@ -21,7 +19,6 @@ export type Session =
           }[]
           hasFamiliesOtherThanDefault: boolean
           searchKey: string
-          currentFamilyId: FamilyId
           isAdmin: boolean
           arePhotosEnabled: boolean
           arePersonsEnabled: boolean

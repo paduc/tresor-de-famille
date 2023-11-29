@@ -8,10 +8,11 @@ import { pageRouter } from '../pageRouter'
 import { SharePage } from './SharePage'
 import { UserCreatedNewFamily } from './UserCreatedNewFamily'
 import { getSharePageProps } from './getSharePageProps'
-import { getPersonForUserInFamily } from '../_getPersonForUserInFamily'
 import { PersonClonedForSharing } from './PersonClonedForSharing'
 import { makePersonId } from '../../libs/makePersonId'
 import { getFaceAndPhotoForPerson } from '../_getProfilePicUrlForPerson'
+import { FamilyId } from '../../domain/FamilyId'
+import { getPersonForUser } from '../_getPersonForUser'
 
 pageRouter
   .route('/share.html')
@@ -51,13 +52,13 @@ pageRouter
       )
 
       // Create a new person identical to the user's person
-      const previousFamilyId = request.session.currentFamilyId!
-      const userPerson = await getPersonForUserInFamily({ userId, familyId: previousFamilyId })
+      const previousFamilyId = userId as string as FamilyId
+      const userPerson = await getPersonForUser({ userId })
       if (userPerson) {
         let profilePicPhotoId
         let faceId
 
-        const faceAndPhoto = await getFaceAndPhotoForPerson({ userId, familyId, personId: userPerson.personId })
+        const faceAndPhoto = await getFaceAndPhotoForPerson({ userId, personId: userPerson.personId })
 
         if (faceAndPhoto) {
           faceId = faceAndPhoto.faceId
@@ -79,8 +80,6 @@ pageRouter
           })
         )
       }
-
-      request.session.currentFamilyId = familyId
 
       return response.redirect('/share.html')
     }

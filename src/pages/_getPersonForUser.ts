@@ -7,13 +7,7 @@ import { getPersonById } from './_getPersonById'
 
 type Person = { personId: PersonId; name: string }
 
-export const getPersonForUserInFamily = async ({
-  userId,
-  familyId,
-}: {
-  userId: AppUserId
-  familyId: FamilyId
-}): Promise<Person | null> => {
+export const getPersonForUser = async ({ userId }: { userId: AppUserId }): Promise<Person | null> => {
   const userNamedThemself = await getSingleEvent<UserNamedThemself>('UserNamedThemself', { userId })
 
   if (!userNamedThemself) {

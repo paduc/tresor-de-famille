@@ -61,7 +61,7 @@ export default {
                 about: 'La famille C',
               },
             ],
-            currentFamilyId: 'a' as FamilyId,
+
             userName: 'Jean-Michel Trotro',
             profilePic: null,
             isAdmin: false,

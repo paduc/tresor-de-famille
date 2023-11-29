@@ -12,12 +12,10 @@
   }
   ```
 */
-import { Dialog, Listbox, Menu, Transition } from '@headlessui/react'
+import { Dialog, Menu, Transition } from '@headlessui/react'
 import {
   Bars3Icon,
   BookOpenIcon,
-  CheckIcon,
-  ChevronDownIcon,
   HomeIcon,
   MagnifyingGlassIcon,
   PhotoIcon,
@@ -29,7 +27,6 @@ import {
 import React, { Fragment, useContext, useState } from 'react'
 import { PersonPageURL } from '../../person/PersonPageURL'
 import { PersonSearch } from '../../photo/PhotoPage/PersonSearch'
-import { ClientOnly } from '../ClientOnly'
 import { InlinePhotoUploadBtn } from '../InlinePhotoUploadBtn'
 import { LocationContext } from '../LocationContext'
 import { Logo } from '../Logo'
@@ -66,16 +63,8 @@ export function AppLayout({ children }: AppLayoutProps) {
     return <p>Session not available</p>
   }
 
-  const {
-    arePhotosEnabled,
-    areThreadsEnabled,
-    isFamilyPageEnabled,
-    isSharingEnabled,
-    profilePic,
-    userFamilies,
-    currentFamilyId,
-    userId,
-  } = session
+  const { arePhotosEnabled, areThreadsEnabled, isFamilyPageEnabled, isSharingEnabled, profilePic, userFamilies, userId } =
+    session
 
   type CurrentFamilySituation =
     | {
@@ -85,24 +74,6 @@ export function AppLayout({ children }: AppLayoutProps) {
     | {
         showBanner: false
       }
-
-  function getCurrentFamilySituation(): CurrentFamilySituation {
-    const onlyPersonnalSpace =
-      !userFamilies.length || userFamilies.every(({ familyId }) => (familyId as string) === (userId as string))
-
-    if (onlyPersonnalSpace) {
-      return {
-        showBanner: false,
-      }
-    }
-
-    return {
-      showBanner: true,
-      familyName: userFamilies.find(({ familyId }) => familyId === currentFamilyId)!.familyName,
-    }
-  }
-
-  const currentFamilySituation = getCurrentFamilySituation()
 
   const userName = session.userName || ''
 
@@ -160,13 +131,6 @@ export function AppLayout({ children }: AppLayoutProps) {
       */}
 
       <div>
-        {isSharingEnabled ? (
-          <FamilyBanner
-            position='top'
-            showBanner={currentFamilySituation.showBanner}
-            familyName={currentFamilySituation.showBanner ? currentFamilySituation.familyName : ''}
-          />
-        ) : null}
         {session.arePersonsEnabled ? (
           <PersonSearch
             open={personSearchOpen}
@@ -227,11 +191,6 @@ export function AppLayout({ children }: AppLayoutProps) {
                     </div>
                     <nav className='flex flex-1 flex-col'>
                       <ul role='list' className='flex flex-1 flex-col gap-y-7'>
-                        {isSharingEnabled && currentFamilySituation.showBanner && currentFamilySituation.showBanner ? (
-                          <li>
-                            <FamilySwitcher />
-                          </li>
-                        ) : null}
                         <li>
                           <ul role='list' className='-mx-2 mt-2 space-y-3'>
                             {areThreadsEnabled ? (
@@ -312,13 +271,6 @@ export function AppLayout({ children }: AppLayoutProps) {
           className={`hidden lg:fixed lg:inset-y-0 lg:z-40 lg:flex lg:w-72 lg:flex-col ${
             sidebarAccessible ? '' : 'lg:hidden'
           }`}>
-          {isSharingEnabled && currentFamilySituation.showBanner ? (
-            <FamilyBanner
-              position='static-sidebar'
-              showBanner={currentFamilySituation.showBanner}
-              familyName={currentFamilySituation.showBanner ? currentFamilySituation.familyName : ''}
-            />
-          ) : null}
           {/* Sidebar component, swap this element with another sidebar if you like */}
           <div className='flex grow flex-col gap-y-5 overflow-y-auto bg-indigo-600 px-6 pb-4'>
             <div className='flex h-16 shrink-0 items-center'>
@@ -329,11 +281,6 @@ export function AppLayout({ children }: AppLayoutProps) {
             </div>
             <nav className='flex flex-1 flex-col'>
               <ul role='list' className='flex flex-1 flex-col gap-y-7'>
-                {isSharingEnabled && currentFamilySituation.showBanner ? (
-                  <li>
-                    <FamilySwitcher />
-                  </li>
-                ) : null}
                 <li>
                   <ul role='list' className='-mx-2 mt-2 space-y-3'>
                     {areThreadsEnabled ? (
@@ -491,7 +438,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                       leaveFrom='transform opacity-100 scale-100'
                       leaveTo='transform opacity-0 scale-95'>
                       <Menu.Items className='origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none'>
-                        {session.personId ? (
+                        {/* {session.personId ? (
                           <Menu.Item>
                             {({ active }) => (
                               <a
@@ -504,7 +451,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                               </a>
                             )}
                           </Menu.Item>
-                        ) : null}
+                        ) : null} */}
                         <Menu.Item>
                           {({ active }) => (
                             <form action='/logout' method='post'>
@@ -533,125 +480,4 @@ export function AppLayout({ children }: AppLayoutProps) {
       </div>
     </LoaderProvider>
   )
-}
-
-type BannerProps = { position: 'top' | 'static-sidebar' } & (
-  | {
-      showBanner: false
-    }
-  | {
-      showBanner: true
-      familyName: string
-    }
-)
-
-const FamilyBanner = ({ position, ...props }: BannerProps) => {
-  if (!props.showBanner) return null
-  const { familyName } = props
-  return (
-    <div
-      className={`${position === 'top' ? 'sticky flex lg:hidden' : ''} ${
-        position === 'static-sidebar' ? 'hidden lg:flex' : ''
-      } top-0 h-16 items-center bg-yellow-300`}>
-      <div className='mx-auto px-2 py-1 h-16 flex text-center place-items-center'>Vous êtes sur "{familyName}"</div>
-    </div>
-  )
-}
-
-type FamilySwitcherProps = {}
-
-const FamilySwitcher = (props: FamilySwitcherProps) => {
-  const session = useSession()
-  const formRef = React.useRef<HTMLFormElement>(null)
-
-  if (!session.isLoggedIn) return null
-
-  const { userFamilies, currentFamilyId } = session
-
-  if (!userFamilies || userFamilies.length < 2 || !currentFamilyId) return null
-
-  const selected = userFamilies.find(({ familyId }) => familyId === currentFamilyId)!
-
-  if (!selected) return null
-
-  const handleChange = (newFamily: typeof userFamilies[number]) => {
-    if (newFamily.familyId === selected.familyId) return
-
-    if (formRef.current !== null) {
-      const form = formRef.current
-
-      const inputs = form.getElementsByTagName('input')
-
-      const newFamilyIdInput = Array.from(inputs).find((input) => input.name === 'newFamilyId')
-
-      if (newFamilyIdInput) {
-        newFamilyIdInput.value = newFamily.familyId
-      }
-
-      form.submit()
-    }
-  }
-
-  return (
-    <div className='max-w-fit'>
-      <form method='POST' action='/switchFamily' ref={formRef}>
-        <input type='hidden' name='newFamilyId' value={selected.familyId} />
-        <ClientOnly>
-          <InputWithUrl />
-        </ClientOnly>
-      </form>
-      <Listbox value={selected} onChange={handleChange}>
-        {({ open }) => (
-          <>
-            <Listbox.Label className='sr-only'>Changer de famille</Listbox.Label>
-            <div className='relative'>
-              <div className='inline-flex divide-x divide-indigo-700 rounded-md shadow-sm'>
-                <Listbox.Button className='-mx-2 inline-flex items-center gap-x-1.5 rounded-md px-2.5 py-1.5 text-sm text-white border-1 ring-1 ring-inset ring-indigo-200 shadow-sm hover:bg-white/20'>
-                  <ChevronDownIcon className='-ml-0.5 h-5 w-5 text-white' aria-hidden='true' />
-                  Changer d'espace
-                  <span className='sr-only'>Changer de famille</span>
-                </Listbox.Button>
-              </div>
-
-              <Transition
-                show={open}
-                as={Fragment}
-                leave='transition ease-in duration-100'
-                leaveFrom='opacity-100'
-                leaveTo='opacity-0'>
-                <Listbox.Options className='absolute -left-2 z-50 mt-2 w-64 origin-top-left divide-y divide-gray-200 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none'>
-                  {userFamilies.map((family) => (
-                    <Listbox.Option
-                      key={family.familyId}
-                      className={({ active }) =>
-                        classNames(active ? 'bg-indigo-100' : '', 'cursor-default rounded-md select-none p-4 text-sm')
-                      }
-                      value={family}>
-                      {({ selected, active }) => (
-                        <div className={`${selected ? '' : 'cursor-pointer'} flex flex-col`}>
-                          <div className='flex justify-between'>
-                            <p className={selected ? 'font-semibold' : 'font-normal'}>{family.familyName}</p>
-                            {selected ? (
-                              <span className={'text-indigo-600'}>
-                                <CheckIcon className='h-5 w-5' aria-hidden='true' />
-                              </span>
-                            ) : null}
-                          </div>
-                          <p className={classNames('mt-2 text-gray-500')}>{family.about}</p>
-                        </div>
-                      )}
-                    </Listbox.Option>
-                  ))}
-                </Listbox.Options>
-              </Transition>
-            </div>
-          </>
-        )}
-      </Listbox>
-    </div>
-  )
-}
-
-function InputWithUrl() {
-  return <input type='hidden' name='currentPage' value={window.location.href} />
 }

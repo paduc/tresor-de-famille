@@ -14,11 +14,9 @@ type PhotoFace = NewPhotoPageProps['faces'][number]
 export const getNewPhotoPageProps = async ({
   photoId,
   userId,
-  familyId,
 }: {
   photoId: PhotoId
   userId: AppUserId
-  familyId: FamilyId
 }): Promise<NewPhotoPageProps> => {
   // TODO: Check rights
 

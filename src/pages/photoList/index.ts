@@ -1,2 +1,2 @@
-export * from './ListPhotosPage'
+export * from './PhotoListPage'
 export * from './photoList.route'

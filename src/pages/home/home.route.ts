@@ -1,27 +1,25 @@
 import multer from 'multer'
 import fs from 'node:fs'
 import { z } from 'zod'
-import { requireAuth } from '../../dependencies/authn'
-import { responseAsHtml } from '../../libs/ssr/responseAsHtml'
-import { pageRouter } from '../pageRouter'
-import { HomePage } from './HomePage'
-import { getHomePageProps } from './getHomePageProps'
 import { addToHistory } from '../../dependencies/addToHistory'
+import { requireAuth } from '../../dependencies/authn'
+import { uploadPhoto } from '../../dependencies/photo-storage'
 import { personsIndex } from '../../dependencies/search'
-import { UUID, zIsUUID } from '../../domain'
+import { AppUserId } from '../../domain/AppUserId'
+import { zIsFaceId } from '../../domain/FaceId'
+import { FamilyId } from '../../domain/FamilyId'
+import { zIsPhotoId } from '../../domain/PhotoId'
+import { OnboardingUserUploadedPhotoOfThemself } from '../../events/onboarding/OnboardingUserUploadedPhotoOfThemself'
 import { UserConfirmedHisFace } from '../../events/onboarding/UserConfirmedHisFace'
 import { UserNamedThemself } from '../../events/onboarding/UserNamedThemself'
-import { getUuid } from '../../libs/getUuid'
-import { getPersonForUserInFamily } from '../_getPersonForUserInFamily'
-import { uploadPhoto } from '../../dependencies/photo-storage'
-import { OnboardingUserUploadedPhotoOfThemself } from '../../events/onboarding/OnboardingUserUploadedPhotoOfThemself'
-import { detectFacesInPhotoUsingAWS } from '../photo/recognizeFacesInChatPhoto/detectFacesInPhotoUsingAWS'
-import { zIsFaceId } from '../../domain/FaceId'
 import { makePersonId } from '../../libs/makePersonId'
-import { zIsPhotoId } from '../../domain/PhotoId'
 import { makePhotoId } from '../../libs/makePhotoId'
-import { AppUserId } from '../../domain/AppUserId'
-import { FamilyId } from '../../domain/FamilyId'
+import { responseAsHtml } from '../../libs/ssr/responseAsHtml'
+import { getPersonForUser } from '../_getPersonForUser'
+import { pageRouter } from '../pageRouter'
+import { detectFacesInPhotoUsingAWS } from '../photo/recognizeFacesInChatPhoto/detectFacesInPhotoUsingAWS'
+import { HomePage } from './HomePage'
+import { getHomePageProps } from './getHomePageProps'
 
 const FILE_SIZE_LIMIT_MB = 50
 const upload = multer({
@@ -49,9 +47,8 @@ pageRouter
       .parse(request.body)
 
     const userId = request.session.user!.id
-    const familyId = request.session.currentFamilyId!
+    const defaultFamilyId = userId as string as FamilyId
 
-    const currentFamilyId = request.session.currentFamilyId!
     if (action === 'submitPresentation') {
       const { presentation } = z
         .object({
@@ -65,7 +62,7 @@ pageRouter
           userId,
           personId,
           name: presentation,
-          familyId: currentFamilyId,
+          familyId: defaultFamilyId,
         })
       )
 
@@ -76,7 +73,7 @@ pageRouter
           objectID: personId,
           personId,
           name: presentation,
-          visible_by: [`family/${currentFamilyId}`, `user/${userId}`],
+          visible_by: [`family/${defaultFamilyId}`, `user/${userId}`],
         })
       } catch (error) {
         console.error('Could not add new user to algolia index', error)
@@ -86,7 +83,7 @@ pageRouter
 
       if (!file) return new Error('We did not receive any image.')
 
-      await uploadUserPhotoOfThemself({ file, userId, familyId: currentFamilyId })
+      await uploadUserPhotoOfThemself({ file, userId, familyId: defaultFamilyId })
     } else if (action === 'confirmFaceIsUser') {
       const { faceId, photoId } = z
         .object({
@@ -95,7 +92,7 @@ pageRouter
         })
         .parse(request.body)
 
-      const person = await getPersonForUserInFamily({ userId, familyId })
+      const person = await getPersonForUser({ userId })
       if (!person) {
         throw new Error("Impossible d'ajouter un visage à une personne inexistante.")
       }
@@ -105,7 +102,7 @@ pageRouter
           photoId,
           faceId,
           personId: person.personId,
-          familyId: currentFamilyId,
+          familyId: defaultFamilyId,
         })
       )
     }

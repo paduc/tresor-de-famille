@@ -20,7 +20,7 @@ pageRouter
       const { personId } = z.object({ personId: zIsPersonId }).parse(request.params)
       const userId = request.session.user!.id
 
-      const props = await getPersonPageProps({ personId, userId, familyId: request.session.currentFamilyId! })
+      const props = await getPersonPageProps({ personId, userId })
 
       responseAsHtml(request, response, PersonPage(props))
     } catch (error) {
@@ -53,7 +53,6 @@ pageRouter
             photoId,
             faceId,
             userId,
-            familyId: request.session.currentFamilyId!,
           })
         )
         return response.redirect(PersonPageURL(personId))
@@ -74,7 +73,6 @@ pageRouter
               personId,
               name: newName,
               userId,
-              familyId: request.session.currentFamilyId!,
             })
           )
 

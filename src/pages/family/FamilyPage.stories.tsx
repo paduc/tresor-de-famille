@@ -93,7 +93,7 @@ export default {
             userId: 'a' as AppUserId,
 
             userFamilies: [],
-            currentFamilyId: 'a' as FamilyId,
+
             userName: 'Toto',
             profilePic: fakeProfilePicUrl,
             isAdmin: false,
@@ -120,7 +120,6 @@ export default {
 // userId: 'a' as AppUserId,
 
 // userFamilies: [],
-// currentFamilyId: "a" as FamilyId,
 //         userName: 'toto',
 //         isAdmin: false,
 //         profilePic: fakeProfilePicUrl,
@@ -147,7 +146,7 @@ export const PlusieursPersonnes = () => {
         userId: 'a' as AppUserId,
 
         userFamilies: [],
-        currentFamilyId: 'a' as FamilyId,
+
         userName: 'toto',
         isAdmin: false,
         profilePic: fakeProfilePicUrl,

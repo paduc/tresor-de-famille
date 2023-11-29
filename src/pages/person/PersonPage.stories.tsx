@@ -15,7 +15,7 @@ export const AvecDesPhotos = () => (
       isLoggedIn: true,
       userId: 'a' as AppUserId,
       userFamilies: [],
-      currentFamilyId: 'a' as FamilyId,
+
       userName: 'toto',
       isAdmin: false,
     }}>
