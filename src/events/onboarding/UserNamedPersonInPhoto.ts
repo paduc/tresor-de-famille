@@ -13,6 +13,7 @@ export type UserNamedPersonInPhoto = DomainEvent<
 
     personId: PersonId
     name: string
+    familyId: FamilyId
 
     userId: AppUserId
   }
