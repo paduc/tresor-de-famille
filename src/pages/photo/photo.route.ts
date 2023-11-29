@@ -113,6 +113,10 @@ pageRouter
 
           if (newFamilyMemberName && newFamilyMemberName.length > 0) {
             const personId = makePersonId()
+            const familyId = await getPhotoFamily(photoId)
+            if (!familyId) {
+              throw new Error('Trying to submit family member name but cannot find the photo family')
+            }
             await addToHistory(
               UserNamedPersonInPhoto({
                 userId,
@@ -120,6 +124,7 @@ pageRouter
                 faceId,
                 personId,
                 name: newFamilyMemberName,
+                familyId,
               })
             )
 

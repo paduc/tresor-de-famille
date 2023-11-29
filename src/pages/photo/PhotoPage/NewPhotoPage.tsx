@@ -170,7 +170,7 @@ export const NewPhotoPage = withBrowserBundle(({ context, caption, photoId, phot
                       </div>
                     </li>
                   ))}
-                  {areIgnoredFacesVisible
+                  {ignoredFaces.length && areIgnoredFacesVisible
                     ? ignoredFaces.map((face) => (
                         <li
                           key={`photoface${face.faceId}`}
@@ -186,17 +186,21 @@ export const NewPhotoPage = withBrowserBundle(({ context, caption, photoId, phot
                       ))
                     : null}
                 </ul>
-                {areIgnoredFacesVisible ? (
-                  <button className={`${linkStylesDarkMode} mt-4`} onClick={() => showIgnoredFaces(false)}>
-                    <EyeSlashIcon className='h-6 w-6 mr-1' />
-                    Masquer les visages ignorés
-                  </button>
-                ) : (
-                  <button className={`${linkStylesDarkMode} mt-4`} onClick={() => showIgnoredFaces(true)}>
-                    <EyeIcon className='h-6 w-6 mr-1' />
-                    Afficher les visages ignorés
-                  </button>
-                )}
+                {ignoredFaces.length ? (
+                  <>
+                    {areIgnoredFacesVisible ? (
+                      <button className={`${linkStylesDarkMode} mt-4`} onClick={() => showIgnoredFaces(false)}>
+                        <EyeSlashIcon className='h-6 w-6 mr-1' />
+                        Masquer les visages ignorés
+                      </button>
+                    ) : (
+                      <button className={`${linkStylesDarkMode} mt-4`} onClick={() => showIgnoredFaces(true)}>
+                        <EyeIcon className='h-6 w-6 mr-1' />
+                        Afficher les visages ignorés
+                      </button>
+                    )}
+                  </>
+                ) : null}
               </div>
             ) : null}
             <form
