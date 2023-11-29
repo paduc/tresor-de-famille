@@ -7,7 +7,7 @@ import { FamilyId } from '../../domain/FamilyId'
 import { parseZodErrors } from '../../libs/parseZodErrors'
 import { responseAsHtml } from '../../libs/ssr/responseAsHtml'
 import { getPersonByIdOrThrow } from '../_getPersonById'
-import { getPersonForUserInFamily } from '../_getPersonForUserInFamily'
+import { getPersonForUserInFamily } from '../_getPersonForUser'
 import { pageRouter } from '../pageRouter'
 import { ConnexionPage } from './ConnexionPage'
 import { buildSession } from './buildSession'
@@ -74,8 +74,6 @@ pageRouter
 
         buildSession({ userId, request })
 
-        request.session.currentFamilyId = userId as string as FamilyId
-
         return response.redirect(redirectTo || '/')
       }
 
@@ -87,8 +85,6 @@ pageRouter
         const name = userNamedThemselfEvent?.payload.name || ''
 
         buildSession({ userId, name, request })
-
-        request.session.currentFamilyId = userNamedThemselfEvent?.payload.familyId || (userId as string as FamilyId)
       } catch (error) {
         buildSession({ userId, request })
       }

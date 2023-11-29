@@ -9,7 +9,7 @@ import { getProfilePicUrlForUser } from '../../pages/_getProfilePicUrlForUser'
 import { withContext } from './withContext'
 
 import manifest from '../../assets/js/manifest.json'
-import { getPersonForUserInFamily } from '../../pages/_getPersonForUserInFamily'
+import { getPersonForUserInFamily } from '../../pages/_getPersonForUser'
 import { getUserFamilies } from '../../pages/_getUserFamilies'
 import { FamilyId } from '../../domain/FamilyId'
 import { FamilyShareCode } from '../../domain/FamilyShareCode'
@@ -153,19 +153,14 @@ async function getSession(request: Request): Promise<Session> {
       userFamilies.map((f) => f.familyId)
     )
 
-    const currentFamilyId = request.session.currentFamilyId!
-    const personInCurrentFamily = await getPersonForUserInFamily({ userId, familyId: currentFamilyId })
-
-    const profilePic = await getProfilePicUrlForUser(userId, currentFamilyId)
+    const profilePic = await getProfilePicUrlForUser(userId)
 
     return {
       isLoggedIn: true,
       userName: user.name,
       userId: user.id,
-      personId: personInCurrentFamily?.personId,
       userFamilies: userFamilies.map(({ familyId, familyName, about }) => ({ familyId, familyName, about })),
       hasFamiliesOtherThanDefault,
-      currentFamilyId,
       searchKey,
       isAdmin: userId === ADMIN_USERID,
       profilePic,

@@ -1,7 +1,7 @@
 import { getSingleEvent } from '../../dependencies/getSingleEvent'
 import { FamilyId } from '../../domain/FamilyId'
 import { FamilyShareCode } from '../../domain/FamilyShareCode'
-import { getPersonForUserInFamily } from '../_getPersonForUserInFamily'
+import { getPersonForUserInFamily } from '../_getPersonForUser'
 import { UserCreatedNewFamily } from '../share/UserCreatedNewFamily'
 import { InvitationPageProps } from './InvitationPage'
 

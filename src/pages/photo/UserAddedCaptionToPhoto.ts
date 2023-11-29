@@ -13,7 +13,6 @@ export type UserAddedCaptionToPhoto = DomainEvent<
       body: string
     }
     addedBy: AppUserId
-    familyId: FamilyId
   }
 >
 

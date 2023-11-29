@@ -35,7 +35,7 @@ export default {
 
             userFamilies: [],
             hasFamiliesOtherThanDefault: true,
-            currentFamilyId: 'a' as FamilyId,
+
             userName: 'toto',
             profilePic: null,
             isAdmin: false,

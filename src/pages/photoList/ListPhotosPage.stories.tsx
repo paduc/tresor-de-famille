@@ -1,11 +1,11 @@
 import * as React from 'react'
 import { makePhotoId } from '../../libs/makePhotoId'
 import { SessionContext } from '../_components/SessionContext'
-import { ListPhotosPage } from './ListPhotosPage'
+import { PhotoListPage } from './PhotoListPage'
 import { AppUserId } from '../../domain/AppUserId'
 import { FamilyId } from '../../domain/FamilyId'
 
-export default { title: 'Lister les Photos', component: ListPhotosPage, parameters: { layout: 'fullscreen' } }
+export default { title: 'Lister les Photos', component: PhotoListPage, parameters: { layout: 'fullscreen' } }
 
 export const PageVide = () => (
   <SessionContext.Provider
@@ -13,11 +13,11 @@ export const PageVide = () => (
       isLoggedIn: true,
       userId: 'a' as AppUserId,
       userFamilies: [],
-      currentFamilyId: 'a' as FamilyId,
+
       userName: 'toto',
       isAdmin: false,
     }}>
-    <ListPhotosPage photos={[]} />
+    <PhotoListPage photos={[]} />
   </SessionContext.Provider>
 )
 
@@ -27,11 +27,11 @@ export const AvecPhotos = () => (
       isLoggedIn: true,
       userId: 'a' as AppUserId,
       userFamilies: [],
-      currentFamilyId: 'a' as FamilyId,
+
       userName: 'toto',
       isAdmin: false,
     }}>
-    <ListPhotosPage
+    <PhotoListPage
       photos={[
         {
           photoId: makePhotoId(),

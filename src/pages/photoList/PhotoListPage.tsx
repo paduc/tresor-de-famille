@@ -12,7 +12,7 @@ function classNames(...classes) {
   return classes.filter(Boolean).join(' ')
 }
 
-export type ListPhotosProps = {
+export type PhotoListProps = {
   success?: string
   error?: string
   photos: {
@@ -21,8 +21,8 @@ export type ListPhotosProps = {
   }[]
 }
 
-export const ListPhotosPage = withBrowserBundle(({ error, success, photos }: ListPhotosProps) => {
-  const photoPageUrl = (photo: ListPhotosProps['photos'][number]) => `/photo/${photo.photoId}/photo.html`
+export const PhotoListPage = withBrowserBundle(({ error, success, photos }: PhotoListProps) => {
+  const photoPageUrl = (photo: PhotoListProps['photos'][number]) => `/photo/${photo.photoId}/photo.html`
   return (
     <AppLayout>
       <div className='bg-white p-6'>

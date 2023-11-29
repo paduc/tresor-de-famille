@@ -9,6 +9,7 @@ import { requireAuth } from '../../dependencies/authn'
 import { unlink, readFile } from 'fs/promises'
 import { addToHistory } from '../../dependencies/addToHistory'
 import { GedcomImported } from '../../events/GedcomImported'
+import { FamilyId } from '../../domain/FamilyId'
 
 const FILE_SIZE_LIMIT_MB = 50
 
@@ -94,7 +95,7 @@ pageRouter.route('/importGedcom.html').post(
             sex,
           })),
           importedBy: userId,
-          familyId: request.session.currentFamilyId!,
+          familyId: request.session.user!.id as string as FamilyId,
         })
       )
     } catch (error) {

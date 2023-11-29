@@ -21,7 +21,6 @@ export const UtilisateurConnecté = () => (
           about: '',
         },
       ],
-      currentFamilyId: 'a' as FamilyId,
       userName: 'John Doe Adear',
       profilePic:
         'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=200&h=200&q=80',
@@ -32,7 +31,6 @@ export const UtilisateurConnecté = () => (
       arePersonsEnabled: true,
       isSharingEnabled: true,
       isFamilyPageEnabled: true,
-      personId: makePersonId(),
     }}>
     <InvitationPage
       error={false}

@@ -1,12 +1,12 @@
 import { responseAsHtml } from '../../libs/ssr/responseAsHtml'
 import { pageRouter } from '../pageRouter'
 import { requireAuth } from '../../dependencies/authn'
-import { ListPhotosPage } from './ListPhotosPage'
+import { PhotoListPage } from './PhotoListPage'
 import { getListPhotosProps } from './getListPhotosProps'
 import { PhotoListPageUrl } from './PhotoListPageUrl'
 
 pageRouter.route(PhotoListPageUrl).get(requireAuth(), async (request, response) => {
-  const props = await getListPhotosProps(request.session.currentFamilyId!)
+  const props = await getListPhotosProps(request.session.user!.id)
 
-  responseAsHtml(request, response, ListPhotosPage(props))
+  responseAsHtml(request, response, PhotoListPage(props))
 })

@@ -33,7 +33,7 @@ export default {
             isLoggedIn: true,
             userId: 'a' as AppUserId,
             userFamilies: [],
-            currentFamilyId: 'a' as FamilyId,
+
             userName: '',
             profilePic: null,
             isAdmin: false,
@@ -57,7 +57,7 @@ export const AfterOnboarding = () => (
       isLoggedIn: true,
       userId: 'a' as AppUserId,
       userFamilies: [],
-      currentFamilyId: 'a' as FamilyId,
+
       userName: 'John Doe Adear',
       profilePic:
         'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=200&h=200&q=80',
@@ -79,7 +79,7 @@ export const AfterOnboardingAvecSouvenirs = () => (
       isLoggedIn: true,
       userId: 'a' as AppUserId,
       userFamilies: [],
-      currentFamilyId: 'a' as FamilyId,
+
       userName: 'John Doe Adear',
       profilePic:
         'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=200&h=200&q=80',
@@ -124,7 +124,7 @@ export const WaitingForPhoto = () => (
       isLoggedIn: true,
       userId: 'a' as AppUserId,
       userFamilies: [],
-      currentFamilyId: 'a' as FamilyId,
+
       userName: 'John Doe',
       profilePic: null,
       isAdmin: false,

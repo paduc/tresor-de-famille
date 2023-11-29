@@ -20,7 +20,7 @@ export const PremiereNouvelleFamille = () => (
           about: '',
         },
       ],
-      currentFamilyId: 'a' as FamilyId,
+
       userName: 'John Doe Adear',
       profilePic:
         'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=200&h=200&q=80',
@@ -50,7 +50,6 @@ export const UneFamilleExistante = () => (
           about: '',
         },
       ],
-      currentFamilyId: familyId,
       userName: 'John Doe Adear',
       profilePic:
         'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=200&h=200&q=80',
@@ -61,7 +60,6 @@ export const UneFamilleExistante = () => (
       arePersonsEnabled: true,
       isSharingEnabled: true,
       isFamilyPageEnabled: true,
-      personId: makePersonId(),
     }}>
     <SharePage
       userFamilies={[
@@ -93,7 +91,6 @@ export const UneFamilleCréée = () => (
           about: 'Voila une description de ma famille, avec quelques longs passages.',
         },
       ],
-      currentFamilyId: familyId,
       userName: 'John Doe Adear',
       profilePic:
         'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=200&h=200&q=80',
@@ -137,7 +134,6 @@ export const PlusieursFamilleExistantes = () => (
           about: 'Les descendants de Louis Duchateau',
         },
       ],
-      currentFamilyId: henriFamilyId,
       userName: 'John Doe Adear',
       profilePic:
         'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=200&h=200&q=80',

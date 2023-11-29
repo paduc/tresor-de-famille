@@ -43,7 +43,7 @@ export default {
             userId: 'a' as AppUserId,
 
             userFamilies: [],
-            currentFamilyId: 'a' as FamilyId,
+
             userName: 'Toto',
             profilePic: fakePhoto({ width: 100, height: 100 }),
             isAdmin: false,
