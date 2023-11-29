@@ -6,7 +6,7 @@ import { FamilyId } from '../../domain/FamilyId'
 import { PersonId } from '../../domain/PersonId'
 import { UserNamedPersonInPhoto } from '../../events/onboarding/UserNamedPersonInPhoto'
 import { UserNamedThemself } from '../../events/onboarding/UserNamedThemself'
-import { getPersonForUserInFamily } from '../_getPersonForUser'
+import { getPersonForUser } from '../_getPersonForUser'
 import { getProfilePicUrlForPerson } from '../_getProfilePicUrlForPerson'
 import { UserChangedPersonName } from '../person/UserChangedPersonName'
 import { PersonClonedForSharing } from '../share/PersonClonedForSharing'
@@ -23,7 +23,7 @@ export const getFamilyPageProps = async ({
   userId: AppUserId
   familyId: FamilyId
 }): Promise<FamilyPageProps> => {
-  const userPersonInFamily = await getPersonForUserInFamily({ userId, familyId })
+  const userPersonInFamily = await getPersonForUser({ userId })
 
   const persons = await getFamilyPersons({ userId, familyId })
   const relationships = await getFamilyRelationships(
@@ -60,7 +60,7 @@ async function getFamilyPersons({ userId, familyId }: { userId: AppUserId; famil
       : event.type === 'UserCreatedRelationshipWithNewPerson'
       ? event.payload.newPerson
       : event.payload
-    const profilePicUrl = await getProfilePicUrlForPerson({ personId, userId, familyId })
+    const profilePicUrl = await getProfilePicUrlForPerson({ personId, userId })
     persons.set(personId, { personId, name, profilePicUrl })
   }
 
