@@ -1,8 +1,8 @@
-import { JSON } from '../../dependencies/DomainEvent'
-import { PhotoId } from '../../domain/PhotoId'
-import { ThreadId } from '../../domain/ThreadId'
-import { UUID } from '../../domain/UUID'
-import { PhotoItemProps } from './ThreadPage/ThreadPage'
+import type { JSON } from '../../dependencies/DomainEvent'
+import type { PhotoId } from '../../domain/PhotoId'
+import type { ThreadId } from '../../domain/ThreadId'
+import type { UUID } from '../../domain/UUID'
+import type { PhotoItemProps } from './ThreadPage/ThreadPage'
 
 export type PhotoNode = {
   type: 'photoNode'
