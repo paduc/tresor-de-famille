@@ -36,6 +36,7 @@ import { getThreadFamily } from './_getThreadFamily'
 import { getThreadAuthor } from './_getThreadAuthor'
 import { ReadOnlyThreadPage } from './ThreadPage/ReadonlyThreadPage'
 import { ThreadUrl } from './ThreadUrl'
+import { getUserFamilies } from '../_getUserFamilies'
 
 const fakeProfilePicUrl =
   'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80'
@@ -89,12 +90,12 @@ pageRouter
     const props = await getThreadPageProps({ threadId, userId })
 
     if (isEditable) {
-      if (props.isAuthor) {
+      if (await canEditThread({ threadId, userId })) {
         return responseAsHtml(request, response, ThreadPage(props))
-      } else {
-        // remove the edit
-        return response.redirect(ThreadUrl(threadId))
       }
+
+      // remove the edit
+      return response.redirect(ThreadUrl(threadId))
     }
 
     // By default, return the readonly version
@@ -428,4 +429,21 @@ async function makeCloneOfFacesInPhoto({
   // or clone the original if no equivalent exists
 
   return facesInDestinationFamily
+}
+
+async function canEditThread({ userId, threadId }: { userId: AppUserId; threadId: ThreadId }): Promise<boolean> {
+  const authorId = await getThreadAuthor(threadId)
+
+  if (authorId && authorId === userId) return true
+
+  const threadFamily = await getThreadFamily(threadId)
+
+  if (threadFamily) {
+    const userFamilies = await getUserFamilies(userId)
+    if (userFamilies.map((f) => f.familyId).includes(threadFamily)) {
+      return true
+    }
+  }
+
+  return false
 }
