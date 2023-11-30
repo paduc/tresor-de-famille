@@ -126,7 +126,7 @@ pageRouter
         const { path: originalPath } = file
 
         const { contentAsJSONEncoded, markerId } = z
-          .object({ contentAsJSONEncoded: z.string(), markerId: zIsUUID })
+          .object({ contentAsJSONEncoded: z.string(), markerId: zIsUUID.optional() })
           .parse(request.body)
 
         const contentAsJSON = decodeTipTapJSON(contentAsJSONEncoded)
