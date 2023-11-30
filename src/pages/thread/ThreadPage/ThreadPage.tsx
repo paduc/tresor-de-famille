@@ -52,19 +52,19 @@ export const ThreadPage = withBrowserBundle(
 
     let contentAsJSON = contentAsJSONFromServer
 
-    if (isBrowserContext && localStorage.getItem(threadId)) {
-      try {
-        const { timestamp, contentAsJSON: contentAsJSONFromLocalStorage } = JSON.parse(localStorage.getItem(threadId)!)
-        // console.log({ lastUpdated, timestamp })
+    // if (isBrowserContext && localStorage.getItem(threadId)) {
+    //   try {
+    //     const { timestamp, contentAsJSON: contentAsJSONFromLocalStorage } = JSON.parse(localStorage.getItem(threadId)!)
+    //     // console.log({ lastUpdated, timestamp })
 
-        if (!lastUpdated || timestamp > lastUpdated) {
-          // console.log('Using version in localStorage')
-          contentAsJSON = contentAsJSONFromLocalStorage
-        }
-      } catch (error) {
-        console.error('Failed to parse contents of localStorage')
-      }
-    }
+    //     if (!lastUpdated || timestamp > lastUpdated) {
+    //       // console.log('Using version in localStorage')
+    //       contentAsJSON = contentAsJSONFromLocalStorage
+    //     }
+    //   } catch (error) {
+    //     console.error('Failed to parse contents of localStorage')
+    //   }
+    // }
 
     if (contentAsJSON.content.at(-1)?.type !== 'paragraph') {
       // @ts-ignore
