@@ -8,6 +8,19 @@ import { makeThreadId } from '../../../libs/makeThreadId'
 import { PhotoId } from '../../../domain/PhotoId'
 import { AppUserId } from '../../../domain/AppUserId'
 import { FamilyId } from '../../../domain/FamilyId'
+import { makeAppUserId } from '../../../libs/makeUserId'
+import { SearchIndex } from 'algoliasearch'
+import { PersonSearchContext } from '../../_components/usePersonSearch'
+
+const fakePersonSearch = async (query: string) => {
+  return {
+    hits: [
+      { objectID: makeAppUserId(), name: 'John Doe' },
+      { objectID: makeAppUserId(), name: 'Zelda Moroney' },
+      { objectID: makeAppUserId(), name: 'Claire Politi' },
+    ],
+  }
+}
 
 export default {
   title: 'Histoires et anecdotes',
@@ -33,7 +46,9 @@ export default {
             areVideosEnabled: true,
             arePersonsEnabled: true,
           }}>
-          <Story />
+          <PersonSearchContext.Provider value={{ search: fakePersonSearch } as unknown as SearchIndex}>
+            <Story />
+          </PersonSearchContext.Provider>
         </SessionContext.Provider>
       )
     },
@@ -66,6 +81,7 @@ export const AvecUnMelangeDePhotoEtMessage = () => (
             chatId: makeThreadId(),
             photoId: 'photo123' as PhotoId,
             url: 'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=500&h=500&q=80',
+            // url: 'http://localhost:6006/img.jpeg',
             description: 'Ici la description',
             personsInPhoto: encodeURIComponent(JSON.stringify(['Jean', 'Marie', 'Philippe', 'Joseph', 'Helicopter', 'Banane'])),
             unrecognizedFacesInPhoto: 0,

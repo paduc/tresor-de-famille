@@ -6,7 +6,7 @@ import { UUID } from '../../../domain'
 import { withBrowserBundle } from '../../../libs/ssr/withBrowserBundle'
 import { buttonIconStyles } from '../../_components/Button'
 import { AppLayout } from '../../_components/layout/AppLayout'
-import { PhotoIcon } from './PhotoIcon'
+import { ProgressiveImg } from '../../_components/ProgressiveImg'
 
 import { Node } from '@tiptap/core'
 import {
@@ -28,6 +28,7 @@ import { TipTapContentAsJSON } from '../TipTapTypes'
 import { useLoader } from '../../_components/layout/LoaderContext'
 import { PhotoId } from '../../../domain/PhotoId'
 import { ThreadId } from '../../../domain/ThreadId'
+import { PhotoIcon } from '@heroicons/react/20/solid'
 
 // @ts-ignore
 function classNames(...classes) {
@@ -103,7 +104,9 @@ const PhotoItem = (props: PhotoItemProps) => {
     <div className='grid grid-cols-1 w-full px-4 sm:px-0 py-2'>
       <div className='mb-2'>
         <a href={photoPageUrl}>
-          <img src={url} className='max-w-full max-h-[50vh] border border-gray-300 shadow-sm' />
+          <div className='max-w-full max-h-[50vh]'>
+            <ProgressiveImg src={url} className='max-w-full max-h-[50vh] border border-gray-300 shadow-sm' />
+          </div>
         </a>
       </div>
 
