@@ -65,7 +65,6 @@ pageRouter
   .get(requireAuth(), async (request, response) => {
     const { threadId } = z.object({ threadId: zIsThreadId }).parse(request.params)
     const userId = request.session.user!.id
-    console.log(`GET thread ${threadId}`)
 
     const props = await getThreadPageProps({ threadId: threadId, userId })
 
@@ -118,7 +117,6 @@ pageRouter
         )
       } else if (action === 'insertPhotoAtMarker') {
         const requestId = getUuid()
-        console.log(requestId, 'received insertPhotoAtMarker')
         const { file } = request
         const photoId = makePhotoId()
 
@@ -146,10 +144,7 @@ pageRouter
           },
         })
 
-        console.log(requestId, 'Done inserting photoNode')
-
         const location = await uploadPhoto({ contents: fs.createReadStream(originalPath), id: photoId })
-        console.log(requestId, 'Done uploading photo')
 
         await addToHistory(
           UserInsertedPhotoInRichTextThread({
@@ -161,10 +156,8 @@ pageRouter
             familyId: request.session.currentFamilyId!,
           })
         )
-        console.log(requestId, 'Done triggering addToHistory')
 
         await detectFacesInPhotoUsingAWS({ file, photoId })
-        console.log(requestId, 'Done detecting faces using AWS')
       }
 
       // TODO: try catch error and send it back as HTML (or redirect if OK)
