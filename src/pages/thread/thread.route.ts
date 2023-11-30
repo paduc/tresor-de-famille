@@ -17,6 +17,7 @@ import { UserInsertedPhotoInRichTextThread } from './UserInsertedPhotoInRichText
 import { UserSetChatTitle } from './UserSetChatTitle'
 import { getThreadPageProps } from './getThreadPageProps'
 import { UserSentMessageToChat } from './sendMessageToChat/UserSentMessageToChat'
+import { zIsUUID } from '../../domain'
 
 const fakeProfilePicUrl =
   'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80'
@@ -64,6 +65,7 @@ pageRouter
   .get(requireAuth(), async (request, response) => {
     const { threadId } = z.object({ threadId: zIsThreadId }).parse(request.params)
     const userId = request.session.user!.id
+    console.log(`GET thread ${threadId}`)
 
     const props = await getThreadPageProps({ threadId: threadId, userId })
 
@@ -115,13 +117,17 @@ pageRouter
           })
         )
       } else if (action === 'insertPhotoAtMarker') {
+        const requestId = getUuid()
+        console.log(requestId, 'received insertPhotoAtMarker')
         const { file } = request
         const photoId = makePhotoId()
 
         if (!file) return new Error('We did not receive any image.')
         const { path: originalPath } = file
 
-        const { contentAsJSONEncoded } = z.object({ contentAsJSONEncoded: z.string() }).parse(request.body)
+        const { contentAsJSONEncoded, markerId } = z
+          .object({ contentAsJSONEncoded: z.string(), markerId: zIsUUID })
+          .parse(request.body)
 
         const contentAsJSON = decodeTipTapJSON(contentAsJSONEncoded)
 
@@ -140,10 +146,10 @@ pageRouter
           },
         })
 
-        // Remove old markers just in case
-        contentAsJSON.content = contentAsJSON.content.filter((node) => node.type !== 'insertPhotoMarker')
+        console.log(requestId, 'Done inserting photoNode')
 
         const location = await uploadPhoto({ contents: fs.createReadStream(originalPath), id: photoId })
+        console.log(requestId, 'Done uploading photo')
 
         await addToHistory(
           UserInsertedPhotoInRichTextThread({
@@ -155,8 +161,10 @@ pageRouter
             familyId: request.session.currentFamilyId!,
           })
         )
+        console.log(requestId, 'Done triggering addToHistory')
 
         await detectFacesInPhotoUsingAWS({ file, photoId })
+        console.log(requestId, 'Done detecting faces using AWS')
       }
 
       // TODO: try catch error and send it back as HTML (or redirect if OK)
