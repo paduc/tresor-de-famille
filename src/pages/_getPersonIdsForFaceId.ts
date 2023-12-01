@@ -8,6 +8,7 @@ import { UserNamedPersonInPhoto } from '../events/onboarding/UserNamedPersonInPh
 import { UserRecognizedPersonInPhoto } from '../events/onboarding/UserRecognizedPersonInPhoto'
 import { PhotoManuallyAnnotated } from './photo/annotateManually/PhotoManuallyAnnotated'
 import { PhotoClonedForSharing } from './thread/ThreadPage/PhotoClonedForSharing'
+import { getPersonFamily } from './thread/_getPersonFamily'
 
 export const getPersonIdsForFaceId = async ({
   faceId,
@@ -29,7 +30,6 @@ export const getPersonIdsForFaceId = async ({
       PhotoManuallyAnnotated | UserConfirmedHisFace | UserNamedPersonInPhoto | UserRecognizedPersonInPhoto
     >(['PhotoManuallyAnnotated', 'UserConfirmedHisFace', 'UserNamedPersonInPhoto', 'UserRecognizedPersonInPhoto'], {
       faceId,
-      familyId,
     }))
   )
 
@@ -48,7 +48,11 @@ export const getPersonIdsForFaceId = async ({
         : annotationEvent.payload.personId
 
     if (personId) {
-      uniqueByPhotoId.set(photoId, personId)
+      // Filter by familyId
+      const personFamily = await getPersonFamily(personId)
+      if (personFamily && personFamily === familyId) {
+        uniqueByPhotoId.set(photoId, personId)
+      }
     }
   }
 
