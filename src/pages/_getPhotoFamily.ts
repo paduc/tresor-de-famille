@@ -1,6 +1,6 @@
-import { FamilyId } from '../../domain/FamilyId'
-import { PhotoId } from '../../domain/PhotoId'
-import { PhotoClonedForSharing } from './ThreadPage/PhotoClonedForSharing'
+import { FamilyId } from '../domain/FamilyId'
+import { PhotoId } from '../domain/PhotoId'
+import { PhotoClonedForSharing } from './thread/ThreadPage/PhotoClonedForSharing'
 import { getPhotoEvents } from './_getPhotoEvents'
 
 export async function getPhotoFamily(photoId: PhotoId): Promise<FamilyId | null> {

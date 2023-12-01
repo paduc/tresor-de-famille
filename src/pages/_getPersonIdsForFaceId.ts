@@ -8,7 +8,7 @@ import { UserNamedPersonInPhoto } from '../events/onboarding/UserNamedPersonInPh
 import { UserRecognizedPersonInPhoto } from '../events/onboarding/UserRecognizedPersonInPhoto'
 import { PhotoManuallyAnnotated } from './photo/annotateManually/PhotoManuallyAnnotated'
 import { PhotoClonedForSharing } from './thread/ThreadPage/PhotoClonedForSharing'
-import { getPersonFamily } from './thread/_getPersonFamily'
+import { getPersonFamily } from './_getPersonFamily'
 
 export const getPersonIdsForFaceId = async ({
   faceId,

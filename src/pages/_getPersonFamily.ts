@@ -1,7 +1,7 @@
-import { FamilyId } from '../../domain/FamilyId'
-import { PersonId } from '../../domain/PersonId'
-import { getPersonEvents } from '../_getPersonEvents'
-import { PersonClonedForSharing } from '../share/PersonClonedForSharing'
+import { FamilyId } from '../domain/FamilyId'
+import { PersonId } from '../domain/PersonId'
+import { getPersonEvents } from './_getPersonEvents'
+import { PersonClonedForSharing } from './share/PersonClonedForSharing'
 
 export async function getPersonFamily(personId: PersonId): Promise<FamilyId | null> {
   const personEvents = await getPersonEvents(personId)
