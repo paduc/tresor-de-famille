@@ -15,8 +15,8 @@ import { TipTapContentAsJSON, encodeStringy } from './TipTapTypes'
 import { UserInsertedPhotoInRichTextThread } from './UserInsertedPhotoInRichTextThread'
 import { UserSetChatTitle } from './UserSetChatTitle'
 import { UserUpdatedThreadAsRichText } from './UserUpdatedThreadAsRichText'
-import { getThreadAuthor } from './_getThreadAuthor'
-import { ThreadEvent, getThreadEvents } from './_getThreadEvents'
+import { getThreadAuthor } from '../_getThreadAuthor'
+import { ThreadEvent, getThreadEvents } from '../_getThreadEvents'
 
 export const getThreadPageProps = async ({
   threadId,

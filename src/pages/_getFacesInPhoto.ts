@@ -9,7 +9,7 @@ import { getOriginalPhotoId } from './_getOriginalPhotoId'
 import { getPersonIdsForFaceId } from './_getPersonIdsForFaceId'
 import { AWSDetectedFacesInPhoto } from './photo/recognizeFacesInChatPhoto/AWSDetectedFacesInPhoto'
 import { PhotoClonedForSharing } from './thread/ThreadPage/PhotoClonedForSharing'
-import { getPhotoFamily } from './thread/_getPhotoFamily'
+import { getPhotoFamily } from './_getPhotoFamily'
 
 export async function getFacesInPhoto({ photoId }: { photoId: PhotoId }): Promise<FaceInfoForPhotoInFamily[]> {
   const originalPhotoId = await getOriginalPhotoId(photoId)

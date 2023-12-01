@@ -25,8 +25,8 @@ import { UserDeletedPhoto } from './UserDeletedPhoto'
 import { getNewPhotoPageProps } from './getNewPhotoPageProps'
 import { detectFacesInPhotoUsingAWS } from './recognizeFacesInChatPhoto/detectFacesInPhotoUsingAWS'
 import { ThreadUrl } from '../thread/ThreadUrl'
-import { getThreadFamily } from '../thread/_getThreadFamily'
-import { getPhotoFamily } from '../thread/_getPhotoFamily'
+import { getThreadFamily } from '../_getThreadFamily'
+import { getPhotoFamily } from '../_getPhotoFamily'
 
 const FILE_SIZE_LIMIT_MB = 50
 const upload = multer({

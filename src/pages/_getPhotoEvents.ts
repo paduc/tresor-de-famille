@@ -1,13 +1,13 @@
-import { getEventList } from '../../dependencies/getEventList'
-import { getSingleEvent } from '../../dependencies/getSingleEvent'
-import { PhotoId } from '../../domain/PhotoId'
-import { OnboardingUserUploadedPhotoOfFamily } from '../../events/onboarding/OnboardingUserUploadedPhotoOfFamily'
-import { OnboardingUserUploadedPhotoOfThemself } from '../../events/onboarding/OnboardingUserUploadedPhotoOfThemself'
-import { UserAddedCaptionToPhoto } from '../photo/UserAddedCaptionToPhoto'
-import { UserDeletedPhoto } from '../photo/UserDeletedPhoto'
-import { PhotoClonedForSharing } from './ThreadPage/PhotoClonedForSharing'
-import { UserInsertedPhotoInRichTextThread } from './UserInsertedPhotoInRichTextThread'
-import { UserUploadedPhotoToChat } from './uploadPhotoToChat/UserUploadedPhotoToChat'
+import { getEventList } from '../dependencies/getEventList'
+import { getSingleEvent } from '../dependencies/getSingleEvent'
+import { PhotoId } from '../domain/PhotoId'
+import { OnboardingUserUploadedPhotoOfFamily } from '../events/onboarding/OnboardingUserUploadedPhotoOfFamily'
+import { OnboardingUserUploadedPhotoOfThemself } from '../events/onboarding/OnboardingUserUploadedPhotoOfThemself'
+import { UserAddedCaptionToPhoto } from './photo/UserAddedCaptionToPhoto'
+import { UserDeletedPhoto } from './photo/UserDeletedPhoto'
+import { PhotoClonedForSharing } from './thread/ThreadPage/PhotoClonedForSharing'
+import { UserInsertedPhotoInRichTextThread } from './thread/UserInsertedPhotoInRichTextThread'
+import { UserUploadedPhotoToChat } from './thread/uploadPhotoToChat/UserUploadedPhotoToChat'
 
 export type PhotoEvent =
   | PhotoClonedForSharing

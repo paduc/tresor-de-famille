@@ -1,4 +1,4 @@
-import { ThreadId } from '../../domain/ThreadId'
+import { ThreadId } from '../domain/ThreadId'
 import { getThreadEvents } from './_getThreadEvents'
 
 export async function getThreadAuthor(threadId: ThreadId) {
