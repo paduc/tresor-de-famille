@@ -18,6 +18,7 @@ import { UserSetChatTitle } from './UserSetChatTitle'
 import { getThreadPageProps } from './getThreadPageProps'
 import { UserSentMessageToChat } from './sendMessageToChat/UserSentMessageToChat'
 import { zIsUUID } from '../../domain'
+import { UserUpdatedThreadAsRichText } from './UserUpdatedThreadAsRichText'
 
 const fakeProfilePicUrl =
   'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80'
@@ -104,6 +105,24 @@ pageRouter
             })
           )
         }
+      } else if (action === 'clientsideUpdate') {
+        try {
+          const { contentAsJSON } = z.object({ contentAsJSON: z.any() }).parse(request.body)
+
+          await addToHistory(
+            UserUpdatedThreadAsRichText({
+              chatId: threadId,
+              contentAsJSON,
+              userId,
+              familyId: request.session.currentFamilyId!,
+            })
+          )
+          return response.status(200).send('ok')
+        } catch (error) {
+          console.error('Impossible to save UserThread')
+        }
+
+        return response.status(500).send('Oops')
       } else if (action === 'clientsideTitleUpdate') {
         const { title } = z.object({ title: z.string() }).parse(request.body)
 
