@@ -6,6 +6,19 @@ import { InlinePhotoUploadBtn } from '../_components/InlinePhotoUploadBtn'
 import { SuccessError } from '../_components/SuccessError'
 import { AppLayout } from '../_components/layout/AppLayout'
 import { PhotoIcon } from '../photo/PhotoPage/PhotoIcon'
+import { Listbox, Transition } from '@headlessui/react'
+import { ChevronDownIcon, CheckIcon } from '@heroicons/react/24/outline'
+import { ClientOnly } from '../_components/ClientOnly'
+import { useSession } from '../_components/SessionContext'
+import { FamilyId } from '../../domain/FamilyId'
+import {
+  buttonIconStyles,
+  primaryButtonStyles,
+  secondaryButtonStyles,
+  smallButtonIconStyles,
+  smallButtonStyles,
+} from '../_components/Button'
+import { PhotoListPageUrlWithFamily } from './PhotoListPageUrl'
 
 // @ts-ignore
 function classNames(...classes) {
@@ -19,15 +32,26 @@ export type PhotoListProps = {
     photoId: PhotoId
     url: string
   }[]
+  currentFamilyId: FamilyId
 }
 
-export const PhotoListPage = withBrowserBundle(({ error, success, photos }: PhotoListProps) => {
+export const PhotoListPage = withBrowserBundle(({ error, success, photos, currentFamilyId }: PhotoListProps) => {
+  const session = useSession()
+
+  if (!session.isLoggedIn) return null
+
+  const { userFamilies } = session
+
   const photoPageUrl = (photo: PhotoListProps['photos'][number]) => `/photo/${photo.photoId}/photo.html`
   return (
     <AppLayout>
+      {userFamilies.length > 1 ? (
+        <div className='bg-white p-6 my-3'>
+          <FamilySwitcher currentFamilyId={currentFamilyId} />
+        </div>
+      ) : null}
       <div className='bg-white p-6'>
         <SuccessError success={success} error={error} />
-
         {!photos.length ? (
           <div className='max-w-7xl mx-auto py-16 px-4 sm:py-24 sm:px-6 lg:px-8'>
             <div className='text-center'>
@@ -96,3 +120,84 @@ export const PhotoListPage = withBrowserBundle(({ error, success, photos }: Phot
     </AppLayout>
   )
 })
+
+type FamilySwitcherProps = { currentFamilyId: FamilyId }
+
+const FamilySwitcher = ({ currentFamilyId }: FamilySwitcherProps) => {
+  const session = useSession()
+  const formRef = React.useRef<HTMLFormElement>(null)
+
+  if (!session.isLoggedIn) return null
+
+  const { userFamilies } = session
+
+  if (!userFamilies || userFamilies.length < 2 || !currentFamilyId) return null
+
+  const selected = userFamilies.find(({ familyId }) => familyId === currentFamilyId)!
+
+  if (!selected) return null
+
+  const handleChange = (newFamily: typeof userFamilies[number]) => {
+    if (newFamily.familyId === selected.familyId) return
+
+    if (typeof window !== 'undefined') {
+      window.location.href = PhotoListPageUrlWithFamily(newFamily.familyId)
+    }
+  }
+
+  return (
+    <div className='max-w-fit'>
+      <div className='inline-flex items-center'>
+        <div className='mr-3'>Vous regardez les photos de {selected.familyName}</div>
+        <Listbox value={selected} onChange={handleChange}>
+          {({ open }) => (
+            <>
+              <Listbox.Label className='sr-only'>Changer de famille</Listbox.Label>
+              <div className='relative'>
+                <div className='inline-flex divide-x divide-indigo-700 rounded-md shadow-sm'>
+                  <Listbox.Button className={`${secondaryButtonStyles} ${smallButtonStyles}`}>
+                    <ChevronDownIcon className={`${smallButtonIconStyles}`} aria-hidden='true' />
+                    Changer
+                    <span className='sr-only'>Changer de famille</span>
+                  </Listbox.Button>
+                </div>
+
+                <Transition
+                  show={open}
+                  as={React.Fragment}
+                  leave='transition ease-in duration-100'
+                  leaveFrom='opacity-100'
+                  leaveTo='opacity-0'>
+                  <Listbox.Options className='absolute -left-2 z-50 mt-2 w-64 origin-top-left divide-y divide-gray-200 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none'>
+                    {userFamilies.map((family) => (
+                      <Listbox.Option
+                        key={family.familyId}
+                        className={({ active }) =>
+                          classNames(active ? 'bg-indigo-100' : '', 'cursor-default rounded-md select-none p-4 text-sm')
+                        }
+                        value={family}>
+                        {({ selected, active }) => (
+                          <div className={`${selected ? '' : 'cursor-pointer'} flex flex-col`}>
+                            <div className='flex justify-between'>
+                              <p className={selected ? 'font-semibold' : 'font-normal'}>{family.familyName}</p>
+                              {selected ? (
+                                <span className={'text-indigo-600'}>
+                                  <CheckIcon className='h-5 w-5' aria-hidden='true' />
+                                </span>
+                              ) : null}
+                            </div>
+                            <p className={classNames('mt-2 text-gray-500')}>{family.about}</p>
+                          </div>
+                        )}
+                      </Listbox.Option>
+                    ))}
+                  </Listbox.Options>
+                </Transition>
+              </div>
+            </>
+          )}
+        </Listbox>
+      </div>
+    </div>
+  )
+}
