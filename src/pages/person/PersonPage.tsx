@@ -5,10 +5,11 @@ import { FaceId } from '../../domain/FaceId'
 import { PersonId } from '../../domain/PersonId'
 import { PhotoId } from '../../domain/PhotoId'
 import { withBrowserBundle } from '../../libs/ssr/withBrowserBundle'
-import { buttonIconStyles, primaryButtonStyles, secondaryButtonStyles } from '../_components/Button'
+import { buttonIconStyles, linkStyles, primaryButtonStyles, secondaryButtonStyles } from '../_components/Button'
 import { InlinePhotoUploadBtn } from '../_components/InlinePhotoUploadBtn'
 import { TDFModal } from '../_components/TDFModal'
 import { AppLayout } from '../_components/layout/AppLayout'
+import { PersonPageURL } from './PersonPageURL'
 
 // @ts-ignore
 function classNames(...classes) {
@@ -20,6 +21,7 @@ export type PersonPageProps = {
     personId: PersonId
     name: string
     profilePicUrl: string | null
+    familyName: string
   }
   photos: { photoId: PhotoId; url: string }[]
   alternateProfilePics: {
@@ -27,9 +29,13 @@ export type PersonPageProps = {
     photoId: PhotoId
     url: string
   }[]
+  clones: {
+    personId: PersonId
+    familyName: string
+  }[]
 }
 
-export const PersonPage = withBrowserBundle(({ person, photos, alternateProfilePics }: PersonPageProps) => {
+export const PersonPage = withBrowserBundle(({ person, photos, alternateProfilePics, clones }: PersonPageProps) => {
   const [isProfilePicOpen, openProfilePic] = React.useState<boolean>(false)
   const closeProfilePic = React.useCallback(() => openProfilePic(false), [])
 
@@ -39,7 +45,7 @@ export const PersonPage = withBrowserBundle(({ person, photos, alternateProfileP
   return (
     <AppLayout>
       <div className='my-5 bg-white p-6'>
-        <div className=' md:flex md:items-center md:justify-between md:space-x-5'>
+        <div className='md:flex md:items-center md:justify-between md:space-x-5'>
           <div className='flex items-start space-x-5'>
             <div className='flex-shrink-0'>
               <div className='relative'>
@@ -96,6 +102,24 @@ export const PersonPage = withBrowserBundle(({ person, photos, alternateProfileP
           </div>
         </div>
       </div>
+
+      {clones.length ? (
+        <div className='my-5 bg-white p-6'>
+          Cette personne est aussi présente dans{' '}
+          <ul className='inline-block'>
+            {clones.map((clone, index) => (
+              <li className='inline-block mr-1' key={`clone_${clone.personId}`}>
+                <a href={PersonPageURL(clone.personId)} className={`${linkStyles}`}>
+                  {clone.familyName}
+                </a>
+                {clones.length >= 2 && index === clones.length - 2 ? <span className='ml-1'>et</span> : null}
+                {clones.length >= 2 && index >= 0 && index < clones.length - 2 ? <span className=''>, </span> : null}
+              </li>
+            ))}
+          </ul>
+          <span className='-ml-1'>.</span>
+        </div>
+      ) : null}
 
       <div className='bg-white p-6'>
         <h3 className='text-lg font-medium leading-6 text-gray-900'>Photos de {person.name}</h3>
