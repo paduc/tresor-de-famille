@@ -187,3 +187,67 @@ export const PlusieursPersonnes = () => {
     </SessionContext.Provider>
   )
 }
+
+export const PlusieursFamilles = () => {
+  // const originPersonId = getUuid()
+
+  return (
+    <SessionContext.Provider
+      value={{
+        isLoggedIn: true,
+        userId: 'a' as AppUserId,
+
+        userFamilies: [
+          {
+            familyName: 'Famille 1',
+            about: "C'est la famille 1, la number #1 quoi.",
+            familyId: '1' as FamilyId,
+          },
+          {
+            familyName: 'Famille 2',
+            about: '',
+            familyId: '2' as FamilyId,
+          },
+        ],
+
+        userName: 'toto',
+        isAdmin: false,
+        profilePic: fakeProfilePicUrl,
+        arePhotosEnabled: true,
+        arePersonsEnabled: true,
+        areThreadsEnabled: true,
+        areVideosEnabled: true,
+        isFamilyPageEnabled: true,
+      }}>
+      <FamilyPage
+        familyId={'1' as FamilyId}
+        initialPersons={initialPersons}
+        initialRelationships={[
+          { id: makeRelationshipId(), type: 'spouses', spouseIds: [originPersonId, wifeId] },
+          // { id: makeRelationshipId(), type: 'spouses', spouseIds: [papaId, mamaId] },
+          // { id: makeRelationshipId(), type: 'parent', childId: originPersonId, parentId: papaId },
+          // { id: makeRelationshipId(), type: 'parent', childId: originPersonId, parentId: mamaId },
+          // { id: makeRelationshipId(), type: 'parent', childId: halfBroId, parentId: papaId },
+          // { id: makeRelationshipId(), type: 'parent', childId: broId, parentId: mamaId },
+          // { id: makeRelationshipId(), type: 'parent', childId: broId, parentId: papaId },
+          // { id: makeRelationshipId(), type: 'parent', childId: sisId, parentId: mamaId },
+          // { id: makeRelationshipId(), type: 'parent', childId: sisId, parentId: papaId },
+          // { id: makeRelationshipId(), type: 'parent', childId: fille1Id, parentId: originPersonId },
+          // { id: makeRelationshipId(), type: 'parent', childId: fille1Id, parentId: wifeId },
+          // { id: makeRelationshipId(), type: 'parent', childId: fille2Id, parentId: originPersonId },
+          // { id: makeRelationshipId(), type: 'parent', childId: fille2Id, parentId: wifeId },
+          // { id: makeRelationshipId(), type: 'parent', childId: fils1Id, parentId: originPersonId },
+          // { id: makeRelationshipId(), type: 'parent', childId: fils1Id, parentId: wifeId },
+          // { id: makeRelationshipId(), type: 'parent', childId: fils2Id, parentId: originPersonId },
+          // { id: makeRelationshipId(), type: 'parent', childId: fils2Id, parentId: mama2Id },
+          // { id: makeRelationshipId(), type: 'parent', childId: petiteFille1Id, parentId: fille2Id },
+          // { id: makeRelationshipId(), type: 'parent', childId: papaId, parentId: bonPapaId },
+          // { id: makeRelationshipId(), type: 'parent', childId: papaId, parentId: bonneMamieId },
+          // { id: makeRelationshipId(), type: 'parent', childId: mamaId, parentId: papyId },
+          // { id: makeRelationshipId(), type: 'parent', childId: mamaId, parentId: mamyId },
+        ]}
+        initialOriginPersonId={originPersonId}
+      />
+    </SessionContext.Provider>
+  )
+}

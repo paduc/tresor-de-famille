@@ -9,18 +9,22 @@ import { RelationshipId, zIsRelationshipId } from '../../domain/RelationshipId'
 import { responseAsHtml } from '../../libs/ssr/responseAsHtml'
 import { pageRouter } from '../pageRouter'
 import { FamilyPage } from './FamilyPage'
-import { FamilyPageURL } from './FamilyPageURL'
+import { FamilyPageURL, FamilyPageURLWithFamily } from './FamilyPageURL'
 import { UserCreatedNewRelationship } from './UserCreatedNewRelationship'
 import { UserCreatedRelationshipWithNewPerson } from './UserCreatedRelationshipWithNewPerson'
 import { UserRemovedRelationship } from './UserRemovedRelationship'
 import { getFamilyPageProps } from './getFamilyPageProps'
-import { FamilyId } from '../../domain/FamilyId'
+import { FamilyId, zIsFamilyId } from '../../domain/FamilyId'
+import { asFamilyId } from '../../libs/typeguards'
 
-pageRouter.route(FamilyPageURL()).get(requireAuth(), async (request, response) => {
+pageRouter.route(FamilyPageURLWithFamily()).get(requireAuth(), async (request, response) => {
+  const { familyId } = z.object({ familyId: zIsFamilyId.optional() }).parse(request.params)
+  const userId = request.session.user!.id
+
   try {
     const props = await getFamilyPageProps({
       userId: request.session.user!.id,
-      familyId: request.session.user!.id as string as FamilyId,
+      familyId: familyId || asFamilyId(userId),
     })
     responseAsHtml(request, response, FamilyPage(props))
   } catch (error) {

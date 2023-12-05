@@ -6,7 +6,9 @@ import { FamilyId } from '../../domain/FamilyId'
 import { PersonId } from '../../domain/PersonId'
 import { UserNamedPersonInPhoto } from '../../events/onboarding/UserNamedPersonInPhoto'
 import { UserNamedThemself } from '../../events/onboarding/UserNamedThemself'
+import { asFamilyId } from '../../libs/typeguards'
 import { getPersonForUser } from '../_getPersonForUser'
+import { getPersonForUserForFamily } from '../_getPersonForUserForFamily'
 import { getProfilePicUrlForPerson } from '../_getProfilePicUrlForPerson'
 import { UserChangedPersonName } from '../person/UserChangedPersonName'
 import { PersonClonedForSharing } from '../share/PersonClonedForSharing'
@@ -23,7 +25,7 @@ export const getFamilyPageProps = async ({
   userId: AppUserId
   familyId: FamilyId
 }): Promise<FamilyPageProps> => {
-  const userPersonInFamily = await getPersonForUser({ userId })
+  const userPersonInFamily = await getPersonForUserForFamily({ userId, familyId })
 
   const persons = await getFamilyPersons({ userId, familyId })
   const relationships = await getFamilyRelationships(
@@ -32,11 +34,16 @@ export const getFamilyPageProps = async ({
   )
 
   if (!persons.length) {
-    // Ce cas ne devrait pas exister puisque lors de la création d'une famille, nous "clone" la personne de l'utilisateur
+    // Ce cas ne devrait pas exister puisque lors de la création d'une famille, nous "clonons" la personne de l'utilisateur
     throw new Error("Il n'y a personne dans cette famille")
   }
 
-  return { initialPersons: persons, initialRelationships: relationships, initialOriginPersonId: userPersonInFamily?.personId }
+  return {
+    initialPersons: persons,
+    initialRelationships: relationships,
+    initialOriginPersonId: userPersonInFamily?.personId,
+    familyId,
+  }
 }
 
 type Person = FamilyPageProps['initialPersons'][number]
