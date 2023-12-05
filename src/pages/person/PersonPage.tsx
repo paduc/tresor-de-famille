@@ -103,7 +103,7 @@ export const PersonPage = withBrowserBundle(({ person, photos, alternateProfileP
         </div>
       </div>
 
-      {clones.length ? (
+      {clones.length > 1 ? (
         <div className='my-5 bg-white p-6'>
           Cette personne est aussi présente dans{' '}
           <ul className='inline-block'>
@@ -119,6 +119,10 @@ export const PersonPage = withBrowserBundle(({ person, photos, alternateProfileP
           </ul>
           <span className='-ml-1'>.</span>
         </div>
+      ) : null}
+
+      {clones.length === 1 ? (
+        <div className='my-5 bg-white p-6'>Cette personne fait partie de {clones[0].familyName}.</div>
       ) : null}
 
       <div className='bg-white p-6'>
