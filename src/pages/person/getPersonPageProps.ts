@@ -14,6 +14,10 @@ import { getProfilePicUrlForPerson } from '../_getProfilePicUrlForPerson'
 import { UserDeletedPhoto } from '../photo/UserDeletedPhoto'
 import { PhotoManuallyAnnotated } from '../photo/annotateManually/PhotoManuallyAnnotated'
 import { PersonPageProps } from './PersonPage'
+import { getPersonFamily } from '../_getPersonFamily'
+import { getFamilyById } from '../_getFamilyById'
+import { getPersonClones } from '../_getPersonClones'
+import { getUserFamilies } from '../_getUserFamilies'
 
 export const getPersonPageProps = async ({
   personId,
@@ -26,12 +30,35 @@ export const getPersonPageProps = async ({
 
   const { name } = (await getPersonById({ personId })) || { name: 'N/A' }
 
+  const familyId = await getPersonFamily(personId)
+
+  let familyName: string
+  if (!familyId || (familyId as string) === (userId as string)) {
+    familyName = 'Espace personnel'
+  } else {
+    const family = await getFamilyById(familyId)
+    familyName = family?.name || 'Famille inconnue'
+  }
+
   const profilePicUrl = await getProfilePicUrlForPerson({ personId, userId })
 
+  const personClones = await getPersonClones({ personId })
+  const userFamilies = await getUserFamilies(userId)
+  const clones = personClones.reduce((clones, { personId, familyId }) => {
+    // Only keep the clones that are in one of the users families
+    const userFamily = userFamilies.find((uf) => familyId === uf.familyId)
+    if (userFamily) {
+      return clones.concat([{ personId, familyName: userFamily.familyName }])
+    }
+
+    return clones
+  }, [] as PersonPageProps['clones'])
+
   return {
-    person: { personId, name, profilePicUrl },
+    person: { personId, name, profilePicUrl, familyName },
     photos,
     alternateProfilePics,
+    clones,
   }
 }
 async function getPersonPhotos(personId: PersonId, userId: AppUserId) {
