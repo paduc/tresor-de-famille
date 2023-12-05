@@ -1,23 +1,16 @@
 import * as React from 'react'
 
+import { Listbox, Transition } from '@headlessui/react'
+import { CheckIcon, ChevronDownIcon } from '@heroicons/react/24/outline'
+import { FamilyId } from '../../domain/FamilyId'
 import { PhotoId } from '../../domain/PhotoId'
 import { withBrowserBundle } from '../../libs/ssr/withBrowserBundle'
+import { secondaryButtonStyles, smallButtonIconStyles, smallButtonStyles } from '../_components/Button'
 import { InlinePhotoUploadBtn } from '../_components/InlinePhotoUploadBtn'
+import { useSession } from '../_components/SessionContext'
 import { SuccessError } from '../_components/SuccessError'
 import { AppLayout } from '../_components/layout/AppLayout'
 import { PhotoIcon } from '../photo/PhotoPage/PhotoIcon'
-import { Listbox, Transition } from '@headlessui/react'
-import { ChevronDownIcon, CheckIcon } from '@heroicons/react/24/outline'
-import { ClientOnly } from '../_components/ClientOnly'
-import { useSession } from '../_components/SessionContext'
-import { FamilyId } from '../../domain/FamilyId'
-import {
-  buttonIconStyles,
-  primaryButtonStyles,
-  secondaryButtonStyles,
-  smallButtonIconStyles,
-  smallButtonStyles,
-} from '../_components/Button'
 import { PhotoListPageUrlWithFamily } from './PhotoListPageUrl'
 
 // @ts-ignore
@@ -38,7 +31,7 @@ export type PhotoListProps = {
 export const PhotoListPage = withBrowserBundle(({ error, success, photos, currentFamilyId }: PhotoListProps) => {
   const session = useSession()
 
-  if (!session.isLoggedIn) return null
+  if (!session.isLoggedIn) return <div />
 
   const { userFamilies } = session
 
