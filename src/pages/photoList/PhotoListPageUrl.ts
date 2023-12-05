@@ -5,5 +5,5 @@ export const PhotoListPageUrlWithFamily = (familyId?: FamilyId) => {
   if (familyId) {
     return `/${familyId}/photos.html`
   }
-  return '(/:familyId)/photos.html'
+  return '/:familyId?/photos.html'
 }
