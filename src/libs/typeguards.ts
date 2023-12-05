@@ -1,4 +1,6 @@
 import z from 'zod'
+import { AppUserId } from '../domain/AppUserId'
+import { FamilyId } from '../domain/FamilyId'
 
 // Utilities
 
@@ -26,4 +28,8 @@ export type Epoch = number & { isEpoch: true }
 
 export function getEpoch(date: Date): Epoch {
   return date.getTime() as Epoch
+}
+
+export function asFamilyId(userId: AppUserId) {
+  return userId as string as FamilyId
 }
