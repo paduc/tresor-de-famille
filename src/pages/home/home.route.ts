@@ -20,6 +20,7 @@ import { pageRouter } from '../pageRouter'
 import { detectFacesInPhotoUsingAWS } from '../photo/recognizeFacesInChatPhoto/detectFacesInPhotoUsingAWS'
 import { HomePage } from './HomePage'
 import { getHomePageProps } from './getHomePageProps'
+import { asFamilyId } from '../../libs/typeguards'
 
 const FILE_SIZE_LIMIT_MB = 50
 const upload = multer({
@@ -47,7 +48,7 @@ pageRouter
       .parse(request.body)
 
     const userId = request.session.user!.id
-    const defaultFamilyId = userId as string as FamilyId
+    const defaultFamilyId = asFamilyId(userId)
 
     if (action === 'submitPresentation') {
       const { presentation } = z
@@ -73,6 +74,7 @@ pageRouter
           objectID: personId,
           personId,
           name: presentation,
+          familyId: defaultFamilyId,
           visible_by: [`family/${defaultFamilyId}`, `user/${userId}`],
         })
       } catch (error) {

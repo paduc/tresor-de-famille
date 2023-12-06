@@ -129,12 +129,12 @@ pageRouter
             )
 
             try {
-              const photoFamily = await getPhotoFamily(photoId)
               await personsIndex.saveObject({
                 objectID: personId,
                 personId,
                 name: newFamilyMemberName,
-                visible_by: [`family/${photoFamily}`, `user/${userId}`],
+                familyId,
+                visible_by: [`family/${familyId}`, `user/${userId}`],
               })
             } catch (error) {
               console.error('Could not add new family member to algolia index', error)
