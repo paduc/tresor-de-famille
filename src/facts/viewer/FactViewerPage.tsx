@@ -19,7 +19,7 @@ export const FactViewerPage = ({ facts, factTypes }: FactViewerPageProps) => {
 
           <form method='GET'>
             <label htmlFor='type'>By type</label>
-            <select multiple name='type' style={{ resize: 'vertical', display: 'block', marginBottom: 10 }}>
+            <select multiple name='type' size={20} style={{ resize: 'vertical', display: 'block', marginBottom: 10 }}>
               {factTypes.map((type) => (
                 <option key={type}>{type}</option>
               ))}
