@@ -13,9 +13,10 @@ import ReactFlow, {
   useNodesState,
 } from 'reactflow'
 
-import { Dialog, Listbox, Transition } from '@headlessui/react'
+import { Combobox, Dialog, Listbox, Transition } from '@headlessui/react'
 import { CheckIcon, ChevronDownIcon, EllipsisHorizontalIcon, UserPlusIcon, XMarkIcon } from '@heroicons/react/24/outline'
 import { useCallback, useMemo, useRef, useState } from 'react'
+import { FamilyId } from '../../domain/FamilyId'
 import { PersonId } from '../../domain/PersonId'
 import { RelationshipId } from '../../domain/RelationshipId'
 import { makePersonId } from '../../libs/makePersonId'
@@ -23,14 +24,12 @@ import { makeRelationshipId } from '../../libs/makeRelationshipId'
 import { withBrowserBundle } from '../../libs/ssr/withBrowserBundle'
 import { primaryButtonStyles, secondaryButtonStyles, smallButtonIconStyles, smallButtonStyles } from '../_components/Button'
 import { ClientOnly } from '../_components/ClientOnly'
-import { PersonAutocomplete } from '../_components/PersonAutocomplete'
+import { useSession } from '../_components/SessionContext'
 import { TDFModal } from '../_components/TDFModal'
 import { AppLayout } from '../_components/layout/AppLayout'
+import { usePersonSearch } from '../_components/usePersonSearch'
 import { PersonPageURL } from '../person/PersonPageURL'
-import { FamilyId } from '../../domain/FamilyId'
-import { useSession } from '../_components/SessionContext'
-import { PhotoListPageUrlWithFamily } from '../photoList/PhotoListPageUrl'
-import { FamilyPageURL, FamilyPageURLWithFamily } from './FamilyPageURL'
+import { FamilyPageURLWithFamily } from './FamilyPageURL'
 
 // @ts-ignore
 function classNames(...classes) {
@@ -948,7 +947,7 @@ function SearchPanel({
   }, [pendingRelationshipAction])
 
   return (
-    <TDFModal isOpen={!!pendingRelationshipAction} close={close}>
+    <TDFModal isOpen={!!pendingRelationshipAction} close={close} placeAtTop>
       <div className='divide-y divider-gray-200'>
         <div className='sm:flex sm:items-start pb-5'>
           <div className='mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-indigo-100 sm:mx-0 sm:h-10 sm:w-10'>
@@ -1341,4 +1340,130 @@ const FamilySwitcher = ({ currentFamilyId }: FamilySwitcherProps) => {
       </Listbox>
     </div>
   )
+}
+
+type SearchPersonHitDTO = {
+  objectID: string
+  name: string
+  bornOn?: string
+  sex?: 'M' | 'F'
+}
+
+type PersonAutocompleteProps = {
+  onPersonSelected: (person: { type: 'known'; personId: PersonId } | { type: 'unknown'; name: string }) => unknown
+  className?: string
+  presentPerson?: { name: string; personId: PersonId }
+  unselectableIds?: string[]
+}
+
+const PersonAutocomplete = ({ onPersonSelected, className, presentPerson, unselectableIds }: PersonAutocompleteProps) => {
+  const [query, setQuery] = useState('')
+  const index = usePersonSearch()
+
+  const [hits, setHits] = React.useState<SearchPersonHitDTO[]>([])
+
+  React.useEffect(() => {
+    if (!index) return
+
+    const fetchResults = async () => {
+      const trimmedQuery = query.trim()
+      if (trimmedQuery === '') {
+        setHits([])
+        return
+      }
+      const { hits } = await index.search(trimmedQuery)
+      const selectableHits = unselectableIds ? hits.filter((hit) => !unselectableIds.includes(hit.objectID)) : hits
+      setHits(selectableHits as SearchPersonHitDTO[])
+    }
+
+    fetchResults()
+  }, [index, setHits, query])
+
+  const handlePersonSelected = (person: { type: 'known'; personId: PersonId } | { type: 'unknown'; name: string }) => {
+    setQuery('')
+    onPersonSelected(person)
+  }
+  // console.log(JSON.stringify({ hits }, null, 2))
+
+  return (
+    <div className={`relative ${className || ''}`}>
+      <div className='w-full min-w-screen overflow-hidden shadow-sm border border-gray-200 focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500'>
+        <input
+          role='combobox'
+          type='text'
+          aria-expanded='true'
+          aria-autocomplete='list'
+          name='newName'
+          autoFocus
+          value={query}
+          className='block w-full resize-none border-0 py-3 px-4 focus:ring-0 text-base'
+          onChange={(event) => setQuery(event.target.value)}
+        />
+      </div>
+      <div>
+        <ul role='list' className='divide-y divide-gray-100'>
+          {query.length > 0 && !firstHitStartsWithQuery(hits, query) ? (
+            <NewPersonFromQuery query={query} onPersonSelected={handlePersonSelected} />
+          ) : null}
+          {hits.map((hit) => (
+            <li key={`hit_${hit.objectID}`} className='flex items-center justify-between gap-x-6 py-5'>
+              <div className='flex min-w-0 gap-x-4'>
+                {/* <img className='h-12 w-12 flex-none rounded-full bg-gray-50' src={person.imageUrl} alt='' /> */}
+                <div className='min-w-0 flex-auto'>
+                  <p className=''>{hit.name}</p>
+                  {hit.bornOn ? (
+                    <p className='mt-1 truncate text-xs leading-5 text-gray-500'>
+                      {hit.sex === 'F' ? 'née le ' : 'né le '}
+                      {hit.bornOn}
+                    </p>
+                  ) : (
+                    ''
+                  )}
+                </div>
+              </div>
+              <button
+                name='existingFamilyMemberId'
+                value={hit.objectID}
+                onClick={() => handlePersonSelected({ type: 'known', personId: hit.objectID as PersonId })}
+                className={`${primaryButtonStyles} ${smallButtonStyles}`}>
+                Sélectionner
+              </button>
+            </li>
+          ))}
+          {query.length > 0 && firstHitStartsWithQuery(hits, query) ? (
+            <NewPersonFromQuery query={query} onPersonSelected={handlePersonSelected} />
+          ) : null}
+        </ul>
+      </div>
+    </div>
+  )
+}
+
+function NewPersonFromQuery({
+  query,
+  onPersonSelected,
+}: {
+  query: string
+  onPersonSelected: (person: { type: 'unknown'; name: string }) => unknown
+}) {
+  return (
+    <li key={`hit_new_object`} className='flex items-center justify-between gap-x-6 py-5'>
+      <div className='flex min-w-0 gap-x-4'>
+        {/* <img className='h-12 w-12 flex-none rounded-full bg-gray-50' src={person.imageUrl} alt='' /> */}
+        <div className='min-w-0 flex-auto'>
+          <p className=''>{query}</p>
+          <p className='mt-1 truncate text-xs leading-5 text-gray-500'>Nouvelle personne à créer</p>
+        </div>
+      </div>
+      <button
+        onClick={() => onPersonSelected({ type: 'unknown', name: query })}
+        className={`${primaryButtonStyles} ${smallButtonStyles}`}>
+        Créer
+      </button>
+    </li>
+  )
+}
+
+function firstHitStartsWithQuery(hits: SearchPersonHitDTO[], query: string) {
+  return hits[0]?.name.toLowerCase().startsWith(query.toLowerCase())
 }

@@ -7,8 +7,9 @@ type TDFModalProps = {
   close: () => unknown
   title?: string | JSX.Element
   children: React.ReactNode
+  placeAtTop?: boolean
 }
-export function TDFModal({ isOpen, close, title, children }: TDFModalProps) {
+export function TDFModal({ isOpen, close, title, children, placeAtTop }: TDFModalProps) {
   return (
     <Transition.Root show={isOpen} as={React.Fragment}>
       <Dialog as='div' className='relative z-50' onClose={close}>
@@ -24,7 +25,10 @@ export function TDFModal({ isOpen, close, title, children }: TDFModalProps) {
         </Transition.Child>
 
         <div className='fixed inset-0 z-10 w-screen overflow-y-auto'>
-          <div className='flex min-h-full items-start justify-center p-4 text-center sm:items-center sm:p-0'>
+          <div
+            className={`flex min-h-full items-start justify-center p-4 text-center ${
+              placeAtTop ? '' : 'sm:items-center'
+            } sm:p-0`}>
             <Transition.Child
               as={React.Fragment}
               enter='ease-out duration-300'
