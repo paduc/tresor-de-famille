@@ -82,6 +82,7 @@ async function indexUserNamedThemself() {
       objectID: personId,
       id: personId,
       name,
+      familyId: onboardedPerson.payload.familyId,
       visible_by: [`family/${onboardedPerson.payload.familyId}`, `user/${onboardedPerson.payload.userId}`],
     })
   }
@@ -98,6 +99,7 @@ async function indexPersonCreatedWithRelationship() {
       objectID: personId,
       id: personId,
       name,
+      familyId: newPerson.payload.familyId,
       visible_by: [`family/${newPerson.payload.familyId}`, `user/${newPerson.payload.userId}`],
     })
   }
@@ -114,6 +116,7 @@ async function indexUserNamedPersonInPhoto() {
       objectID: personId,
       id: personId,
       name,
+      familyId: userNamedPerson.payload.familyId,
       visible_by: [`family/${userNamedPerson.payload.familyId}`, `user/${userNamedPerson.payload.userId}`],
     })
   }
@@ -162,6 +165,7 @@ async function indexGedcom() {
       sex,
       parents: Array.from(relationshipsById[id]?.parents || []).map((personId) => personById[personId]?.name),
       children: Array.from(relationshipsById[id]?.children || []).map((personId) => personById[personId]?.name),
+      familyId,
       visible_by: [`family/${familyId}`, `user/${gedcom.payload.importedBy}`],
     }))
 

@@ -78,6 +78,7 @@ pageRouter.route('/family/saveNewRelationship').post(requireAuth(), async (reque
         objectID: personId,
         personId,
         name,
+        familyId,
         visible_by: [`family/${familyId}}`, `user/${userId}`],
       })
     } catch (error) {
