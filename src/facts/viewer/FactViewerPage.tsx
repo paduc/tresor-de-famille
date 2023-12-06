@@ -4,16 +4,17 @@ import { DomainEvent } from '../../dependencies/DomainEvent'
 type FactViewerPageProps = {
   facts: DomainEvent[]
   factTypes: string[]
+  query: string | undefined
 }
 
-export const FactViewerPage = ({ facts, factTypes }: FactViewerPageProps) => {
+export const FactViewerPage = ({ facts, factTypes, query }: FactViewerPageProps) => {
   return (
     <div style={{ padding: 30 }}>
       <div style={{ backgroundColor: 'rgba(0,0,50,0.1)', padding: '20px 30px' }}>
         <div style={{ fontSize: 32 }}>Fact Viewer 2000</div>
         <a href='./factDiagram.html'>Diagram</a>
       </div>
-      <div style={{ backgroundColor: 'rgba(0,0,50,0.05)', padding: '10px 30px', marginBottom: 20 }}>
+      <div style={{ backgroundColor: 'rgba(0,0,50,0.05)', padding: '10px 30px' }}>
         <details>
           <summary style={{ cursor: 'pointer', marginBottom: 10 }}>Filters</summary>
 
@@ -33,6 +34,17 @@ export const FactViewerPage = ({ facts, factTypes }: FactViewerPageProps) => {
           </form>
         </details>
       </div>
+      <div style={{ backgroundColor: 'rgba(0,0,50,0.05)', padding: '10px 30px', marginBottom: 20 }}>
+        <form method='GET' className='inline-flex items-center'>
+          <input type='text' name='query' defaultValue={query || ''} />
+          <button type='submit' className='px-3 py-1.5 mx-1 bg-white border border-gray-500'>
+            Search
+          </button>
+          <a href='?' style={{ marginLeft: 10 }}>
+            Reset
+          </a>
+        </form>
+      </div>
       <ul style={{ borderLeft: '1px solid rgba(0,0,0,0.7)' }}>
         {facts.map(({ id, type, occurredAt, payload }) => (
           <li key={id} style={{ marginBottom: '10px', marginLeft: 20 }}>
@@ -46,11 +58,12 @@ export const FactViewerPage = ({ facts, factTypes }: FactViewerPageProps) => {
               <pre style={{ color: 'rgba(0,0,0,0.5)' }}>
                 {JSON.stringify(
                   type === 'AWSDetectedFacesInPhoto'
-                    ? { faces: payload.faces.map(({ faceId }: any) => ({ faceId })) }
+                    ? { faces: payload.faces.map(({ faceId }: any) => ({ faceId })), photoId: payload.photoId }
                     : payload,
                   null,
                   2
                 )}
+                {/* {JSON.stringify(payload, null, 2)} */}
               </pre>
             </details>
           </li>

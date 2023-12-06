@@ -18,14 +18,15 @@ factViewerRouter.route('/factViewer.html').get(requireAuth(), async (request, re
     return response.status(403).send("Vous n'êtes pas autorisé à accéder à cette page")
   }
 
-  const { type } = z
+  const { type: types, query } = z
     .object({
       type: z.union([z.string(), z.array(z.string())]).optional(),
+      query: z.string().optional(),
     })
     .parse(request.query)
 
   try {
-    const facts = await getFacts(type)
+    const facts = await getFacts({ types, query })
     const factTypes = await getFactTypes()
 
     response.send(
@@ -37,7 +38,7 @@ factViewerRouter.route('/factViewer.html').get(requireAuth(), async (request, re
             <link href="/style.css" rel="stylesheet" />
           </head>
           <body>
-            ${ReactDOMServer.renderToString(FactViewerPage({ facts, factTypes }))}
+            ${ReactDOMServer.renderToString(FactViewerPage({ facts, factTypes, query }))}
           </body>
         </html>
       `
