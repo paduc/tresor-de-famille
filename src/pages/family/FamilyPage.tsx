@@ -24,7 +24,7 @@ import { makeRelationshipId } from '../../libs/makeRelationshipId'
 import { withBrowserBundle } from '../../libs/ssr/withBrowserBundle'
 import { primaryButtonStyles, secondaryButtonStyles, smallButtonIconStyles, smallButtonStyles } from '../_components/Button'
 import { ClientOnly } from '../_components/ClientOnly'
-import { useSession } from '../_components/SessionContext'
+import { useLoggedInSession, useSession } from '../_components/SessionContext'
 import { TDFModal } from '../_components/TDFModal'
 import { AppLayout } from '../_components/layout/AppLayout'
 import { usePersonSearch } from '../_components/usePersonSearch'
@@ -704,6 +704,7 @@ const ClientOnlyFamilyPage = ({ initialPersons, initialRelationships, initialOri
                   pendingRelationshipAction={pendingRelationshipAction}
                   relationships={relationships}
                   persons={persons}
+                  currentFamilyId={familyId}
                 />
               </Panel>
               <Panel position='top-right'>
@@ -804,6 +805,7 @@ type SearchPanelProps = {
   pendingRelationshipAction: PendingNodeRelationshipAction | null
   relationships: Relationship[]
   persons: Person[]
+  currentFamilyId: FamilyId
 }
 
 function SearchPanel({
@@ -812,6 +814,7 @@ function SearchPanel({
   pendingRelationshipAction,
   relationships,
   persons,
+  currentFamilyId,
 }: SearchPanelProps) {
   const close = () => onPersonSelected(null)
 
@@ -988,6 +991,7 @@ function SearchPanel({
                 }}
                 unselectableIds={unselectableIds}
                 className='max-w-xl text-gray-800'
+                currentFamilyId={currentFamilyId}
               />
               {otherRelationships ? (
                 <div className='flex items-center justify-between mt-2'>
@@ -1343,22 +1347,31 @@ const FamilySwitcher = ({ currentFamilyId }: FamilySwitcherProps) => {
 }
 
 type SearchPersonHitDTO = {
-  objectID: string
+  objectID: PersonId
   name: string
   bornOn?: string
   sex?: 'M' | 'F'
+  familyId: FamilyId
 }
 
 type PersonAutocompleteProps = {
   onPersonSelected: (person: { type: 'known'; personId: PersonId } | { type: 'unknown'; name: string }) => unknown
   className?: string
   presentPerson?: { name: string; personId: PersonId }
-  unselectableIds?: string[]
+  unselectableIds?: PersonId[]
+  currentFamilyId: FamilyId
 }
 
-const PersonAutocomplete = ({ onPersonSelected, className, presentPerson, unselectableIds }: PersonAutocompleteProps) => {
+const PersonAutocomplete = ({
+  onPersonSelected,
+  className,
+  presentPerson,
+  unselectableIds,
+  currentFamilyId,
+}: PersonAutocompleteProps) => {
   const [query, setQuery] = useState('')
   const index = usePersonSearch()
+  const { userFamilies } = useLoggedInSession()
 
   const [hits, setHits] = React.useState<SearchPersonHitDTO[]>([])
 
@@ -1371,7 +1384,7 @@ const PersonAutocomplete = ({ onPersonSelected, className, presentPerson, unsele
         setHits([])
         return
       }
-      const { hits } = await index.search(trimmedQuery)
+      const { hits } = (await index.search(trimmedQuery)) as { hits: SearchPersonHitDTO[] }
       const selectableHits = unselectableIds ? hits.filter((hit) => !unselectableIds.includes(hit.objectID)) : hits
       setHits(selectableHits as SearchPersonHitDTO[])
     }
@@ -1383,7 +1396,6 @@ const PersonAutocomplete = ({ onPersonSelected, className, presentPerson, unsele
     setQuery('')
     onPersonSelected(person)
   }
-  // console.log(JSON.stringify({ hits }, null, 2))
 
   return (
     <div className={`relative ${className || ''}`}>
@@ -1416,6 +1428,11 @@ const PersonAutocomplete = ({ onPersonSelected, className, presentPerson, unsele
                       {hit.sex === 'F' ? 'née le ' : 'né le '}
                       {hit.bornOn}
                     </p>
+                  ) : (
+                    ''
+                  )}
+                  {hit.familyId !== currentFamilyId ? (
+                    <p className='mt-1 truncate text-xs leading-5 text-gray-500'>Cette personne est dans une autre famille.</p>
                   ) : (
                     ''
                   )}
