@@ -8,7 +8,7 @@
     "build:front": "webpack --config=webpack.config.js",
     "postcss:local": "postcss --watch -o src/assets/style.css src/pages/style.css",
     "postcss:build": "postcss -o dist/assets/style.css src/pages/style.css",
-    "watch": "concurrently \"tsx watch src/server.ts\" \"yarn postcss:local\" \"yarn watch:front\" ",
+    "watch": "yarn build:front && concurrently \"tsx watch src/server.ts\" \"yarn postcss:local\" \"yarn watch:front\" ",
     "watch:debug": "yarn postcss:local && concurrently \"nodemon --inspect src/server.ts\" \"yarn watch:front\" ",
     "watch:front": "webpack --config=webpack.config.js --watch",
     "prettier": "prettier --write . --ignore-unknown",
