@@ -104,7 +104,7 @@ export function AppLayout({ children }: AppLayoutProps) {
       condition: () => areThreadsEnabled,
     },
     {
-      name: 'Ma famille (alpha)',
+      name: 'Arbres généalogiques',
       href: '/family.html',
       icon: ShareIcon,
       condition: () => isFamilyPageEnabled,
@@ -216,7 +216,6 @@ export function AppLayout({ children }: AppLayoutProps) {
                           </ul>
                         </li>
                         <li>
-                          {/* <div className='text-xs font-semibold leading-6 text-indigo-200'>Par type</div> */}
                           <ul role='list' className='-mx-2 space-y-1'>
                             {navigation.map((item) => {
                               const isCurrent = item.href === '/' ? url === '/' : url.startsWith(item.href)
@@ -326,7 +325,6 @@ export function AppLayout({ children }: AppLayoutProps) {
                   </ul>
                 </li> */}
                 <li>
-                  <div className='text-xs font-semibold leading-6 text-indigo-200'>Par type</div>
                   <ul role='list' className='-mx-2 space-y-1'>
                     {navigation.map((item) => {
                       const isCurrent = item.href === '/' ? url === '/' : url.startsWith(item.href)
