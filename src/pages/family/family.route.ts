@@ -49,11 +49,12 @@ type Relationship = z.infer<typeof zIsRelationship>
 
 pageRouter.route('/family/saveNewRelationship').post(requireAuth(), async (request, response) => {
   const userId = request.session.user!.id
-  const { newPerson, relationship, secondaryRelationships } = z
+  const { newPerson, relationship, secondaryRelationships, familyId } = z
     .object({
       newPerson: z.object({ personId: zIsPersonId, name: z.string() }).optional(),
       relationship: zIsRelationship,
       secondaryRelationships: z.array(zIsRelationship).optional(),
+      familyId: zIsFamilyId,
     })
     .parse(request.body)
 
@@ -61,15 +62,13 @@ pageRouter.route('/family/saveNewRelationship').post(requireAuth(), async (reque
     return response.status(403).send()
   }
 
-  const defaultFamilyId = userId as string as FamilyId
-
   if (newPerson) {
     await addToHistory(
       UserCreatedRelationshipWithNewPerson({
         relationship,
         newPerson,
         userId,
-        familyId: defaultFamilyId,
+        familyId,
       })
     )
 
@@ -79,7 +78,7 @@ pageRouter.route('/family/saveNewRelationship').post(requireAuth(), async (reque
         objectID: personId,
         personId,
         name,
-        visible_by: [`family/${defaultFamilyId}`, `user/${userId}`],
+        visible_by: [`family/${familyId}}`, `user/${userId}`],
       })
     } catch (error) {
       console.error('Could not add new family member to algolia index', error)
@@ -89,7 +88,7 @@ pageRouter.route('/family/saveNewRelationship').post(requireAuth(), async (reque
       UserCreatedNewRelationship({
         relationship,
         userId,
-        familyId: defaultFamilyId,
+        familyId,
       })
     )
   }
@@ -100,7 +99,7 @@ pageRouter.route('/family/saveNewRelationship').post(requireAuth(), async (reque
         UserCreatedNewRelationship({
           relationship: secondaryRelationship,
           userId,
-          familyId: defaultFamilyId,
+          familyId,
         })
       )
     }
