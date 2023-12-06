@@ -39,3 +39,13 @@ export const useSession = () => {
 
   return session
 }
+
+export const useLoggedInSession = () => {
+  const session = useSession()
+
+  if (!session.isLoggedIn) {
+    throw new Error('Available only for logged in users')
+  }
+
+  return session
+}
