@@ -48,7 +48,7 @@ export const getFamilyPageProps = async ({
 
 type Person = FamilyPageProps['initialPersons'][number]
 
-async function getFamilyPersons({ userId, familyId }: { userId: AppUserId; familyId: FamilyId }): Promise<Person[]> {
+export async function getFamilyPersons({ userId, familyId }: { userId: AppUserId; familyId: FamilyId }): Promise<Person[]> {
   const events = await getEventList<
     UserNamedPersonInPhoto | UserNamedThemself | UserCreatedRelationshipWithNewPerson | PersonClonedForSharing
   >(['UserNamedPersonInPhoto', 'UserNamedThemself', 'UserCreatedRelationshipWithNewPerson', 'PersonClonedForSharing'], {
@@ -76,7 +76,7 @@ async function getFamilyPersons({ userId, familyId }: { userId: AppUserId; famil
 
 type Relationship = FamilyPageProps['initialRelationships'][number]
 
-async function getFamilyRelationships(personIds: PersonId[], familyId: FamilyId): Promise<Relationship[]> {
+export async function getFamilyRelationships(personIds: PersonId[], familyId: FamilyId): Promise<Relationship[]> {
   const relationships: Relationship[] = []
 
   const removedRelationshipIds = (await getEventList<UserRemovedRelationship>('UserRemovedRelationship', { familyId })).map(
