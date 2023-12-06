@@ -13,8 +13,8 @@ export type PersonClonedForSharing = DomainEvent<
     personId: PersonId
 
     name: string
-    faceId?: FaceId
-    profilePicPhotoId?: PhotoId
+    faceId?: FaceId | undefined
+    profilePicPhotoId?: PhotoId | undefined
 
     clonedFrom: {
       familyId: FamilyId

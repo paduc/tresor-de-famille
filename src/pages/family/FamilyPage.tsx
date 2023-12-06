@@ -17,8 +17,8 @@ import { Combobox, Dialog, Listbox, Transition } from '@headlessui/react'
 import { CheckIcon, ChevronDownIcon, EllipsisHorizontalIcon, UserPlusIcon, XMarkIcon } from '@heroicons/react/24/outline'
 import { useCallback, useMemo, useRef, useState } from 'react'
 import { FamilyId } from '../../domain/FamilyId'
-import { PersonId } from '../../domain/PersonId'
-import { RelationshipId } from '../../domain/RelationshipId'
+import { PersonId, zIsPersonId } from '../../domain/PersonId'
+import { RelationshipId, zIsRelationshipId } from '../../domain/RelationshipId'
 import { makePersonId } from '../../libs/makePersonId'
 import { makeRelationshipId } from '../../libs/makeRelationshipId'
 import { withBrowserBundle } from '../../libs/ssr/withBrowserBundle'
@@ -30,6 +30,8 @@ import { AppLayout } from '../_components/layout/AppLayout'
 import { usePersonSearch } from '../_components/usePersonSearch'
 import { PersonPageURL } from '../person/PersonPageURL'
 import { FamilyPageURLWithFamily } from './FamilyPageURL'
+import { z } from 'zod'
+import { zIsRelationship } from './zIsRelationship'
 
 // @ts-ignore
 function classNames(...classes) {
@@ -608,23 +610,21 @@ const ClientOnlyFamilyPage = ({ initialPersons, initialRelationships, initialOri
           : []
 
         // TODO: display loading state
-        await saveNewRelationship({ newPerson, relationship: newRelationship, secondaryRelationships, familyId })
-
-        // Add Node if new person (call setPersons)
-        setPersons((persons) => {
-          if (newPerson) {
-            return [...persons, newPerson as Person]
-          }
-
-          return persons
+        const { persons, relationships } = await saveNewRelationship({
+          newPerson,
+          relationship: newRelationship,
+          secondaryRelationships,
+          familyId,
         })
 
-        // Add Relationship
-        setRelationships((relationships) => {
-          const newRelationships = [newRelationship, ...secondaryRelationships]
-          return [...relationships, ...newRelationships]
-        })
-      } catch (error) {}
+        // Given their could be new persons created during the saveNewRelationship
+        // use the returned persons and relationships
+        setPersons(persons)
+        setRelationships(relationships)
+      } catch (error) {
+        console.error('Failed to save relationships', error)
+        alert("La nouvelle relation n'a malheureusement pas pu être sauvegardée.")
+      }
 
       function getNewPerson(person: Exclude<typeof selectedPerson, null>): { newPerson?: Person; targetPersonId: PersonId } {
         if (person.type === 'unknown') {
@@ -1229,24 +1229,32 @@ type SaveNewRelationshipArgs = {
   familyId: FamilyId
 }
 
-const saveNewRelationship = async ({ newPerson, relationship, secondaryRelationships, familyId }: SaveNewRelationshipArgs) => {
+const saveNewRelationship = async ({
+  newPerson,
+  relationship,
+  secondaryRelationships,
+  familyId,
+}: SaveNewRelationshipArgs): Promise<{ persons: Person[]; relationships: Relationship[] }> => {
   // setStatus('saving')
-  return fetch(`/family/saveNewRelationship`, {
+  const response = await fetch(`/family/saveNewRelationship`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ newPerson, relationship, secondaryRelationships, familyId }),
-  }).then((res) => {
-    if (!res.ok) {
-      alert("La nouvelle relation n'a pas pu être sauvegardée.")
-      // setStatus('error')
-      throw new Error('saving of new relationship failed')
-    }
-    // setStatus('saved')
-    // setLatestTitle(newTitle)
-    // setTimeout(() => {
-    //   setStatus('idle')
-    // }, 2000)
   })
+
+  if (response.ok && response.status === 200) {
+    const data = await response.json()
+    const { persons, relationships } = z
+      .object({
+        persons: z.array(z.object({ profilePicUrl: z.union([z.string(), z.null()]), name: z.string(), personId: zIsPersonId })),
+        relationships: z.array(zIsRelationship),
+      })
+      .parse(data)
+
+    return { persons, relationships }
+  }
+
+  return Promise.reject()
 }
 
 type RemoveRelationshipArgs = {
