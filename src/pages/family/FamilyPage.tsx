@@ -609,7 +609,7 @@ const ClientOnlyFamilyPage = ({ initialPersons, initialRelationships, initialOri
           : []
 
         // TODO: display loading state
-        await saveNewRelationship({ newPerson, relationship: newRelationship, secondaryRelationships })
+        await saveNewRelationship({ newPerson, relationship: newRelationship, secondaryRelationships, familyId })
 
         // Add Node if new person (call setPersons)
         setPersons((persons) => {
@@ -1223,14 +1223,15 @@ type SaveNewRelationshipArgs = {
   newPerson?: Person
   relationship: Relationship
   secondaryRelationships: Relationship[]
+  familyId: FamilyId
 }
 
-const saveNewRelationship = async ({ newPerson, relationship, secondaryRelationships }: SaveNewRelationshipArgs) => {
+const saveNewRelationship = async ({ newPerson, relationship, secondaryRelationships, familyId }: SaveNewRelationshipArgs) => {
   // setStatus('saving')
   return fetch(`/family/saveNewRelationship`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ newPerson, relationship, secondaryRelationships }),
+    body: JSON.stringify({ newPerson, relationship, secondaryRelationships, familyId }),
   }).then((res) => {
     if (!res.ok) {
       alert("La nouvelle relation n'a pas pu être sauvegardée.")
