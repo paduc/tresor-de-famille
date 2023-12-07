@@ -18,6 +18,7 @@ import { getPersonFamily } from '../_getPersonFamily'
 import { getFamilyById } from '../_getFamilyById'
 import { getPersonClones } from '../_getPersonClones'
 import { getUserFamilies } from '../_getUserFamilies'
+import { FamilyId } from '../../domain/FamilyId'
 
 export const getPersonPageProps = async ({
   personId,
@@ -30,32 +31,38 @@ export const getPersonPageProps = async ({
 
   const { name } = (await getPersonById({ personId })) || { name: 'N/A' }
 
-  const familyId = await getPersonFamily(personId)
+  const personFamilyId = await getPersonFamily(personId)
 
   let familyName: string
-  if (!familyId || (familyId as string) === (userId as string)) {
+  if (!personFamilyId || (personFamilyId as string) === (userId as string)) {
     familyName = 'Espace personnel'
   } else {
-    const family = await getFamilyById(familyId)
-    familyName = family?.name || 'Famille inconnue'
+    const family = await getFamilyById(personFamilyId)
+    familyName = family.name
   }
 
   const profilePicUrl = await getProfilePicUrlForPerson({ personId, userId })
 
   const personClones = await getPersonClones({ personId })
   const userFamilies = await getUserFamilies(userId)
-  const clones = personClones.reduce((clones, { personId, familyId }) => {
-    // Only keep the clones that are in one of the users families
-    const userFamily = userFamilies.find((uf) => familyId === uf.familyId)
-    if (userFamily) {
-      return clones.concat([{ personId, familyName: userFamily.familyName }])
-    }
+  const clones = personClones
+    .filter((clone) => clone.personId !== personId)
+    .reduce((clones, { personId, familyId: cloneFamilyId }) => {
+      // Only keep the clones that are in one of the users families
+      const userFamily = userFamilies.find((uf) => cloneFamilyId === uf.familyId)
+      if (userFamily) {
+        return clones.concat([{ personId, familyName: userFamily.familyName }])
+      }
 
-    return clones
-  }, [] as PersonPageProps['clones'])
+      if ((cloneFamilyId as string) === (userId as string)) {
+        return clones.concat([{ personId, familyName: 'Espace Personnel' }])
+      }
+
+      return clones
+    }, [] as PersonPageProps['clones'])
 
   return {
-    person: { personId, name, profilePicUrl, familyName },
+    person: { personId, name, profilePicUrl, familyName, familyId: personFamilyId },
     photos,
     alternateProfilePics,
     clones,
