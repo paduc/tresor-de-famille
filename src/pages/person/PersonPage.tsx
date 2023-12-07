@@ -133,7 +133,10 @@ export const PersonPage = withBrowserBundle(({ person, photos, alternateProfileP
       <div className='bg-white p-6'>
         <h3 className='text-lg font-medium leading-6 text-gray-900'>Photos de {person.name}</h3>
 
-        <InlinePhotoUploadBtn formAction='/add-photo.html' hiddenFields={{ familyId: person.familyId }}>
+        <InlinePhotoUploadBtn
+          formAction='/add-photo.html'
+          hiddenFields={{ familyId: person.familyId }}
+          formKey={`uploadFamily${person.familyId}`}>
           <span className='inline-block sm:text-sm cursor-pointer font-medium  text-indigo-600 hover:text-indigo-500'>
             Ajouter une nouvelle photo
           </span>

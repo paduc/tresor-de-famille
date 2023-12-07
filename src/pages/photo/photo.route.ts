@@ -1,11 +1,12 @@
 import multer from 'multer'
 import zod, { z } from 'zod'
+import fs from 'node:fs'
 import { addToHistory } from '../../dependencies/addToHistory'
 import { requireAuth } from '../../dependencies/authn'
 import { personsIndex } from '../../dependencies/search'
 import { zIsFaceId } from '../../domain/FaceId'
 import { zIsPersonId } from '../../domain/PersonId'
-import { zIsPhotoId } from '../../domain/PhotoId'
+import { PhotoId, zIsPhotoId } from '../../domain/PhotoId'
 import { ThreadId, zIsThreadId } from '../../domain/ThreadId'
 import { FaceIgnoredInPhoto } from '../../events/onboarding/FaceIgnoredInPhoto'
 import { UserNamedPersonInPhoto } from '../../events/onboarding/UserNamedPersonInPhoto'
@@ -16,7 +17,6 @@ import { makePhotoId } from '../../libs/makePhotoId'
 import { makeThreadId } from '../../libs/makeThreadId'
 import { responseAsHtml } from '../../libs/ssr/responseAsHtml'
 import { doesPhotoExist } from '../_doesPhotoExist'
-import { uploadPhotoToThread } from '../thread/uploadPhotoToChat/uploadPhotoToChat'
 import { PhotoListPageUrl } from '../photoList/PhotoListPageUrl'
 import { pageRouter } from '../pageRouter'
 import { NewPhotoPage } from './PhotoPage/NewPhotoPage'
@@ -27,6 +27,11 @@ import { detectFacesInPhotoUsingAWS } from './recognizeFacesInChatPhoto/detectFa
 import { ThreadUrl } from '../thread/ThreadUrl'
 import { getThreadFamily } from '../_getThreadFamily'
 import { getPhotoFamily } from '../_getPhotoFamily'
+import { FamilyId, zIsFamilyId } from '../../domain/FamilyId'
+import { uploadPhoto } from '../../dependencies/photo-storage'
+import { AppUserId } from '../../domain/AppUserId'
+import { UserUploadedPhotoToChat } from '../thread/uploadPhotoToChat/UserUploadedPhotoToChat'
+import { Thread } from '@sentry/node'
 
 const FILE_SIZE_LIMIT_MB = 50
 const upload = multer({
@@ -43,8 +48,13 @@ pageRouter
     try {
       const { photoId } = zod.object({ photoId: zIsPhotoId }).parse(request.params)
 
-      const { threadId, profileId, updated } = z
-        .object({ threadId: zIsThreadId.optional(), profileId: zIsPersonId.optional(), updated: z.string().optional() })
+      const { threadId, profileId, photoListForFamilyId, updated } = z
+        .object({
+          threadId: zIsThreadId.optional(),
+          profileId: zIsPersonId.optional(),
+          updated: z.string().optional(),
+          photoListForFamilyId: zIsFamilyId.optional(),
+        })
         .parse(request.query)
 
       const props = await getNewPhotoPageProps({
@@ -58,6 +68,10 @@ pageRouter
 
       if (profileId) {
         props.context = { type: 'profile', profileId }
+      }
+
+      if (photoListForFamilyId) {
+        props.context = { type: 'familyPhotoList', familyId: photoListForFamilyId }
       }
 
       responseAsHtml(request, response, NewPhotoPage(props))
@@ -183,29 +197,22 @@ pageRouter
 
 pageRouter.route('/add-photo.html').post(requireAuth(), upload.single('photo'), async (request, response) => {
   try {
-    const { chatId: chatIdFromForm, isOnboarding } = zod
-      .object({ chatId: z.union([zIsThreadId.optional(), z.string()]), isOnboarding: zod.string().optional() })
+    const { familyId } = zod
+      .object({
+        familyId: zIsFamilyId.optional(),
+      })
       .parse(request.body)
-
-    const chatId = !chatIdFromForm || chatIdFromForm === 'new' ? makeThreadId() : (chatIdFromForm as ThreadId)
 
     const userId = request.session.user!.id
 
     const { file } = request
 
     if (!file) return new Error('We did not receive any image.')
-    const photoId = makePhotoId()
 
-    await uploadPhotoToThread({ file, photoId, threadId: chatId, userId })
+    const photoId = await uploadNewPhoto({ file, familyId, userId })
 
-    await detectFacesInPhotoUsingAWS({ file, photoId })
-
-    if (isOnboarding && isOnboarding === 'yes') {
-      return response.redirect('/')
-    }
-
-    if (chatIdFromForm) {
-      return response.redirect(ThreadUrl(chatId, true))
+    if (familyId) {
+      return response.redirect(`/photo/${photoId}/photo.html?photoListForFamilyId=${familyId}`)
     }
 
     return response.redirect(`/photo/${photoId}/photo.html`)
@@ -241,3 +248,29 @@ pageRouter.route('/delete-photo').post(requireAuth(), async (request, response) 
     return response.status(500).send('La suppression de la photo a échoué.')
   }
 })
+
+type UploadPhotoToChatArgs = {
+  file: Express.Multer.File
+  userId: AppUserId
+  familyId: FamilyId | undefined
+}
+async function uploadNewPhoto({ file, familyId, userId }: UploadPhotoToChatArgs) {
+  const { path: originalPath } = file
+  const photoId = makePhotoId()
+
+  const location = await uploadPhoto({ contents: fs.createReadStream(originalPath), id: photoId })
+
+  await addToHistory(
+    UserUploadedPhotoToChat({
+      chatId: photoId as string as ThreadId, // Each photo has a thread
+      photoId,
+      location,
+      uploadedBy: userId,
+      familyId: familyId || (userId as string as FamilyId),
+    })
+  )
+
+  await detectFacesInPhotoUsingAWS({ file, photoId })
+
+  return photoId
+}
