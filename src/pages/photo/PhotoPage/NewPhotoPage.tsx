@@ -20,8 +20,9 @@ import { useSession } from '../../_components/SessionContext'
 import { TDFModal } from '../../_components/TDFModal'
 import { usePersonSearch } from '../../_components/usePersonSearch'
 import { PersonPageURL } from '../../person/PersonPageURL'
-import { PhotoListPageUrl } from '../../photoList/PhotoListPageUrl'
+import { PhotoListPageUrl, PhotoListPageUrlWithFamily } from '../../photoList/PhotoListPageUrl'
 import { ThreadUrl } from '../../thread/ThreadUrl'
+import { FamilyId } from '../../../domain/FamilyId'
 
 type PhotoFace = {
   faceId: FaceId
@@ -50,6 +51,10 @@ export type NewPhotoPageProps = {
         threadId: ThreadId
       }
     | { type: 'profile'; profileId: PersonId }
+    | {
+        type: 'familyPhotoList'
+        familyId: FamilyId
+      }
 }
 
 export const NewPhotoPage = withBrowserBundle(({ context, caption, photoId, photoUrl, faces }: NewPhotoPageProps) => {
@@ -106,7 +111,11 @@ export const NewPhotoPage = withBrowserBundle(({ context, caption, photoId, phot
             context
               ? context.type === 'thread'
                 ? ThreadUrl(context.threadId)
-                : PersonPageURL(context.profileId)
+                : context.type === 'profile'
+                ? PersonPageURL(context.profileId)
+                : context.type === 'familyPhotoList'
+                ? PhotoListPageUrlWithFamily(context.familyId)
+                : PhotoListPageUrl
               : PhotoListPageUrl
           }`}
           className='absolute top-2 right-2 text-gray-300'>

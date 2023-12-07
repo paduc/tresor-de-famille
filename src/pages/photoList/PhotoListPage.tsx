@@ -66,7 +66,10 @@ export const PhotoListPage = withBrowserBundle(({ error, success, photos, curren
                 Pas de photos ?!
               </p>
               <p className='max-w-xl mt-5 mx-auto text-xl text-gray-500'>Lancez-vous en en envoyant une !</p>
-              <InlinePhotoUploadBtn formAction='/add-photo.html'>
+              <InlinePhotoUploadBtn
+                formAction='/add-photo.html'
+                hiddenFields={{ familyId: currentFamilyId }}
+                formKey={`uploadFamily${currentFamilyId}`}>
                 <span className='inline-flex items-center mt-6 px-3 py-1.5 border border-transparent sm:text-sm cursor-pointer font-medium rounded-full shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
                   <PhotoIcon className='-ml-0.5 mr-2 h-4 w-4' aria-hidden='true' />
                   Ajouter une photo
@@ -78,7 +81,10 @@ export const PhotoListPage = withBrowserBundle(({ error, success, photos, curren
           <>
             <h3 className='text-lg font-medium leading-6 text-gray-900'>
               Photos
-              <InlinePhotoUploadBtn formAction='/add-photo.html'>
+              <InlinePhotoUploadBtn
+                formAction='/add-photo.html'
+                hiddenFields={{ familyId: currentFamilyId }}
+                formKey={`uploadFamily${currentFamilyId}`}>
                 <span className='inline-block sm:text-sm cursor-pointer font-medium  text-indigo-600 hover:text-indigo-500'>
                   Ajouter une nouvelle photo
                 </span>
@@ -92,7 +98,9 @@ export const PhotoListPage = withBrowserBundle(({ error, success, photos, curren
                 <li key={photo.photoId} className='relative'>
                   <div className='group aspect-h-7 aspect-w-10 block w-full overflow-hidden rounded-lg bg-gray-100 focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 focus-within:ring-offset-gray-100'>
                     <img src={photo.url} alt='' className='pointer-events-none object-cover group-hover:opacity-75' />
-                    <a href={photoPageUrl(photo)} className='absolute inset-0 focus:outline-none'>
+                    <a
+                      href={photoPageUrl(photo) + `?photoListForFamilyId=${currentFamilyId}`}
+                      className='absolute inset-0 focus:outline-none'>
                       <span className='sr-only'>Voir la photo</span>
                     </a>
                   </div>
@@ -100,7 +108,10 @@ export const PhotoListPage = withBrowserBundle(({ error, success, photos, curren
               ))}
             </ul>
             <div className='mt-5'>
-              <InlinePhotoUploadBtn formAction='/add-photo.html'>
+              <InlinePhotoUploadBtn
+                formAction='/add-photo.html'
+                hiddenFields={{ familyId: currentFamilyId }}
+                formKey={`uploadFamily${currentFamilyId}`}>
                 <span className='inline-flex items-center mt-6 px-3 py-1.5 border border-transparent sm:text-sm cursor-pointer font-medium rounded-full shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
                   <PhotoIcon className='-ml-0.5 mr-2 h-4 w-4' aria-hidden='true' />
                   Ajouter une nouvelle photo
