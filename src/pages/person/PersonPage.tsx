@@ -10,6 +10,8 @@ import { InlinePhotoUploadBtn } from '../_components/InlinePhotoUploadBtn'
 import { TDFModal } from '../_components/TDFModal'
 import { AppLayout } from '../_components/layout/AppLayout'
 import { PersonPageURL } from './PersonPageURL'
+import { useLoggedInSession } from '../_components/SessionContext'
+import { FamilyId } from '../../domain/FamilyId'
 
 // @ts-ignore
 function classNames(...classes) {
@@ -22,6 +24,7 @@ export type PersonPageProps = {
     name: string
     profilePicUrl: string | null
     familyName: string
+    familyId: FamilyId
   }
   photos: { photoId: PhotoId; url: string }[]
   alternateProfilePics: {
@@ -36,6 +39,7 @@ export type PersonPageProps = {
 }
 
 export const PersonPage = withBrowserBundle(({ person, photos, alternateProfilePics, clones }: PersonPageProps) => {
+  const { userFamilies } = useLoggedInSession()
   const [isProfilePicOpen, openProfilePic] = React.useState<boolean>(false)
   const closeProfilePic = React.useCallback(() => openProfilePic(false), [])
 
@@ -103,32 +107,33 @@ export const PersonPage = withBrowserBundle(({ person, photos, alternateProfileP
         </div>
       </div>
 
-      {clones.length > 1 ? (
+      {userFamilies.length > 0 ? (
         <div className='my-5 bg-white p-6'>
-          Cette personne est aussi présente dans{' '}
-          <ul className='inline-block'>
-            {clones.map((clone, index) => (
-              <li className='inline-block mr-1' key={`clone_${clone.personId}`}>
-                <a href={PersonPageURL(clone.personId)} className={`${linkStyles}`}>
-                  {clone.familyName}
-                </a>
-                {clones.length >= 2 && index === clones.length - 2 ? <span className='ml-1'>et</span> : null}
-                {clones.length >= 2 && index >= 0 && index < clones.length - 2 ? <span className=''>, </span> : null}
-              </li>
-            ))}
-          </ul>
-          <span className='-ml-1'>.</span>
+          Ce profil fait partie de {person.familyName}.
+          {clones.length > 0 ? (
+            <div>
+              Cette personne est aussi présente dans{' '}
+              <ul className='inline-block'>
+                {clones.map((clone, index) => (
+                  <li className='inline-block mr-1' key={`clone_${clone.personId}`}>
+                    <a href={PersonPageURL(clone.personId)} className={`${linkStyles}`}>
+                      {clone.familyName}
+                    </a>
+                    {clones.length >= 2 && index === clones.length - 2 ? <span className='ml-1'>et</span> : null}
+                    {clones.length >= 2 && index >= 0 && index < clones.length - 2 ? <span className=''>, </span> : null}
+                  </li>
+                ))}
+              </ul>
+              <span className='-ml-1'>.</span>
+            </div>
+          ) : null}
         </div>
-      ) : null}
-
-      {clones.length === 1 ? (
-        <div className='my-5 bg-white p-6'>Cette personne fait partie de {clones[0].familyName}.</div>
       ) : null}
 
       <div className='bg-white p-6'>
         <h3 className='text-lg font-medium leading-6 text-gray-900'>Photos de {person.name}</h3>
 
-        <InlinePhotoUploadBtn formAction='/add-photo.html'>
+        <InlinePhotoUploadBtn formAction='/add-photo.html' hiddenFields={{ familyId: person.familyId }}>
           <span className='inline-block sm:text-sm cursor-pointer font-medium  text-indigo-600 hover:text-indigo-500'>
             Ajouter une nouvelle photo
           </span>
