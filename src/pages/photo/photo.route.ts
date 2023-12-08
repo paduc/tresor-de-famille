@@ -26,7 +26,7 @@ import { getNewPhotoPageProps } from './getNewPhotoPageProps'
 import { detectFacesInPhotoUsingAWS } from './recognizeFacesInChatPhoto/detectFacesInPhotoUsingAWS'
 import { ThreadUrl } from '../thread/ThreadUrl'
 import { getThreadFamily } from '../_getThreadFamily'
-import { getPhotoFamily } from '../_getPhotoFamily'
+import { getPhotoFamilyId } from '../_getPhotoFamily'
 import { FamilyId, zIsFamilyId } from '../../domain/FamilyId'
 import { uploadPhoto } from '../../dependencies/photo-storage'
 import { AppUserId } from '../../domain/AppUserId'
@@ -127,7 +127,7 @@ pageRouter
 
           if (newFamilyMemberName && newFamilyMemberName.length > 0) {
             const personId = makePersonId()
-            const familyId = await getPhotoFamily(photoId)
+            const familyId = await getPhotoFamilyId(photoId)
             if (!familyId) {
               throw new Error('Trying to submit family member name but cannot find the photo family')
             }
