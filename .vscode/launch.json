@@ -7,12 +7,12 @@
     {
       "type": "node",
       "request": "attach",
-      "name": "Node: Nodemon",
+      "name": "Debug: attach",
       "processId": "${command:PickProcess}",
       "restart": true,
     },
     {
-    "name": "Debug with TSX",
+    "name": "Debug: launch",
     "type": "node",
     "request": "launch",
 
