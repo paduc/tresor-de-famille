@@ -47,6 +47,7 @@ export type ThreadPageProps = {
   threadId: ThreadId
   isAuthor: boolean
   familyId: FamilyId
+  isNewThread: boolean
 }
 
 const isBrowserContext = typeof window !== 'undefined'
