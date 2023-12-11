@@ -55,6 +55,7 @@ export const FactViewerPage = ({ facts, factTypes, query }: FactViewerPageProps)
                 </div>{' '}
                 <div style={{ display: 'inline-block', fontSize: 18 }}>{type}</div>
               </summary>
+              <div style={{ color: 'rgba(0,0,0,0.5)' }}>{id}</div>
               <pre style={{ color: 'rgba(0,0,0,0.5)' }}>
                 {JSON.stringify(
                   type === 'AWSDetectedFacesInPhoto'

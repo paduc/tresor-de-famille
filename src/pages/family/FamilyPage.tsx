@@ -13,12 +13,13 @@ import ReactFlow, {
   useNodesState,
 } from 'reactflow'
 
-import { Combobox, Dialog, Listbox, Transition } from '@headlessui/react'
+import { Dialog, Listbox, Transition } from '@headlessui/react'
 import { CheckIcon, ChevronDownIcon, EllipsisHorizontalIcon, UserPlusIcon, XMarkIcon } from '@heroicons/react/24/outline'
 import { useCallback, useMemo, useRef, useState } from 'react'
+import { z } from 'zod'
 import { FamilyId } from '../../domain/FamilyId'
 import { PersonId, zIsPersonId } from '../../domain/PersonId'
-import { RelationshipId, zIsRelationshipId } from '../../domain/RelationshipId'
+import { RelationshipId } from '../../domain/RelationshipId'
 import { makePersonId } from '../../libs/makePersonId'
 import { makeRelationshipId } from '../../libs/makeRelationshipId'
 import { withBrowserBundle } from '../../libs/ssr/withBrowserBundle'
@@ -30,7 +31,6 @@ import { AppLayout } from '../_components/layout/AppLayout'
 import { usePersonSearch } from '../_components/usePersonSearch'
 import { PersonPageURL } from '../person/PersonPageURL'
 import { FamilyPageURLWithFamily } from './FamilyPageURL'
-import { z } from 'zod'
 import { zIsRelationship } from './zIsRelationship'
 
 // @ts-ignore
@@ -1244,6 +1244,7 @@ const saveNewRelationship = async ({
 
   if (response.ok && response.status === 200) {
     const data = await response.json()
+
     const { persons, relationships } = z
       .object({
         persons: z.array(z.object({ profilePicUrl: z.union([z.string(), z.null()]), name: z.string(), personId: zIsPersonId })),
