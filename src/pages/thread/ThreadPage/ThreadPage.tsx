@@ -30,7 +30,7 @@ import { PhotoId } from '../../../domain/PhotoId'
 import { ThreadId } from '../../../domain/ThreadId'
 import { PhotoIcon } from '@heroicons/react/20/solid'
 import { FamilyId } from '../../../domain/FamilyId'
-import { useSession } from '../../_components/SessionContext'
+import { useLoggedInSession, useSession } from '../../_components/SessionContext'
 import { TDFModal } from '../../_components/TDFModal'
 import { ReadWriteToggle } from './ReadWriteToggle'
 import { ThreadUrl } from '../ThreadUrl'
@@ -54,12 +54,9 @@ const isBrowserContext = typeof window !== 'undefined'
 
 export const ThreadPage = withBrowserBundle(
   ({ title, contentAsJSON: contentAsJSONFromServer, lastUpdated, threadId, familyId, isAuthor }: ThreadPageProps) => {
-    const session = useSession()
-    if (!session.isLoggedIn) {
-      return <div />
-    }
+    const session = useLoggedInSession()
 
-    const familyName = session.userFamilies.find((f) => f.familyId === familyId)?.familyName || 'Personnel'
+    const family = session.userFamilies.find((f) => f.familyId === familyId)
 
     const [isFamilyModalOpen, openFamilyModal] = useState<boolean>(false)
 
@@ -107,13 +104,6 @@ export const ThreadPage = withBrowserBundle(
                   </button>
                 </form>
               ))}
-            {/* <button
-              onClick={() => {
-                alert('TODO')
-              }}
-              className={`mb-4 ${primaryButtonStyles.replace(/inline\-flex/g, '')}  w-full text-center`}>
-              Créer une famille
-            </button> */}
             <button
               onClick={() => {
                 openFamilyModal(false)
@@ -137,13 +127,15 @@ export const ThreadPage = withBrowserBundle(
                 <>
                   <span className='text-gray-500 mr-2'>Partagé avec les membres de</span>
                   {isAuthor ? (
-                    <button onClick={() => openFamilyModal(true)} className={`${secondaryButtonStyles}`}>
-                      {familyName}
+                    <button
+                      onClick={() => openFamilyModal(true)}
+                      className={`px-3 py-1.5 border border-transparent text-md font-medium rounded-full shadow-sm ring-inset ring-2 hover:bg-white hover:ring-4 ${family?.color} ring-2`}>
+                      {family?.familyName || 'Personnel'}
                     </button>
                   ) : (
                     <span
-                      className={`inline-flex items-center px-3 py-1.5 border border-transparent text-md font-medium rounded-full shadow-sm bg-white ring-inset ring-2 text-indigo-600 ring-indigo-600`}>
-                      {familyName}
+                      className={`inline-flex items-center px-3 py-1.5 border border-transparent text-md font-medium rounded-full shadow-sm ring-inset ${family?.color} ring-2`}>
+                      {family?.familyName || 'Personnel'}
                     </span>
                   )}
                 </>

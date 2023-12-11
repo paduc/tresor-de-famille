@@ -19,7 +19,6 @@ export const getThreadListPageProps = async (userId: AppUserId): Promise<ThreadL
 
   type Thread = ThreadListPageProps['threads'][number]
   const threads: Thread[] = []
-  const clonedThreadIds = new Set<ThreadId>()
 
   for (const userFamilyId of userFamilyIds) {
     // Get threads
@@ -55,21 +54,19 @@ export const getThreadListPageProps = async (userId: AppUserId): Promise<ThreadL
       uniqueThreads.get(threadId)!.push(threadEvent)
     }
 
-    for (const [threadId, threadEvents] of uniqueThreads.entries()) {
-      const cloneEvent = threadEvents.find(
-        (event: ThreadEvent): event is ThreadClonedForSharing => event.type === 'ThreadClonedForSharing'
-      )
-
-      const isCloned = await isThreadCloned(threadId)
-      if (isCloned) {
-        // Keep a list of all the threads that have been cloned (ie shared)
-        clonedThreadIds.add(threadId)
+    const threadsArr = Array.from(uniqueThreads.entries())
+    for (const [threadId, threadEvents] of threadsArr) {
+      const hasClones = await doesThreadHaveClones(threadId)
+      if (hasClones) {
+        // Hide all threads that have been cloned (shared in another family)
+        continue
       }
 
-      const title =
-        (await getSingleEvent<UserSetChatTitle>('UserSetChatTitle', { threadId }))?.payload.title ||
-        cloneEvent?.payload.title ||
-        'Fil sans titre'
+      const titleEvent = threadEvents.find(
+        (event: ThreadEvent): event is ThreadClonedForSharing | UserSetChatTitle =>
+          event.type === 'ThreadClonedForSharing' || event.type === 'UserSetChatTitle'
+      )
+      const title = titleEvent?.payload.title || 'Fil sans titre'
 
       const latestEvent = threadEvents.at(-1)!
 
@@ -82,13 +79,12 @@ export const getThreadListPageProps = async (userId: AppUserId): Promise<ThreadL
     }
   }
 
-  // Hide cloned threads
   return {
-    threads: threads.filter(({ threadId }) => !clonedThreadIds.has(threadId)).sort((a, b) => b.lastUpdatedOn - a.lastUpdatedOn),
+    threads: threads.sort((a, b) => b.lastUpdatedOn - a.lastUpdatedOn),
   }
 }
 
-async function isThreadCloned(threadId: ThreadId): Promise<boolean> {
+async function doesThreadHaveClones(threadId: ThreadId): Promise<boolean> {
   const { rows } = await postgres.query(
     `SELECT count(*) FROM history WHERE type='ThreadClonedForSharing' AND payload->'clonedFrom'->>'threadId'=$1 LIMIT 1;`,
     [threadId]
