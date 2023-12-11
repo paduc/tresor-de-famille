@@ -94,7 +94,7 @@ pageRouter.route('/importGedcom.html').post(
             passedIn,
             sex,
           })),
-          importedBy: userId,
+          userId,
           familyId: request.session.user!.id as string as FamilyId,
         })
       )

@@ -79,7 +79,7 @@ async function getUploadProfilePicture(userId: AppUserId, personId?: PersonId): 
   }
 
   const uploadedPhoto = await getSingleEvent<OnboardingUserUploadedPhotoOfThemself>('OnboardingUserUploadedPhotoOfThemself', {
-    uploadedBy: userId,
+    userId,
   })
 
   if (uploadedPhoto) {

@@ -10,7 +10,7 @@ const facts = [
     id: getUuid(),
     payload: {
       chatId: 1234,
-      addedBy: 'person1234',
+      userId: 'person1234',
     },
     occurredAt: new Date('1/1/1000'),
   },
@@ -42,4 +42,4 @@ const facts = [
 
 const factTypes = Array.from(new Set(facts.map((fact) => fact.type))).sort()
 
-export const primary = () => <FactViewerPage factTypes={factTypes} facts={facts} />
+export const primary = () => <FactViewerPage query={undefined} factTypes={factTypes} facts={facts} />

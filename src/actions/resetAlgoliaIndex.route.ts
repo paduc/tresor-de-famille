@@ -166,7 +166,7 @@ async function indexGedcom() {
       parents: Array.from(relationshipsById[id]?.parents || []).map((personId) => personById[personId]?.name),
       children: Array.from(relationshipsById[id]?.children || []).map((personId) => personById[personId]?.name),
       familyId,
-      visible_by: [`family/${familyId}`, `user/${gedcom.payload.importedBy}`],
+      visible_by: [`family/${familyId}`, `user/${gedcom.payload.userId}`],
     }))
 
     await personsIndex.saveObjects(personsForIndex)

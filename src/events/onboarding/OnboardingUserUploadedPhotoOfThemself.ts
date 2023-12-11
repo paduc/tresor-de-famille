@@ -15,7 +15,7 @@ export type OnboardingUserUploadedPhotoOfThemself = DomainEvent<
           key: string
         }
       | { type: 'localfile' }
-    uploadedBy: AppUserId
+    userId: AppUserId
     familyId: FamilyId
   }
 >

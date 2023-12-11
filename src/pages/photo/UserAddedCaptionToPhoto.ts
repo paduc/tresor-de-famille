@@ -1,8 +1,7 @@
-import { UUID } from '../../domain'
 import { DomainEvent, makeDomainEvent } from '../../dependencies/DomainEvent'
-import { PhotoId } from '../../domain/PhotoId'
+import { UUID } from '../../domain'
 import { AppUserId } from '../../domain/AppUserId'
-import { FamilyId } from '../../domain/FamilyId'
+import { PhotoId } from '../../domain/PhotoId'
 
 export type UserAddedCaptionToPhoto = DomainEvent<
   'UserAddedCaptionToPhoto',
@@ -12,7 +11,7 @@ export type UserAddedCaptionToPhoto = DomainEvent<
       id: UUID
       body: string
     }
-    addedBy: AppUserId
+    userId: AppUserId
   }
 >
 

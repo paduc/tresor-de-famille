@@ -101,8 +101,5 @@ async function getOwnerUserIdForPhotoId(photoId: PhotoId): Promise<AppUserId | u
 
   if (!latestForPhoto) return
 
-  if (latestForPhoto.type === 'UserInsertedPhotoInRichTextThread') {
-    return latestForPhoto.payload.userId
-  }
-  return latestForPhoto.payload.uploadedBy
+  return latestForPhoto.payload.userId
 }

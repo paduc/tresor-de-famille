@@ -24,7 +24,7 @@ export type GedcomImported = DomainEvent<
     rawGedcom: string
     relationships: Relationship[]
     persons: Person[]
-    importedBy: AppUserId
+    userId: AppUserId
     familyId: FamilyId
   }
 >
