@@ -27,11 +27,7 @@ export const getThreadPageProps = async ({
 }): Promise<ThreadPageProps> => {
   const DEFAULT_CONTENT: TipTapContentAsJSON = { type: 'doc', content: [] }
 
-  const threadAuthorId = await getThreadAuthor(threadId)
-  const isAuthor = threadAuthorId === userId
-
   const threadEvents = await getThreadEvents(threadId)
-
   if (!threadEvents.length) {
     // New thread
     return {
@@ -40,9 +36,13 @@ export const getThreadPageProps = async ({
       lastUpdated: undefined,
       title: '',
       familyId: userId as string as FamilyId,
-      isAuthor,
+      isAuthor: true,
+      isNewThread: true,
     }
   }
+
+  const threadAuthorId = await getThreadAuthor(threadId)
+  const isAuthor = threadAuthorId === userId
 
   if (threadEvents.every((event): event is UserSetChatTitle => event.type === 'UserSetChatTitle')) {
     // All events are title events
@@ -56,6 +56,7 @@ export const getThreadPageProps = async ({
       title,
       familyId,
       isAuthor,
+      isNewThread: false,
     }
   }
 
@@ -117,6 +118,7 @@ export const getThreadPageProps = async ({
     title: latestTitleEvent?.payload.title || '',
     familyId,
     isAuthor,
+    isNewThread: false,
   }
 }
 

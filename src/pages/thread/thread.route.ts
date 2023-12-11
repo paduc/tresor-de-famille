@@ -90,12 +90,18 @@ pageRouter
     const props = await getThreadPageProps({ threadId, userId })
 
     if (isEditable) {
-      if (await canEditThread({ threadId, userId })) {
+      // If it is new or it's someone that has the right to edit
+      if (props.isNewThread || (await canEditThread({ threadId, userId }))) {
         return responseAsHtml(request, response, ThreadPage(props))
       }
 
       // remove the edit
       return response.redirect(ThreadUrl(threadId))
+    }
+
+    // Add edit
+    if (props.isNewThread) {
+      return response.redirect(ThreadUrl(threadId, true))
     }
 
     // By default, return the readonly version
