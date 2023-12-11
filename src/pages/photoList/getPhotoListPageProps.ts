@@ -32,12 +32,13 @@ export const getPhotoListPageProps = async ({ userId, familyId }: GetPhotoListPa
 
   const photoList = [...uploadedPhotos, ...insertedPhotos]
 
-  const photos = await Promise.all(
-    photoList.filter(
-      async (creationEvent) =>
-        !(await isPhotoDeleted(creationEvent.payload.photoId)) && !(await isPhotoCloned(creationEvent.payload.photoId))
-    )
-  )
+  const photos = []
+
+  for (const photoEvent of photoList) {
+    if (await isPhotoDeleted(photoEvent.payload.photoId)) continue
+    // if (await isPhotoCloned(photoEvent.payload.photoId)) continue
+    photos.push(photoEvent)
+  }
 
   return {
     photos: photos.map(({ payload: { photoId } }) => ({

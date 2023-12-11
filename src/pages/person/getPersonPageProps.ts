@@ -152,11 +152,11 @@ async function getPersonPhotos(
   }
 
   // Filter the deleted photos
-  const { rows: deletedPhotosIds } = await postgres.query<PhotoId>(
-    "SELECT payload->>'photoId' from history where type='UserDeletedPhoto' and payload->>'photoId' = ANY ($1);",
+  const { rows: deletedPhotosIds } = await postgres.query<{ photoId: PhotoId }>(
+    "SELECT payload->>'photoId' AS \"photoId\" from history where type='UserDeletedPhoto' and payload->>'photoId' = ANY ($1);",
     [Array.from(photosInFamily)]
   )
-  const uniqueDeletedPhotoIds = new Set(deletedPhotosIds)
+  const uniqueDeletedPhotoIds = new Set(deletedPhotosIds.map((e) => e.photoId))
 
   const nonDeletedPhotosInFamily = Array.from(photosInFamily).filter((photoId) => !uniqueDeletedPhotoIds.has(photoId))
 
