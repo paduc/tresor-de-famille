@@ -26,6 +26,7 @@ import { UserCreatedRelationshipWithNewPerson } from './UserCreatedRelationshipW
 import { UserRemovedRelationship } from './UserRemovedRelationship'
 import { getFamilyPageProps, getFamilyPersons, getFamilyRelationships } from './getFamilyPageProps'
 import { zIsRelationship } from './zIsRelationship'
+import { createCloneIfOutsideOfFamily } from '../_createCloneIfOutsideOfFamily'
 
 pageRouter.route(FamilyPageURLWithFamily()).get(requireAuth(), async (request, response) => {
   const { familyId } = z.object({ familyId: zIsFamilyId.optional() }).parse(request.params)
@@ -201,80 +202,5 @@ async function translateRelationshipForFamily({
     }
     default:
       exhaustiveGuard(relationshipType)
-  }
-}
-
-async function createCloneIfOutsideOfFamily({
-  personId,
-  familyId,
-  userId,
-}: {
-  personId: PersonId
-  familyId: FamilyId
-  userId: AppUserId
-}): Promise<PersonId> {
-  const personFamilyId = await getPersonFamily(personId)
-
-  if (personFamilyId === familyId) {
-    // He's part of the family, all is good
-    return personId
-  }
-
-  // We have to clone the person for this family
-  // Let's check if the person already has a clone in this family
-  const clones = await getPersonClones({ personId })
-  const cloneInFamily = clones.find((clone) => clone.familyId === familyId)
-
-  if (cloneInFamily) {
-    // A clone of this person exists in the targetted family
-    // Use it
-    return cloneInFamily.personId
-  }
-
-  // Create a new clone for this family
-  // Use the original as the clone's origin
-  const originPersonAndFamily = clones.at(0)
-  if (!originPersonAndFamily) {
-    throw new Error(`Cannot find the original person for ${personId}`)
-  }
-  const { personId: originalPersonId, familyId: originalFamilyId } = originPersonAndFamily
-  const originalPerson = await getPersonByIdOrThrow({ personId: originalPersonId })
-
-  const { faceId, profilePicPhotoId } = await fetchFaceAndPhotoForPerson({ userId, personId })
-
-  const newClonePersonId = makePersonId()
-  await addToHistory(
-    PersonClonedForSharing({
-      userId,
-      name: originalPerson.name,
-      personId: newClonePersonId,
-      familyId,
-      profilePicPhotoId,
-      faceId,
-      clonedFrom: {
-        personId: originalPersonId,
-        familyId: originalFamilyId,
-      },
-    })
-  )
-  return newClonePersonId
-}
-
-async function fetchFaceAndPhotoForPerson({
-  userId,
-  personId,
-}: {
-  userId: AppUserId
-  personId: PersonId
-}): Promise<{ faceId: FaceId | undefined; profilePicPhotoId: PhotoId | undefined }> {
-  const faceAndPhotoForPerson = await getFaceAndPhotoForPerson({ userId, personId })
-  if (faceAndPhotoForPerson) {
-    const { faceId, photoId } = faceAndPhotoForPerson
-    return { faceId, profilePicPhotoId: photoId }
-  }
-
-  return {
-    faceId: undefined,
-    profilePicPhotoId: undefined,
   }
 }

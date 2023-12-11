@@ -32,6 +32,8 @@ import { uploadPhoto } from '../../dependencies/photo-storage'
 import { AppUserId } from '../../domain/AppUserId'
 import { UserUploadedPhotoToChat } from '../thread/uploadPhotoToChat/UserUploadedPhotoToChat'
 import { Thread } from '@sentry/node'
+import { getPersonFamily } from '../_getPersonFamily'
+import { createCloneIfOutsideOfFamily as createPersonCloneIfOutsideOfFamily } from '../_createCloneIfOutsideOfFamily'
 
 const FILE_SIZE_LIMIT_MB = 50
 const upload = multer({
@@ -160,12 +162,19 @@ pageRouter
                 existingFamilyMemberId: zIsPersonId,
               })
               .parse(request.body)
+
+            const familyId = await getPhotoFamilyId(photoId)
+            if (!familyId) {
+              throw new Error('Trying to submit family member name but cannot find the photo family')
+            }
+            const personId = await createPersonCloneIfOutsideOfFamily({ personId: existingFamilyMemberId, familyId, userId })
+
             await addToHistory(
               UserRecognizedPersonInPhoto({
                 userId,
                 photoId,
                 faceId,
-                personId: existingFamilyMemberId,
+                personId,
               })
             )
           }
