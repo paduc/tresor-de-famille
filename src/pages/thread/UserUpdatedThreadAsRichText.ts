@@ -7,7 +7,7 @@ import { TipTapContentAsJSON } from './TipTapTypes'
 export type UserUpdatedThreadAsRichText = DomainEvent<
   'UserUpdatedThreadAsRichText',
   {
-    chatId: ThreadId
+    threadId: ThreadId
     contentAsJSON: TipTapContentAsJSON
     userId: AppUserId
     familyId: FamilyId

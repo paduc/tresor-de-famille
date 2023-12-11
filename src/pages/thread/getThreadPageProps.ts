@@ -165,12 +165,13 @@ export async function getThreadContents(
 
   let latestEvent:
     | UserUpdatedThreadAsRichText
+    | UserSetChatTitle
     | UserInsertedPhotoInRichTextThread
     | ThreadClonedForSharing // to make latestEvent compatible with cloneEvent below
     | undefined = await getSingleEvent<UserUpdatedThreadAsRichText | UserInsertedPhotoInRichTextThread>(
     ['UserUpdatedThreadAsRichText', 'UserInsertedPhotoInRichTextThread'],
     {
-      chatId: threadId,
+      threadId,
     }
   )
 
@@ -183,7 +184,7 @@ export async function getThreadContents(
     }
   }
 
-  const setTitleEvent = await getSingleEvent<UserSetChatTitle>('UserSetChatTitle', { chatId: threadId })
+  const setTitleEvent = await getSingleEvent<UserSetChatTitle>('UserSetChatTitle', { threadId })
 
   if (!latestEvent && !setTitleEvent) {
     return null

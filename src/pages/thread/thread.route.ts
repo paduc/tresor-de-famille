@@ -66,7 +66,7 @@ pageRouter
 
       await addToHistory(
         UserSentMessageToChat({
-          chatId: threadId,
+          threadId,
           userId,
           message,
           messageId,
@@ -134,7 +134,7 @@ pageRouter
         if (message.trim().length) {
           await addToHistory(
             UserSentMessageToChat({
-              chatId: threadId,
+              threadId,
               userId,
               message: message.trim(),
               messageId,
@@ -150,7 +150,7 @@ pageRouter
 
           await addToHistory(
             UserUpdatedThreadAsRichText({
-              chatId: threadId,
+              threadId,
               contentAsJSON,
               userId,
               familyId,
@@ -167,7 +167,7 @@ pageRouter
 
         await addToHistory(
           UserSetChatTitle({
-            chatId: threadId,
+            threadId,
             userId,
             title: title.trim(),
             familyId,
@@ -205,7 +205,7 @@ pageRouter
 
         await addToHistory(
           UserInsertedPhotoInRichTextThread({
-            chatId: threadId,
+            threadId,
             photoId,
             userId,
             location,

@@ -10,7 +10,7 @@ export type UserInsertedPhotoInRichTextThread = DomainEvent<
   'UserInsertedPhotoInRichTextThread',
   {
     photoId: PhotoId
-    chatId: ThreadId
+    threadId: ThreadId
     userId: AppUserId
     location: PhotoLocation
     contentAsJSON: TipTapContentAsJSON

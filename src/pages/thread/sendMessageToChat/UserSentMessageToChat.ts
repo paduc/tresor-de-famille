@@ -7,7 +7,7 @@ import { FamilyId } from '../../../domain/FamilyId'
 export type UserSentMessageToChat = DomainEvent<
   'UserSentMessageToChat',
   {
-    chatId: ThreadId
+    threadId: ThreadId
     message: string
     messageId: UUID
     userId: AppUserId

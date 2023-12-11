@@ -16,7 +16,7 @@ export type PhotoLocation =
 export type UserUploadedPhotoToChat = DomainEvent<
   'UserUploadedPhotoToChat',
   {
-    chatId: ThreadId
+    threadId: ThreadId
     photoId: PhotoId
     location: PhotoLocation
     userId: AppUserId

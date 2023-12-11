@@ -1,12 +1,15 @@
 import multer from 'multer'
-import zod, { z } from 'zod'
 import fs from 'node:fs'
+import zod, { z } from 'zod'
 import { addToHistory } from '../../dependencies/addToHistory'
 import { requireAuth } from '../../dependencies/authn'
+import { uploadPhoto } from '../../dependencies/photo-storage'
 import { personsIndex } from '../../dependencies/search'
+import { AppUserId } from '../../domain/AppUserId'
 import { zIsFaceId } from '../../domain/FaceId'
+import { FamilyId, zIsFamilyId } from '../../domain/FamilyId'
 import { zIsPersonId } from '../../domain/PersonId'
-import { PhotoId, zIsPhotoId } from '../../domain/PhotoId'
+import { zIsPhotoId } from '../../domain/PhotoId'
 import { ThreadId, zIsThreadId } from '../../domain/ThreadId'
 import { FaceIgnoredInPhoto } from '../../events/onboarding/FaceIgnoredInPhoto'
 import { UserNamedPersonInPhoto } from '../../events/onboarding/UserNamedPersonInPhoto'
@@ -14,26 +17,18 @@ import { UserRecognizedPersonInPhoto } from '../../events/onboarding/UserRecogni
 import { getUuid } from '../../libs/getUuid'
 import { makePersonId } from '../../libs/makePersonId'
 import { makePhotoId } from '../../libs/makePhotoId'
-import { makeThreadId } from '../../libs/makeThreadId'
 import { responseAsHtml } from '../../libs/ssr/responseAsHtml'
+import { createCloneIfOutsideOfFamily as createPersonCloneIfOutsideOfFamily } from '../_createCloneIfOutsideOfFamily'
 import { doesPhotoExist } from '../_doesPhotoExist'
-import { PhotoListPageUrl } from '../photoList/PhotoListPageUrl'
+import { getPhotoFamilyId } from '../_getPhotoFamily'
 import { pageRouter } from '../pageRouter'
+import { PhotoListPageUrl } from '../photoList/PhotoListPageUrl'
+import { UserUploadedPhotoToChat } from '../thread/uploadPhotoToChat/UserUploadedPhotoToChat'
 import { NewPhotoPage } from './PhotoPage/NewPhotoPage'
 import { UserAddedCaptionToPhoto } from './UserAddedCaptionToPhoto'
 import { UserDeletedPhoto } from './UserDeletedPhoto'
 import { getNewPhotoPageProps } from './getNewPhotoPageProps'
 import { detectFacesInPhotoUsingAWS } from './recognizeFacesInChatPhoto/detectFacesInPhotoUsingAWS'
-import { ThreadUrl } from '../thread/ThreadUrl'
-import { getThreadFamily } from '../_getThreadFamily'
-import { getPhotoFamilyId } from '../_getPhotoFamily'
-import { FamilyId, zIsFamilyId } from '../../domain/FamilyId'
-import { uploadPhoto } from '../../dependencies/photo-storage'
-import { AppUserId } from '../../domain/AppUserId'
-import { UserUploadedPhotoToChat } from '../thread/uploadPhotoToChat/UserUploadedPhotoToChat'
-import { Thread } from '@sentry/node'
-import { getPersonFamily } from '../_getPersonFamily'
-import { createCloneIfOutsideOfFamily as createPersonCloneIfOutsideOfFamily } from '../_createCloneIfOutsideOfFamily'
 
 const FILE_SIZE_LIMIT_MB = 50
 const upload = multer({
@@ -271,7 +266,7 @@ async function uploadNewPhoto({ file, familyId, userId }: UploadPhotoToChatArgs)
 
   await addToHistory(
     UserUploadedPhotoToChat({
-      chatId: photoId as string as ThreadId, // Each photo has a thread
+      threadId: photoId as string as ThreadId, // Each photo has a thread
       photoId,
       location,
       userId,

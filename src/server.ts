@@ -76,10 +76,35 @@ app.listen(PORT, async (): Promise<void> => {
   await createHistoryTable()
   await migrateAddFamilyId()
   await migrateUseUserId()
+  await migrateReplaceChatIdWithThreadId()
 
   // eslint-disable-next-line no-console
   console.log('Server listening to port', PORT)
 })
+
+async function migrateReplaceChatIdWithThreadId() {
+  console.log('Starting chatId migration')
+  // For each event
+  // If there is no threadId but a chatId
+  // set threadId=chatId
+
+  // Check if history table is empty
+  const { rows: events } = await postgres.query<DomainEvent>('SELECT * FROM history')
+
+  let queryCount = 0
+
+  for (const event of events) {
+    if (event.payload.chatId && !event.payload.threadId) {
+      await postgres.query(`UPDATE history SET payload=payload||$1 where id=$2;`, [
+        `{"threadId":"${event.payload.chatId}"}`,
+        event.id,
+      ])
+      queryCount++
+    }
+  }
+
+  console.log(`Migration done with ${queryCount} queries`)
+}
 
 async function migrateUseUserId() {
   console.log('Starting userId migration')
