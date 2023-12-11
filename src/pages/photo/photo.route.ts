@@ -116,7 +116,7 @@ pageRouter
                 id: captionId,
                 body: caption,
               },
-              addedBy: userId,
+              userId,
             })
           )
         } else if (action === 'submitFamilyMemberName') {
@@ -274,7 +274,7 @@ async function uploadNewPhoto({ file, familyId, userId }: UploadPhotoToChatArgs)
       chatId: photoId as string as ThreadId, // Each photo has a thread
       photoId,
       location,
-      uploadedBy: userId,
+      userId,
       familyId: familyId || (userId as string as FamilyId),
     })
   )

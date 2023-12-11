@@ -118,19 +118,6 @@ async function getSession(request: Request): Promise<Session> {
   if (user) {
     const userId = user.id
 
-    // const hasPhotos = await getSingleEvent<
-    //   UserUploadedPhotoToChat | OnboardingUserUploadedPhotoOfFamily | OnboardingUserUploadedPhotoOfThemself
-    // >(['OnboardingUserUploadedPhotoOfFamily', 'UserUploadedPhotoToChat', 'OnboardingUserUploadedPhotoOfThemself'], {
-    //   uploadedBy: userId,
-    // })
-
-    // const hasThreads = await getSingleEvent<UserSentMessageToChat | OnboardingUserStartedFirstThread>(
-    //   ['UserSentMessageToChat', 'OnboardingUserStartedFirstThread'],
-    //   { userId }
-    // )
-
-    // const hasPersons = await getSingleEvent<UserNamedPersonInPhoto>('UserNamedPersonInPhoto', { userId })
-
     // TODO: do not add personnal space for users that have been invited
     const userFamilies = await getUserFamilies(user.id)
 

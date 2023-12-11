@@ -75,17 +75,72 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
 app.listen(PORT, async (): Promise<void> => {
   await createHistoryTable()
   await migrateAddFamilyId()
+  await migrateUseUserId()
 
   // eslint-disable-next-line no-console
   console.log('Server listening to port', PORT)
 })
+
+async function migrateUseUserId() {
+  console.log('Starting userId migration')
+  // For each event
+  // If there is no userId but one of: uploadedBy, addedBy, ignoredBy, annotatedBy
+  // Set userId=uploadedBy/addedBy...
+
+  // Check if history table is empty
+  const { rows } = await postgres.query<DomainEvent>('SELECT * FROM history')
+
+  let queryCount = 0
+
+  async function update(event: DomainEvent, key: string) {
+    await postgres.query(`UPDATE history SET payload=payload||$1 where id=$2;`, [
+      `{"userId":"${event.payload[key]}"}`,
+      event.id,
+    ])
+    queryCount++
+  }
+
+  const events = rows.filter(({ payload }) => !payload.userId)
+
+  for (const event of events) {
+    if (event.payload.importedBy) {
+      await update(event, 'importedBy')
+      continue
+    }
+
+    if (event.payload.ignoredBy) {
+      await update(event, 'ignoredBy')
+      continue
+    }
+
+    if (event.payload.uploadedBy) {
+      await update(event, 'uploadedBy')
+      continue
+    }
+
+    if (event.payload.addedBy) {
+      await update(event, 'addedBy')
+      continue
+    }
+    if (event.payload.annotatedBy) {
+      await update(event, 'annotatedBy')
+      continue
+    }
+    if (event.payload.confirmedBy) {
+      await update(event, 'confirmedBy')
+      continue
+    }
+  }
+
+  console.log(`Migration done with ${queryCount} queries`)
+}
 
 async function migrateAddFamilyId() {
   console.log('Starting familyId migration')
   // For each event
   // 1) if its in the no-family id types, ignore
   // 2) if its in the payload.userId = userId types, set familyId=userId
-  // 3) Special cases : "uploadedBy", etc. set familyId=uploadedBy, etc.
+  // 3) Special cases : "uploadedBy", etc. set familyId=uploadedBy, userId=uploadedBy, etc.
 
   // ONLY IF FAMILYID IS NOT SET
 
@@ -106,7 +161,7 @@ async function migrateAddFamilyId() {
     .filter(
       ({ type }) => !['UserRegisteredWithEmailAndPassword', 'BeneficiariesChosen', 'AWSDetectedFacesInPhoto'].includes(type)
     )
-    .filter(({ payload }) => !payload.familyId)
+    .filter(({ payload }) => !payload.familyId || !payload.userId)
 
   for (const event of events) {
     if (event.payload.userId) {

@@ -126,7 +126,7 @@ async function uploadUserPhotoOfThemself({ file, userId, familyId }: UploadUserP
     OnboardingUserUploadedPhotoOfThemself({
       photoId,
       location,
-      uploadedBy: userId,
+      userId,
       familyId,
     })
   )

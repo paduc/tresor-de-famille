@@ -18,19 +18,23 @@ type GetPhotoListPageProsArgs = {
 }
 
 export const getPhotoListPageProps = async ({ userId, familyId }: GetPhotoListPageProsArgs): Promise<PhotoListProps> => {
-  const uploadedPhotos = await getEventList<
-    UserUploadedPhotoToChat | OnboardingUserUploadedPhotoOfFamily | OnboardingUserUploadedPhotoOfThemself
-  >(['OnboardingUserUploadedPhotoOfFamily', 'OnboardingUserUploadedPhotoOfThemself', 'UserUploadedPhotoToChat'], {
-    uploadedBy: userId,
-    familyId,
-  })
-
-  const insertedPhotos = await getEventList<UserInsertedPhotoInRichTextThread>('UserInsertedPhotoInRichTextThread', {
-    userId,
-    familyId,
-  })
-
-  const photoList = [...uploadedPhotos, ...insertedPhotos]
+  const photoList = await getEventList<
+    | UserUploadedPhotoToChat
+    | OnboardingUserUploadedPhotoOfFamily
+    | OnboardingUserUploadedPhotoOfThemself
+    | UserInsertedPhotoInRichTextThread
+  >(
+    [
+      'OnboardingUserUploadedPhotoOfFamily',
+      'OnboardingUserUploadedPhotoOfThemself',
+      'UserUploadedPhotoToChat',
+      'UserInsertedPhotoInRichTextThread',
+    ],
+    {
+      userId,
+      familyId,
+    }
+  )
 
   const photos = []
 

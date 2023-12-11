@@ -9,7 +9,7 @@ export type PhotoManuallyAnnotated = DomainEvent<
   'PhotoManuallyAnnotated',
   {
     // I,
-    annotatedBy: AppUserId
+    userId: AppUserId
     // recognized the following
     personId: PersonId
     // as the person at this location
