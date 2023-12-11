@@ -16,6 +16,7 @@ export type Session =
             familyName: string
             about: string
             familyId: FamilyId
+            color: string
           }[]
           hasFamiliesOtherThanDefault: boolean
           searchKey: string

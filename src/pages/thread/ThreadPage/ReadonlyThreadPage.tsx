@@ -4,7 +4,7 @@ import { PhotoId } from '../../../domain/PhotoId'
 import { ThreadId } from '../../../domain/ThreadId'
 import { withBrowserBundle } from '../../../libs/ssr/withBrowserBundle'
 import { Epoch } from '../../../libs/typeguards'
-import { useSession } from '../../_components/SessionContext'
+import { useLoggedInSession, useSession } from '../../_components/SessionContext'
 import { AppLayout } from '../../_components/layout/AppLayout'
 import { TipTapAttrs, TipTapContentAsJSON } from '../TipTapTypes'
 import { ReadWriteToggle } from './ReadWriteToggle'
@@ -21,14 +21,11 @@ export type ReadOnlyThreadPageProps = {
 }
 
 export const ReadOnlyThreadPage = withBrowserBundle(({ contentAsJSON, title, familyId, threadId }: ReadOnlyThreadPageProps) => {
-  const session = useSession()
-  if (!session.isLoggedIn) {
-    return <div />
-  }
+  const session = useLoggedInSession()
 
   const [isFamilyModalOpen, openFamilyModal] = useState<boolean>(false)
 
-  const familyName = session.userFamilies.find((f) => f.familyId === familyId)?.familyName || 'Personnel'
+  const family = session.userFamilies.find((f) => f.familyId === familyId)
 
   return (
     <AppLayout>
@@ -74,8 +71,8 @@ export const ReadOnlyThreadPage = withBrowserBundle(({ contentAsJSON, title, fam
               <>
                 <span className='text-gray-500 mr-2'>Partagé avec les membres de</span>
                 <span
-                  className={`inline-flex items-center px-3 py-1.5 border border-transparent text-md font-medium rounded-full shadow-sm bg-white ring-inset ring-2 text-indigo-600 ring-indigo-600`}>
-                  {familyName}
+                  className={`inline-flex items-center px-3 py-1.5 border border-transparent text-md font-medium rounded-full shadow-sm ring-inset ring-2 ${family?.color}`}>
+                  {family?.familyName}
                 </span>
               </>
             )}
