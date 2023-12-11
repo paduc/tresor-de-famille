@@ -6,7 +6,7 @@ import { ThreadId } from '../../domain/ThreadId'
 export type UserSetChatTitle = DomainEvent<
   'UserSetChatTitle',
   {
-    chatId: ThreadId
+    threadId: ThreadId
     title: string
     userId: AppUserId
     familyId: FamilyId

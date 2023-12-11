@@ -24,7 +24,7 @@ export async function getThreadEvents(threadId: ThreadId): Promise<ThreadEvent[]
     | UserUpdatedThreadAsRichText
     | UserInsertedPhotoInRichTextThread
   >(['UserSetChatTitle', 'UserUpdatedThreadAsRichText', 'UserInsertedPhotoInRichTextThread'], {
-    chatId: threadId,
+    threadId,
   })
 
   return [threadClonedEvent, ...updateEvents]

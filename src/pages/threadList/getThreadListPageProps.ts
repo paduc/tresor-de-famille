@@ -46,12 +46,7 @@ export const getThreadListPageProps = async (userId: AppUserId): Promise<ThreadL
 
     const uniqueThreads = new Map<ThreadId, ThreadEvent[]>()
     for (const threadEvent of threadEvents) {
-      const threadId =
-        threadEvent.type === 'OnboardingUserStartedFirstThread'
-          ? threadEvent.payload.threadId
-          : threadEvent.type === 'ThreadClonedForSharing'
-          ? threadEvent.payload.threadId
-          : threadEvent.payload.chatId
+      const { threadId } = threadEvent.payload
 
       if (!uniqueThreads.has(threadId)) {
         uniqueThreads.set(threadId, [])
@@ -72,7 +67,7 @@ export const getThreadListPageProps = async (userId: AppUserId): Promise<ThreadL
       }
 
       const title =
-        (await getSingleEvent<UserSetChatTitle>('UserSetChatTitle', { chatId: threadId }))?.payload.title ||
+        (await getSingleEvent<UserSetChatTitle>('UserSetChatTitle', { threadId }))?.payload.title ||
         cloneEvent?.payload.title ||
         'Fil sans titre'
 
