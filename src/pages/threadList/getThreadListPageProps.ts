@@ -1,3 +1,4 @@
+import { ThumbnailURL } from '../../actions/ThumbnailURL'
 import { postgres } from '../../dependencies/database'
 import { getEventList } from '../../dependencies/getEventList'
 import { getSingleEvent } from '../../dependencies/getSingleEvent'
@@ -7,11 +8,20 @@ import { ThreadId } from '../../domain/ThreadId'
 import { OnboardingUserStartedFirstThread } from '../../events/onboarding/OnboardingUserStartedFirstThread'
 import { getUserFamilies } from '../_getUserFamilies'
 import { ThreadClonedForSharing } from '../thread/ThreadPage/ThreadClonedForSharing'
+import { ParagraphNode, PhotoNode } from '../thread/TipTapTypes'
 import { UserInsertedPhotoInRichTextThread } from '../thread/UserInsertedPhotoInRichTextThread'
 import { UserSetChatTitle } from '../thread/UserSetChatTitle'
 import { UserUpdatedThreadAsRichText } from '../thread/UserUpdatedThreadAsRichText'
 import { UserSentMessageToChat } from '../thread/sendMessageToChat/UserSentMessageToChat'
 import { ThreadListPageProps } from './ThreadListPage'
+
+type ThreadEvent =
+  | UserSentMessageToChat
+  | OnboardingUserStartedFirstThread
+  | UserUpdatedThreadAsRichText
+  | UserInsertedPhotoInRichTextThread
+  | ThreadClonedForSharing
+  | UserSetChatTitle
 
 export const getThreadListPageProps = async (userId: AppUserId): Promise<ThreadListPageProps> => {
   const userFamilyIds = (await getUserFamilies(userId)).map((f) => f.familyId)
@@ -22,14 +32,6 @@ export const getThreadListPageProps = async (userId: AppUserId): Promise<ThreadL
 
   for (const userFamilyId of userFamilyIds) {
     // Get threads
-
-    type ThreadEvent =
-      | UserSentMessageToChat
-      | OnboardingUserStartedFirstThread
-      | UserUpdatedThreadAsRichText
-      | UserInsertedPhotoInRichTextThread
-      | ThreadClonedForSharing
-      | UserSetChatTitle
 
     const threadEvents = await getEventList<ThreadEvent>(
       [
@@ -62,19 +64,19 @@ export const getThreadListPageProps = async (userId: AppUserId): Promise<ThreadL
         continue
       }
 
-      const titleEvent = threadEvents.find(
-        (event: ThreadEvent): event is ThreadClonedForSharing | UserSetChatTitle =>
-          event.type === 'ThreadClonedForSharing' || event.type === 'UserSetChatTitle'
-      )
-      const title = titleEvent?.payload.title || 'Fil sans titre'
+      // TODO: Get author from first event (maybe there should be multiple authors?)
 
       const latestEvent = threadEvents.at(-1)!
 
       threads.push({
         threadId,
-        title,
+        title: getTitle(threadEvents),
+        author: {
+          name: '',
+        },
         lastUpdatedOn: latestEvent.occurredAt.getTime(),
         familyId: userFamilyId,
+        thumbnails: getThumbnails(threadEvents),
       })
     }
   }
@@ -93,4 +95,34 @@ async function doesThreadHaveClones(threadId: ThreadId): Promise<boolean> {
   const count = Number(rows[0].count)
 
   return count > 0
+}
+
+function getThumbnails(threadEvents: readonly ThreadEvent[]): string[] {
+  const latestContentEvent = [...threadEvents]
+    .reverse()
+    .find(
+      (event: ThreadEvent): event is UserUpdatedThreadAsRichText | UserInsertedPhotoInRichTextThread | ThreadClonedForSharing =>
+        ['UserUpdatedThreadAsRichText', 'UserInsertedPhotoInRichTextThread', 'ThreadClonedForSharing'].includes(event.type)
+    )
+
+  if (!latestContentEvent) return []
+
+  const nodes = latestContentEvent.payload.contentAsJSON.content
+
+  const imageNodes = nodes.filter((node): node is PhotoNode => node.type === 'photoNode')
+
+  return imageNodes.map((node) => node.attrs.photoId).map((photoId) => ThumbnailURL(photoId))
+}
+
+function getTitle(threadEvents: readonly ThreadEvent[]): string | undefined {
+  const titleEvent = [...threadEvents]
+    .reverse()
+    .find(
+      (event: ThreadEvent): event is ThreadClonedForSharing | UserSetChatTitle =>
+        event.type === 'ThreadClonedForSharing' || event.type === 'UserSetChatTitle'
+    )
+
+  if (titleEvent?.payload.title) {
+    return titleEvent.payload.title
+  }
 }
