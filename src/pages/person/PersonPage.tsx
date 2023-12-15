@@ -107,7 +107,7 @@ export const PersonPage = withBrowserBundle(({ person, photos, alternateProfileP
         </div>
       </div>
 
-      {userFamilies.length > 0 ? (
+      {userFamilies.length > 1 ? (
         <div className='my-5 bg-white p-6'>
           Ce profil fait partie de {person.familyName}.
           {clones.length > 0 ? (
