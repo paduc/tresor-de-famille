@@ -5,7 +5,7 @@ import { CheckIcon, ChevronDownIcon } from '@heroicons/react/24/outline'
 import { FamilyId } from '../../domain/FamilyId'
 import { PhotoId } from '../../domain/PhotoId'
 import { withBrowserBundle } from '../../libs/ssr/withBrowserBundle'
-import { secondaryButtonStyles, smallButtonIconStyles, smallButtonStyles } from '../_components/Button'
+import { linkStyles, secondaryButtonStyles, smallButtonIconStyles, smallButtonStyles } from '../_components/Button'
 import { InlinePhotoUploadBtn } from '../_components/InlinePhotoUploadBtn'
 import { useSession } from '../_components/SessionContext'
 import { SuccessError } from '../_components/SuccessError'
@@ -85,9 +85,7 @@ export const PhotoListPage = withBrowserBundle(({ error, success, photos, curren
                 formAction='/add-photo.html'
                 hiddenFields={{ familyId: currentFamilyId }}
                 formKey={`uploadFamily${currentFamilyId}`}>
-                <span className='inline-block sm:text-sm cursor-pointer font-medium  text-indigo-600 hover:text-indigo-500'>
-                  Ajouter une nouvelle photo
-                </span>
+                <span className={`${linkStyles} text-base`}>Ajouter une nouvelle photo</span>
               </InlinePhotoUploadBtn>
             </h3>
 

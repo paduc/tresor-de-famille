@@ -21,6 +21,7 @@ const fakePersonSearch = async (query: string) => {
   }
 }
 
+const familyABCId = makeFamilyId()
 export default {
   title: 'Lister les anecdotes',
   component: ThreadListPage,
@@ -33,7 +34,20 @@ export default {
             isLoggedIn: true,
             userId: 'a' as AppUserId,
 
-            userFamilies: [],
+            userFamilies: [
+              {
+                familyId: 'a' as FamilyId,
+                familyName: 'Espace personnel',
+                about: '',
+                color: 'bg-indigo-50 text-indigo-700 ring-indigo-700/10',
+              },
+              {
+                familyId: familyABCId,
+                familyName: 'Famille ABC',
+                about: 'La famille qui connait le début de son alphabet',
+                color: 'bg-red-50 text-red-700 ring-red-600/10',
+              },
+            ],
             hasFamiliesOtherThanDefault: true,
 
             userName: 'toto',
@@ -55,34 +69,53 @@ export default {
 
 export const PageVide = () => <ThreadListPage threads={[]} />
 
+const fakeProfilePicUrl =
+  'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80'
 export const AvecFils = () => (
   <ThreadListPage
     threads={[
       {
         threadId: makeThreadId(),
-        family: {
-          familyId: makeFamilyId(),
-          name: 'Famille A',
+        author: {
+          name: 'Philip McMuffin',
+          // profilePicUrl: fakeProfilePicUrl,
         },
+
+        familyId: 'a' as FamilyId,
+        thumbnails: [],
         title: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
         lastUpdatedOn: Date.now(),
       },
       {
         threadId: makeThreadId(),
-        family: {
-          familyId: makeFamilyId(),
-          name: 'Famille B',
+        author: {
+          name: 'Philip McMuffin',
+          // profilePicUrl: fakeProfilePicUrl,
         },
+        familyId: 'a' as FamilyId,
+        thumbnails: [
+          'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80',
+          'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80',
+          'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80',
+          'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80',
+          'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80',
+          'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80',
+          'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80',
+        ],
         title:
           'Et diam cursus quis sed purus nam. Scelerisque amet elit non sit ut tincidunt condimentum. Nisl ultrices eu venenatis diam.',
         lastUpdatedOn: Date.now(),
       },
       {
         threadId: makeThreadId(),
-        family: {
-          familyId: 'a' as FamilyId,
-          name: undefined,
+        author: {
+          name: 'Philip McMuffin',
+          // profilePicUrl: fakeProfilePicUrl,
         },
+        familyId: familyABCId,
+        thumbnails: [
+          'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80',
+        ],
         title: 'Tincidunt nunc ipsum tempor purus vitae id. Morbi in vestibulum nec varius.',
         lastUpdatedOn: Date.now(),
       },

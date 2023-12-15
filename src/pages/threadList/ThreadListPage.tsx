@@ -3,13 +3,14 @@ import * as React from 'react'
 import { PlusIcon } from '@heroicons/react/24/outline'
 import { ThreadId } from '../../domain/ThreadId'
 import { withBrowserBundle } from '../../libs/ssr/withBrowserBundle'
-import { primaryButtonStyles } from '../_components/Button'
+import { linkStyles, primaryButtonStyles } from '../_components/Button'
 import { SuccessError } from '../_components/SuccessError'
 import { AppLayout } from '../_components/layout/AppLayout'
 import { FamilyId } from '../../domain/FamilyId'
 import { useLoggedInSession, useSession } from '../_components/SessionContext'
 import { LockClosedIcon, UsersIcon } from '@heroicons/react/20/solid'
 import { ThreadUrl } from '../thread/ThreadUrl'
+import { ChatBubbleLeftIconOutline } from '../thread/ThreadPage/ChatBubbleLeftIconOutline'
 
 // @ts-ignore
 function classNames(...classes) {
@@ -21,12 +22,13 @@ export type ThreadListPageProps = {
   error?: string
   threads: {
     threadId: ThreadId
-    title: string
+    title: string | undefined
     lastUpdatedOn: number
-    clonedFrom?: {
-      familyId: FamilyId
-      threadId: ThreadId
+    author: {
+      name: string
+      // profilePicUrl: string
     }
+    thumbnails: string[]
     familyId: FamilyId
   }[]
 }
@@ -44,38 +46,61 @@ export const ThreadListPage = withBrowserBundle(({ error, success, threads }: Th
         <SuccessError success={success} error={error} />
         {threads.length ? (
           <>
-            <h3 className='text-lg ml-6 font-medium leading-6 mb-1 text-gray-900'>Histoires et anecdotes</h3>
+            <h3 className='text-lg ml-6 font-medium leading-6 text-gray-900'>Histoires et anecdotes</h3>
+            <div className='ml-6  mb-1'>
+              <a href='/thread.html' className={`${linkStyles} text-base`}>
+                + Démarrer une nouvelle anecdote
+              </a>
+            </div>
             <ul role='list' className='divide-y divide-gray-100'>
               {threads.map((thread) => {
                 const chatPageUrl = ThreadUrl(thread.threadId)
                 const threadFamily = getFamily(thread.familyId)
                 return (
-                  <li key={thread.threadId} className='flex flex-wrap items-center justify-between gap-y-4 ml-0 sm:flex-nowrap'>
+                  <li key={thread.threadId} className='flex flex-wrap items-center justify-between gap-y-2 ml-0 sm:flex-nowrap'>
                     <a href={chatPageUrl} className='w-full py-5 px-6 hover:bg-gray-50'>
-                      <p className='text-base text-gray-900'>{thread.title}</p>
-                      <div className='mt-1 flex items-center gap-x-2 text-xs leading-5 text-gray-500'>
-                        {session.hasFamiliesOtherThanDefault ? (
-                          <>
-                            <p>
-                              <span
-                                className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ring-1 ring-inset ${threadFamily?.color}`}>
-                                {threadFamily?.familyName ? (
-                                  <>
-                                    <UsersIcon className='h-4 w-4 mr-1' />
-                                    {threadFamily.familyName}
-                                  </>
-                                ) : (
-                                  <>
-                                    <LockClosedIcon className='h-4 w-4 mr-1' /> Personnel
-                                  </>
-                                )}
-                              </span>
-                            </p>
-                            <svg viewBox='0 0 2 2' className='h-0.5 w-0.5 fill-current'>
-                              <circle cx={1} cy={1} r={1} />
-                            </svg>
-                          </>
-                        ) : null}
+                      <p className='text-base text-gray-900 max-w-xl'>{thread.title}</p>
+                      {thread.thumbnails.length ? (
+                        <div className='mt-2 mb-2'>
+                          <div className='flex'>
+                            <div className='h-24 w-32 overflow-hidden rounded-lg bg-gray-100'>
+                              <img src={thread.thumbnails[0]} alt='' className='h-24 w-32 object-cover' />
+                            </div>
+                            {thread.thumbnails.length > 1 ? (
+                              <div className='h-24 w-32 overflow-hidden ml-3 rounded-lg bg-gray-100 flex items-center justify-center text-gray-500'>
+                                <div className=''>+ {thread.thumbnails.length - 1}</div>
+                              </div>
+                            ) : null}
+                          </div>
+                        </div>
+                      ) : null}
+                      <div className='mt-3 flex items-center gap-x-2 text-xs leading-5 text-gray-500'>
+                        <>
+                          <p>
+                            <span
+                              className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ring-1 ring-inset ${threadFamily?.color}`}>
+                              {(threadFamily?.familyId as string) === (session.userId as string) ? (
+                                <>
+                                  <LockClosedIcon className='h-4 w-4 mr-1' />
+                                  {threadFamily?.familyName}
+                                </>
+                              ) : (
+                                <>
+                                  <UsersIcon className='h-4 w-4 mr-1' />
+                                  {threadFamily?.familyName}
+                                </>
+                              )}
+                            </span>
+                          </p>
+                          <svg viewBox='0 0 2 2' className='h-0.5 w-0.5 fill-current'>
+                            <circle cx={1} cy={1} r={1} />
+                          </svg>
+                        </>
+
+                        <p>Par {thread.author.name}</p>
+                        <svg viewBox='0 0 2 2' className='h-0.5 w-0.5 fill-current'>
+                          <circle cx={1} cy={1} r={1} />
+                        </svg>
                         <p>
                           Dernière mise à jour le{' '}
                           <time dateTime={new Date(thread.lastUpdatedOn).toISOString()}>
@@ -83,25 +108,11 @@ export const ThreadListPage = withBrowserBundle(({ error, success, threads }: Th
                           </time>
                         </p>
                       </div>
-                      {/* <dl className='flex w-full flex-none justify-between gap-x-8 sm:w-auto'>
-                    <div className='flex w-16 gap-x-2.5'>
-                    <dt>
-                    <span className='sr-only'>Total comments</span>
-                    <ChatBubbleLeftIconOutline className='h-6 w-6 text-gray-400' aria-hidden='true' />
-                    </dt>
-                    <dd className='text-sm leading-6 text-gray-900'>32</dd>
-                    </div>
-                  </dl> */}
                     </a>
                   </li>
                 )
               })}
             </ul>
-            <p className='mt-5 ml-6 max-w-2xl'>
-              <a href='/thread.html' className={`${primaryButtonStyles}`}>
-                Démarrer une nouvelle anecdote
-              </a>
-            </p>
           </>
         ) : (
           <div className='text-center'>
