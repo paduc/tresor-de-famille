@@ -137,6 +137,7 @@ export const ThreadListPage = withBrowserBundle(({ error, success, threads }: Th
                           </time>
                         </p>
                       </div>
+                      {/** Mobile version */}
                       <div className='mt-2 sm:hidden text-xs leading-5 text-gray-500'>
                         <p>Par {thread.authors.map((p) => p.name).join(', ')}</p>
                         <p>

@@ -171,7 +171,7 @@ const PhotoItem = (props: PhotoItemProps) => {
   const { description, url, personsInPhoto, unrecognizedFacesInPhoto } = props
   const descriptionOfPeople = personsInPhoto.join(', ')
 
-  const photoPageUrl = `/photo/${props.photoId}/photo.html?threadId=${props.threadId}`
+  const photoPageUrl = `/photo/${props.photoId}/photo.html?threadId=${props.threadId}&updated=1`
 
   return (
     <div className='grid grid-cols-1 w-full px-4 sm:px-0 py-2'>
