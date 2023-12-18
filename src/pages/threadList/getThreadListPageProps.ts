@@ -6,6 +6,7 @@ import { AppUserId } from '../../domain/AppUserId'
 import { FamilyId } from '../../domain/FamilyId'
 import { ThreadId } from '../../domain/ThreadId'
 import { OnboardingUserStartedFirstThread } from '../../events/onboarding/OnboardingUserStartedFirstThread'
+import { getPersonForUser } from '../_getPersonForUser'
 import { getUserFamilies } from '../_getUserFamilies'
 import { ThreadClonedForSharing } from '../thread/ThreadPage/ThreadClonedForSharing'
 import { ParagraphNode, PhotoNode } from '../thread/TipTapTypes'
@@ -66,14 +67,14 @@ export const getThreadListPageProps = async (userId: AppUserId): Promise<ThreadL
 
       // TODO: Get author from first event (maybe there should be multiple authors?)
 
+      const authors = await getAuthors(threadEvents)
+
       const latestEvent = threadEvents.at(-1)!
 
       threads.push({
         threadId,
         title: getTitle(threadEvents),
-        author: {
-          name: '',
-        },
+        authors,
         lastUpdatedOn: latestEvent.occurredAt.getTime(),
         familyId: userFamilyId,
         thumbnails: getThumbnails(threadEvents),
@@ -125,4 +126,14 @@ function getTitle(threadEvents: readonly ThreadEvent[]): string | undefined {
   if (titleEvent?.payload.title) {
     return titleEvent.payload.title
   }
+}
+
+async function getAuthors(threadEvents: readonly ThreadEvent[]): Promise<{ name: string }[]> {
+  const editorIds = new Set(threadEvents.map((event) => event.payload.userId))
+
+  const editorsOrNull = await Promise.all(Array.from(editorIds).map((editorId) => getPersonForUser({ userId: editorId })))
+
+  const editors = editorsOrNull.filter((person): person is Exclude<typeof editorsOrNull[number], null> => !!person)
+
+  return editors.map(({ name }) => ({ name }))
 }

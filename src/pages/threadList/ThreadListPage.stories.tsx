@@ -76,10 +76,12 @@ export const AvecFils = () => (
     threads={[
       {
         threadId: makeThreadId(),
-        author: {
-          name: 'Philip McMuffin',
-          // profilePicUrl: fakeProfilePicUrl,
-        },
+        authors: [
+          {
+            name: 'Philip McMuffin',
+            // profilePicUrl: fakeProfilePicUrl,
+          },
+        ],
 
         familyId: 'a' as FamilyId,
         thumbnails: [],
@@ -88,10 +90,12 @@ export const AvecFils = () => (
       },
       {
         threadId: makeThreadId(),
-        author: {
-          name: 'Philip McMuffin',
-          // profilePicUrl: fakeProfilePicUrl,
-        },
+        authors: [
+          {
+            name: 'Philip McMuffin',
+            // profilePicUrl: fakeProfilePicUrl,
+          },
+        ],
         familyId: 'a' as FamilyId,
         thumbnails: [
           'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80',
@@ -108,10 +112,20 @@ export const AvecFils = () => (
       },
       {
         threadId: makeThreadId(),
-        author: {
-          name: 'Philip McMuffin',
-          // profilePicUrl: fakeProfilePicUrl,
-        },
+        authors: [
+          {
+            name: 'Philip McMuffin',
+            // profilePicUrl: fakeProfilePicUrl,
+          },
+          {
+            name: 'Philip McMuffin',
+            // profilePicUrl: fakeProfilePicUrl,
+          },
+          {
+            name: 'Philip McMuffin',
+            // profilePicUrl: fakeProfilePicUrl,
+          },
+        ],
         familyId: familyABCId,
         thumbnails: [
           'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80',
