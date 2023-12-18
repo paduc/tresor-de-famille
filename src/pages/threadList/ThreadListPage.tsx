@@ -27,6 +27,7 @@ export type ThreadListPageProps = {
     authors: {
       name: string
     }[]
+    contents: string
     thumbnails: string[]
     familyId: FamilyId
   }[]
@@ -37,6 +38,31 @@ export const ThreadListPage = withBrowserBundle(({ error, success, threads }: Th
 
   function getFamily(familyId: FamilyId) {
     return session.userFamilies.find((f) => f.familyId === familyId)
+  }
+
+  function getTitle({ title, contents }: { title: string | undefined; contents: string }): string {
+    if (title?.length) {
+      return title
+    }
+
+    if (contents.length) {
+      return contents.substring(0, 80)
+    }
+
+    return 'Sans titre'
+  }
+
+  function getContents({ title, contents }: { title: string | undefined; contents: string }): string {
+    let contentsFormatted = contents
+    if ((!title || !title.length) && contents.length) {
+      contentsFormatted = contentsFormatted.substring(80)
+    }
+
+    if (contentsFormatted.length > 120) {
+      return `${contentsFormatted.substring(0, 120)}...`
+    }
+
+    return contentsFormatted
   }
 
   return (
@@ -58,7 +84,10 @@ export const ThreadListPage = withBrowserBundle(({ error, success, threads }: Th
                 return (
                   <li key={thread.threadId} className='flex flex-wrap items-center justify-between gap-y-2 ml-0 sm:flex-nowrap'>
                     <a href={chatPageUrl} className='w-full py-5 px-6 hover:bg-gray-50'>
-                      <p className='text-base text-gray-900 max-w-xl'>{thread.title}</p>
+                      <p className='text-base text-gray-900 max-w-xl'>{getTitle(thread)}</p>
+                      {getContents(thread).length ? (
+                        <p className='text-xs text-gray-500 mt-1 mb-2 max-w-xl'>{getContents(thread)}</p>
+                      ) : null}
                       {thread.thumbnails.length ? (
                         <div className='mt-2 mb-2'>
                           <div className='flex'>
@@ -73,7 +102,8 @@ export const ThreadListPage = withBrowserBundle(({ error, success, threads }: Th
                           </div>
                         </div>
                       ) : null}
-                      <div className='mt-3 flex items-center gap-x-2 text-xs leading-5 text-gray-500'>
+                      {/** large screens */}
+                      <div className='hidden mt-3 sm:flex items-center gap-x-2 text-xs leading-5 text-gray-500'>
                         <>
                           <p>
                             <span
@@ -105,6 +135,31 @@ export const ThreadListPage = withBrowserBundle(({ error, success, threads }: Th
                           <time dateTime={new Date(thread.lastUpdatedOn).toISOString()}>
                             {new Intl.DateTimeFormat('fr').format(new Date(thread.lastUpdatedOn))}
                           </time>
+                        </p>
+                      </div>
+                      <div className='mt-2 sm:hidden text-xs leading-5 text-gray-500'>
+                        <p>Par {thread.authors.map((p) => p.name).join(', ')}</p>
+                        <p>
+                          Dernière mise à jour le{' '}
+                          <time dateTime={new Date(thread.lastUpdatedOn).toISOString()}>
+                            {new Intl.DateTimeFormat('fr').format(new Date(thread.lastUpdatedOn))}
+                          </time>
+                        </p>
+                        <p className='mt-2'>
+                          <span
+                            className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ring-1 ring-inset ${threadFamily?.color}`}>
+                            {(threadFamily?.familyId as string) === (session.userId as string) ? (
+                              <>
+                                <LockClosedIcon className='h-4 w-4 mr-1' />
+                                {threadFamily?.familyName}
+                              </>
+                            ) : (
+                              <>
+                                <UsersIcon className='h-4 w-4 mr-1' />
+                                {threadFamily?.familyName}
+                              </>
+                            )}
+                          </span>
                         </p>
                       </div>
                     </a>
