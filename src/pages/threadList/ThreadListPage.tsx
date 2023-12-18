@@ -24,10 +24,9 @@ export type ThreadListPageProps = {
     threadId: ThreadId
     title: string | undefined
     lastUpdatedOn: number
-    author: {
+    authors: {
       name: string
-      // profilePicUrl: string
-    }
+    }[]
     thumbnails: string[]
     familyId: FamilyId
   }[]
@@ -97,7 +96,7 @@ export const ThreadListPage = withBrowserBundle(({ error, success, threads }: Th
                           </svg>
                         </>
 
-                        <p>Par {thread.author.name}</p>
+                        <p>Par {thread.authors.map((p) => p.name).join(', ')}</p>
                         <svg viewBox='0 0 2 2' className='h-0.5 w-0.5 fill-current'>
                           <circle cx={1} cy={1} r={1} />
                         </svg>
