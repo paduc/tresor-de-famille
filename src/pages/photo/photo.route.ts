@@ -60,7 +60,7 @@ pageRouter
       })
 
       if (threadId) {
-        props.context = { type: 'thread', threadId }
+        props.context = { type: 'thread', threadId, editable: !!updated }
       }
 
       if (profileId) {

@@ -49,6 +49,7 @@ export type NewPhotoPageProps = {
     | {
         type: 'thread'
         threadId: ThreadId
+        editable: boolean
       }
     | { type: 'profile'; profileId: PersonId }
     | {
@@ -110,7 +111,7 @@ export const NewPhotoPage = withBrowserBundle(({ context, caption, photoId, phot
           href={`${
             context
               ? context.type === 'thread'
-                ? ThreadUrl(context.threadId)
+                ? ThreadUrl(context.threadId, context.editable)
                 : context.type === 'profile'
                 ? PersonPageURL(context.profileId)
                 : context.type === 'familyPhotoList'
