@@ -75,6 +75,7 @@ export const getThreadListPageProps = async (userId: AppUserId): Promise<ThreadL
         threadId,
         title: getTitle(threadEvents),
         authors,
+        contents: getContents(threadEvents),
         lastUpdatedOn: latestEvent.occurredAt.getTime(),
         familyId: userFamilyId,
         thumbnails: getThumbnails(threadEvents),
@@ -113,6 +114,23 @@ function getThumbnails(threadEvents: readonly ThreadEvent[]): string[] {
   const imageNodes = nodes.filter((node): node is PhotoNode => node.type === 'photoNode')
 
   return imageNodes.map((node) => node.attrs.photoId).map((photoId) => ThumbnailURL(photoId))
+}
+
+function getContents(threadEvents: readonly ThreadEvent[]): string {
+  const latestContentEvent = [...threadEvents]
+    .reverse()
+    .find(
+      (event: ThreadEvent): event is UserUpdatedThreadAsRichText | UserInsertedPhotoInRichTextThread | ThreadClonedForSharing =>
+        ['UserUpdatedThreadAsRichText', 'UserInsertedPhotoInRichTextThread', 'ThreadClonedForSharing'].includes(event.type)
+    )
+
+  if (!latestContentEvent) return ''
+
+  const nodes = latestContentEvent.payload.contentAsJSON.content
+
+  const textNodes = nodes.filter((node): node is ParagraphNode => node.type === 'paragraph' && !!node.content)
+
+  return textNodes.map((node) => node.content[0].text).join('\n')
 }
 
 function getTitle(threadEvents: readonly ThreadEvent[]): string | undefined {
