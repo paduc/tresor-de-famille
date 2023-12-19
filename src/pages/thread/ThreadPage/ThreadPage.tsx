@@ -4,7 +4,7 @@ import debounce from 'lodash.debounce'
 import React, { useCallback, useEffect, useState } from 'react'
 import { UUID } from '../../../domain'
 import { withBrowserBundle } from '../../../libs/ssr/withBrowserBundle'
-import { buttonIconStyles, primaryButtonStyles, secondaryButtonStyles } from '../../_components/Button'
+import { buttonIconStyles } from '../../_components/Button'
 import { AppLayout } from '../../_components/layout/AppLayout'
 import { ProgressiveImg } from '../../_components/ProgressiveImg'
 
@@ -31,9 +31,9 @@ import { ThreadId } from '../../../domain/ThreadId'
 import { PhotoIcon } from '@heroicons/react/20/solid'
 import { FamilyId } from '../../../domain/FamilyId'
 import { useLoggedInSession, useSession } from '../../_components/SessionContext'
-import { TDFModal } from '../../_components/TDFModal'
 import { ReadWriteToggle } from './ReadWriteToggle'
 import { ThreadUrl } from '../ThreadUrl'
+import { ThreadSharingButton } from './ThreadSharingButton'
 
 // @ts-ignore
 function classNames(...classes) {
@@ -85,61 +85,10 @@ export const ThreadPage = withBrowserBundle(
 
     return (
       <AppLayout>
-        <TDFModal
-          title='Choisissez la famille avec laquelle vous voulez partager cette histoire'
-          isOpen={isFamilyModalOpen}
-          close={() => openFamilyModal(false)}>
-          <div className='mt-8'>
-            {session.userFamilies
-              .filter((f) => f.familyId !== familyId)
-              .map((family) => (
-                <form key={`select_${family.familyId}`} method='POST'>
-                  <input type='hidden' name='action' value='shareWithFamily' />
-                  <input type='hidden' name='familyId' value={family.familyId} />
-                  <button
-                    key={`add_to_${family.familyId}`}
-                    type='submit'
-                    className={`mb-4 ${secondaryButtonStyles.replace(/inline\-flex/g, '')}  w-full text-center`}>
-                    {family.familyName}
-                  </button>
-                </form>
-              ))}
-            <button
-              onClick={() => {
-                openFamilyModal(false)
-              }}
-              className={`mb-4 ${primaryButtonStyles.replace(/inline\-flex/g, '')}  w-full text-center`}>
-              Annuler
-            </button>
-          </div>
-        </TDFModal>
         <div className='w-full sm:ml-6 max-w-2xl pt-3 pb-40'>
           <div className='w-full mb-3'>
             <div className='w-full inline-flex items-center place-content-end'>
-              {(familyId as string) === (session.userId as string) ? (
-                <>
-                  <span className='text-gray-500 mr-2'>Uniquement vous pouvez voir cette histoire.</span>
-                  <button className={`${primaryButtonStyles}`} onClick={() => openFamilyModal(true)}>
-                    Partager
-                  </button>
-                </>
-              ) : (
-                <>
-                  <span className='text-gray-500 mr-2'>Partagé avec les membres de</span>
-                  {isAuthor ? (
-                    <button
-                      onClick={() => openFamilyModal(true)}
-                      className={`px-3 py-1.5 border border-transparent text-md font-medium rounded-full shadow-sm ring-inset ring-2 hover:bg-white hover:ring-4 ${family?.color} ring-2`}>
-                      {family?.familyName || 'Personnel'}
-                    </button>
-                  ) : (
-                    <span
-                      className={`inline-flex items-center px-3 py-1.5 border border-transparent text-md font-medium rounded-full shadow-sm ring-inset ${family?.color} ring-2`}>
-                      {family?.familyName || 'Personnel'}
-                    </span>
-                  )}
-                </>
-              )}
+              <ThreadSharingButton isAuthor={isAuthor} familyId={familyId} />
             </div>
 
             <div className='w-full inline-flex items-center place-content-start'>

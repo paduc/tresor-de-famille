@@ -102,15 +102,6 @@ export const HomePage = withBrowserBundle((props: HomePageProps) => {
           <li>Le sport que j'ai pratiqué</li>
         </ul>
       </div>
-
-      <div className='mt-3'>
-        <InlinePhotoUploadBtn formAction='/add-photo.html' formKey='uploadPhotoAsNewThread'>
-          <span className='cursor-pointer inline-flex items-center mt-6 px-3 py-1.5 border border-transparent text-md font-medium rounded-full shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
-            <PhotoIcon className={`${buttonIconStyles}`} aria-hidden='true' />
-            Partir d'une photo
-          </span>
-        </InlinePhotoUploadBtn>
-      </div>
     </Wrapper>
   )
 })
