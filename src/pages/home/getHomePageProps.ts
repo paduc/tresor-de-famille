@@ -16,12 +16,12 @@ export const getHomePageProps = async (userId: AppUserId): Promise<HomePageProps
 
   const personId = step1['get-user-name'] === 'done' ? step1.personId : undefined
 
-  const step2: UploadProfilePicture = await getUploadProfilePicture(userId, personId)
+  // const step2: UploadProfilePicture = await getUploadProfilePicture(userId, personId)
 
-  const isOnboarding = step2['upload-profile-picture'] !== 'user-face-confirmed'
+  const isOnboarding = step1['get-user-name'] !== 'done'
 
   if (isOnboarding) {
-    return { isOnboarding, steps: { ...step1, ...step2 } }
+    return { isOnboarding, steps: { ...step1 } }
   }
 
   const { threads } = await getThreadListPageProps(userId)

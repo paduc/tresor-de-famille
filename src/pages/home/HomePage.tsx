@@ -1,4 +1,4 @@
-import { CheckIcon, PhotoIcon } from '@heroicons/react/24/outline'
+import { PhotoIcon } from '@heroicons/react/24/outline'
 import * as React from 'react'
 import TextareaAutosize from 'react-textarea-autosize'
 import { FaceId } from '../../domain/FaceId'
@@ -6,14 +6,14 @@ import { PersonId } from '../../domain/PersonId'
 import { PhotoId } from '../../domain/PhotoId'
 import { ThreadId } from '../../domain/ThreadId'
 import { withBrowserBundle } from '../../libs/ssr/withBrowserBundle'
-import { SessionContext, useSession } from '../_components/SessionContext'
-import { buttonIconStyles, primaryButtonStyles, primaryGreenButtonStyles, secondaryButtonStyles } from '../_components/Button'
+import { buttonIconStyles, primaryButtonStyles } from '../_components/Button'
 import { InlinePhotoUploadBtn } from '../_components/InlinePhotoUploadBtn'
+import { useSession } from '../_components/SessionContext'
 import { AppLayout } from '../_components/layout/AppLayout'
 import { SendIcon } from '../thread/ThreadPage/SendIcon'
 import { ThreadUrl } from '../thread/ThreadUrl'
 
-type Steps = GetUserName & UploadProfilePicture
+type Steps = GetUserName
 export type HomePageProps =
   | {
       isOnboarding: true
@@ -38,22 +38,6 @@ export const HomePage = withBrowserBundle((props: HomePageProps) => {
       return (
         <Wrapper>
           <GetUserName />
-        </Wrapper>
-      )
-    }
-
-    if (steps['upload-profile-picture'] === 'pending') {
-      return (
-        <Wrapper>
-          <UploadPhotoOfThemself />
-        </Wrapper>
-      )
-    }
-
-    if (steps['upload-profile-picture'] === 'photo-uploaded') {
-      return (
-        <Wrapper>
-          <ChoseOwnFaceInPhoto step={steps} />
         </Wrapper>
       )
     }
@@ -234,124 +218,6 @@ function GetUserName() {
         </form>
       </div>
     </div>
-  )
-}
-
-const UploadPhotoOfThemself = () => {
-  return (
-    <div className='pb-5'>
-      <div className='py-3'>
-        <p className={`mt-3 text-xl text-gray-500`}>Je vous propose d'envoyer une photo de vous !</p>
-        <InlinePhotoUploadBtn
-          hiddenFields={{ action: 'userSendsPhotoOfThemself' }}
-          formAction='/'
-          formKey='uploadPhotoOfThemself'>
-          <span className='cursor-pointer inline-flex items-center mt-6 px-3 py-1.5 border border-transparent text-md font-medium rounded-full shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
-            <PhotoIcon className={`${buttonIconStyles}`} aria-hidden='true' />
-            Choisir la photo
-          </span>
-        </InlinePhotoUploadBtn>
-      </div>
-    </div>
-  )
-}
-
-type ChoseOwnFaceInPhotoProps = {
-  step: Steps & { 'upload-profile-picture': 'photo-uploaded' }
-}
-
-export const ChoseOwnFaceInPhoto = ({ step }: ChoseOwnFaceInPhotoProps) => {
-  const { photoId, photoUrl, faces } = step
-
-  const UploadAnother = ({ secondary, className }: { secondary?: true; className?: string }) => (
-    <InlinePhotoUploadBtn
-      formAction='/'
-      formKey='uploadAnotherPhotoOfThemselfy'
-      hiddenFields={{ action: 'userSendsPhotoOfThemself' }}>
-      <span className={`${secondary ? secondaryButtonStyles : primaryButtonStyles} ${className || ''}`}>
-        <PhotoIcon className={`${buttonIconStyles}`} aria-hidden='true' />
-        Choisir une autre photo
-      </span>
-    </InlinePhotoUploadBtn>
-  )
-
-  // Case: no faces
-  if (!faces || faces.length === 0) {
-    return (
-      <div className='pb-5 py-3'>
-        <Photo />
-        <Paragraph>Aucun visage n'a été détecté sur cette photo. Merci d'en choisir une autre.</Paragraph>
-        <UploadAnother className='mt-6' />
-      </div>
-    )
-  }
-
-  // Case: single face
-  if (faces.length === 1) {
-    return (
-      <div className='pb-5 space-y-4'>
-        <Photo />
-        <Paragraph>Ce visage a été détecté. Est-ce bien le votre ?</Paragraph>
-        <div className='flex justify-start items-center my-4'>
-          <PhotoBadge photoId={photoId} faceId={faces[0].faceId} className='w-16 h-16' />
-          <form method='POST' className='inline-block ml-2'>
-            <input type='hidden' name='action' value='confirmFaceIsUser' />
-            <input type='hidden' name='photoId' value={photoId} />
-            <input type='hidden' name='faceId' value={faces[0].faceId} />
-            <button type='submit' className={`${primaryGreenButtonStyles}`}>
-              <CheckIcon className={`${buttonIconStyles}`} aria-hidden='true' />
-              C'est bien moi !
-            </button>
-          </form>
-        </div>
-        <UploadAnother secondary className='mt-2' />
-      </div>
-    )
-  }
-
-  // Case: multiple faces
-  return (
-    <div className='pb-5 space-y-4'>
-      <Photo />
-      <Paragraph>Plusieurs visages ont été détectés sur cette photo, quel est le votre ?</Paragraph>
-      <div className='p-0 -ml-1'>
-        {faces.map((face) => (
-          <form method='POST' key={`confirmFace${face.faceId}`} className='inline-block mr-2 mb-2'>
-            <input type='hidden' name='action' value='confirmFaceIsUser' />
-            <input type='hidden' name='photoId' value={photoId} />
-            <input type='hidden' name='faceId' value={face.faceId} />
-            <button type='submit' className=''>
-              <PhotoBadge photoId={photoId} faceId={face.faceId} className='m-1 ring-green-600 hover:ring-4' />
-            </button>
-          </form>
-        ))}
-      </div>
-      <UploadAnother secondary className='mt-2' />
-    </div>
-  )
-
-  function Photo() {
-    return (
-      <div className='grid grid-cols-1 w-full mt-3'>
-        <img src={photoUrl} className='max-w-full max-h-[50vh] border border-gray-300 shadow-sm' />
-      </div>
-    )
-  }
-}
-
-type PhotoBadgeProps = {
-  photoId: PhotoId
-  faceId: FaceId
-  className?: string
-}
-const PhotoBadge = ({ photoId, className, faceId }: PhotoBadgeProps) => {
-  return (
-    <img
-      // src='https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=100&h=100&q=80'
-      src={`/photo/${photoId}/face/${faceId}`}
-      className={`inline-block cursor-pointer rounded-full h-14 w-14 bg-white ring-2 ring-white shadow-sm'
-      } ${className || ''}`}
-    />
   )
 }
 
