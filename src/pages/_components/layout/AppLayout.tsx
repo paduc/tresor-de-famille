@@ -27,7 +27,6 @@ import {
 import React, { Fragment, useContext, useState } from 'react'
 import { PersonPageURL } from '../../person/PersonPageURL'
 import { PersonSearch } from '../../photo/PhotoPage/PersonSearch'
-import { InlinePhotoUploadBtn } from '../InlinePhotoUploadBtn'
 import { LocationContext } from '../LocationContext'
 import { Logo } from '../Logo'
 import { useSession } from '../SessionContext'
@@ -63,17 +62,7 @@ export function AppLayout({ children }: AppLayoutProps) {
     return <p>Session not available</p>
   }
 
-  const { arePhotosEnabled, areThreadsEnabled, isFamilyPageEnabled, isSharingEnabled, profilePic, userFamilies, userId } =
-    session
-
-  type CurrentFamilySituation =
-    | {
-        showBanner: true
-        familyName: string
-      }
-    | {
-        showBanner: false
-      }
+  const { arePhotosEnabled, areThreadsEnabled, isFamilyPageEnabled, isSharingEnabled, profilePic } = session
 
   const userName = session.userName || ''
 
@@ -91,13 +80,6 @@ export function AppLayout({ children }: AppLayoutProps) {
       condition: () => true,
     },
     {
-      name: 'Photos',
-      href: '/photos.html',
-      icon: PhotoIcon,
-      condition: () => arePhotosEnabled,
-    },
-    // { name: 'Videos', href: '/videos.html', icon: VideoCameraIcon },
-    {
       name: 'Histoires et anecdotes',
       href: '/threads.html',
       icon: BookOpenIcon,
@@ -109,6 +91,13 @@ export function AppLayout({ children }: AppLayoutProps) {
       icon: ShareIcon,
       condition: () => isFamilyPageEnabled,
     },
+    {
+      name: 'Photos',
+      href: '/photos.html',
+      icon: PhotoIcon,
+      condition: () => arePhotosEnabled,
+    },
+    // { name: 'Videos', href: '/videos.html', icon: VideoCameraIcon },
     {
       name: 'Partage',
       href: '/share.html',
@@ -203,16 +192,6 @@ export function AppLayout({ children }: AppLayoutProps) {
                                 </a>
                               </li>
                             ) : null}
-                            {arePhotosEnabled ? (
-                              <li>
-                                <InlinePhotoUploadBtn formAction='/add-photo.html'>
-                                  <span className='button inline-flex items-center gap-x-1.5 rounded-md  px-2.5 py-1.5 text-sm text-white border-1 ring-1 ring-inset ring-indigo-200 shadow-sm hover:bg-white/20'>
-                                    <PlusSmallIcon className='-ml-0.5 h-5 w-5' aria-hidden='true' />
-                                    Nouvelle photo
-                                  </span>
-                                </InlinePhotoUploadBtn>
-                              </li>
-                            ) : null}
                           </ul>
                         </li>
                         <li>
@@ -290,16 +269,6 @@ export function AppLayout({ children }: AppLayoutProps) {
                           <PlusSmallIcon className='-ml-0.5 h-5 w-5' aria-hidden='true' />
                           Nouvelle anecdote
                         </a>
-                      </li>
-                    ) : null}
-                    {arePhotosEnabled ? (
-                      <li>
-                        <InlinePhotoUploadBtn formAction='/add-photo.html'>
-                          <span className='button inline-flex items-center gap-x-1.5 rounded-md  px-2.5 py-1.5 text-sm text-white border-1 ring-1 ring-inset ring-indigo-200 shadow-sm hover:bg-white/20'>
-                            <PlusSmallIcon className='-ml-0.5 h-5 w-5' aria-hidden='true' />
-                            Nouvelle photo
-                          </span>
-                        </InlinePhotoUploadBtn>
                       </li>
                     ) : null}
                   </ul>
