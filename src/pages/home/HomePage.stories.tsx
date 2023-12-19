@@ -1,15 +1,11 @@
 import { SearchIndex } from 'algoliasearch'
 import * as React from 'react'
+import { AppUserId } from '../../domain/AppUserId'
 import { getUuid } from '../../libs/getUuid'
+import { makeThreadId } from '../../libs/makeThreadId'
+import { SessionContext } from '../_components/SessionContext'
 import { PersonSearchContext } from '../_components/usePersonSearch'
 import { HomePage } from './HomePage'
-import { makePhotoId } from '../../libs/makePhotoId'
-import { makePersonId } from '../../libs/makePersonId'
-import { makeFaceId } from '../../libs/makeFaceId'
-import { SessionContext } from '../_components/SessionContext'
-import { makeThreadId } from '../../libs/makeThreadId'
-import { AppUserId } from '../../domain/AppUserId'
-import { FamilyId } from '../../domain/FamilyId'
 
 const fakePersonSearch = async (query: string) => {
   return {
@@ -113,81 +109,6 @@ export const WaitingForName = () => (
     isOnboarding
     steps={{
       'get-user-name': 'pending',
-      'upload-profile-picture': 'pending',
-    }}
-  />
-)
-
-export const WaitingForPhoto = () => (
-  <SessionContext.Provider
-    value={{
-      isLoggedIn: true,
-      userId: 'a' as AppUserId,
-      userFamilies: [],
-
-      userName: 'John Doe',
-      profilePic: null,
-      isAdmin: false,
-      arePhotosEnabled: false,
-      areThreadsEnabled: false,
-      areVideosEnabled: false,
-      arePersonsEnabled: false,
-    }}>
-    <HomePage
-      isOnboarding
-      steps={{
-        'get-user-name': 'done',
-        name: 'John Doe',
-        personId: makePersonId(),
-        'upload-profile-picture': 'pending',
-      }}
-    />
-  </SessionContext.Provider>
-)
-export const PhotoUploadedNoFaces = () => (
-  <HomePage
-    isOnboarding
-    steps={{
-      'get-user-name': 'done',
-      name: 'John Doe',
-      personId: makePersonId(),
-      'upload-profile-picture': 'photo-uploaded',
-      photoId: makePhotoId(),
-      photoUrl:
-        'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=3000&h=2000&q=80',
-      faces: [],
-    }}
-  />
-)
-
-export const PhotoUploadedSingleFace = () => (
-  <HomePage
-    isOnboarding
-    steps={{
-      'get-user-name': 'done',
-      name: 'John Doe',
-      personId: makePersonId(),
-      'upload-profile-picture': 'photo-uploaded',
-      photoId: makePhotoId(),
-      photoUrl:
-        'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=3000&h=2000&q=80',
-      faces: [{ faceId: makeFaceId() }],
-    }}
-  />
-)
-
-export const PhotoUploadedMultipleFaces = () => (
-  <HomePage
-    isOnboarding
-    steps={{
-      'get-user-name': 'done',
-      name: 'John Doe',
-      personId: makePersonId(),
-      'upload-profile-picture': 'photo-uploaded',
-      photoId: makePhotoId(),
-      photoUrl:
-        'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=3000&h=2000&q=80',
-      faces: [{ faceId: makeFaceId() }, { faceId: makeFaceId() }, { faceId: makeFaceId() }],
     }}
   />
 )
