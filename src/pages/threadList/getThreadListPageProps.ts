@@ -26,7 +26,6 @@ type ThreadEvent =
 
 export const getThreadListPageProps = async (userId: AppUserId): Promise<ThreadListPageProps> => {
   const userFamilyIds = (await getUserFamilies(userId)).map((f) => f.familyId)
-  userFamilyIds.push(userId as string as FamilyId)
 
   type Thread = ThreadListPageProps['threads'][number]
   const threads: Thread[] = []

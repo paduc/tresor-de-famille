@@ -23,10 +23,8 @@ export const ReadOnlyThreadPage = withBrowserBundle(
     return (
       <AppLayout>
         <div className='w-full sm:ml-6 max-w-2xl pt-3 pb-40'>
-          <div className='w-full mb-3'>
-            <div className='w-full inline-flex items-center place-content-end'>
-              <ThreadSharingButton isAuthor={isAuthor} familyId={familyId} />
-            </div>
+          <div className='w-full mb-3 px-2'>
+            <ThreadSharingButton isAuthor={isAuthor} familyId={familyId} />
             <div className='w-full inline-flex items-center place-content-start'>
               <ReadWriteToggle readOnly threadId={threadId} />
             </div>

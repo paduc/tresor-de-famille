@@ -8,11 +8,13 @@ import { pageRouter } from '../pageRouter'
 import { SharePage } from './SharePage'
 import { UserCreatedNewFamily } from './UserCreatedNewFamily'
 import { getSharePageProps } from './getSharePageProps'
-import { PersonClonedForSharing } from './PersonClonedForSharing'
-import { makePersonId } from '../../libs/makePersonId'
-import { getFaceAndPhotoForPerson } from '../_getProfilePicUrlForPerson'
+import { getUserFamilies } from '../_getUserFamilies'
 import { FamilyId } from '../../domain/FamilyId'
+import { makePersonId } from '../../libs/makePersonId'
 import { getPersonForUser } from '../_getPersonForUser'
+import { getFaceAndPhotoForPerson } from '../_getProfilePicUrlForPerson'
+import { PersonClonedForSharing } from './PersonClonedForSharing'
+import { AppUserId } from '../../domain/AppUserId'
 
 pageRouter
   .route('/share.html')
@@ -39,50 +41,70 @@ pageRouter
         })
         .parse(request.body)
 
-      const familyId = makeFamilyId()
-
-      await addToHistory(
-        UserCreatedNewFamily({
-          familyName,
-          about,
-          familyId,
-          shareCode: makeFamilyShareCode(familyId),
-          userId,
-        })
-      )
-
-      // Create a new person identical to the user's person
-      const previousFamilyId = userId as string as FamilyId
-      const userPerson = await getPersonForUser({ userId })
-      if (userPerson) {
-        let profilePicPhotoId
-        let faceId
-
-        const faceAndPhoto = await getFaceAndPhotoForPerson({ userId, personId: userPerson.personId })
-
-        if (faceAndPhoto) {
-          faceId = faceAndPhoto.faceId
-          profilePicPhotoId = faceAndPhoto.photoId
-        }
-
-        await addToHistory(
-          PersonClonedForSharing({
-            familyId,
-            userId,
-            personId: makePersonId(),
-            name: userPerson.name,
-            profilePicPhotoId,
-            faceId,
-            clonedFrom: {
-              personId: userPerson.personId,
-              familyId: previousFamilyId,
-            },
-          })
-        )
-      }
+      await createNewFamily({ userId, familyName, about })
 
       return response.redirect('/share.html')
+    } else if (action === 'createNewFamilyClientSide') {
+      const { familyName, about } = z
+        .object({
+          familyName: z.string(),
+          about: z.string(),
+        })
+        .parse(request.body)
+
+      await createNewFamily({ userId, familyName, about })
+
+      const newUserFamilies = await getUserFamilies(userId)
+
+      return response.setHeader('Content-Type', 'application/json').status(200).send({
+        newUserFamilies,
+      })
     }
 
     throw new Error('POST on share with unknown action')
   })
+
+async function createNewFamily({ userId, familyName, about }: { userId: AppUserId; familyName: string; about: string }) {
+  const familyId = makeFamilyId()
+
+  await addToHistory(
+    UserCreatedNewFamily({
+      familyName,
+      about,
+      familyId,
+      shareCode: makeFamilyShareCode(familyId),
+      userId,
+    })
+  )
+
+  // Create a new person identical to the user's person
+  const previousFamilyId = userId as string as FamilyId
+  const userPerson = await getPersonForUser({ userId })
+
+  if (!userPerson) return
+
+  let profilePicPhotoId
+  let faceId
+
+  const faceAndPhoto = await getFaceAndPhotoForPerson({ userId, personId: userPerson.personId })
+
+  if (faceAndPhoto) {
+    faceId = faceAndPhoto.faceId
+    profilePicPhotoId = faceAndPhoto.photoId
+  }
+
+  await addToHistory(
+    PersonClonedForSharing({
+      familyId,
+      userId,
+      personId: makePersonId(),
+      name: userPerson.name,
+      profilePicPhotoId,
+      faceId,
+      clonedFrom: {
+        personId: userPerson.personId,
+        familyId: previousFamilyId,
+      },
+    })
+  )
+}

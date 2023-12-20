@@ -16,9 +16,12 @@ export type Session =
             familyName: string
             about: string
             familyId: FamilyId
+            isUserSpace: boolean
             color: string
+            shareUrl: string
           }[]
           hasFamiliesOtherThanDefault: boolean
+          hasCreatedFamilies: boolean
           searchKey: string
           isAdmin: boolean
           arePhotosEnabled: boolean

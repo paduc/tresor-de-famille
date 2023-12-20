@@ -5,8 +5,35 @@ import { makePersonId } from '../../libs/makePersonId'
 import { makeFamilyId } from '../../libs/makeFamilyId'
 import { FamilyId } from '../../domain/FamilyId'
 import { AppUserId } from '../../domain/AppUserId'
-
-export default { title: 'Partage', component: SharePage, parameters: { layout: 'fullscreen' } }
+import { SearchIndex } from 'algoliasearch'
+import { makeAppUserId } from '../../libs/makeUserId'
+import { PersonSearchContext } from '../_components/usePersonSearch'
+const fakePersonSearch = async (query: string) => {
+  return {
+    hits: [
+      { objectID: makeAppUserId(), name: 'John Doe' },
+      { objectID: makeAppUserId(), name: 'Zelda Moroney' },
+      { objectID: makeAppUserId(), name: 'Claire Politi' },
+      ,
+    ],
+  }
+}
+export default {
+  title: 'Partage',
+  component: SharePage,
+  parameters: {
+    layout: 'fullscreen',
+    decorators: [
+      (Story: any) => {
+        return (
+          <PersonSearchContext.Provider value={{ search: fakePersonSearch } as unknown as SearchIndex}>
+            <Story />
+          </PersonSearchContext.Provider>
+        )
+      },
+    ],
+  },
+}
 
 export const PremiereNouvelleFamille = () => (
   <SessionContext.Provider
