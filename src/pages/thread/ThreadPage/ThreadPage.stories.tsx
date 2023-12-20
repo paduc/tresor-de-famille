@@ -14,6 +14,7 @@ import { makeAppUserId } from '../../../libs/makeUserId'
 import { makeFamilyId } from '../../../libs/makeFamilyId'
 import { ReadOnlyThreadPage } from './ReadonlyThreadPage'
 import { LocationContext } from '../../_components/LocationContext'
+import { FamilyColorCodes } from '../../../libs/ssr/FamilyColorCodes'
 
 const fakePersonSearch = async (query: string) => {
   return {
@@ -41,24 +42,31 @@ export default {
             userFamilies: [
               {
                 familyId: 'a' as FamilyId,
-                familyName: 'Perso',
+                familyName: 'Votre espace personnel',
                 about: '',
+                color: FamilyColorCodes[0],
+                isUserSpace: true,
               },
-
               {
                 familyId: 'b' as FamilyId,
                 familyName: 'Famille A',
                 about: 'La famille A',
+                color: FamilyColorCodes[1],
+                isUserSpace: false,
               },
               {
                 familyId: makeFamilyId(),
                 familyName: 'Famille B',
                 about: 'La famille B',
+                color: FamilyColorCodes[2],
+                isUserSpace: false,
               },
               {
                 familyId: makeFamilyId(),
                 familyName: 'Famille C',
                 about: 'La famille C',
+                color: FamilyColorCodes[3],
+                isUserSpace: false,
               },
             ],
 
@@ -171,6 +179,53 @@ export const Personnel = () => (
       ],
     }}
   />
+)
+
+export const PasEncoreDeFamilles = () => (
+  <SessionContext.Provider
+    value={{
+      isLoggedIn: true,
+      userId: 'a' as AppUserId,
+      userFamilies: [
+        {
+          familyId: 'a' as FamilyId,
+          familyName: 'Perso',
+          about: '',
+          color: FamilyColorCodes[0],
+          isUserSpace: true,
+        },
+      ],
+
+      userName: 'Jean-Michel Trotro',
+      profilePic: null,
+      isAdmin: false,
+      arePhotosEnabled: true,
+      areThreadsEnabled: true,
+      areVideosEnabled: true,
+      arePersonsEnabled: true,
+    }}>
+    <ThreadPage
+      threadId={makeThreadId()}
+      familyId={'a' as FamilyId}
+      isAuthor={true}
+      lastUpdated={t0 as Epoch}
+      title='Ceci est le titre'
+      contentAsJSON={{
+        type: 'doc',
+        content: [
+          {
+            type: 'paragraph',
+            content: [
+              {
+                type: 'text',
+                text: 'Message',
+              },
+            ],
+          },
+        ],
+      }}
+    />
+  </SessionContext.Provider>
 )
 
 export const PartagéNonAuteur = () => (

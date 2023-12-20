@@ -3,19 +3,15 @@ import z, { ZodError } from 'zod'
 
 import { addToHistory } from '../../dependencies/addToHistory'
 import { PASSWORD_SALT, REGISTRATION_CODE } from '../../dependencies/env'
-import { FamilyId } from '../../domain/FamilyId'
+import { getSingleEvent } from '../../dependencies/getSingleEvent'
+import { UserNamedThemself } from '../../events/onboarding/UserNamedThemself'
 import { parseZodErrors } from '../../libs/parseZodErrors'
 import { responseAsHtml } from '../../libs/ssr/responseAsHtml'
-import { getPersonByIdOrThrow } from '../_getPersonById'
-import { getPersonForUserInFamily } from '../_getPersonForUser'
 import { pageRouter } from '../pageRouter'
 import { ConnexionPage } from './ConnexionPage'
 import { buildSession } from './buildSession'
 import { makeLogin } from './login'
 import { makeRegister } from './register'
-import { getUserFamilies } from '../_getUserFamilies'
-import { getSingleEvent } from '../../dependencies/getSingleEvent'
-import { UserNamedThemself } from '../../events/onboarding/UserNamedThemself'
 
 const login = makeLogin(bcrypt.compare)
 const register = makeRegister({

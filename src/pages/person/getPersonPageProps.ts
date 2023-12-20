@@ -69,10 +69,6 @@ async function getPersonClonesForUser(personId: PersonId, userId: AppUserId) {
         return clones.concat([{ personId, familyName: userFamily.familyName }])
       }
 
-      if ((cloneFamilyId as string) === (userId as string)) {
-        return clones.concat([{ personId, familyName: 'Espace Personnel' }])
-      }
-
       return clones
     }, [] as PersonPageProps['clones'])
   return clones

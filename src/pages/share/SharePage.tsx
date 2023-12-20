@@ -4,7 +4,7 @@ import { CheckCircleIcon, DocumentDuplicateIcon } from '@heroicons/react/24/outl
 import { FamilyId } from '../../domain/FamilyId'
 import { withBrowserBundle } from '../../libs/ssr/withBrowserBundle'
 import { primaryButtonStyles } from '../_components/Button'
-import { useSession } from '../_components/SessionContext'
+import { useLoggedInSession, useSession } from '../_components/SessionContext'
 import { AppLayout } from '../_components/layout/AppLayout'
 
 // @ts-ignore
@@ -22,14 +22,7 @@ export type SharePageProps = {
 }
 
 export const SharePage = withBrowserBundle(({ userFamilies }: SharePageProps) => {
-  const session = useSession()
-
-  if (!session.isLoggedIn || !session.isSharingEnabled) {
-    return <div />
-  }
-
-  const [isShared, setShared] = React.useState(false)
-  const shareUrl = 'Pouet'
+  const session = useLoggedInSession()
 
   return (
     <AppLayout>

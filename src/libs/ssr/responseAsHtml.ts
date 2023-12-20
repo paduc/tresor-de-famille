@@ -13,6 +13,8 @@ import { getUserFamilies } from '../../pages/_getUserFamilies'
 import { FamilyId } from '../../domain/FamilyId'
 import { FamilyShareCode } from '../../domain/FamilyShareCode'
 import { makeSearchKey } from '../../dependencies/search'
+import { FamilyColorCodes } from './FamilyColorCodes'
+import { InvitationWithCodeUrl } from '../../pages/share/InvitationWithCodeUrl'
 
 const html = String.raw
 
@@ -117,17 +119,7 @@ async function getSession(request: Request): Promise<Session> {
   if (user) {
     const userId = user.id
 
-    // TODO: do not add personnal space for users that have been invited
-    const userFamilies = [
-      {
-        familyId: user.id as string as FamilyId,
-        familyName: 'Votre espace Personnel',
-        about: '',
-        shareCode: '' as string as FamilyShareCode,
-        isRegistrationFamily: false,
-      },
-      ...(await getUserFamilies(user.id)),
-    ]
+    const userFamilies = await getUserFamilies(user.id)
 
     const hasFamiliesOtherThanDefault = userFamilies.some((f) => f.familyId !== (userId as string as FamilyId))
 
@@ -142,13 +134,16 @@ async function getSession(request: Request): Promise<Session> {
       isLoggedIn: true,
       userName: user.name,
       userId: user.id,
-      userFamilies: userFamilies.map(({ familyId, familyName, about }, index) => ({
+      userFamilies: userFamilies.map(({ familyId, familyName, about, shareCode }, index) => ({
         familyId,
         familyName,
         about,
-        color: colorCodes[index % colorCodes.length],
+        isUserSpace: (familyId as string) === (user.id as string),
+        color: FamilyColorCodes[index % FamilyColorCodes.length],
+        shareUrl: InvitationWithCodeUrl(familyId, shareCode),
       })),
       hasFamiliesOtherThanDefault,
+      hasCreatedFamilies: userFamilies.some((family) => family.isCreator),
       searchKey,
       isAdmin: userId === ADMIN_USERID,
       profilePic,
@@ -189,13 +184,3 @@ function extractBundleInfo(element: JSX.Element & { outerProps?: any; componentN
 
   return { shouldIncludeBrowserBundle }
 }
-
-const colorCodes = [
-  'bg-indigo-50 text-indigo-700 ring-indigo-700/10',
-  'bg-red-50 text-red-700 ring-red-600/10',
-  'bg-green-50 text-green-700 ring-green-600/20',
-  'bg-yellow-50 text-yellow-800 ring-yellow-600/20',
-  'bg-pink-50 text-pink-700 ring-pink-700/10',
-  'bg-purple-50 text-purple-700 ring-purple-700/10',
-  'bg-blue-50 text-blue-700 ring-blue-700/10',
-] as const

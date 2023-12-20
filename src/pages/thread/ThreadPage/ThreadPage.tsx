@@ -54,12 +54,6 @@ const isBrowserContext = typeof window !== 'undefined'
 
 export const ThreadPage = withBrowserBundle(
   ({ title, contentAsJSON: contentAsJSONFromServer, lastUpdated, threadId, familyId, isAuthor }: ThreadPageProps) => {
-    const session = useLoggedInSession()
-
-    const family = session.userFamilies.find((f) => f.familyId === familyId)
-
-    const [isFamilyModalOpen, openFamilyModal] = useState<boolean>(false)
-
     const richTextEditorRef = React.useRef<RichTextEditorRef>(null)
 
     let contentAsJSON = contentAsJSONFromServer
@@ -86,10 +80,8 @@ export const ThreadPage = withBrowserBundle(
     return (
       <AppLayout>
         <div className='w-full sm:ml-6 max-w-2xl pt-3 pb-40'>
-          <div className='w-full mb-3'>
-            <div className='w-full inline-flex items-center place-content-end'>
-              <ThreadSharingButton isAuthor={isAuthor} familyId={familyId} />
-            </div>
+          <div className='w-full mb-3 px-2'>
+            <ThreadSharingButton isAuthor={isAuthor} familyId={familyId} />
 
             <div className='w-full inline-flex items-center place-content-start'>
               <ReadWriteToggle threadId={threadId} />

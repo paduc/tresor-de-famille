@@ -37,6 +37,9 @@ import { getThreadAuthor } from '../_getThreadAuthor'
 import { ReadOnlyThreadPage } from './ThreadPage/ReadonlyThreadPage'
 import { ThreadUrl } from './ThreadUrl'
 import { getUserFamilies } from '../_getUserFamilies'
+import { makeFamilyId } from '../../libs/makeFamilyId'
+import { makeFamilyShareCode } from '../../libs/makeFamilyShareCode'
+import { UserCreatedNewFamily } from '../share/UserCreatedNewFamily'
 
 const fakeProfilePicUrl =
   'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80'
@@ -121,6 +124,7 @@ pageRouter
             'insertPhotoAtMarker',
             'clientsideUpdate',
             'shareWithFamily',
+            'createNewFamily',
           ]),
         })
         .parse(request.body)
@@ -220,10 +224,16 @@ pageRouter
       } else if (action === 'shareWithFamily') {
         const { familyId: destinationFamilyId } = z.object({ familyId: zIsFamilyId }).parse(request.body)
 
+        // Check rights
         const authorId = await getThreadAuthor(threadId)
-
         if (authorId !== userId) {
           throw new Error("Seul l'auteur d'une histoire peut la partager.")
+        }
+
+        // Check if no-op
+        const threadCurrentFamily = await getThreadFamily(threadId)
+        if (destinationFamilyId === threadCurrentFamily) {
+          return response.redirect(ThreadUrl(threadId))
         }
 
         const cloneThreadId = makeThreadId()
