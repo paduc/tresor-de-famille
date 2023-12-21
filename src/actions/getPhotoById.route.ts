@@ -4,6 +4,7 @@ import { downloadPhoto } from '../dependencies/photo-storage'
 import { zIsPhotoId } from '../domain/PhotoId'
 import { doesPhotoExist } from '../pages/_doesPhotoExist'
 import { actionsRouter } from './actionsRouter'
+import { getOriginalPhotoId } from '../pages/_getOriginalPhotoId'
 
 actionsRouter.route('/photos/:photoId').get(requireAuth(), async (request, response) => {
   try {
@@ -15,7 +16,9 @@ actionsRouter.route('/photos/:photoId').get(requireAuth(), async (request, respo
     const photoExists = await doesPhotoExist({ photoId })
     if (!photoExists) return response.sendStatus(404)
 
-    downloadPhoto(photoId).pipe(response)
+    const originalPhotoId = await getOriginalPhotoId(photoId)
+
+    downloadPhoto(originalPhotoId).pipe(response)
   } catch (error) {
     console.error('getPhotoById', error)
     response.status(500).send()

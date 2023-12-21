@@ -7,6 +7,7 @@ import { zIsPhotoId } from '../domain/PhotoId'
 import { actionsRouter } from './actionsRouter'
 import { doesPhotoExist } from '../pages/_doesPhotoExist'
 import { ThumbnailURL } from './ThumbnailURL'
+import { getOriginalPhotoId } from '../pages/_getOriginalPhotoId'
 
 actionsRouter.route(ThumbnailURL()).get(requireAuth(), async (request, response) => {
   try {
@@ -16,8 +17,10 @@ actionsRouter.route(ThumbnailURL()).get(requireAuth(), async (request, response)
       return response.status(404).send('Photo introuvable')
     }
 
+    const originalPhotoId = await getOriginalPhotoId(photoId)
+
     // Get the original image as a Readable stream
-    const originalImageStream = downloadPhoto(photoId)
+    const originalImageStream = downloadPhoto(originalPhotoId)
 
     const pipeline = sharp().resize(300, 300, { fit: 'cover' }).rotate() // to keep original orientation
 
