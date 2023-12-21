@@ -342,8 +342,8 @@ async function makeCloneOfContentAsJSON({
     cloneContentAsJSON.content.push({
       type: 'photoNode',
       attrs: {
-        photoId: originalPhotoId,
-        threadId: originalThreadId,
+        photoId: destinationPhotoId,
+        threadId: cloneThreadId,
         description: '',
         personsInPhoto: encodeStringy([]),
         unrecognizedFacesInPhoto: 0,
