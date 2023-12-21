@@ -17,7 +17,9 @@ actionsRouter.route('/photo/:photoId/face/:faceId').get(requireAuth(), async (re
       [photoId]
     )
 
-    if (!rows.length) throw new Error('No face detection for this photo.')
+    if (!rows.length) {
+      throw new Error('No face detection for this photo.')
+    }
 
     const face = rows[0].payload.faces.find((face) => face.faceId === faceId)
 
@@ -76,8 +78,6 @@ actionsRouter.route('/photo/:photoId/face/:faceId').get(requireAuth(), async (re
       top: Math.max(0, squareTop),
       left: Math.max(0, squareLeft),
     }
-
-    // console.log(JSON.stringify(extractZone, null, 2))
 
     response.set('Content-Type', 'image/*')
     response.set('Cache-Control', 'private, max-age=15552000')

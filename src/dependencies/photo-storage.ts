@@ -4,6 +4,7 @@ import path from 'node:path'
 import zod from 'zod'
 import { PhotoId } from '../domain/PhotoId'
 import { throwIfUndefined } from './env'
+import { Readable } from 'node:stream'
 
 const { PHOTO_STORAGE } = zod.object({ PHOTO_STORAGE: zod.enum(['S3', 'local']) }).parse(process.env)
 
@@ -50,7 +51,12 @@ export { downloadPhoto, uploadPhoto }
 const localFilePath = (photoId: PhotoId) => path.join(__dirname, '../../temp/photos', photoId)
 
 function downloadPhotoLocally(photoId: PhotoId) {
-  return fs.createReadStream(localFilePath(photoId))
+  const localPath = localFilePath(photoId)
+  if (fs.existsSync(localPath)) {
+    return fs.createReadStream(localPath)
+  }
+
+  return Readable.from('introuvable')
 }
 
 type UploadPhotoArgs = {
