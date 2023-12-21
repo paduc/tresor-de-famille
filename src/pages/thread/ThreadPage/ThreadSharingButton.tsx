@@ -383,7 +383,12 @@ function ShareWithFamilyModal({ isOpen, onClose, onNewFamily, currentFamily, lat
             </div>
           </RadioGroup>
         </div>
-        <button onClick={onNewFamily} className={`mt-3 text-sm ${linkStyles}`}>
+        <button
+          onClick={(e) => {
+            e.preventDefault()
+            onNewFamily()
+          }}
+          className={`mt-3 text-sm ${linkStyles}`}>
           <PlusIcon className={`${buttonIconStyles}`} />
           Nouvelle famille
         </button>
