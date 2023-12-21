@@ -1,16 +1,16 @@
 import * as React from 'react'
 
+import { LockClosedIcon, UsersIcon } from '@heroicons/react/20/solid'
 import { PlusIcon } from '@heroicons/react/24/outline'
+import { FamilyId } from '../../domain/FamilyId'
 import { ThreadId } from '../../domain/ThreadId'
 import { withBrowserBundle } from '../../libs/ssr/withBrowserBundle'
-import { linkStyles, primaryButtonStyles } from '../_components/Button'
+import { linkStyles } from '../_components/Button'
+import { useLoggedInSession } from '../_components/SessionContext'
 import { SuccessError } from '../_components/SuccessError'
 import { AppLayout } from '../_components/layout/AppLayout'
-import { FamilyId } from '../../domain/FamilyId'
-import { useLoggedInSession, useSession } from '../_components/SessionContext'
-import { LockClosedIcon, UsersIcon } from '@heroicons/react/20/solid'
 import { ThreadUrl } from '../thread/ThreadUrl'
-import { ChatBubbleLeftIconOutline } from '../thread/ThreadPage/ChatBubbleLeftIconOutline'
+import { ThreadList } from '../_components/ThreadList'
 
 // @ts-ignore
 function classNames(...classes) {
@@ -34,37 +34,6 @@ export type ThreadListPageProps = {
 }
 
 export const ThreadListPage = withBrowserBundle(({ error, success, threads }: ThreadListPageProps) => {
-  const session = useLoggedInSession()
-
-  function getFamily(familyId: FamilyId) {
-    return session.userFamilies.find((f) => f.familyId === familyId)
-  }
-
-  function getTitle({ title, contents }: { title: string | undefined; contents: string }): string {
-    if (title?.length) {
-      return title
-    }
-
-    if (contents.length) {
-      return contents.substring(0, 80)
-    }
-
-    return 'Sans titre'
-  }
-
-  function getContents({ title, contents }: { title: string | undefined; contents: string }): string {
-    let contentsFormatted = contents
-    if ((!title || !title.length) && contents.length) {
-      contentsFormatted = contentsFormatted.substring(80)
-    }
-
-    if (contentsFormatted.length > 120) {
-      return `${contentsFormatted.substring(0, 120)}...`
-    }
-
-    return contentsFormatted
-  }
-
   return (
     <AppLayout>
       <div className='bg-white py-6'>
@@ -77,97 +46,7 @@ export const ThreadListPage = withBrowserBundle(({ error, success, threads }: Th
                 + Démarrer une nouvelle anecdote
               </a>
             </div>
-            <ul role='list' className='divide-y divide-gray-100'>
-              {threads.map((thread) => {
-                const chatPageUrl = ThreadUrl(thread.threadId)
-                const threadFamily = getFamily(thread.familyId)
-                return (
-                  <li key={thread.threadId} className='flex flex-wrap items-center justify-between gap-y-2 ml-0 sm:flex-nowrap'>
-                    <a href={chatPageUrl} className='w-full py-5 px-6 hover:bg-gray-50'>
-                      <p className='text-base text-gray-900 max-w-xl'>{getTitle(thread)}</p>
-                      {getContents(thread).length ? (
-                        <p className='text-xs text-gray-500 mt-1 mb-2 max-w-xl'>{getContents(thread)}</p>
-                      ) : null}
-                      {thread.thumbnails.length ? (
-                        <div className='mt-2 mb-2'>
-                          <div className='flex'>
-                            <div className='h-24 w-32 overflow-hidden rounded-lg bg-gray-100'>
-                              <img src={thread.thumbnails[0]} alt='' className='h-24 w-32 object-cover' />
-                            </div>
-                            {thread.thumbnails.length > 1 ? (
-                              <div className='h-24 w-32 overflow-hidden ml-3 rounded-lg bg-gray-100 flex items-center justify-center text-gray-500'>
-                                <div className=''>+ {thread.thumbnails.length - 1}</div>
-                              </div>
-                            ) : null}
-                          </div>
-                        </div>
-                      ) : null}
-                      {/** large screens */}
-                      <div className='hidden mt-3 sm:flex items-center gap-x-2 text-xs leading-5 text-gray-500'>
-                        <>
-                          <p>
-                            <span
-                              className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ring-1 ring-inset ${threadFamily?.color}`}>
-                              {(threadFamily?.familyId as string) === (session.userId as string) ? (
-                                <>
-                                  <LockClosedIcon className='h-4 w-4 mr-1' />
-                                  {threadFamily?.familyName}
-                                </>
-                              ) : (
-                                <>
-                                  <UsersIcon className='h-4 w-4 mr-1' />
-                                  {threadFamily?.familyName}
-                                </>
-                              )}
-                            </span>
-                          </p>
-                          <svg viewBox='0 0 2 2' className='h-0.5 w-0.5 fill-current'>
-                            <circle cx={1} cy={1} r={1} />
-                          </svg>
-                        </>
-
-                        <p>Par {thread.authors.map((p) => p.name).join(', ')}</p>
-                        <svg viewBox='0 0 2 2' className='h-0.5 w-0.5 fill-current'>
-                          <circle cx={1} cy={1} r={1} />
-                        </svg>
-                        <p>
-                          Dernière mise à jour le{' '}
-                          <time dateTime={new Date(thread.lastUpdatedOn).toISOString()}>
-                            {new Intl.DateTimeFormat('fr').format(new Date(thread.lastUpdatedOn))}
-                          </time>
-                        </p>
-                      </div>
-                      {/** Mobile version */}
-                      <div className='mt-2 sm:hidden text-xs leading-5 text-gray-500'>
-                        <p>Par {thread.authors.map((p) => p.name).join(', ')}</p>
-                        <p>
-                          Dernière mise à jour le{' '}
-                          <time dateTime={new Date(thread.lastUpdatedOn).toISOString()}>
-                            {new Intl.DateTimeFormat('fr').format(new Date(thread.lastUpdatedOn))}
-                          </time>
-                        </p>
-                        <p className='mt-2'>
-                          <span
-                            className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ring-1 ring-inset ${threadFamily?.color}`}>
-                            {(threadFamily?.familyId as string) === (session.userId as string) ? (
-                              <>
-                                <LockClosedIcon className='h-4 w-4 mr-1' />
-                                {threadFamily?.familyName}
-                              </>
-                            ) : (
-                              <>
-                                <UsersIcon className='h-4 w-4 mr-1' />
-                                {threadFamily?.familyName}
-                              </>
-                            )}
-                          </span>
-                        </p>
-                      </div>
-                    </a>
-                  </li>
-                )
-              })}
-            </ul>
+            <ThreadList threads={threads} />
           </>
         ) : (
           <div className='text-center'>
