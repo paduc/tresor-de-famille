@@ -8,10 +8,11 @@ import { ThreadId } from '../../domain/ThreadId'
 import { withBrowserBundle } from '../../libs/ssr/withBrowserBundle'
 import { buttonIconStyles, primaryButtonStyles } from '../_components/Button'
 import { InlinePhotoUploadBtn } from '../_components/InlinePhotoUploadBtn'
-import { useSession } from '../_components/SessionContext'
+import { useLoggedInSession, useSession } from '../_components/SessionContext'
 import { AppLayout } from '../_components/layout/AppLayout'
 import { SendIcon } from '../thread/ThreadPage/SendIcon'
 import { ThreadUrl } from '../thread/ThreadUrl'
+import { FamilyId } from '../../domain/FamilyId'
 
 type Steps = GetUserName
 export type HomePageProps =
@@ -23,12 +24,19 @@ export type HomePageProps =
       isOnboarding: false
       latestThreads: {
         threadId: ThreadId
-        title: string
+        title: string | undefined
         lastUpdatedOn: number
+        authors: {
+          name: string
+        }[]
+        contents: string
+        thumbnails: string[]
+        familyId: FamilyId
       }[]
     }
 
 export const HomePage = withBrowserBundle((props: HomePageProps) => {
+  const session = useLoggedInSession()
   const { isOnboarding } = props
 
   if (isOnboarding) {
@@ -47,7 +55,11 @@ export const HomePage = withBrowserBundle((props: HomePageProps) => {
     <Wrapper>
       {!props.isOnboarding && props.latestThreads.length ? (
         <div className='mt-3'>
-          <Paragraph>Reprenez vos derniers souvenirs</Paragraph>
+          {session.userFamilies.length > 1 ? (
+            <Paragraph>Les nouveautés dans votre famille</Paragraph>
+          ) : (
+            <Paragraph>Reprenez vos derniers souvenirs</Paragraph>
+          )}
           <div className='bg-white border border-gray-300 shadow-sm sm:max-w-lg md:max-w-xl'>
             <ul role='list' className='divide-y divide-gray-100'>
               {props.latestThreads.map((thread) => {
