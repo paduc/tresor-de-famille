@@ -11,6 +11,7 @@ export const getSharePageProps = async (userId: AppUserId): Promise<SharePagePro
         name: familyName,
         about,
         shareUrl: InvitationWithCodeUrl(familyId, shareCode),
+        isUserSpace: (familyId as string) === (userId as string),
       }
     }),
   }

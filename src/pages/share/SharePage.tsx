@@ -18,6 +18,7 @@ export type SharePageProps = {
     name: string
     about?: string
     shareUrl: string
+    isUserSpace: boolean
   }[]
 }
 
@@ -61,59 +62,61 @@ export const SharePage = withBrowserBundle(({ userFamilies }: SharePageProps) =>
             </p>
           </div>
 
-          {userFamilies.length ? (
+          {userFamilies.length > 1 ? (
             <div className='border-b border-gray-900/10'>
               <h3 className='text-lg font-medium leading-6 text-gray-900'>Mes familles</h3>
               <ul role='list' className='divide-y divide-gray-200'>
-                {userFamilies.map((family) => {
-                  return (
-                    <li
-                      key={family.familyId}
-                      className='flex flex-wrap items-center justify-between gap-y-4 ml-0 sm:flex-nowrap'>
-                      <div className='w-full py-5'>
-                        <p className='text-base text-gray-900'>{family.name}</p>
-                        {family.about ? (
-                          <div className='mt-1  text-sm leading-5 text-gray-500'>
-                            <p>{family.about}</p>
-                          </div>
-                        ) : null}
-                        <div className='mt-1'>
-                          <span className='text-gray-500 text-sm mr-3'>Lien de partage :</span>
-                          <div className='mt-1 flex rounded-full shadow-sm'>
-                            <div className='relative flex flex-grow items-stretch focus-within:z-10'>
-                              <input
-                                type='text'
-                                value={`${family.shareUrl}`}
-                                className='block rounded-none rounded-l-full border-0 py-1.5 pl-4 text-gray-900 ring-2 ring-inset ring-indigo-600  sm:text-sm sm:leading-6 cursor-text'
-                                disabled
-                              />
-                              <button
-                                type='button'
-                                onClick={() => {
-                                  navigator.clipboard.writeText(family.shareUrl).then(
-                                    () => {
-                                      alert(
-                                        'Le lien de partage est bien copié.\n\nVous pouvez maintenant le partager par email, sms, whatsapp, ou tout autre moyen de communication.'
-                                      )
-                                    },
-                                    () => {
-                                      alert(
-                                        'Impossible de copier le lien de partager.\n\nVous pouvez essayer de le faire en copiant le contenu de la case.'
-                                      )
-                                    }
-                                  )
-                                }}
-                                className='relative -ml-px inline-flex items-center gap-x-1.5 rounded-r-full px-3 py-2 text-sm font-semibold text-indigo-600 bg-white ring-2 ring-inset ring-indigo-600 hover:bg-indigo-600 hover:text-white'>
-                                <DocumentDuplicateIcon className='-ml-0.5 h-5 w-5 ' aria-hidden='true' />
-                                Copier
-                              </button>
+                {userFamilies
+                  .filter((f) => !f.isUserSpace)
+                  .map((family) => {
+                    return (
+                      <li
+                        key={family.familyId}
+                        className='flex flex-wrap items-center justify-between gap-y-4 ml-0 sm:flex-nowrap'>
+                        <div className='w-full py-5'>
+                          <p className='text-base text-gray-900'>{family.name}</p>
+                          {family.about ? (
+                            <div className='mt-1  text-sm leading-5 text-gray-500'>
+                              <p>{family.about}</p>
+                            </div>
+                          ) : null}
+                          <div className='mt-1'>
+                            <span className='text-gray-500 text-sm mr-3'>Lien de partage :</span>
+                            <div className='mt-1 flex rounded-full shadow-sm'>
+                              <div className='relative flex flex-grow items-stretch focus-within:z-10'>
+                                <input
+                                  type='text'
+                                  value={`${family.shareUrl}`}
+                                  className='block rounded-none rounded-l-full border-0 py-1.5 pl-4 text-gray-900 ring-2 ring-inset ring-indigo-600  sm:text-sm sm:leading-6 cursor-text'
+                                  disabled
+                                />
+                                <button
+                                  type='button'
+                                  onClick={() => {
+                                    navigator.clipboard.writeText(family.shareUrl).then(
+                                      () => {
+                                        alert(
+                                          'Le lien de partage est bien copié.\n\nVous pouvez maintenant le partager par email, sms, whatsapp, ou tout autre moyen de communication.'
+                                        )
+                                      },
+                                      () => {
+                                        alert(
+                                          'Impossible de copier le lien de partager.\n\nVous pouvez essayer de le faire en copiant le contenu de la case.'
+                                        )
+                                      }
+                                    )
+                                  }}
+                                  className='relative -ml-px inline-flex items-center gap-x-1.5 rounded-r-full px-3 py-2 text-sm font-semibold text-indigo-600 bg-white ring-2 ring-inset ring-indigo-600 hover:bg-indigo-600 hover:text-white'>
+                                  <DocumentDuplicateIcon className='-ml-0.5 h-5 w-5 ' aria-hidden='true' />
+                                  Copier
+                                </button>
+                              </div>
                             </div>
                           </div>
                         </div>
-                      </div>
-                    </li>
-                  )
-                })}
+                      </li>
+                    )
+                  })}
               </ul>
             </div>
           ) : null}
