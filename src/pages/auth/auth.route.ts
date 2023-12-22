@@ -68,7 +68,7 @@ pageRouter
 
         const userId = await register(email, password, code)
 
-        buildSession({ userId, request })
+        buildSession({ userId, request, isFirstConnection: true })
 
         return response.redirect(redirectTo || '/')
       }

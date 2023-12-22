@@ -84,7 +84,7 @@ pageRouter
 
         const userId = await registerWithInvite({ email, password, familyId, shareCode: code })
 
-        buildSession({ userId, request })
+        buildSession({ userId, request, isFirstConnection: true })
       } catch (error) {
         const props = await getInvitationPageProps(familyId, code)
         const { email } = request.body
