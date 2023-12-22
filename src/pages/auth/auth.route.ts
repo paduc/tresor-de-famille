@@ -12,6 +12,7 @@ import { ConnexionPage } from './ConnexionPage'
 import { buildSession } from './buildSession'
 import { makeLogin } from './login'
 import { makeRegister } from './register'
+import { getPersonForUser } from '../_getPersonForUser'
 
 const login = makeLogin(bcrypt.compare)
 const register = makeRegister({
@@ -76,9 +77,9 @@ pageRouter
       // Login case
       const userId = await login(email, password)
       try {
-        const userNamedThemselfEvent = await getSingleEvent<UserNamedThemself>('UserNamedThemself', { userId })
+        const userPerson = await getPersonForUser({ userId })
 
-        const name = userNamedThemselfEvent?.payload.name || ''
+        const name = userPerson?.name || ''
 
         buildSession({ userId, name, request })
       } catch (error) {

@@ -9,12 +9,11 @@ import { getProfilePicUrlForUser } from '../../pages/_getProfilePicUrlForUser'
 import { withContext } from './withContext'
 
 import manifest from '../../assets/js/manifest.json'
-import { getUserFamilies } from '../../pages/_getUserFamilies'
-import { FamilyId } from '../../domain/FamilyId'
-import { FamilyShareCode } from '../../domain/FamilyShareCode'
 import { makeSearchKey } from '../../dependencies/search'
-import { FamilyColorCodes } from './FamilyColorCodes'
+import { FamilyId } from '../../domain/FamilyId'
+import { getUserFamilies } from '../../pages/_getUserFamilies'
 import { InvitationWithCodeUrl } from '../../pages/share/InvitationWithCodeUrl'
+import { FamilyColorCodes } from './FamilyColorCodes'
 
 const html = String.raw
 
