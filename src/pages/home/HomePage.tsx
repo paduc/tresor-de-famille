@@ -272,7 +272,7 @@ const PersonAutocomplete = ({ className, selectedPersonName }: PersonAutocomplet
                 </div>
                 <button
                   type='submit'
-                  name='existingFamilyMemberId'
+                  name='existingPersonId'
                   value={hit.objectID}
                   className={`${primaryButtonStyles} ${smallButtonStyles}`}>
                   C'est moi
@@ -300,7 +300,7 @@ function NewPersonFromQuery({ query }: { query: string }) {
           <p className='mt-1 truncate text-xs leading-5 text-gray-500'>Si vous n'êtes pas dans la liste</p>
         </div>
       </div>
-      <button type='submit' name='newFamilyMemberName' value={query} className={`${primaryButtonStyles} ${smallButtonStyles}`}>
+      <button type='submit' name='newPersonWithName' value={query} className={`${primaryButtonStyles} ${smallButtonStyles}`}>
         Créer
       </button>
     </li>
