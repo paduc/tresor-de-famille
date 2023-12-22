@@ -70,7 +70,7 @@ pageRouter.route('/family/saveNewRelationship').post(requireAuth(), async (reque
         personId,
         name,
         familyId,
-        visible_by: [`family/${familyId}}`, `user/${userId}`],
+        visible_by: [`family/${familyId}`, `user/${userId}`],
       })
     } catch (error) {
       console.error('Could not add new family member to algolia index', error)

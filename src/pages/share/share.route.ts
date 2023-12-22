@@ -15,6 +15,7 @@ import { getPersonForUser } from '../_getPersonForUser'
 import { getFaceAndPhotoForPerson } from '../_getProfilePicUrlForPerson'
 import { PersonClonedForSharing } from './PersonClonedForSharing'
 import { AppUserId } from '../../domain/AppUserId'
+import { personsIndex } from '../../dependencies/search'
 
 pageRouter
   .route('/share.html')
@@ -93,11 +94,12 @@ async function createNewFamily({ userId, familyName, about }: { userId: AppUserI
     profilePicPhotoId = faceAndPhoto.photoId
   }
 
+  const clonePersonId = makePersonId()
   await addToHistory(
     PersonClonedForSharing({
       familyId,
       userId,
-      personId: makePersonId(),
+      personId: clonePersonId,
       name: userPerson.name,
       profilePicPhotoId,
       faceId,
@@ -107,4 +109,16 @@ async function createNewFamily({ userId, familyName, about }: { userId: AppUserI
       },
     })
   )
+
+  try {
+    await personsIndex.saveObject({
+      objectID: clonePersonId,
+      personId: clonePersonId,
+      name: userPerson.name,
+      familyId,
+      visible_by: [`family/${familyId}`, `user/${userId}`],
+    })
+  } catch (error) {
+    console.error('Could not add person clone to algolia index', error)
+  }
 }
