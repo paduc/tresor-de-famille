@@ -88,7 +88,7 @@ export const ThreadPage = withBrowserBundle(
             </div>
           </div>
           <div className='divide-y divide-gray-200 overflow-hidden sm:rounded-lg bg-white shadow'>
-            <Title title={title} threadId={threadId} />
+            {title ? <Title title={title} threadId={threadId} /> : null}
             <div className=''>
               <RichTextEditor ref={richTextEditorRef} content={contentAsJSON} threadId={threadId} lastUpdated={lastUpdated} />
             </div>
