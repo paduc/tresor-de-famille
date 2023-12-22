@@ -34,6 +34,10 @@ pageRouter
     try {
       const props = await getHomePageProps(request.session.user!.id)
 
+      if (request.session.isOnboarding && !props.isOnboarding && !props.latestThreads.length) {
+        return response.redirect('/thread.html')
+      }
+
       responseAsHtml(request, response, HomePage(props))
     } catch (error) {
       return response.send('Erreur de chargement de page home')
