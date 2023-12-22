@@ -1,6 +1,5 @@
-import { getSingleEvent } from '../../dependencies/getSingleEvent'
 import { AppUserId } from '../../domain/AppUserId'
-import { UserNamedThemself } from '../../events/onboarding/UserNamedThemself'
+import { getPersonForUser } from '../_getPersonForUser'
 import { getThreadListPageProps } from '../threadList/getThreadListPageProps'
 import { GetUserName, HomePageProps } from './HomePage'
 
@@ -23,15 +22,16 @@ export const getHomePageProps = async (userId: AppUserId): Promise<HomePageProps
 }
 
 async function getGetUserName(userId: AppUserId): Promise<GetUserName> {
-  const userNamedThemself = await getSingleEvent<UserNamedThemself>('UserNamedThemself', { userId })
+  const personForUser = await getPersonForUser({ userId })
 
-  if (userNamedThemself) {
-    const { name, personId } = userNamedThemself.payload
+  if (personForUser) {
+    const { name, personId } = personForUser
     return {
       'get-user-name': 'done',
       name,
       personId,
     }
   }
+
   return { 'get-user-name': 'pending' }
 }
