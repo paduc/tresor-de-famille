@@ -6,6 +6,7 @@ import { doesPhotoExist } from '../_doesPhotoExist'
 import { getFacesInPhoto } from '../_getFacesInPhoto'
 import { getPersonByIdOrThrow } from '../_getPersonById'
 import { getPhotoCaption } from '../_getPhotoCaption'
+import { getPhotoFamilyId } from '../_getPhotoFamily'
 
 import { NewPhotoPageProps } from './PhotoPage/NewPhotoPage'
 
@@ -52,9 +53,12 @@ export const getNewPhotoPageProps = async ({
 
   const caption = await getPhotoCaption({ photoId })
 
+  const familyId = await getPhotoFamilyId(photoId)
+
   return {
     photoUrl: getPhotoUrlFromId(photoId),
     photoId,
+    familyId,
     caption,
     faces,
   }
