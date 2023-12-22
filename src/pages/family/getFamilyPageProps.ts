@@ -8,6 +8,7 @@ import { UserNamedPersonInPhoto } from '../../events/onboarding/UserNamedPersonI
 import { UserNamedThemself } from '../../events/onboarding/UserNamedThemself'
 import { UserRecognizedThemselfAsPerson } from '../../events/onboarding/UserRecognizedThemselfAsPerson'
 import { asFamilyId } from '../../libs/typeguards'
+import { getPersonById } from '../_getPersonById'
 import { getPersonForUser } from '../_getPersonForUser'
 import { getPersonForUserForFamily } from '../_getPersonForUserForFamily'
 import { getProfilePicUrlForPerson } from '../_getProfilePicUrlForPerson'
@@ -51,23 +52,10 @@ type Person = FamilyPageProps['initialPersons'][number]
 
 export async function getFamilyPersons({ userId, familyId }: { userId: AppUserId; familyId: FamilyId }): Promise<Person[]> {
   const events = await getEventList<
-    | UserNamedPersonInPhoto
-    | UserNamedThemself
-    | UserCreatedRelationshipWithNewPerson
-    | PersonClonedForSharing
-    | UserRecognizedThemselfAsPerson
-  >(
-    [
-      'UserNamedPersonInPhoto',
-      'UserNamedThemself',
-      'UserCreatedRelationshipWithNewPerson',
-      'PersonClonedForSharing',
-      'UserRecognizedThemselfAsPerson',
-    ],
-    {
-      familyId,
-    }
-  )
+    UserNamedPersonInPhoto | UserNamedThemself | UserCreatedRelationshipWithNewPerson | PersonClonedForSharing
+  >(['UserNamedPersonInPhoto', 'UserNamedThemself', 'UserCreatedRelationshipWithNewPerson', 'PersonClonedForSharing'], {
+    familyId,
+  })
 
   const persons = new Map<PersonId, Person>()
   for (const event of events) {
