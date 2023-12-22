@@ -24,14 +24,22 @@ import { asFamilyId } from '../../libs/typeguards'
 import { zIsPersonId } from '../../domain/PersonId'
 import { UserRecognizedThemselfAsPerson } from '../../events/onboarding/UserRecognizedThemselfAsPerson'
 import { getPersonFamily } from '../_getPersonFamily'
+import { OnboardingUserStartedFirstThread } from '../../events/onboarding/OnboardingUserStartedFirstThread'
+import { ThreadClonedForSharing } from '../thread/ThreadPage/ThreadClonedForSharing'
+import { UserInsertedPhotoInRichTextThread } from '../thread/UserInsertedPhotoInRichTextThread'
+import { UserSetChatTitle } from '../thread/UserSetChatTitle'
+import { UserUpdatedThreadAsRichText } from '../thread/UserUpdatedThreadAsRichText'
+import { UserSentMessageToChat } from '../thread/sendMessageToChat/UserSentMessageToChat'
+import { getSingleEvent } from '../../dependencies/getSingleEvent'
 
 pageRouter
   .route('/')
   .get(requireAuth(), async (request, response) => {
     try {
-      const props = await getHomePageProps(request.session.user!.id)
+      const userId = request.session.user!.id
+      const props = await getHomePageProps(userId)
 
-      if (request.session.isOnboarding && !props.isOnboarding && !props.latestThreads.length) {
+      if (request.session.isOnboarding && !props.isOnboarding && !(await hasUserCreatedAThread(userId))) {
         return response.redirect('/thread.html')
       }
 
@@ -59,7 +67,7 @@ pageRouter
         .parse(request.body)
 
       if (!existingPersonId && !newPersonWithName) {
-        console.error('setUserPerson is missing an option')
+        console.error('setUserPerson is missing an option', { existingPersonId, newPersonWithName })
         return response.redirect('/')
       }
 
@@ -112,25 +120,26 @@ pageRouter
     return response.redirect('/')
   })
 
-type UploadUserPhotoOfThemselfArgs = {
-  file: Express.Multer.File
-  userId: AppUserId
-  familyId: FamilyId
-}
-async function uploadUserPhotoOfThemself({ file, userId, familyId }: UploadUserPhotoOfThemselfArgs) {
-  const { path: originalPath } = file
-  const photoId = makePhotoId()
+async function hasUserCreatedAThread(userId: AppUserId): Promise<boolean> {
+  type ThreadEvent =
+    | UserSentMessageToChat
+    | OnboardingUserStartedFirstThread
+    | UserUpdatedThreadAsRichText
+    | UserInsertedPhotoInRichTextThread
+    | ThreadClonedForSharing
+    | UserSetChatTitle
 
-  const location = await uploadPhoto({ contents: fs.createReadStream(originalPath), id: photoId })
-
-  await addToHistory(
-    OnboardingUserUploadedPhotoOfThemself({
-      photoId,
-      location,
-      userId,
-      familyId,
-    })
+  const threadEvent = await getSingleEvent<ThreadEvent>(
+    [
+      'OnboardingUserStartedFirstThread',
+      'UserSentMessageToChat',
+      'UserUpdatedThreadAsRichText',
+      'UserInsertedPhotoInRichTextThread',
+      'ThreadClonedForSharing',
+      'UserSetChatTitle',
+    ],
+    { userId }
   )
 
-  await detectFacesInPhotoUsingAWS({ file, photoId })
+  return !!threadEvent
 }
