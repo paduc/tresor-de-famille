@@ -21,12 +21,9 @@ import { detectFacesInPhotoUsingAWS } from '../photo/recognizeFacesInChatPhoto/d
 import { HomePage } from './HomePage'
 import { getHomePageProps } from './getHomePageProps'
 import { asFamilyId } from '../../libs/typeguards'
-
-const FILE_SIZE_LIMIT_MB = 50
-const upload = multer({
-  dest: 'temp/photos',
-  limits: { fileSize: FILE_SIZE_LIMIT_MB * 1024 * 1024 /* MB */ },
-})
+import { zIsPersonId } from '../../domain/PersonId'
+import { UserRecognizedThemselfAsPerson } from '../../events/onboarding/UserRecognizedThemselfAsPerson'
+import { getPersonFamily } from '../_getPersonFamily'
 
 pageRouter
   .route('/')
@@ -43,75 +40,75 @@ pageRouter
       return response.send('Erreur de chargement de page home')
     }
   })
-  .post(requireAuth(), upload.single('photo'), async (request, response) => {
+  .post(requireAuth(), async (request, response) => {
     const { action } = z
       .object({
-        // TODO: check if valid action .oneOf()
-        action: z.string(),
+        action: z.enum(['setUserPerson']),
       })
       .parse(request.body)
 
     const userId = request.session.user!.id
-    const defaultFamilyId = asFamilyId(userId)
 
-    if (action === 'submitPresentation') {
-      const { presentation } = z
+    if (action === 'setUserPerson') {
+      console.log('setUserPerson', request.body)
+      const { existingPersonId, newPersonWithName } = z
         .object({
-          presentation: z.string(),
+          existingPersonId: zIsPersonId.optional(),
+          newPersonWithName: z.string().optional(),
         })
         .parse(request.body)
 
-      const personId = makePersonId()
-      await addToHistory(
-        UserNamedThemself({
-          userId,
-          personId,
-          name: presentation,
-          familyId: defaultFamilyId,
-        })
-      )
-
-      request.session.user!.name = presentation
-
-      try {
-        await personsIndex.saveObject({
-          objectID: personId,
-          personId,
-          name: presentation,
-          familyId: defaultFamilyId,
-          visible_by: [`family/${defaultFamilyId}`, `user/${userId}`],
-        })
-      } catch (error) {
-        console.error('Could not add new user to algolia index', error)
+      if (!existingPersonId && !newPersonWithName) {
+        console.error('setUserPerson is missing an option')
+        return response.redirect('/')
       }
-    } else if (action === 'userSendsPhotoOfThemself') {
-      const { file } = request
 
-      if (!file) return new Error('We did not receive any image.')
+      if (newPersonWithName) {
+        const personId = makePersonId()
+        await addToHistory(
+          UserNamedThemself({
+            userId,
+            personId,
+            name: newPersonWithName,
+            familyId: asFamilyId(userId),
+          })
+        )
 
-      await uploadUserPhotoOfThemself({ file, userId, familyId: defaultFamilyId })
-    } else if (action === 'confirmFaceIsUser') {
-      const { faceId, photoId } = z
-        .object({
-          faceId: zIsFaceId,
-          photoId: zIsPhotoId,
-        })
-        .parse(request.body)
+        request.session.user!.name = newPersonWithName
 
-      const person = await getPersonForUser({ userId })
-      if (!person) {
-        throw new Error("Impossible d'ajouter un visage à une personne inexistante.")
+        try {
+          await personsIndex.saveObject({
+            objectID: personId,
+            personId,
+            name: newPersonWithName,
+            familyId: asFamilyId(userId),
+            visible_by: [`family/${asFamilyId(userId)}`, `user/${userId}`],
+          })
+        } catch (error) {
+          console.error('Could not add new user to algolia index', error)
+        }
+
+        return response.redirect('/')
       }
-      await addToHistory(
-        UserConfirmedHisFace({
-          userId,
-          photoId,
-          faceId,
-          personId: person.personId,
-          familyId: defaultFamilyId,
-        })
-      )
+
+      if (existingPersonId) {
+        const personFamilyId = await getPersonFamily(existingPersonId)
+
+        if (!personFamilyId) {
+          console.error('setUserPerson existingPersonId is unknown')
+          return response.redirect('/')
+        }
+
+        await addToHistory(
+          UserRecognizedThemselfAsPerson({
+            userId,
+            personId: existingPersonId,
+            familyId: personFamilyId,
+          })
+        )
+      }
     }
+
     return response.redirect('/')
   })
 
