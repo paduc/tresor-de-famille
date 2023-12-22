@@ -1381,6 +1381,9 @@ const PersonAutocomplete = ({
   const [query, setQuery] = useState('')
   const index = usePersonSearch()
   const { userFamilies } = useLoggedInSession()
+  function getFamilyName(familyId: FamilyId) {
+    return userFamilies.find((f) => f.familyId === familyId)?.familyName
+  }
 
   const [hits, setHits] = React.useState<SearchPersonHitDTO[]>([])
 
@@ -1441,7 +1444,10 @@ const PersonAutocomplete = ({
                     ''
                   )}
                   {hit.familyId !== currentFamilyId ? (
-                    <p className='mt-1 truncate text-xs leading-5 text-gray-500'>Cette personne est dans une autre famille.</p>
+                    <div className='mt-1 w-60 text-xs text-gray-500'>
+                      Cette personne est dans{' '}
+                      {getFamilyName(hit.familyId) ? `${getFamilyName(hit.familyId)}` : 'une autre famille'}.
+                    </div>
                   ) : (
                     ''
                   )}

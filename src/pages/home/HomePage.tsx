@@ -6,13 +6,15 @@ import { PersonId } from '../../domain/PersonId'
 import { PhotoId } from '../../domain/PhotoId'
 import { ThreadId } from '../../domain/ThreadId'
 import { withBrowserBundle } from '../../libs/ssr/withBrowserBundle'
-import { buttonIconStyles, linkStyles, primaryButtonStyles } from '../_components/Button'
+import { buttonIconStyles, linkStyles, primaryButtonStyles, smallButtonStyles } from '../_components/Button'
 import { InlinePhotoUploadBtn } from '../_components/InlinePhotoUploadBtn'
 import { useLoggedInSession, useSession } from '../_components/SessionContext'
 import { AppLayout } from '../_components/layout/AppLayout'
 import { SendIcon } from '../thread/ThreadPage/SendIcon'
 import { FamilyId } from '../../domain/FamilyId'
 import { ThreadList } from '../_components/ThreadList'
+import { usePersonSearch } from '../_components/usePersonSearch'
+import { ClientOnly } from '../_components/ClientOnly'
 
 type Steps = GetUserName
 export type HomePageProps =
@@ -154,8 +156,11 @@ function GetUserName() {
   return (
     <div className='pb-5'>
       <div className='text-xl pt-6 text-gray-500'>Faisons connaissance ! Pour commencer, comment vous appelez-vous ?</div>
-      <div className=''>
-        <form method='POST' className='relative space-y-6'>
+      <div className='sm:max-w-sm mt-4'>
+        <ClientOnly>
+          <PersonAutocomplete />
+        </ClientOnly>
+        {/* <form method='POST' className='relative space-y-6'>
           <input type='hidden' name='action' value='submitPresentation' />
           <div className='overflow-hidden border border-gray-200 shadow-sm sm:max-w-sm focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500'>
             <label htmlFor='presentation' className='sr-only'>
@@ -165,7 +170,7 @@ function GetUserName() {
               type='text'
               autoFocus
               name='presentation'
-              className='block w-full resize-none border-0 py-3  focus:ring-0 text-xl'
+              className='block w-full resize-none border-0 py-3 focus:ring-0 text-xl'
               placeholder="Je m'appelle ..."
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
@@ -180,8 +185,128 @@ function GetUserName() {
             <SendIcon className={buttonIconStyles} aria-hidden='true' />
             Envoyer
           </button>
-        </form>
+        </form> */}
       </div>
     </div>
   )
+}
+
+type SearchPersonHitDTO = {
+  objectID: string
+  name: string
+  bornOn?: string
+  sex?: 'M' | 'F'
+  familyId: FamilyId
+}
+
+type PersonAutocompleteProps = {
+  className?: string
+  selectedPersonName?: string
+}
+
+const PersonAutocomplete = ({ className, selectedPersonName }: PersonAutocompleteProps) => {
+  const [query, setQuery] = React.useState('')
+  const index = usePersonSearch()
+
+  const { userFamilies } = useLoggedInSession()
+  function getFamilyName(familyId: FamilyId) {
+    return userFamilies.find((f) => f.familyId === familyId)?.familyName
+  }
+
+  const [hits, setHits] = React.useState<SearchPersonHitDTO[]>([])
+
+  React.useEffect(() => {
+    if (!index) return
+
+    const fetchResults = async () => {
+      if (query === '') {
+        setHits([])
+        return
+      }
+      const { hits } = await index.search(query)
+      setHits(hits as SearchPersonHitDTO[])
+    }
+
+    fetchResults()
+  }, [index, setHits, query])
+
+  return (
+    <div className={`relative ${className || ''}`}>
+      <div className='w-full min-w-screen overflow-hidden shadow-sm border border-gray-200 focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500'>
+        <input
+          role='combobox'
+          type='text'
+          aria-expanded='true'
+          aria-autocomplete='list'
+          name='newName'
+          autoFocus
+          defaultValue={selectedPersonName || ''}
+          className='block w-full resize-none border-0 py-3 px-4 focus:ring-0 text-base'
+          onChange={(event) => setQuery(event.target.value.trim())}
+        />
+      </div>
+      <div>
+        <form method='POST'>
+          <input type='hidden' name='action' value='setUserPerson' />
+          <ul role='list' className='divide-y divide-gray-100'>
+            {query.length > 0 && !firstHitStartsWithQuery(hits, query) ? <NewPersonFromQuery query={query} /> : null}
+            {hits.map((hit) => (
+              <li key={`hit_${hit.objectID}`} className='flex items-center justify-between gap-x-6 py-5'>
+                <div className='flex min-w-0 gap-x-4'>
+                  {/* <img className='h-12 w-12 flex-none rounded-full bg-gray-50' src={person.imageUrl} alt='' /> */}
+                  <div className='min-w-0 flex-auto'>
+                    <p className=''>{hit.name}</p>
+                    {hit.bornOn ? (
+                      <p className='mt-1 truncate text-xs leading-5 text-gray-500'>
+                        {hit.sex === 'F' ? 'née le ' : 'né le '}
+                        {hit.bornOn}
+                      </p>
+                    ) : (
+                      ''
+                    )}
+                    <div className='mt-1 w-60 text-xs text-gray-500'>
+                      Cette personne est dans{' '}
+                      {getFamilyName(hit.familyId) ? `${getFamilyName(hit.familyId)}` : 'une autre famille'}.
+                    </div>
+                  </div>
+                </div>
+                <button
+                  type='submit'
+                  name='existingFamilyMemberId'
+                  value={hit.objectID}
+                  className={`${primaryButtonStyles} ${smallButtonStyles}`}>
+                  C'est moi
+                </button>
+              </li>
+            ))}
+            {query.length > 0 && firstHitStartsWithQuery(hits, query) ? <NewPersonFromQuery query={query} /> : null}
+          </ul>
+        </form>
+        {/* <a
+          href='#'
+          className='flex w-full items-center justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus-visible:outline-offset-0'>
+          Voir plus
+        </a> */}
+      </div>
+    </div>
+  )
+}
+function NewPersonFromQuery({ query }: { query: string }) {
+  return (
+    <li key={`hit_new_object`} className='flex items-center justify-between gap-x-6 py-5'>
+      <div className='flex min-w-0 gap-x-4'>
+        <div className='min-w-0 flex-auto'>
+          <p className=''>{query}</p>
+          <p className='mt-1 truncate text-xs leading-5 text-gray-500'>Si vous n'êtes pas dans la liste</p>
+        </div>
+      </div>
+      <button type='submit' name='newFamilyMemberName' value={query} className={`${primaryButtonStyles} ${smallButtonStyles}`}>
+        Créer
+      </button>
+    </li>
+  )
+}
+
+function firstHitStartsWithQuery(hits: SearchPersonHitDTO[], query: string) {
+  return hits[0]?.name.toLowerCase().startsWith(query.toLowerCase())
 }

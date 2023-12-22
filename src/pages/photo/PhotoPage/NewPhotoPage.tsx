@@ -16,7 +16,7 @@ import {
   secondaryRedButtonStyles,
   smallButtonStyles,
 } from '../../_components/Button'
-import { useSession } from '../../_components/SessionContext'
+import { useLoggedInSession, useSession } from '../../_components/SessionContext'
 import { TDFModal } from '../../_components/TDFModal'
 import { usePersonSearch } from '../../_components/usePersonSearch'
 import { PersonPageURL } from '../../person/PersonPageURL'
@@ -43,6 +43,7 @@ type PhotoFace = {
 export type NewPhotoPageProps = {
   photoUrl: string
   photoId: PhotoId
+  familyId: FamilyId
   caption?: string
   faces: PhotoFace[]
   context?:
@@ -58,9 +59,7 @@ export type NewPhotoPageProps = {
       }
 }
 
-export const NewPhotoPage = withBrowserBundle(({ context, caption, photoId, photoUrl, faces }: NewPhotoPageProps) => {
-  const session = useSession()
-
+export const NewPhotoPage = withBrowserBundle(({ context, caption, photoId, photoUrl, faces, familyId }: NewPhotoPageProps) => {
   const [selectedFaceForMenu, setSelectedFaceForMenu] = useState<PhotoFace | null>(null)
   const [selectedFaceForPersonSelector, setSelectedFaceForPersonSelector] = useState<PhotoFace | null>(null)
 
@@ -74,13 +73,6 @@ export const NewPhotoPage = withBrowserBundle(({ context, caption, photoId, phot
     },
     [caption]
   )
-
-  if (!session.isLoggedIn)
-    return (
-      <div>
-        Vous ne devriez pas être là <a href='/login.html'>Me connecter</a>
-      </div>
-    )
 
   const ignoredFaces = faces.filter((face) => face.stage === 'ignored')
   const annotatedFaces = faces.filter((face): face is PhotoFace & { stage: 'done' } => face.stage === 'done')
@@ -105,6 +97,7 @@ export const NewPhotoPage = withBrowserBundle(({ context, caption, photoId, phot
           setSelectedFaceForPersonSelector(null)
         }}
         photoId={photoId}
+        familyId={familyId}
       />
       <div className='bg-black absolute overflow-y-scroll overflow-x-hidden top-0 bottom-0 left-0 right-0 w-[100vw] h-[100vh]'>
         <a
@@ -257,8 +250,9 @@ type SelectPersonForFacePanelProps = {
   close: () => unknown
   selectedFace: PhotoFace | null
   photoId: PhotoId
+  familyId: FamilyId
 }
-function SelectPersonForFacePanel({ close, selectedFace, photoId }: SelectPersonForFacePanelProps) {
+function SelectPersonForFacePanel({ close, selectedFace, photoId, familyId }: SelectPersonForFacePanelProps) {
   return (
     <Transition.Root show={!!selectedFace} as={React.Fragment}>
       <Dialog as='div' className='relative z-50' onClose={close}>
@@ -302,6 +296,7 @@ function SelectPersonForFacePanel({ close, selectedFace, photoId }: SelectPerson
                           className='max-w-xl text-gray-800'
                           faceId={selectedFace.faceId}
                           selectedPersonName={selectedFace.stage === 'done' ? selectedFace.name : undefined}
+                          currentFamilyId={familyId}
                         />
                       </div>
                     </div>
@@ -430,18 +425,23 @@ type SearchPersonHitDTO = {
   name: string
   bornOn?: string
   sex?: 'M' | 'F'
+  familyId: FamilyId
 }
 
 type PersonAutocompleteProps = {
   faceId: FaceId
   className?: string
   selectedPersonName?: string
+  currentFamilyId: FamilyId
 }
 
-const PersonAutocomplete = ({ faceId, className, selectedPersonName }: PersonAutocompleteProps) => {
+const PersonAutocomplete = ({ faceId, className, selectedPersonName, currentFamilyId }: PersonAutocompleteProps) => {
   const [query, setQuery] = useState('')
   const index = usePersonSearch()
-
+  const { userFamilies } = useLoggedInSession()
+  function getFamilyName(familyId: FamilyId) {
+    return userFamilies.find((f) => f.familyId === familyId)?.familyName
+  }
   const [hits, setHits] = React.useState<SearchPersonHitDTO[]>([])
 
   React.useEffect(() => {
@@ -491,6 +491,14 @@ const PersonAutocomplete = ({ faceId, className, selectedPersonName }: PersonAut
                         {hit.sex === 'F' ? 'née le ' : 'né le '}
                         {hit.bornOn}
                       </p>
+                    ) : (
+                      ''
+                    )}
+                    {hit.familyId !== currentFamilyId ? (
+                      <div className='mt-1 w-40 text-xs text-gray-500'>
+                        Cette personne est dans{' '}
+                        {getFamilyName(hit.familyId) ? `${getFamilyName(hit.familyId)}` : 'une autre famille'}.
+                      </div>
                     ) : (
                       ''
                     )}
