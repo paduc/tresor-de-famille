@@ -116,6 +116,7 @@ export async function responseAsHtml(
 
 async function getSession(request: Request): Promise<Session> {
   const user = request.session.user
+  const isOnboarding = request.session.isOnboarding
   if (user) {
     const userId = user.id
 
@@ -147,12 +148,13 @@ async function getSession(request: Request): Promise<Session> {
       searchKey,
       isAdmin: userId === ADMIN_USERID,
       profilePic,
-      arePhotosEnabled: !!user.name,
+      arePhotosEnabled: false,
       arePersonsEnabled: !!user.name,
       areThreadsEnabled: !!user.name,
       isFamilyPageEnabled: !!user.name,
       areVideosEnabled: false,
-      isSharingEnabled: IS_SHARING_ENABLED,
+      isSharingEnabled: IS_SHARING_ENABLED && !isOnboarding,
+      isOnboarding: !!isOnboarding,
     }
   }
 

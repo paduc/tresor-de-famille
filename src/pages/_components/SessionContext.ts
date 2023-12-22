@@ -29,6 +29,7 @@ export type Session =
           areThreadsEnabled: boolean
           isFamilyPageEnabled: boolean
           areVideosEnabled: boolean
+          isOnboarding: boolean
         }
     )
 
