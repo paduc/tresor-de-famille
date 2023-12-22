@@ -6,9 +6,9 @@ import { requireAuth } from '../../dependencies/authn'
 import { uploadPhoto } from '../../dependencies/photo-storage'
 import { personsIndex } from '../../dependencies/search'
 import { AppUserId } from '../../domain/AppUserId'
-import { zIsFaceId } from '../../domain/FaceId'
+import { FaceId, zIsFaceId } from '../../domain/FaceId'
 import { FamilyId } from '../../domain/FamilyId'
-import { zIsPhotoId } from '../../domain/PhotoId'
+import { PhotoId, zIsPhotoId } from '../../domain/PhotoId'
 import { OnboardingUserUploadedPhotoOfThemself } from '../../events/onboarding/OnboardingUserUploadedPhotoOfThemself'
 import { UserConfirmedHisFace } from '../../events/onboarding/UserConfirmedHisFace'
 import { UserNamedThemself } from '../../events/onboarding/UserNamedThemself'
@@ -21,7 +21,7 @@ import { detectFacesInPhotoUsingAWS } from '../photo/recognizeFacesInChatPhoto/d
 import { HomePage } from './HomePage'
 import { getHomePageProps } from './getHomePageProps'
 import { asFamilyId } from '../../libs/typeguards'
-import { zIsPersonId } from '../../domain/PersonId'
+import { PersonId, zIsPersonId } from '../../domain/PersonId'
 import { UserRecognizedThemselfAsPerson } from '../../events/onboarding/UserRecognizedThemselfAsPerson'
 import { getPersonFamily } from '../_getPersonFamily'
 import { OnboardingUserStartedFirstThread } from '../../events/onboarding/OnboardingUserStartedFirstThread'
@@ -31,6 +31,9 @@ import { UserSetChatTitle } from '../thread/UserSetChatTitle'
 import { UserUpdatedThreadAsRichText } from '../thread/UserUpdatedThreadAsRichText'
 import { UserSentMessageToChat } from '../thread/sendMessageToChat/UserSentMessageToChat'
 import { getSingleEvent } from '../../dependencies/getSingleEvent'
+import { PersonClonedForSharing } from '../share/PersonClonedForSharing'
+import { getFaceAndPhotoForPerson } from '../_getProfilePicUrlForPerson'
+import { getPersonById } from '../_getPersonById'
 
 pageRouter
   .route('/')
@@ -58,7 +61,6 @@ pageRouter
     const userId = request.session.user!.id
 
     if (action === 'setUserPerson') {
-      console.log('setUserPerson', request.body)
       const { existingPersonId, newPersonWithName } = z
         .object({
           existingPersonId: zIsPersonId.optional(),
@@ -116,6 +118,44 @@ pageRouter
           })
         )
 
+        if (personFamilyId !== asFamilyId(userId)) {
+          // The person needs to exist in the user's personnal space
+          const { faceId, profilePicPhotoId } = await fetchFaceAndPhotoForPerson({ userId, personId: existingPersonId })
+
+          const personWithName = await getPersonById({ personId: existingPersonId })
+          const name = personWithName ? personWithName.name : ''
+
+          request.session.user!.name = name
+
+          const newCloneId = makePersonId()
+          await addToHistory(
+            PersonClonedForSharing({
+              personId: newCloneId,
+              familyId: asFamilyId(userId),
+              faceId,
+              profilePicPhotoId,
+              name,
+              clonedFrom: {
+                personId: existingPersonId,
+                familyId: personFamilyId,
+              },
+              userId,
+            })
+          )
+
+          try {
+            await personsIndex.saveObject({
+              objectID: newCloneId,
+              personId: newCloneId,
+              name,
+              familyId: asFamilyId(userId),
+              visible_by: [`user/${userId}`],
+            })
+          } catch (error) {
+            console.error('Could not add person clone to algolia index', error)
+          }
+        }
+
         request.session.isOnboarding = false
       }
     }
@@ -145,4 +185,23 @@ async function hasUserCreatedAThread(userId: AppUserId): Promise<boolean> {
   )
 
   return !!threadEvent
+}
+
+async function fetchFaceAndPhotoForPerson({
+  userId,
+  personId,
+}: {
+  userId: AppUserId
+  personId: PersonId
+}): Promise<{ faceId: FaceId | undefined; profilePicPhotoId: PhotoId | undefined }> {
+  const faceAndPhotoForPerson = await getFaceAndPhotoForPerson({ userId, personId })
+  if (faceAndPhotoForPerson) {
+    const { faceId, photoId } = faceAndPhotoForPerson
+    return { faceId, profilePicPhotoId: photoId }
+  }
+
+  return {
+    faceId: undefined,
+    profilePicPhotoId: undefined,
+  }
 }
