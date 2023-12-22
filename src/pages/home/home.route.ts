@@ -39,9 +39,9 @@ pageRouter
       const userId = request.session.user!.id
       const props = await getHomePageProps(userId)
 
-      if (request.session.isOnboarding && !props.isOnboarding && !(await hasUserCreatedAThread(userId))) {
-        return response.redirect('/thread.html')
-      }
+      // if (request.session.isOnboarding && !props.isOnboarding && !(await hasUserCreatedAThread(userId))) {
+      //   return response.redirect('/thread.html')
+      // }
 
       responseAsHtml(request, response, HomePage(props))
     } catch (error) {
@@ -96,6 +96,7 @@ pageRouter
           console.error('Could not add new user to algolia index', error)
         }
 
+        request.session.isOnboarding = false
         return response.redirect('/')
       }
 
@@ -114,6 +115,8 @@ pageRouter
             familyId: personFamilyId,
           })
         )
+
+        request.session.isOnboarding = false
       }
     }
 
