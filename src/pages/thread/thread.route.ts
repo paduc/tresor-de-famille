@@ -40,6 +40,7 @@ import { getUserFamilies } from '../_getUserFamilies'
 import { makeFamilyId } from '../../libs/makeFamilyId'
 import { makeFamilyShareCode } from '../../libs/makeFamilyShareCode'
 import { UserCreatedNewFamily } from '../share/UserCreatedNewFamily'
+import { personsIndex } from '../../dependencies/search'
 
 const fakeProfilePicUrl =
   'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80'
@@ -427,6 +428,18 @@ async function makeCloneOfFacesInPhoto({
           },
         })
       )
+
+      try {
+        await personsIndex.saveObject({
+          objectID: personId,
+          personId,
+          name,
+          familyId: destinationFamilyId,
+          visible_by: [`family/${destinationFamilyId}`, `user/${userId}`],
+        })
+      } catch (error) {
+        console.error('Could not add person clone to algolia index', error)
+      }
 
       facesInDestinationFamily.push({
         faceId: face.faceId,

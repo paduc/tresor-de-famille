@@ -1,4 +1,5 @@
 import { addToHistory } from '../dependencies/addToHistory'
+import { personsIndex } from '../dependencies/search'
 import { AppUserId } from '../domain/AppUserId'
 import { FaceId } from '../domain/FaceId'
 import { FamilyId } from '../domain/FamilyId'
@@ -64,6 +65,19 @@ export async function createCloneIfOutsideOfFamily({
       },
     })
   )
+
+  try {
+    await personsIndex.saveObject({
+      objectID: newClonePersonId,
+      personId: newClonePersonId,
+      name: originalPerson.name,
+      familyId,
+      visible_by: [`family/${familyId}`, `user/${userId}`],
+    })
+  } catch (error) {
+    console.error('Could not add person clone to algolia index', error)
+  }
+
   return newClonePersonId
 }
 
