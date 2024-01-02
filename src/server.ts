@@ -1,29 +1,27 @@
+import * as Sentry from '@sentry/node'
 import express, { Express, NextFunction, Request, Response } from 'express'
 import session from 'express-session'
-import * as Sentry from '@sentry/node'
 import path from 'node:path'
 require('express-async-errors')
 
 import { actionsRouter } from './actions'
+import { createHistoryTable } from './dependencies/addToHistory'
 import { SENTRY_DSN, SESSION_SECRET } from './dependencies/env'
 import { sessionStore } from './dependencies/session'
-import { pageRouter } from './pages'
-import { createHistoryTable } from './dependencies/addToHistory'
-import { postgres } from './dependencies/database'
 import { factViewerRouter } from './facts/viewer/factViewer.route'
-import { getEventList } from './dependencies/getEventList'
-import { DomainEvent } from './dependencies/DomainEvent'
+import { pageRouter } from './pages'
 
 const PORT: number = parseInt(process.env.PORT ?? '3000')
 
 const app: Express = express()
 
-// Sentry.init({
-//   dsn: SENTRY_DSN,
-// })
-
-// The request handler must be the first middleware on the app
-// app.use(Sentry.Handlers.requestHandler())
+if (SENTRY_DSN) {
+  Sentry.init({
+    dsn: SENTRY_DSN,
+  })
+  // The request handler must be the first middleware on the app
+  app.use(Sentry.Handlers.requestHandler())
+}
 
 app.use(
   express.urlencoded({
@@ -62,7 +60,9 @@ app.use((err: Error, _: Request, res: Response, next: NextFunction) => {
 })
 
 // The error handler must be registered before any other error middleware and after all controllers
-// app.use(Sentry.Handlers.errorHandler())
+if (SENTRY_DSN) {
+  app.use(Sentry.Handlers.errorHandler())
+}
 
 // Optional fallthrough error handler
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
