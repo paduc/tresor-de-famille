@@ -461,6 +461,8 @@ async function canEditThread({ userId, threadId }: { userId: AppUserId; threadId
 
   if (authorId && authorId === userId) return true
 
+  if (!authorId) return true
+
   // const threadFamily = await getThreadFamily(threadId)
 
   // if (threadFamily) {
