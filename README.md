@@ -1,4 +1,4 @@
-Juillet 2023: Très tôt dans le dev, mais on s'approche de l'alpha !
+Janvier 2024: Alpha en prod, déjà des utilisateurs, l'UX change encore beaucoup.
 
 ### Utilisation courante
 
@@ -15,6 +15,16 @@ Il est important dans ce cas, de remettre à zéro l'index algolia. Il faut se c
 L'utilisateur qui arrive sur l'application est invité dans un onboarding à se présenter et présenter sa famille.
 
 (Un import de fichier GEDCOM est encore présent mais masqué, n'étant destiné qu'à une famille pour le moment... la mienne ;) )
+
+### Dev de composants React
+
+Pour le développement de composants, il est conseillé d'utiliser storybook.
+
+```
+yarn sb
+```
+
+Pour manipuler les valeurs injectées dans les props, modifier les `.stories.tsx` qui sont nommés à partir du nom des composants et placés dans le même dossier.
 
 ### Devtools
 
