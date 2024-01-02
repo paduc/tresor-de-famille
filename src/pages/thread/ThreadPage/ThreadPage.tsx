@@ -83,9 +83,11 @@ export const ThreadPage = withBrowserBundle(
           <div className='w-full mb-3 px-2'>
             <ThreadSharingButton isAuthor={isAuthor} familyId={familyId} />
 
-            <div className='w-full inline-flex items-center place-content-start'>
-              <ReadWriteToggle threadId={threadId} />
-            </div>
+            {isAuthor ? (
+              <div className='w-full inline-flex items-center place-content-start'>
+                <ReadWriteToggle threadId={threadId} />
+              </div>
+            ) : null}
           </div>
           <div className='divide-y divide-gray-200 overflow-hidden sm:rounded-lg bg-white shadow'>
             {title ? <Title title={title} threadId={threadId} /> : null}

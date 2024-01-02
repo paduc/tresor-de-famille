@@ -113,6 +113,11 @@ pageRouter
       const userId = request.session.user!.id
       const { threadId } = z.object({ threadId: zIsThreadId }).parse(request.params)
 
+      // Check rights
+      if (!(await canEditThread({ userId, threadId }))) {
+        throw new Error("Seul l'auteur d'une histoire peut la modifier.")
+      }
+
       const { action } = z
         .object({
           action: z.enum([
@@ -221,12 +226,6 @@ pageRouter
         return response.redirect(ThreadUrl(threadId, true))
       } else if (action === 'shareWithFamily') {
         const { familyId: destinationFamilyId } = z.object({ familyId: zIsFamilyId }).parse(request.body)
-
-        // Check rights
-        const authorId = await getThreadAuthor(threadId)
-        if (authorId !== userId) {
-          throw new Error("Seul l'auteur d'une histoire peut la partager.")
-        }
 
         // Check if no-op
         const threadCurrentFamily = await getThreadFamily(threadId)
@@ -462,14 +461,14 @@ async function canEditThread({ userId, threadId }: { userId: AppUserId; threadId
 
   if (authorId && authorId === userId) return true
 
-  const threadFamily = await getThreadFamily(threadId)
+  // const threadFamily = await getThreadFamily(threadId)
 
-  if (threadFamily) {
-    const userFamilies = await getUserFamilies(userId)
-    if (userFamilies.map((f) => f.familyId).includes(threadFamily)) {
-      return true
-    }
-  }
+  // if (threadFamily) {
+  //   const userFamilies = await getUserFamilies(userId)
+  //   if (userFamilies.map((f) => f.familyId).includes(threadFamily)) {
+  //     return true
+  //   }
+  // }
 
   return false
 }
