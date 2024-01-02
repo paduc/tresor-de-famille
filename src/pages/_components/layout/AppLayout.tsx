@@ -26,7 +26,7 @@ import {
 } from '@heroicons/react/24/outline'
 import React, { Fragment, useContext, useState } from 'react'
 import { PersonPageURL } from '../../person/PersonPageURL'
-import { PersonSearch } from '../../photo/PhotoPage/PersonSearch'
+import { PersonSearch } from './PersonSearch'
 import { LocationContext } from '../LocationContext'
 import { Logo } from '../Logo'
 import { useSession } from '../SessionContext'
