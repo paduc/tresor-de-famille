@@ -2,7 +2,7 @@ import { RadioGroup } from '@headlessui/react'
 import { LockClosedIcon, UsersIcon } from '@heroicons/react/20/solid'
 import { CheckCircleIcon, DocumentDuplicateIcon, PlusIcon } from '@heroicons/react/24/outline'
 import classNames from 'classnames'
-import React, { useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { FamilyId } from '../../../domain/FamilyId'
 import { buttonIconStyles, linkStyles, primaryButtonStyles, secondaryButtonStyles } from '../../_components/Button'
 import { Session, useLoggedInSession } from '../../_components/SessionContext'
@@ -22,7 +22,7 @@ export function ThreadSharingButton({ familyId, isAuthor }: ThreadSharingButtonP
 
   const [latestUserFamilies, setLatestUserFamilies] = useState(session.userFamilies)
 
-  const currentFamily = latestUserFamilies.find((f) => f.familyId === familyId)
+  const currentFamily = useMemo(() => latestUserFamilies.find((f) => f.familyId === familyId), [latestUserFamilies, familyId])
 
   if (!currentFamily) {
     return null
@@ -36,7 +36,7 @@ export function ThreadSharingButton({ familyId, isAuthor }: ThreadSharingButtonP
           openNewFamilyModal(true)
         }}
         onClose={() => openFamilyModal(false)}
-        currentFamily={currentFamily}
+        currentFamilyId={currentFamily.familyId}
         isOpen={isFamilyModalOpen}
         latestUserFamilies={latestUserFamilies}
       />
@@ -301,18 +301,33 @@ type ShareWithFamilyModalProps = {
   isOpen: boolean
   onClose: () => unknown
   onNewFamily: () => unknown
-  currentFamily: Family
+  currentFamilyId: FamilyId
   latestUserFamilies: Family[]
 }
 
-function ShareWithFamilyModal({ isOpen, onClose, onNewFamily, currentFamily, latestUserFamilies }: ShareWithFamilyModalProps) {
-  const [selectedFamily, setSelectedFamily] = useState<Family>(currentFamily)
+function ShareWithFamilyModal({
+  isOpen,
+  onClose,
+  onNewFamily,
+  currentFamilyId,
+  latestUserFamilies,
+}: ShareWithFamilyModalProps) {
+  const currentFamily: Family | undefined = useMemo(() => {
+    return latestUserFamilies.find((fam) => fam.familyId === currentFamilyId)
+  }, [latestUserFamilies, currentFamilyId])
+  const [selectedFamily, setSelectedFamily] = useState<Family | undefined>(currentFamily)
 
   return (
-    <TDFModal title='Choisissez la famille avec laquelle vous voulez partager cette histoire' isOpen={isOpen} close={onClose}>
+    <TDFModal
+      title='Choisissez la famille avec laquelle vous voulez partager cette histoire'
+      isOpen={isOpen}
+      close={() => {
+        setSelectedFamily(currentFamily)
+        onClose()
+      }}>
       <form method='POST'>
         <input type='hidden' name='action' value='shareWithFamily' />
-        <input type='hidden' name='familyId' value={selectedFamily.familyId} />
+        <input type='hidden' name='familyId' value={selectedFamily?.familyId} />
         <div>
           <RadioGroup name='family' value={selectedFamily} onChange={setSelectedFamily}>
             <RadioGroup.Label className='sr-only'>Privacy setting</RadioGroup.Label>

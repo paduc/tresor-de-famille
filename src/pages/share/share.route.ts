@@ -16,6 +16,9 @@ import { getFaceAndPhotoForPerson } from '../_getProfilePicUrlForPerson'
 import { PersonClonedForSharing } from './PersonClonedForSharing'
 import { AppUserId } from '../../domain/AppUserId'
 import { personsIndex } from '../../dependencies/search'
+import { FamilyColorCodes } from '../../libs/ssr/FamilyColorCodes'
+import { InvitationWithCodeUrl } from './InvitationWithCodeUrl'
+import { LoggedInSession } from '../_components/SessionContext'
 
 pageRouter
   .route('/share.html')
@@ -55,7 +58,16 @@ pageRouter
 
       await createNewFamily({ userId, familyName, about })
 
-      const newUserFamilies = await getUserFamilies(userId)
+      const newUserFamilies: LoggedInSession['userFamilies'] = (await getUserFamilies(userId)).map(
+        ({ familyId, familyName, about, shareCode }, index) => ({
+          familyId,
+          familyName,
+          about,
+          isUserSpace: (familyId as string) === (userId as string),
+          color: FamilyColorCodes[index % FamilyColorCodes.length],
+          shareUrl: InvitationWithCodeUrl(familyId, shareCode),
+        })
+      )
 
       return response.setHeader('Content-Type', 'application/json').status(200).send({
         newUserFamilies,

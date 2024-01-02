@@ -33,6 +33,8 @@ export type Session =
         }
     )
 
+export type LoggedInSession = Session & { isLoggedIn: true }
+
 export const SessionContext = React.createContext<Session | undefined>(undefined)
 
 export const useSession = () => {
