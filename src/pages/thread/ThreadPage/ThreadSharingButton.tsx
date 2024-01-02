@@ -18,6 +18,7 @@ type Family = ReturnType<typeof useLoggedInSession>['userFamilies'][number]
 export function ThreadSharingButton({ familyId, isAuthor }: ThreadSharingButtonProps) {
   const session = useLoggedInSession()
   const [isFamilyModalOpen, openFamilyModal] = useState<boolean>(false)
+  const [isShareCodeModalOpen, openShareCodeModal] = useState<boolean>(false)
   const [isNewFamilyModalOpen, openNewFamilyModal] = useState<boolean>(false)
 
   const [latestUserFamilies, setLatestUserFamilies] = useState(session.userFamilies)
@@ -40,6 +41,12 @@ export function ThreadSharingButton({ familyId, isAuthor }: ThreadSharingButtonP
         isOpen={isFamilyModalOpen}
         latestUserFamilies={latestUserFamilies}
       />
+      <ShareCodeModal
+        isOpen={isShareCodeModalOpen}
+        currentFamily={currentFamily}
+        onClose={() => openShareCodeModal(false)}
+        onChangeFamily={() => openFamilyModal(true)}
+      />
       <CreateNewFamilyModal
         isOpen={isNewFamilyModalOpen}
         onClose={() => openNewFamilyModal(false)}
@@ -61,7 +68,7 @@ export function ThreadSharingButton({ familyId, isAuthor }: ThreadSharingButtonP
             <div className='text-gray-500 mr-2'>Partagé avec les membres de</div>
             {isAuthor ? (
               <button
-                onClick={() => openFamilyModal(true)}
+                onClick={() => openShareCodeModal(true)}
                 className={`px-3 py-1.5 border border-transparent text-md font-medium rounded-full shadow-sm ring-inset ring-2 hover:bg-white hover:ring-4 ${currentFamily.color} ring-2`}>
                 {currentFamily.familyName}
               </button>
@@ -443,4 +450,64 @@ const createNewFamily = async ({
   }
 
   return Promise.reject()
+}
+
+type ShareCodeModalProps = {
+  isOpen: boolean
+  onClose: () => unknown
+  onChangeFamily: () => unknown
+  currentFamily: Family
+}
+
+function ShareCodeModal({ isOpen, onClose, onChangeFamily, currentFamily }: ShareCodeModalProps) {
+  return (
+    <TDFModal
+      isOpen={isOpen}
+      close={() => {
+        onClose()
+      }}>
+      <div>Votre histoire est partagée avec {currentFamily.familyName}.</div>
+      <div className='mt-2'>Vous pouvez inviter des personnes à rejoindre la famille en copiant le lien suivant:</div>
+      <div className='mt-3 w-full inline-flex rounded-full shadow-sm'>
+        <input
+          type='text'
+          value={`${currentFamily.shareUrl}`}
+          className='block w-full rounded-none rounded-l-full border-0 py-1.5 pl-4 text-gray-900 ring-2 ring-inset ring-indigo-600 text-sm sm:leading-6 cursor-text'
+          disabled
+        />
+        <button
+          type='button'
+          onClick={() => {
+            navigator.clipboard.writeText(currentFamily.shareUrl).then(
+              () => {
+                alert(
+                  'Le lien de partage est bien copié.\n\nVous pouvez maintenant le partager par email, sms, whatsapp, ou tout autre moyen de communication.'
+                )
+              },
+              () => {
+                alert(
+                  'Impossible de copier le lien de partager.\n\nVous pouvez essayer de le faire en copiant le contenu de la case.'
+                )
+              }
+            )
+          }}
+          className='relative -ml-px inline-flex items-center gap-x-1.5 rounded-r-full px-3 py-2 text-sm font-semibold text-indigo-600 bg-white ring-2 ring-inset ring-indigo-600 hover:bg-indigo-600 hover:text-white'>
+          <DocumentDuplicateIcon className='-ml-0.5 h-5 w-5 ' aria-hidden='true' title='Copier' />
+        </button>
+      </div>
+      <div className='mt-6'>
+        <button
+          onClick={() => {
+            onClose()
+            onChangeFamily()
+          }}
+          className={`mb-4 ${primaryButtonStyles.replace(/inline\-flex/g, '')}  w-full text-center`}>
+          Changer de famille
+        </button>
+        <button onClick={onClose} className={`mb-4 ${secondaryButtonStyles.replace(/inline\-flex/g, '')}  w-full text-center`}>
+          Ok
+        </button>
+      </div>
+    </TDFModal>
+  )
 }
