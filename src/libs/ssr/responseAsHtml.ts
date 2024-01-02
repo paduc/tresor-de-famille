@@ -147,7 +147,7 @@ async function getSession(request: Request): Promise<Session> {
       searchKey,
       isAdmin: userId === ADMIN_USERID,
       profilePic,
-      arePhotosEnabled: false,
+      arePhotosEnabled: !!user.name,
       arePersonsEnabled: !!user.name,
       areThreadsEnabled: !!user.name,
       isFamilyPageEnabled: !!user.name,
