@@ -22,7 +22,6 @@ import { getFacesInPhoto } from '../_getFacesInPhoto'
 import { getPersonByIdOrThrow } from '../_getPersonById'
 import { getThreadAuthor } from '../_getThreadAuthor'
 import { getThreadFamily } from '../_getThreadFamily'
-import { getUserFamilies } from '../_getUserFamilies'
 import { pageRouter } from '../pageRouter'
 import { UserAddedCaptionToPhoto } from '../photo/UserAddedCaptionToPhoto'
 import { detectFacesInPhotoUsingAWS } from '../photo/recognizeFacesInChatPhoto/detectFacesInPhotoUsingAWS'
@@ -87,6 +86,11 @@ pageRouter
 
     const userId = request.session.user!.id
     const isEditable = edit === 'edit'
+
+    const laterThreadId = await getLaterThreadVersion(threadId)
+    if (laterThreadId) {
+      return response.redirect(ThreadUrl(laterThreadId, isEditable))
+    }
 
     const props = await getThreadPageProps({ threadId, userId })
 
@@ -473,4 +477,16 @@ async function canEditThread({ userId, threadId }: { userId: AppUserId; threadId
   // }
 
   return false
+}
+
+async function getLaterThreadVersion(threadId: ThreadId): Promise<ThreadId | null> {
+  const { rows: clonedEvents } = await postgres.query<ThreadClonedForSharing>(
+    `SELECT * FROM history WHERE type='ThreadClonedForSharing' AND payload->'clonedFrom'->>'threadId'=$1 LIMIT 1`,
+    [threadId]
+  )
+  if (clonedEvents.length > 0) {
+    return clonedEvents[0].payload.threadId
+  }
+
+  return null
 }
