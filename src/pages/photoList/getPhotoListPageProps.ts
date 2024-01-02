@@ -31,7 +31,6 @@ export const getPhotoListPageProps = async ({ userId, familyId }: GetPhotoListPa
       'UserInsertedPhotoInRichTextThread',
     ],
     {
-      userId,
       familyId,
     }
   )
