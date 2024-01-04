@@ -1,6 +1,14 @@
 # Trésor de Famille
 
-Certains souvenirs familiaux méritent d'être traités comme des trésors.
+<p align="center">
+  <img alt="logo de SPACE" src="https://github.com/paduc/tresor-de-famille/blob/master/src/assets/favicon-196x196.png"/>
+</p>
+<p align="center">
+  <i>🫶 Certains souvenirs familiaux méritent d'être traités comme des trésors. 🥰</i>
+</p>
+
+
+
 
 La mission de trésor de famille est d'aider les familles à enrichir et perreniser leurs souvenirs en les numérisant, en aidant à l'annotation et le visionnage et en les stockant de manière sécurisée et durable.
 
