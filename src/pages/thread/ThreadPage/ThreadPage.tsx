@@ -286,7 +286,7 @@ const RichTextEditor = fixedForwardRef<RichTextEditorRef, RichTextEditorProps>((
       InsertPhotoMarker,
     ],
     content: props.content,
-    autofocus: 'end',
+    autofocus: null,
     editorProps: {
       attributes: {
         class: 'focus:outline-none',
@@ -361,7 +361,7 @@ const RichTextEditor = fixedForwardRef<RichTextEditorRef, RichTextEditorProps>((
                 photoUploadForm.current.elements.photo.click()
               }
             }}
-            className={`ml-5 pl-3 border border-y-0 border-r-0 border-l border-l-gray-300 cursor-pointer inline-flex items-center text-indigo-600 hover:underline hover:underline-offset-2`}>
+            className={`ml-10 sm:ml-5 pl-3 border border-y-0 border-r-0 border-l border-l-gray-300 cursor-pointer inline-flex items-center text-indigo-600 hover:underline hover:underline-offset-2`}>
             <PhotoIcon className={`${buttonIconStyles} h-4 w-4`} aria-hidden='true' />
             Insérer une photo
           </span>
