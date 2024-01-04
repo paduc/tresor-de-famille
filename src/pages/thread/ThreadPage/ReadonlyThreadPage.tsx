@@ -25,12 +25,6 @@ export const ReadOnlyThreadPage = withBrowserBundle(
         <div className='w-full sm:ml-6 max-w-2xl pt-3 pb-40'>
           <div className='w-full mb-3 px-2'>
             <ThreadSharingButton isAuthor={isAuthor} familyId={familyId} />
-
-            {isAuthor ? (
-              <div className='w-full inline-flex items-center place-content-start'>
-                <ReadWriteToggle readOnly threadId={threadId} />
-              </div>
-            ) : null}
           </div>
           <div className='divide-y divide-gray-200 overflow-hidden sm:rounded-lg bg-white shadow'>
             {title ? <div className='relative w-full max-w-2xl px-4 py-5 sm:px-6 text-gray-800 text-xl'>{title}</div> : null}
@@ -53,6 +47,13 @@ export const ReadOnlyThreadPage = withBrowserBundle(
                 }
               })}
             </div>
+          </div>
+          <div className='w-full mt-3 px-2'>
+            {isAuthor ? (
+              <div className='w-full inline-flex items-center place-content-start'>
+                <ReadWriteToggle readOnly threadId={threadId} />
+              </div>
+            ) : null}
           </div>
         </div>
       </AppLayout>

@@ -5,9 +5,10 @@ import React, { useCallback, useEffect, useState } from 'react'
 import { UUID } from '../../../domain'
 import { withBrowserBundle } from '../../../libs/ssr/withBrowserBundle'
 import { buttonIconStyles } from '../../_components/Button'
-import { AppLayout } from '../../_components/layout/AppLayout'
 import { ProgressiveImg } from '../../_components/ProgressiveImg'
+import { AppLayout } from '../../_components/layout/AppLayout'
 
+import { PhotoIcon } from '@heroicons/react/20/solid'
 import { Node } from '@tiptap/core'
 import {
   Attributes,
@@ -22,17 +23,14 @@ import {
   useEditor,
 } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
-import { fixedForwardRef } from '../../../libs/fixedForwardRef'
-import { Epoch } from '../../../libs/typeguards'
-import { TipTapContentAsJSON } from '../TipTapTypes'
-import { useLoader } from '../../_components/layout/LoaderContext'
+import { FamilyId } from '../../../domain/FamilyId'
 import { PhotoId } from '../../../domain/PhotoId'
 import { ThreadId } from '../../../domain/ThreadId'
-import { PhotoIcon } from '@heroicons/react/20/solid'
-import { FamilyId } from '../../../domain/FamilyId'
-import { useLoggedInSession, useSession } from '../../_components/SessionContext'
-import { ReadWriteToggle } from './ReadWriteToggle'
+import { fixedForwardRef } from '../../../libs/fixedForwardRef'
+import { Epoch } from '../../../libs/typeguards'
+import { useLoader } from '../../_components/layout/LoaderContext'
 import { ThreadUrl } from '../ThreadUrl'
+import { TipTapContentAsJSON } from '../TipTapTypes'
 import { ThreadSharingButton } from './ThreadSharingButton'
 
 // @ts-ignore
@@ -82,12 +80,6 @@ export const ThreadPage = withBrowserBundle(
         <div className='w-full sm:ml-6 max-w-2xl pt-3 pb-40'>
           <div className='w-full mb-3 px-2'>
             <ThreadSharingButton isAuthor={isAuthor} familyId={familyId} />
-
-            {isAuthor ? (
-              <div className='w-full inline-flex items-center place-content-start'>
-                <ReadWriteToggle threadId={threadId} />
-              </div>
-            ) : null}
           </div>
           <div className='divide-y divide-gray-200 overflow-hidden sm:rounded-lg bg-white shadow'>
             {title ? <Title title={title} threadId={threadId} /> : null}
@@ -95,6 +87,13 @@ export const ThreadPage = withBrowserBundle(
               <RichTextEditor ref={richTextEditorRef} content={contentAsJSON} threadId={threadId} lastUpdated={lastUpdated} />
             </div>
           </div>
+          {/* <div className='w-full mt-3 px-2'>
+            {isAuthor ? (
+              <div className='w-full inline-flex items-center place-content-start'>
+                <ReadWriteToggle threadId={threadId} />
+              </div>
+            ) : null}
+          </div> */}
         </div>
       </AppLayout>
     )
