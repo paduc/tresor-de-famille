@@ -81,60 +81,7 @@ export function ThreadSharingButton({ familyId, isAuthor }: ThreadSharingButtonP
           </>
         )}
       </div>
-      <ShareButton currentFamily={currentFamily} />
     </>
-  )
-}
-
-type ShareButtonProps = {
-  currentFamily: Family
-}
-
-function ShareButton({ currentFamily }: ShareButtonProps) {
-  const [isShareUrlVisible, showShareUrl] = useState<boolean>(false)
-  if (currentFamily.isUserSpace) return null
-
-  return (
-    <div className='w-full inline-flex items-center place-content-end mb-5'>
-      {isShareUrlVisible ? (
-        <>
-          <div className='text-gray-500 mr-2 whitespace-nowrap'>Lien de partage :</div>
-          <div className='mt-1 inline-flex rounded-full shadow-sm'>
-            <div className='relative  flex focus-within:z-10'>
-              <input
-                type='text'
-                value={`${currentFamily.shareUrl}`}
-                className='block max-w-[143px] sm:max-w-none rounded-none rounded-l-full border-0 py-1.5 pl-4 text-gray-900 ring-2 ring-inset ring-indigo-600 text-sm sm:leading-6 cursor-text'
-                disabled
-              />
-              <button
-                type='button'
-                onClick={() => {
-                  navigator.clipboard.writeText(currentFamily.shareUrl).then(
-                    () => {
-                      alert(
-                        'Le lien de partage est bien copié.\n\nVous pouvez maintenant le partager par email, sms, whatsapp, ou tout autre moyen de communication.'
-                      )
-                    },
-                    () => {
-                      alert(
-                        'Impossible de copier le lien de partager.\n\nVous pouvez essayer de le faire en copiant le contenu de la case.'
-                      )
-                    }
-                  )
-                }}
-                className='relative -ml-px inline-flex items-center gap-x-1.5 rounded-r-full px-3 py-2 text-sm font-semibold text-indigo-600 bg-white ring-2 ring-inset ring-indigo-600 hover:bg-indigo-600 hover:text-white'>
-                <DocumentDuplicateIcon className='-ml-0.5 h-5 w-5 ' aria-hidden='true' title='Copier' />
-              </button>
-            </div>
-          </div>
-        </>
-      ) : (
-        <button className='text-gray-500 text-base mt-2' onClick={() => showShareUrl(true)}>
-          Afficher le lien de partage
-        </button>
-      )}
-    </div>
   )
 }
 
