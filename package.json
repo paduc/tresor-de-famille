@@ -46,6 +46,7 @@
     "algoliasearch": "^4.14.2",
     "autoprefixer": "^10.4.14",
     "aws-sdk": "^2.1310.0",
+    "axios": "^1.6.4",
     "bcryptjs": "^2.4.3",
     "callsites": "3.1.0",
     "classnames": "^2.3.1",
@@ -64,6 +65,8 @@
     "pg": "^8.7.3",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-dropzone": "^14.2.3",
+    "react-query": "^3.39.3",
     "react-textarea-autosize": "^8.5.2",
     "reactflow": "^11.8.3",
     "sharp": "^0.32.1",
@@ -125,5 +128,8 @@
     "webpack-cli": "^4.10.0",
     "webpack-manifest-plugin": "^5.0.0",
     "yarn": "^1.22.17"
+  },
+  "msw": {
+    "workerDirectory": "public"
   }
 }
