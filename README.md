@@ -1,10 +1,35 @@
-Janvier 2024: Alpha en prod, déjà des utilisateurs, l'UX change encore beaucoup.
+# Trésor de Famille
+
+Certains souvenirs familiaux méritent d'être traités comme des trésors.
+
+La mission de trésor de famille est d'aider les familles à enrichir et perreniser leurs souvenirs en les numérisant, en aidant à l'annotation et le visionnage et en les stockant de manière sécurisée et durable.
+
+Trésor de famille est en cours de construction mais a vocation à être un commun numérique qui appartient avant tout à ses utilisateurs. 
+
+## Situation actuelle
+
+Janvier 2024: La version alpha privée est en production. Des utilisateurs sont en train de tester les fonctionnalités et orientent les évolutions en fonction de leurs besoins et envies.
+
+Nous appelons cette version "alpha" parce que les fonctionnalités changent encore beaucoup. Seuls des utilisateurs sélectionnés y ont accès, parce qu'elle demande plus de travail (allers-retours réguliers).
+
+La prochaine phase, quand les fonctionnalités se seront stabilisée, sera la phase "beta", ouverte à un plus grand nombre d'utilisateurs et dont l'objectifs sera de detecter les bugs et d'affiner les détails.
+
+## Ce repo
+
+Le code de ce repo est public par soucis de transparence. Aucune licence "ouverte" n'est encore proposée et les droits d'auteurs s'appliquent.
 
 ### Utilisation courante
+
+Installation:
 
 ```
 yarn
 yarn db
+```
+
+Lancements:
+
+```
 yarn watch
 ```
 
