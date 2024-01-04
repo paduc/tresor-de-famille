@@ -24,7 +24,7 @@ La prochaine phase, quand les fonctionnalités se seront stabilisée, sera la ph
 
 ## Ce repo
 
-Le code de ce repo est public par soucis de transparence. Aucune licence "ouverte" n'est encore proposée et les droits d'auteurs s'appliquent.
+Le code de ce repo est public par soucis de transparence. Aucune licence "ouverte" n'est encore proposée.
 
 ### Utilisation courante
 
