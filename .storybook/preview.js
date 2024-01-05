@@ -1,8 +1,11 @@
 import '../src/pages/style.css'
+import { mswLoader, initialize } from 'msw-storybook-addon'
 
 const { INITIAL_VIEWPORTS } = require('@storybook/addon-viewport')
 
 const { iphone6, iphone8p, ipad, ipad10p, ipad12p } = INITIAL_VIEWPORTS
+
+initialize()
 
 function rotate(viewport) {
   return {
@@ -15,7 +18,7 @@ function rotate(viewport) {
   }
 }
 
-export const parameters = {
+const parameters = {
   actions: { argTypesRegex: '^on[A-Z].*' },
   viewport: {
     viewports: {
@@ -64,3 +67,9 @@ export const parameters = {
   },
   layout: 'fullscreen',
 }
+
+const loaders = [mswLoader]
+
+const preview = { loaders, parameters }
+
+export default preview

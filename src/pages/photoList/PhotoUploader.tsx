@@ -69,7 +69,10 @@ export interface UploadDropzoneProps {
 }
 export const UploadDropzone = ({ onFileUploads }: UploadDropzoneProps) => {
   const { isDragActive, getRootProps, getInputProps } = useDropzone({
-    onDrop: onFileUploads,
+    onDrop: (files: any) => {
+      console.log(`dropzone onDrop`, files)
+      onFileUploads(files)
+    },
     accept: {
       'image/png': [],
       'image/jpeg': [],
@@ -161,7 +164,7 @@ const postUploadImage = (albumId?: string) => (args: { data: FormData; onProgres
   if (albumId) {
     args.data.append('albumId', albumId)
   }
-  return axios.post('/api/v1/upload-image', args.data, {
+  return axios.post('/upload-image', args.data, {
     onUploadProgress: (event) => {
       args.onProgress(Math.round((100 * event.loaded) / (event.total || 1)))
     },

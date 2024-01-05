@@ -15,6 +15,7 @@ module.exports = {
       },
     },
   ],
+  staticDirs: ['../public'],
   framework: {
     name: '@storybook/react-webpack5',
     options: {
