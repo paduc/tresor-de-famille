@@ -12,6 +12,7 @@ import { SuccessError } from '../_components/SuccessError'
 import { AppLayout } from '../_components/layout/AppLayout'
 import { PhotoIcon } from '../photo/PhotoPage/PhotoIcon'
 import { PhotoListPageUrlWithFamily } from './PhotoListPageUrl'
+import { PhotoUploader } from './PhotoUploader'
 
 // @ts-ignore
 function classNames(...classes) {
@@ -43,6 +44,7 @@ export const PhotoListPage = withBrowserBundle(({ error, success, photos, curren
           <FamilySwitcher currentFamilyId={currentFamilyId} />
         </div>
       ) : null}
+      <PhotoUploader />
       <div className='bg-white p-6'>
         <SuccessError success={success} error={error} />
         {!photos.length ? (

@@ -87,6 +87,7 @@ pageRouter
     const userId = request.session.user!.id
     const isEditable = edit === 'edit'
 
+    // TODO : make sure this threadId is still active, redirect if not
     const laterThreadId = await getLaterThreadVersion(threadId)
     if (laterThreadId) {
       return response.redirect(ThreadUrl(laterThreadId, isEditable))

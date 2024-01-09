@@ -24,10 +24,10 @@ interface UploadData {
 }
 
 interface UploadAreaProps {
-  albumId?: string
+  familyId?: string
 }
-export const UploadArea = ({ albumId }: UploadAreaProps) => {
-  const { uploadImages, uploads } = useUploadImage(albumId)
+export const UploadArea = ({ familyId }: UploadAreaProps) => {
+  const { uploadImages, uploads } = useUploadImage(familyId)
 
   return (
     <>
@@ -150,8 +150,8 @@ const LazyImage = React.memo(({ file }: LazyImageProps) => {
 
   useEffect(() => {
     const reader = new FileReader()
-    const imageBlob = file?.get('image') as Blob
-    reader.readAsDataURL(imageBlob)
+    const photoBlob = file?.get('photo') as Blob
+    reader.readAsDataURL(photoBlob)
     reader.onload = (e) => {
       if (e.target) setSource(e.target.result as string)
     }
@@ -160,11 +160,11 @@ const LazyImage = React.memo(({ file }: LazyImageProps) => {
   return <img alt={'miniature'} className={'object-cover w-full h-full'} src={source} />
 })
 
-const postUploadImage = (albumId?: string) => (args: { data: FormData; onProgress: (progress: number) => unknown }) => {
-  if (albumId) {
-    args.data.append('albumId', albumId)
+const postUploadImage = (familyId?: string) => (args: { data: FormData; onProgress: (progress: number) => unknown }) => {
+  if (familyId) {
+    args.data.append('familyId', familyId)
   }
-  return axios.post('/upload-image', args.data, {
+  return axios.post('/upload-photo', args.data, {
     onUploadProgress: (event) => {
       args.onProgress(Math.round((100 * event.loaded) / (event.total || 1)))
     },
@@ -210,11 +210,11 @@ const reducer = (uploads: Record<string, UploadData>, action: UploadAction): Rec
 
 const initialState: Record<string, UploadData> = {}
 
-export const useUploadImage = (albumId?: string) => {
+export const useUploadImage = (familyId?: string) => {
   const queryClient = useQueryClient()
   const [uploads, dispatch] = useReducer(reducer, initialState)
 
-  const mutation = useMutation(postUploadImage(albumId), {
+  const mutation = useMutation(postUploadImage(familyId), {
     onSettled: () => {
       queryClient.invalidateQueries('stream')
     },
@@ -226,7 +226,7 @@ export const useUploadImage = (albumId?: string) => {
 
       const data = new FormData()
       data.append('id', id)
-      data.append('image', file)
+      data.append('photo', file)
 
       dispatch({ type: 'upload-started', data, id })
 
