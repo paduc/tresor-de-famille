@@ -29,6 +29,8 @@ import { UserAddedCaptionToPhoto } from './UserAddedCaptionToPhoto'
 import { UserDeletedPhoto } from './UserDeletedPhoto'
 import { getNewPhotoPageProps } from './getNewPhotoPageProps'
 import { detectFacesInPhotoUsingAWS } from './recognizeFacesInChatPhoto/detectFacesInPhotoUsingAWS'
+import { UserUploadedPhotoToFamily } from '../photoList/UserUploadedPhotoToFamily'
+import { UserUploadedPhoto } from '../photoList/UserUploadedPhoto'
 
 const FILE_SIZE_LIMIT_MB = 50
 const upload = multer({
@@ -222,6 +224,56 @@ pageRouter.route('/add-photo.html').post(requireAuth(), upload.single('photo'), 
     return response.redirect(`/photo/${photoId}/photo.html`)
   } catch (error) {
     console.error('Error in chat route')
+    throw error
+  }
+})
+
+/**
+ * This entry-point is for Client-side upload (see Uploader.tsx)
+ */
+pageRouter.route('/upload-photo').post(requireAuth(), upload.single('photo'), async (request, response) => {
+  try {
+    const { familyId } = zod
+      .object({
+        familyId: zIsFamilyId.optional(),
+      })
+      .parse(request.body)
+
+    const userId = request.session.user!.id
+
+    const { file } = request
+    if (!file) return new Error('We did not receive any photo.')
+
+    const { path: originalPath } = file
+    const photoId = makePhotoId()
+
+    const location = await uploadPhoto({ contents: fs.createReadStream(originalPath), id: photoId })
+
+    if (familyId) {
+      await addToHistory(
+        UserUploadedPhotoToFamily({
+          photoId,
+          location,
+          userId,
+          familyId,
+        })
+      )
+    } else {
+      await addToHistory(
+        UserUploadedPhoto({
+          photoId,
+          location,
+          userId,
+        })
+      )
+    }
+
+    // Fire and forget
+    detectFacesInPhotoUsingAWS({ file, photoId })
+
+    return response.status(200).json({ photoId })
+  } catch (error) {
+    console.error('Error in /upload-image route')
     throw error
   }
 })
