@@ -1,10 +1,11 @@
 import { CheckIcon } from '@heroicons/react/24/outline'
 import axios from 'axios'
 import React, { memo, useCallback, useEffect, useState } from 'react'
+import { FamilyId } from '../../domain/FamilyId'
 import { getUuid } from '../../libs/getUuid'
 import { primaryButtonStyles, smallButtonStyles } from '../_components/Button'
 import { TDFModal } from '../_components/TDFModal'
-import { FamilyId } from '../../domain/FamilyId'
+import { FireIcon } from '@heroicons/react/20/solid'
 
 type MultiuploadProps = {
   mock?: boolean
@@ -12,7 +13,7 @@ type MultiuploadProps = {
   familyId?: FamilyId
 }
 
-export function Multiupload({ mock, children }: MultiuploadProps) {
+export function Multiupload({ mock, children, familyId }: MultiuploadProps) {
   const [isOpen, setOpen] = useState(false)
   const [photosToUpload, setPhotosToUploaed] = useState<{ file: File; id: string }[]>([])
 
@@ -68,6 +69,7 @@ type SingleUploadProps = {
 
 const SingleUpdate = memo(({ file, mock, familyId }: SingleUploadProps) => {
   const [progress, setProgress] = useState(0)
+  const [isError, setError] = useState(false)
   const [photo, setPhoto] = useState<string | null>(null)
 
   if (!file) {
@@ -79,9 +81,6 @@ const SingleUpdate = memo(({ file, mock, familyId }: SingleUploadProps) => {
 
     if (mock) {
       let progress = 0
-      // setPhoto(
-      //   'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=400&h=256&q=80'
-      // )
       const interval = setInterval(() => {
         if (progress >= 100) {
           clearInterval(interval)
@@ -111,6 +110,7 @@ const SingleUpdate = memo(({ file, mock, familyId }: SingleUploadProps) => {
         console.log('Axios res.status', res.status)
       } catch (error) {
         console.error('Axios failed', error)
+        setError(true)
       }
     }
 
@@ -127,7 +127,12 @@ const SingleUpdate = memo(({ file, mock, familyId }: SingleUploadProps) => {
       <div className='flex-1 relative pt-1'>
         <div className='flex mb-2 items-center justify-between'>
           <div>
-            {progress < 100 ? (
+            {isError ? (
+              <span className='text-xs font-semibold py-1 px-2 uppercase rounded-full text-red-600 bg-red-200 inline-flex'>
+                Erreur
+                <FireIcon className='h-4 w-4 ml-2' />
+              </span>
+            ) : progress < 100 ? (
               <span className='text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-indigo-600 bg-indigo-200 transition-colors'>
                 Téléchargement...
               </span>

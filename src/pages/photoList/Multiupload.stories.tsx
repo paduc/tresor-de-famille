@@ -5,4 +5,4 @@ export default { title: 'Multiupload', component: Multiupload, parameters: { lay
 
 export const Basique = () => <Multiupload mock>{(open) => <button onClick={open}>Open</button>}</Multiupload>
 
-// export const UnePhotoEnCours = () => <Multiupload mock />
+export const Erreur = () => <Multiupload mock={false}>{(open) => <button onClick={open}>Open</button>}</Multiupload>
