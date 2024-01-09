@@ -12,6 +12,7 @@ import { SuccessError } from '../_components/SuccessError'
 import { AppLayout } from '../_components/layout/AppLayout'
 import { PhotoIcon } from '../photo/PhotoPage/PhotoIcon'
 import { PhotoListPageUrlWithFamily } from './PhotoListPageUrl'
+import { Multiupload } from './Multiupload'
 
 // @ts-ignore
 function classNames(...classes) {
