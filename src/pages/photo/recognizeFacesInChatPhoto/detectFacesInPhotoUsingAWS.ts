@@ -14,6 +14,8 @@ import { UserInsertedPhotoInRichTextThread } from '../../thread/UserInsertedPhot
 import { UserUploadedPhotoToChat } from '../../thread/uploadPhotoToChat/UserUploadedPhotoToChat'
 import { AWSDetectedFacesInPhoto } from './AWSDetectedFacesInPhoto'
 import { getAWSDetectedFacesInPhoto } from './getAWSDetectedFacesInPhoto'
+import { UserUploadedPhotoToFamily } from '../../photoList/UserUploadedPhotoToFamily'
+import { UserUploadedPhoto } from '../../photoList/UserUploadedPhoto'
 
 type DetectFacesInPhotosUsingAWSArgs = {
   file: Express.Multer.File
@@ -86,6 +88,8 @@ async function getFaceIdForAWSFaceIdInOtherPhotos(awsFaceId: string, userId: App
 async function getOwnerUserIdForPhotoId(photoId: PhotoId): Promise<AppUserId | undefined> {
   const latestForPhoto = await getSingleEvent<
     | UserUploadedPhotoToChat
+    | UserUploadedPhoto
+    | UserUploadedPhotoToFamily
     | OnboardingUserUploadedPhotoOfThemself
     | OnboardingUserUploadedPhotoOfFamily
     | UserInsertedPhotoInRichTextThread
@@ -95,6 +99,8 @@ async function getOwnerUserIdForPhotoId(photoId: PhotoId): Promise<AppUserId | u
       'OnboardingUserUploadedPhotoOfFamily',
       'OnboardingUserUploadedPhotoOfThemself',
       'UserUploadedPhotoToChat',
+      'UserUploadedPhotoToFamily',
+      'UserUploadedPhoto',
     ],
     { photoId }
   )
