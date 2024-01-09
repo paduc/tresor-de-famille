@@ -4,10 +4,12 @@ import React, { memo, useCallback, useEffect, useState } from 'react'
 import { getUuid } from '../../libs/getUuid'
 import { primaryButtonStyles, smallButtonStyles } from '../_components/Button'
 import { TDFModal } from '../_components/TDFModal'
+import { FamilyId } from '../../domain/FamilyId'
 
 type MultiuploadProps = {
   mock?: boolean
   children: (open: (args: any) => any) => JSX.Element
+  familyId?: FamilyId
 }
 
 export function Multiupload({ mock, children }: MultiuploadProps) {
@@ -48,7 +50,7 @@ export function Multiupload({ mock, children }: MultiuploadProps) {
           {photosToUpload.length ? (
             <ul className='pt-2'>
               {photosToUpload.map(({ file, id }) => (
-                <SingleUpdate file={file} key={`photo_uploading_${id}`} mock={mock} />
+                <SingleUpdate file={file} key={`photo_uploading_${id}`} mock={mock} familyId={familyId} />
               ))}
             </ul>
           ) : null}
@@ -61,9 +63,10 @@ export function Multiupload({ mock, children }: MultiuploadProps) {
 type SingleUploadProps = {
   file: File
   mock?: boolean
+  familyId?: FamilyId
 }
 
-const SingleUpdate = memo(({ file, mock }: SingleUploadProps) => {
+const SingleUpdate = memo(({ file, mock, familyId }: SingleUploadProps) => {
   const [progress, setProgress] = useState(0)
   const [photo, setPhoto] = useState<string | null>(null)
 
@@ -93,6 +96,9 @@ const SingleUpdate = memo(({ file, mock }: SingleUploadProps) => {
     async function doRequest() {
       const formData = new FormData()
       formData.append('photo', file)
+      if (familyId) {
+        formData.append('familyId', familyId)
+      }
       try {
         const res = await axios.post('/upload-photo', {
           signal: controller,
