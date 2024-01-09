@@ -32,7 +32,7 @@ import { detectFacesInPhotoUsingAWS } from './recognizeFacesInChatPhoto/detectFa
 import { UserUploadedPhotoToFamily } from '../photoList/UserUploadedPhotoToFamily'
 import { UserUploadedPhoto } from '../photoList/UserUploadedPhoto'
 
-const FILE_SIZE_LIMIT_MB = 50
+const FILE_SIZE_LIMIT_MB = 20
 const upload = multer({
   dest: 'temp/photos',
   limits: { fileSize: FILE_SIZE_LIMIT_MB * 1024 * 1024 /* MB */ },
@@ -229,7 +229,7 @@ pageRouter.route('/add-photo.html').post(requireAuth(), upload.single('photo'), 
 })
 
 /**
- * This entry-point is for Client-side upload (see Uploader.tsx)
+ * This entry-point is for Client-side upload (see Multiupload.tsx)
  */
 pageRouter.route('/upload-photo').post(requireAuth(), upload.single('photo'), async (request, response) => {
   try {
@@ -242,7 +242,7 @@ pageRouter.route('/upload-photo').post(requireAuth(), upload.single('photo'), as
     const userId = request.session.user!.id
 
     const { file } = request
-    if (!file) return new Error('We did not receive any photo.')
+    if (!file) return new Error("Aucune photo n'a été reçue par le server.")
 
     const { path: originalPath } = file
     const photoId = makePhotoId()

@@ -10,6 +10,7 @@ import { SENTRY_DSN, SESSION_SECRET } from './dependencies/env'
 import { sessionStore } from './dependencies/session'
 import { factViewerRouter } from './facts/viewer/factViewer.route'
 import { pageRouter } from './pages'
+import { MulterError } from 'multer'
 
 const PORT: number = parseInt(process.env.PORT ?? '3000')
 
@@ -54,9 +55,21 @@ app.use(factViewerRouter)
 
 app.use(express.static(path.join(__dirname, 'assets')))
 
+// Error catcher to return proper codes to the caller (browser)
 app.use((err: Error, _: Request, res: Response, next: NextFunction) => {
-  console.error(err)
-  res.status(500).send()
+  // console.error('server.ts error catcher', err)
+
+  if (err instanceof MulterError) {
+    switch (err.code) {
+      case 'LIMIT_FILE_SIZE':
+        return res.status(400).send('Votre fichier dépasse la taille maximum.')
+      case 'LIMIT_FILE_COUNT':
+      case 'LIMIT_UNEXPECTED_FILE':
+        return res.status(400).send('Votre envoi dépasse le nombre maximum de fichiers.')
+    }
+  }
+
+  next(err)
 })
 
 // The error handler must be registered before any other error middleware and after all controllers
