@@ -1,4 +1,4 @@
-import { ThumbnailURL } from '../../actions/ThumbnailURL'
+import { ThumbnailURL } from '../photoApi/ThumbnailURL'
 import { postgres } from '../../dependencies/database'
 import { getEventList } from '../../dependencies/getEventList'
 import { getSingleEvent } from '../../dependencies/getSingleEvent'

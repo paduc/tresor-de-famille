@@ -1,37 +1,26 @@
 import multer from 'multer'
-import fs from 'node:fs'
 import zod, { z } from 'zod'
 import { addToHistory } from '../../dependencies/addToHistory'
 import { requireAuth } from '../../dependencies/authn'
-import { uploadPhoto } from '../../dependencies/photo-storage'
 import { personsIndex } from '../../dependencies/search'
-import { AppUserId } from '../../domain/AppUserId'
 import { zIsFaceId } from '../../domain/FaceId'
-import { FamilyId, zIsFamilyId } from '../../domain/FamilyId'
+import { zIsFamilyId } from '../../domain/FamilyId'
 import { zIsPersonId } from '../../domain/PersonId'
 import { zIsPhotoId } from '../../domain/PhotoId'
-import { ThreadId, zIsThreadId } from '../../domain/ThreadId'
+import { zIsThreadId } from '../../domain/ThreadId'
 import { FaceIgnoredInPhoto } from '../../events/onboarding/FaceIgnoredInPhoto'
 import { UserNamedPersonInPhoto } from '../../events/onboarding/UserNamedPersonInPhoto'
 import { UserRecognizedPersonInPhoto } from '../../events/onboarding/UserRecognizedPersonInPhoto'
 import { getUuid } from '../../libs/getUuid'
 import { makePersonId } from '../../libs/makePersonId'
-import { makePhotoId } from '../../libs/makePhotoId'
 import { responseAsHtml } from '../../libs/ssr/responseAsHtml'
 import { createCloneIfOutsideOfFamily as createPersonCloneIfOutsideOfFamily } from '../_createCloneIfOutsideOfFamily'
-import { doesPhotoExist } from '../_doesPhotoExist'
 import { getPhotoFamilyId } from '../_getPhotoFamily'
 import { pageRouter } from '../pageRouter'
-import { PhotoListPageUrl } from '../photoList/PhotoListPageUrl'
-import { UserUploadedPhotoToChat } from '../thread/uploadPhotoToChat/UserUploadedPhotoToChat'
 import { NewPhotoPage } from './PhotoPage/NewPhotoPage'
-import { UserAddedCaptionToPhoto } from './UserAddedCaptionToPhoto'
-import { UserDeletedPhoto } from './UserDeletedPhoto'
-import { getNewPhotoPageProps } from './getNewPhotoPageProps'
-import { detectFacesInPhotoUsingAWS } from './recognizeFacesInChatPhoto/detectFacesInPhotoUsingAWS'
-import { UserUploadedPhotoToFamily } from '../photoList/UserUploadedPhotoToFamily'
-import { UserUploadedPhoto } from '../photoList/UserUploadedPhoto'
 import { PhotoPageUrl } from './PhotoPageUrl'
+import { UserAddedCaptionToPhoto } from './UserAddedCaptionToPhoto'
+import { getNewPhotoPageProps } from './getNewPhotoPageProps'
 
 const FILE_SIZE_LIMIT_MB = 20
 const upload = multer({
@@ -201,132 +190,3 @@ pageRouter
       return response.status(500).send("Boom, crash, bing. Quelque chose ne s'est pas bien passé.")
     }
   })
-
-pageRouter.route('/add-photo.html').post(requireAuth(), upload.single('photo'), async (request, response) => {
-  try {
-    const { familyId } = zod
-      .object({
-        familyId: zIsFamilyId.optional(),
-      })
-      .parse(request.body)
-
-    const userId = request.session.user!.id
-
-    const { file } = request
-
-    if (!file) return new Error('We did not receive any image.')
-
-    const { path: originalPath } = file
-    const photoId = makePhotoId()
-
-    const location = await uploadPhoto({ contents: fs.createReadStream(originalPath), id: photoId })
-
-    if (familyId) {
-      await addToHistory(
-        UserUploadedPhotoToFamily({
-          photoId,
-          location,
-          userId,
-          familyId,
-        })
-      )
-    } else {
-      await addToHistory(
-        UserUploadedPhoto({
-          photoId,
-          location,
-          userId,
-        })
-      )
-    }
-
-    // Fire and forget
-    detectFacesInPhotoUsingAWS({ file, photoId })
-
-    if (familyId) {
-      return response.redirect(`/photo/${photoId}/photo.html?photoListForFamilyId=${familyId}`)
-    }
-
-    return response.redirect(`/photo/${photoId}/photo.html`)
-  } catch (error) {
-    console.error('Error in chat route')
-    throw error
-  }
-})
-
-/**
- * This entry-point is for Client-side upload (see Multiupload.tsx)
- */
-pageRouter.route('/upload-photo').post(requireAuth(), upload.single('photo'), async (request, response) => {
-  try {
-    const { familyId } = zod
-      .object({
-        familyId: zIsFamilyId.optional(),
-      })
-      .parse(request.body)
-
-    const userId = request.session.user!.id
-
-    const { file } = request
-    if (!file) return new Error("Aucune photo n'a été reçue par le server.")
-
-    const { path: originalPath } = file
-    const photoId = makePhotoId()
-
-    const location = await uploadPhoto({ contents: fs.createReadStream(originalPath), id: photoId })
-
-    if (familyId) {
-      await addToHistory(
-        UserUploadedPhotoToFamily({
-          photoId,
-          location,
-          userId,
-          familyId,
-        })
-      )
-    } else {
-      await addToHistory(
-        UserUploadedPhoto({
-          photoId,
-          location,
-          userId,
-        })
-      )
-    }
-
-    // Fire and forget
-    detectFacesInPhotoUsingAWS({ file, photoId })
-
-    return response.status(200).json({ photoId })
-  } catch (error) {
-    console.error('Error in /upload-image route')
-    throw error
-  }
-})
-
-pageRouter.route('/delete-photo').post(requireAuth(), async (request, response) => {
-  try {
-    const { photoId } = zod.object({ photoId: zIsPhotoId }).parse(request.body)
-    const userId = request.session.user!.id
-
-    // TODO: Make sure the user is the author of the photo
-    const isAllowed = await doesPhotoExist({ photoId })
-
-    if (!isAllowed) {
-      return response.status(403).send("La suppression de la photo a échoué parce que vous n'en êtes pas l'auteur.")
-    }
-
-    // Emit
-    await addToHistory(
-      UserDeletedPhoto({
-        photoId,
-        userId,
-      })
-    )
-
-    return response.redirect(PhotoListPageUrl)
-  } catch (error) {
-    console.error('Error in photo route')
-    return response.status(500).send('La suppression de la photo a échoué.')
-  }
-})

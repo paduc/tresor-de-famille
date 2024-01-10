@@ -1,15 +1,15 @@
 import sharp from 'sharp'
 import { z } from 'zod'
 
-import { requireAuth } from '../dependencies/authn'
-import { downloadPhoto } from '../dependencies/photo-storage'
-import { zIsPhotoId } from '../domain/PhotoId'
-import { actionsRouter } from './actionsRouter'
-import { doesPhotoExist } from '../pages/_doesPhotoExist'
+import { requireAuth } from '../../dependencies/authn'
+import { downloadPhoto } from '../../dependencies/photo-storage'
+import { zIsPhotoId } from '../../domain/PhotoId'
+import { doesPhotoExist } from '../_doesPhotoExist'
 import { ThumbnailURL } from './ThumbnailURL'
-import { getOriginalPhotoId } from '../pages/_getOriginalPhotoId'
+import { getOriginalPhotoId } from '../_getOriginalPhotoId'
+import { pageRouter } from '../pageRouter'
 
-actionsRouter.route(ThumbnailURL()).get(requireAuth(), async (request, response) => {
+pageRouter.route(ThumbnailURL(':photoId')).get(requireAuth(), async (request, response) => {
   try {
     const { photoId } = z.object({ photoId: zIsPhotoId }).parse(request.params)
 

@@ -1,12 +1,12 @@
 import zod from 'zod'
-import { requireAuth } from '../dependencies/authn'
-import { downloadPhoto } from '../dependencies/photo-storage'
-import { zIsPhotoId } from '../domain/PhotoId'
-import { doesPhotoExist } from '../pages/_doesPhotoExist'
-import { actionsRouter } from './actionsRouter'
-import { getOriginalPhotoId } from '../pages/_getOriginalPhotoId'
+import { requireAuth } from '../../dependencies/authn'
+import { downloadPhoto } from '../../dependencies/photo-storage'
+import { zIsPhotoId } from '../../domain/PhotoId'
+import { doesPhotoExist } from '../_doesPhotoExist'
+import { getOriginalPhotoId } from '../_getOriginalPhotoId'
+import { pageRouter } from '../pageRouter'
 
-actionsRouter.route('/photos/:photoId').get(requireAuth(), async (request, response) => {
+pageRouter.route('/photos/:photoId').get(requireAuth(), async (request, response) => {
   try {
     const { photoId } = zod.object({ photoId: zIsPhotoId }).parse(request.params)
 

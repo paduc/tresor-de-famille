@@ -14,8 +14,8 @@ import { UserInsertedPhotoInRichTextThread } from '../../thread/UserInsertedPhot
 import { UserUploadedPhotoToChat } from '../../thread/uploadPhotoToChat/UserUploadedPhotoToChat'
 import { AWSDetectedFacesInPhoto } from './AWSDetectedFacesInPhoto'
 import { getAWSDetectedFacesInPhoto } from './getAWSDetectedFacesInPhoto'
-import { UserUploadedPhotoToFamily } from '../../photoList/UserUploadedPhotoToFamily'
-import { UserUploadedPhoto } from '../../photoList/UserUploadedPhoto'
+import { UserUploadedPhotoToFamily } from '../../photoApi/UserUploadedPhotoToFamily'
+import { UserUploadedPhoto } from '../../photoApi/UserUploadedPhoto'
 
 type DetectFacesInPhotosUsingAWSArgs = {
   file: Express.Multer.File

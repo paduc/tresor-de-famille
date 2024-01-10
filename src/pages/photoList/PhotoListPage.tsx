@@ -17,12 +17,12 @@ import { InlinePhotoUploadBtn } from '../_components/InlinePhotoUploadBtn'
 import { useSession } from '../_components/SessionContext'
 import { SuccessError } from '../_components/SuccessError'
 import { AppLayout } from '../_components/layout/AppLayout'
-import { PhotoIcon } from '../photo/PhotoPage/PhotoIcon'
 import { PhotoListPageUrlWithFamily } from './PhotoListPageUrl'
 import { Multiupload } from './Multiupload'
 import { useState } from 'react'
 import { PhotoPageUrl } from '../photo/PhotoPageUrl'
-import { ThumbnailURL } from '../../actions/ThumbnailURL'
+import { ThumbnailURL } from '../photoApi/ThumbnailURL'
+import { PhotoIcon } from '@heroicons/react/20/solid'
 
 // @ts-ignore
 function classNames(...classes) {

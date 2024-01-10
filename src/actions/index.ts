@@ -1,5 +1,5 @@
 export * from './actionsRouter'
-export * from './getPhotoById.route'
+export * from '../pages/photoApi/getPhotoById.route'
 export * from './getImageForFaceInPhoto.route'
-export * from './getPhotoThumbnail.route'
+export * from '../pages/photoApi/getPhotoThumbnail.route'
 export * from './resetAlgoliaIndex.route'
