@@ -1,13 +1,9 @@
-import { postgres } from '../../dependencies/database'
 import { getEventList } from '../../dependencies/getEventList'
-import { getPhotoUrlFromId } from '../../dependencies/photo-storage'
 import { AppUserId } from '../../domain/AppUserId'
 import { FamilyId } from '../../domain/FamilyId'
-import { PhotoId } from '../../domain/PhotoId'
 import { OnboardingUserUploadedPhotoOfFamily } from '../../events/onboarding/OnboardingUserUploadedPhotoOfFamily'
 import { OnboardingUserUploadedPhotoOfThemself } from '../../events/onboarding/OnboardingUserUploadedPhotoOfThemself'
 import { isPhotoDeleted } from '../_isPhotoDeleted'
-import { PhotoClonedForSharing } from '../thread/ThreadPage/PhotoClonedForSharing'
 import { UserInsertedPhotoInRichTextThread } from '../thread/UserInsertedPhotoInRichTextThread'
 import { UserUploadedPhotoToChat } from '../thread/uploadPhotoToChat/UserUploadedPhotoToChat'
 import { PhotoListProps } from './PhotoListPage'
@@ -46,20 +42,7 @@ export const getPhotoListPageProps = async ({ userId, familyId }: GetPhotoListPa
   return {
     photos: photos.map(({ payload: { photoId } }) => ({
       photoId,
-      url: getPhotoUrlFromId(photoId),
     })),
     currentFamilyId: familyId,
   }
-}
-
-/**
- * Tells if a photo has a cloned version
- */
-async function isPhotoCloned(photoId: PhotoId) {
-  const { rows } = await postgres.query<PhotoClonedForSharing>(
-    `SELECT * FROM history WHERE type='PhotoClonedForSharing' AND payload->'clonedFrom'->>'photoId'=$1 LIMIT 1`,
-    [photoId]
-  )
-
-  return !!rows.length
 }

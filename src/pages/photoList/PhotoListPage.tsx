@@ -34,7 +34,6 @@ export type PhotoListProps = {
   error?: string
   photos: {
     photoId: PhotoId
-    url: string
   }[]
   currentFamilyId: FamilyId
 }
@@ -115,7 +114,11 @@ export const PhotoListPage = withBrowserBundle(({ error, success, photos, curren
               {photos.map((photo) => (
                 <li key={photo.photoId} className='relative'>
                   <div className='group aspect-h-7 aspect-w-10 block w-full overflow-hidden rounded-lg bg-gray-100 focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 focus-within:ring-offset-gray-100'>
-                    <img src={photo.url} alt='' className='pointer-events-none object-cover group-hover:opacity-75' />
+                    <img
+                      src={ThumbnailURL(photo.photoId)}
+                      alt=''
+                      className='pointer-events-none object-cover group-hover:opacity-75'
+                    />
                     <a
                       href={`${PhotoPageUrl(photo.photoId)}?photoListForFamilyId=${currentFamilyId}`}
                       className='absolute inset-0 focus:outline-none'>
