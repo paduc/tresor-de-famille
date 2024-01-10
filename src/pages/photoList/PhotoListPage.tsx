@@ -74,25 +74,15 @@ export const PhotoListPage = withBrowserBundle(({ error, success, photos, curren
                 Pas de photos ?!
               </p>
               <p className='max-w-xl mt-5 mx-auto text-xl text-gray-500'>Lancez-vous en en envoyant une !</p>
-              <Multiupload familyId={currentFamilyId}>
-                {(open) => (
-                  <span
-                    onClick={open}
-                    className='inline-flex items-center mt-6 px-3 py-1.5 border border-transparent sm:text-sm cursor-pointer font-medium rounded-full shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
-                    <PhotoIcon className='-ml-0.5 mr-2 h-4 w-4' aria-hidden='true' />
-                    Ajouter des photos
-                  </span>
-                )}
-              </Multiupload>
-              {/* <InlinePhotoUploadBtn
+              <InlinePhotoUploadBtn
                 formAction='/add-photo.html'
                 hiddenFields={{ familyId: currentFamilyId }}
                 formKey={`uploadFamily${currentFamilyId}`}>
                 <span className={`mt-4 ${primaryButtonStyles} ${smallButtonStyles}`}>
                   <PhotoIcon className={`${smallButtonIconStyles}`} aria-hidden='true' />
-                  Ajouter une nouvelle photo
+                  Ajouter une photo
                 </span>
-              </InlinePhotoUploadBtn> */}
+              </InlinePhotoUploadBtn>
             </div>
           </div>
         ) : (
