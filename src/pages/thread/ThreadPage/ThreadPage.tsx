@@ -32,6 +32,7 @@ import { useLoader } from '../../_components/layout/LoaderContext'
 import { ThreadUrl } from '../ThreadUrl'
 import { TipTapContentAsJSON } from '../TipTapTypes'
 import { ThreadSharingButton } from './ThreadSharingButton'
+import { ReadWriteToggle } from './ReadWriteToggle'
 
 // @ts-ignore
 function classNames(...classes) {
@@ -87,13 +88,13 @@ export const ThreadPage = withBrowserBundle(
               <RichTextEditor ref={richTextEditorRef} content={contentAsJSON} threadId={threadId} lastUpdated={lastUpdated} />
             </div>
           </div>
-          {/* <div className='w-full mt-3 px-2'>
+          <div className='w-full mt-3 px-2'>
             {isAuthor ? (
               <div className='w-full inline-flex items-center place-content-start'>
                 <ReadWriteToggle threadId={threadId} />
               </div>
             ) : null}
-          </div> */}
+          </div>
         </div>
       </AppLayout>
     )
