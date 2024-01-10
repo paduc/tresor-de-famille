@@ -33,6 +33,9 @@ import { ThreadUrl } from '../ThreadUrl'
 import { TipTapContentAsJSON } from '../TipTapTypes'
 import { ThreadSharingButton } from './ThreadSharingButton'
 import { ReadWriteToggle } from './ReadWriteToggle'
+import { MediaSelector } from '../MediaSelector'
+import { PhotoPageUrl } from '../../photo/PhotoPageUrl'
+import { PhotoURL } from '../../photoApi/PhotoURL'
 
 // @ts-ignore
 function classNames(...classes) {
@@ -110,11 +113,10 @@ export type PhotoItemProps = {
   threadId: ThreadId
 }
 const PhotoItem = (props: PhotoItemProps) => {
-  console.log('PhotoItem', props, null, 2)
   const { description, url, personsInPhoto, unrecognizedFacesInPhoto } = props
   const descriptionOfPeople = personsInPhoto.join(', ')
 
-  const photoPageUrl = `/photo/${props.photoId}/photo.html?threadId=${props.threadId}&updated=1`
+  const photoPageUrl = `${PhotoPageUrl(props.photoId)}?threadId=${props.threadId}&updated=1`
 
   return (
     <div className='grid grid-cols-1 w-full px-4 sm:px-0 py-2'>
@@ -355,17 +357,33 @@ const RichTextEditor = fixedForwardRef<RichTextEditorRef, RichTextEditorProps>((
       <div className='sm:ml-6 max-w-2xl relative'>
         <EditorContent editor={editor} />
         <FloatingMenu editor={editor} tippyOptions={{ duration: 100 }}>
-          <span
-            onClick={() => {
-              if (photoUploadForm.current) {
-                // @ts-ignore
-                photoUploadForm.current.elements.photo.click()
-              }
-            }}
-            className={`ml-10 sm:ml-5 pl-3 border border-y-0 border-r-0 border-l border-l-gray-300 cursor-pointer inline-flex items-center text-indigo-600 hover:underline hover:underline-offset-2`}>
-            <PhotoIcon className={`${buttonIconStyles} h-4 w-4`} aria-hidden='true' />
-            Insérer une photo
-          </span>
+          <MediaSelector
+            onPhotoAdded={(photoId) => {
+              editor
+                .chain()
+                .focus()
+                .insertContent({
+                  type: 'photoNode',
+                  attrs: {
+                    photoId,
+                    url: PhotoURL(photoId),
+                    description: 'Cliquer pour ajouter une description',
+                    personsInPhoto: '[]', // This should be stringified JSON
+                    unrecognizedFacesInPhoto: 0,
+                    threadId: props.threadId,
+                  },
+                })
+                .run()
+            }}>
+            {(open) => (
+              <span
+                onClick={() => open()}
+                className={`ml-10 sm:ml-5 pl-3 border border-y-0 border-r-0 border-l border-l-gray-300 cursor-pointer inline-flex items-center text-indigo-600 hover:underline hover:underline-offset-2`}>
+                <PhotoIcon className={`${buttonIconStyles} h-4 w-4`} aria-hidden='true' />
+                Insérer une photo
+              </span>
+            )}
+          </MediaSelector>
         </FloatingMenu>
         <div className='absolute top-4 right-2'>
           <StatusIndicator status={status} />
@@ -396,7 +414,6 @@ const PhotoItemWrappedForTipTap = (props: {
   }
 }) => {
   try {
-    console.log('PhotoItem wrapper', props)
     const parsedPersonsInPhoto: string[] = JSON.parse(decodeURIComponent(props.node.attrs.personsInPhoto))
 
     if (!Array.isArray(parsedPersonsInPhoto) || parsedPersonsInPhoto.some((nom) => typeof nom !== 'string')) {

@@ -1,0 +1,84 @@
+import axios from 'axios'
+import React, { useEffect, useState } from 'react'
+import { PhotoId } from '../../domain/PhotoId'
+import { TDFModal } from '../_components/TDFModal'
+import { MediaSelectorListURL } from '../photoApi/MediaSelectorListURL'
+import { ThumbnailURL } from '../photoApi/ThumbnailURL'
+
+type MediaSelectorProps = {
+  onPhotoAdded?: (photoId: PhotoId) => void
+  children: (open: (args?: any) => any) => JSX.Element
+}
+export function MediaSelector({ onPhotoAdded, children }: MediaSelectorProps) {
+  const [photos, setPhotos] = useState<PhotoId[]>([])
+  const [isOpen, setOpen] = useState(false)
+
+  // Fetch photos here
+  useEffect(() => {
+    async function getPhotos() {
+      const res = await axios.get<{ photos: PhotoId[] }>(MediaSelectorListURL(), {
+        headers: {
+          Accept: 'application/json',
+        },
+      })
+
+      if (res.status === 200) {
+        setPhotos(res.data.photos)
+      }
+    }
+
+    getPhotos()
+  }, [isOpen])
+
+  return (
+    <>
+      {children(() => setOpen(true))}
+      <MediaSelectorComponent
+        isOpen={isOpen}
+        close={() => {
+          setOpen(false)
+          setTimeout(() => {
+            // Set timer to reset values after closing
+            setPhotos([])
+          }, 500)
+        }}
+        photos={photos.map((photoId) => ({ photoId, url: ThumbnailURL(photoId) }))}
+        onPhotoAdded={onPhotoAdded}
+      />
+    </>
+  )
+}
+
+/**
+ * Use separate pure component to make it easier to test with Storybook
+ */
+type MediaSelectorComponentProps = {
+  onPhotoAdded?: (photoId: PhotoId) => void
+  photos: { photoId: PhotoId; url: string }[]
+  isOpen: boolean
+  close: () => unknown
+}
+export function MediaSelectorComponent({ isOpen, close, onPhotoAdded, photos }: MediaSelectorComponentProps) {
+  return (
+    <TDFModal title={"Insérer des photos dans l'histoire"} isOpen={isOpen} close={close}>
+      <div className='max-h-[85vh] overflow-y-scroll'>
+        <ul role='list' className='grid grid-cols-2 gap-x-4 gap-y-4 sm:grid-cols-3 sm:gap-x-6 lg:grid-cols-4 xl:gap-x-8 mt-3'>
+          {photos.map(({ photoId, url }) => (
+            <li key={photoId} className='relative'>
+              <div className='group aspect-h-7 aspect-w-10 block w-full overflow-hidden rounded-lg bg-gray-100 cursor-pointer'>
+                <img src={url} alt='' className='pointer-events-none object-cover group-hover:opacity-75' />
+                <a
+                  onClick={() => {
+                    if (onPhotoAdded) onPhotoAdded(photoId)
+                  }}
+                  className='absolute inset-0 focus:outline-none'>
+                  <span className='sr-only'>Insérer cette photo</span>
+                </a>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </TDFModal>
+  )
+}
