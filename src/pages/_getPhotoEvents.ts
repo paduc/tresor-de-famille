@@ -5,6 +5,8 @@ import { OnboardingUserUploadedPhotoOfFamily } from '../events/onboarding/Onboar
 import { OnboardingUserUploadedPhotoOfThemself } from '../events/onboarding/OnboardingUserUploadedPhotoOfThemself'
 import { UserAddedCaptionToPhoto } from './photo/UserAddedCaptionToPhoto'
 import { UserDeletedPhoto } from './photo/UserDeletedPhoto'
+import { UserUploadedPhoto } from './photoList/UserUploadedPhoto'
+import { UserUploadedPhotoToFamily } from './photoList/UserUploadedPhotoToFamily'
 import { PhotoClonedForSharing } from './thread/ThreadPage/PhotoClonedForSharing'
 import { UserInsertedPhotoInRichTextThread } from './thread/UserInsertedPhotoInRichTextThread'
 import { UserUploadedPhotoToChat } from './thread/uploadPhotoToChat/UserUploadedPhotoToChat'
@@ -12,6 +14,8 @@ import { UserUploadedPhotoToChat } from './thread/uploadPhotoToChat/UserUploaded
 export type PhotoEvent =
   | PhotoClonedForSharing
   | UserUploadedPhotoToChat
+  | UserUploadedPhotoToFamily
+  | UserUploadedPhoto
   | UserInsertedPhotoInRichTextThread
   | UserDeletedPhoto
   | UserAddedCaptionToPhoto
@@ -23,6 +27,8 @@ export async function getPhotoEvents(photoId: PhotoId): Promise<PhotoEvent[]> {
 
   const updateEvents = await getEventList<
     | UserUploadedPhotoToChat
+    | UserUploadedPhotoToFamily
+    | UserUploadedPhoto
     | UserInsertedPhotoInRichTextThread
     | UserDeletedPhoto
     | UserAddedCaptionToPhoto
@@ -31,6 +37,8 @@ export async function getPhotoEvents(photoId: PhotoId): Promise<PhotoEvent[]> {
   >(
     [
       'UserUploadedPhotoToChat',
+      'UserUploadedPhotoToFamily',
+      'UserUploadedPhoto',
       'UserInsertedPhotoInRichTextThread',
       'UserDeletedPhoto',
       'UserAddedCaptionToPhoto',

@@ -17,7 +17,10 @@ export async function getPhotoFamilyId(photoId: PhotoId): Promise<FamilyId> {
     case 'PhotoClonedForSharing':
     case 'UserInsertedPhotoInRichTextThread':
     case 'UserUploadedPhotoToChat':
+    case 'UserUploadedPhotoToFamily':
       return creationEvent.payload.familyId
+    case 'UserUploadedPhoto':
+      return creationEvent.payload.userId as unknown as FamilyId
     case 'UserDeletedPhoto':
     case 'UserAddedCaptionToPhoto':
       throw new Error('First event for this photo is not possible')

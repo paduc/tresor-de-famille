@@ -6,14 +6,16 @@ import { getUuid } from '../../libs/getUuid'
 import { primaryButtonStyles, smallButtonStyles } from '../_components/Button'
 import { TDFModal } from '../_components/TDFModal'
 import { FireIcon } from '@heroicons/react/20/solid'
+import { PhotoId } from '../../domain/PhotoId'
 
 type MultiuploadProps = {
   mock?: boolean
   children: (open: (args: any) => any) => JSX.Element
   familyId?: FamilyId
+  onPhotoAdded?: (photoId: PhotoId) => void
 }
 
-export function Multiupload({ mock, children, familyId }: MultiuploadProps) {
+export function Multiupload({ mock, children, familyId, onPhotoAdded }: MultiuploadProps) {
   const [isOpen, setOpen] = useState(false)
   const [photosToUpload, setPhotosToUploaed] = useState<{ file: File; id: string }[]>([])
 
@@ -51,7 +53,13 @@ export function Multiupload({ mock, children, familyId }: MultiuploadProps) {
           {photosToUpload.length ? (
             <ul className='pt-2'>
               {photosToUpload.map(({ file, id }) => (
-                <SingleUpdate file={file} key={`photo_uploading_${id}`} mock={mock} familyId={familyId} />
+                <SingleUpdate
+                  file={file}
+                  key={`photo_uploading_${id}`}
+                  mock={mock}
+                  familyId={familyId}
+                  onPhotoAdded={onPhotoAdded}
+                />
               ))}
             </ul>
           ) : null}
@@ -65,9 +73,10 @@ type SingleUploadProps = {
   file: File
   mock?: boolean
   familyId?: FamilyId
+  onPhotoAdded?: (photoId: PhotoId) => void
 }
 
-const SingleUpdate = memo(({ file, mock, familyId }: SingleUploadProps) => {
+const SingleUpdate = memo(({ file, mock, familyId, onPhotoAdded }: SingleUploadProps) => {
   const [progress, setProgress] = useState(0)
   const [errorCode, setError] = useState<{ code: number; text: string } | null>(null)
   const [photo, setPhoto] = useState<string | null>(null)
@@ -108,6 +117,11 @@ const SingleUpdate = memo(({ file, mock, familyId }: SingleUploadProps) => {
         if (res.status !== 200) {
           setError({ code: res.status, text: res.statusText })
           console.error('Axios res.status', res.status)
+        } else {
+          const { photoId } = res.data
+          if (onPhotoAdded && photoId) {
+            onPhotoAdded(photoId)
+          }
         }
       } catch (error) {
         console.error('Axios failed', error)

@@ -31,6 +31,7 @@ import { getNewPhotoPageProps } from './getNewPhotoPageProps'
 import { detectFacesInPhotoUsingAWS } from './recognizeFacesInChatPhoto/detectFacesInPhotoUsingAWS'
 import { UserUploadedPhotoToFamily } from '../photoList/UserUploadedPhotoToFamily'
 import { UserUploadedPhoto } from '../photoList/UserUploadedPhoto'
+import { PhotoPageUrl } from './PhotoPageUrl'
 
 const FILE_SIZE_LIMIT_MB = 20
 const upload = multer({
@@ -42,7 +43,7 @@ const fakeProfilePicUrl =
   'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80'
 
 pageRouter
-  .route('/photo/:photoId/photo.html')
+  .route(PhotoPageUrl(':photoId'))
   .get(requireAuth(), async (request, response) => {
     try {
       const { photoId } = zod.object({ photoId: zIsPhotoId }).parse(request.params)
@@ -215,7 +216,32 @@ pageRouter.route('/add-photo.html').post(requireAuth(), upload.single('photo'), 
 
     if (!file) return new Error('We did not receive any image.')
 
-    const photoId = await uploadNewPhoto({ file, familyId, userId })
+    const { path: originalPath } = file
+    const photoId = makePhotoId()
+
+    const location = await uploadPhoto({ contents: fs.createReadStream(originalPath), id: photoId })
+
+    if (familyId) {
+      await addToHistory(
+        UserUploadedPhotoToFamily({
+          photoId,
+          location,
+          userId,
+          familyId,
+        })
+      )
+    } else {
+      await addToHistory(
+        UserUploadedPhoto({
+          photoId,
+          location,
+          userId,
+        })
+      )
+    }
+
+    // Fire and forget
+    detectFacesInPhotoUsingAWS({ file, photoId })
 
     if (familyId) {
       return response.redirect(`/photo/${photoId}/photo.html?photoListForFamilyId=${familyId}`)
@@ -304,29 +330,3 @@ pageRouter.route('/delete-photo').post(requireAuth(), async (request, response) 
     return response.status(500).send('La suppression de la photo a échoué.')
   }
 })
-
-type UploadPhotoToChatArgs = {
-  file: Express.Multer.File
-  userId: AppUserId
-  familyId: FamilyId | undefined
-}
-async function uploadNewPhoto({ file, familyId, userId }: UploadPhotoToChatArgs) {
-  const { path: originalPath } = file
-  const photoId = makePhotoId()
-
-  const location = await uploadPhoto({ contents: fs.createReadStream(originalPath), id: photoId })
-
-  await addToHistory(
-    UserUploadedPhotoToChat({
-      threadId: photoId as string as ThreadId, // Each photo has a thread
-      photoId,
-      location,
-      userId,
-      familyId: familyId || (userId as string as FamilyId),
-    })
-  )
-
-  await detectFacesInPhotoUsingAWS({ file, photoId })
-
-  return photoId
-}

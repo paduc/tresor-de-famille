@@ -2,6 +2,8 @@ import { getSingleEvent } from '../dependencies/getSingleEvent'
 import { PhotoId } from '../domain/PhotoId'
 import { OnboardingUserUploadedPhotoOfFamily } from '../events/onboarding/OnboardingUserUploadedPhotoOfFamily'
 import { OnboardingUserUploadedPhotoOfThemself } from '../events/onboarding/OnboardingUserUploadedPhotoOfThemself'
+import { UserUploadedPhoto } from './photoList/UserUploadedPhoto'
+import { UserUploadedPhotoToFamily } from './photoList/UserUploadedPhotoToFamily'
 import { PhotoClonedForSharing } from './thread/ThreadPage/PhotoClonedForSharing'
 import { UserInsertedPhotoInRichTextThread } from './thread/UserInsertedPhotoInRichTextThread'
 import { UserUploadedPhotoToChat } from './thread/uploadPhotoToChat/UserUploadedPhotoToChat'
@@ -9,6 +11,8 @@ import { UserUploadedPhotoToChat } from './thread/uploadPhotoToChat/UserUploaded
 export const doesPhotoExist = async ({ photoId }: { photoId: PhotoId }): Promise<boolean> => {
   const photoUploaded = await getSingleEvent<
     | UserUploadedPhotoToChat
+    | UserUploadedPhotoToFamily
+    | UserUploadedPhoto
     | OnboardingUserUploadedPhotoOfThemself
     | OnboardingUserUploadedPhotoOfFamily
     | PhotoClonedForSharing
@@ -16,6 +20,8 @@ export const doesPhotoExist = async ({ photoId }: { photoId: PhotoId }): Promise
   >(
     [
       'UserUploadedPhotoToChat',
+      'UserUploadedPhotoToFamily',
+      'UserUploadedPhoto',
       'OnboardingUserUploadedPhotoOfThemself',
       'OnboardingUserUploadedPhotoOfFamily',
       'PhotoClonedForSharing',

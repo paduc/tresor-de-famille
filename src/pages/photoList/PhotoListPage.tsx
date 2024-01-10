@@ -20,6 +20,9 @@ import { AppLayout } from '../_components/layout/AppLayout'
 import { PhotoIcon } from '../photo/PhotoPage/PhotoIcon'
 import { PhotoListPageUrlWithFamily } from './PhotoListPageUrl'
 import { Multiupload } from './Multiupload'
+import { useState } from 'react'
+import { PhotoPageUrl } from '../photo/PhotoPageUrl'
+import { ThumbnailURL } from '../../actions/ThumbnailURL'
 
 // @ts-ignore
 function classNames(...classes) {
@@ -38,12 +41,16 @@ export type PhotoListProps = {
 
 export const PhotoListPage = withBrowserBundle(({ error, success, photos, currentFamilyId }: PhotoListProps) => {
   const session = useSession()
+  const [photosAddedRecently, setPhotosAddedRecently] = useState<PhotoId[]>([])
+
+  const handleNewPhoto = React.useCallback((newPhoto: PhotoId) => {
+    setPhotosAddedRecently((state) => [...state, newPhoto])
+  }, [])
 
   if (!session.isLoggedIn) return <div />
 
   const { userFamilies } = session
 
-  const photoPageUrl = (photo: PhotoListProps['photos'][number]) => `/photo/${photo.photoId}/photo.html`
   return (
     <AppLayout>
       {userFamilies.length > 1 ? (
@@ -88,7 +95,7 @@ export const PhotoListPage = withBrowserBundle(({ error, success, photos, curren
         ) : (
           <>
             <h3 className='text-lg font-medium leading-6 text-gray-900'>Photos</h3>
-            <Multiupload familyId={currentFamilyId}>
+            <Multiupload familyId={currentFamilyId} onPhotoAdded={handleNewPhoto}>
               {(open) => (
                 <span onClick={open} className={`${linkStyles} text-base`}>
                   Ajouter des nouvelles photos
@@ -110,7 +117,23 @@ export const PhotoListPage = withBrowserBundle(({ error, success, photos, curren
                   <div className='group aspect-h-7 aspect-w-10 block w-full overflow-hidden rounded-lg bg-gray-100 focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 focus-within:ring-offset-gray-100'>
                     <img src={photo.url} alt='' className='pointer-events-none object-cover group-hover:opacity-75' />
                     <a
-                      href={photoPageUrl(photo) + `?photoListForFamilyId=${currentFamilyId}`}
+                      href={`${PhotoPageUrl(photo.photoId)}?photoListForFamilyId=${currentFamilyId}`}
+                      className='absolute inset-0 focus:outline-none'>
+                      <span className='sr-only'>Voir la photo</span>
+                    </a>
+                  </div>
+                </li>
+              ))}
+              {photosAddedRecently.map((photoId) => (
+                <li key={photoId} className='relative'>
+                  <div className='group aspect-h-7 aspect-w-10 block w-full overflow-hidden rounded-lg bg-gray-100 focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 focus-within:ring-offset-gray-100'>
+                    <img
+                      src={ThumbnailURL(photoId)}
+                      alt=''
+                      className='pointer-events-none object-cover group-hover:opacity-75'
+                    />
+                    <a
+                      href={`${PhotoPageUrl(photoId)}?photoListForFamilyId=${currentFamilyId}`}
                       className='absolute inset-0 focus:outline-none'>
                       <span className='sr-only'>Voir la photo</span>
                     </a>
@@ -119,7 +142,7 @@ export const PhotoListPage = withBrowserBundle(({ error, success, photos, curren
               ))}
             </ul>
             <div className='mt-5'>
-              <Multiupload familyId={currentFamilyId}>
+              <Multiupload familyId={currentFamilyId} onPhotoAdded={handleNewPhoto}>
                 {(open) => (
                   <span onClick={open} className={`${primaryButtonStyles} ${smallButtonStyles}`}>
                     <PhotoIcon className={`${smallButtonIconStyles}`} aria-hidden='true' />
