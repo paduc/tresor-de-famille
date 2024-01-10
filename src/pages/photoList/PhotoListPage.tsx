@@ -191,7 +191,7 @@ const FamilySwitcher = ({ currentFamilyId }: FamilySwitcherProps) => {
                   leave='transition ease-in duration-100'
                   leaveFrom='opacity-100'
                   leaveTo='opacity-0'>
-                  <Listbox.Options className='absolute -left-2 z-50 mt-2 w-64 origin-top-left divide-y divide-gray-200 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none'>
+                  <Listbox.Options className='absolute -right-2 z-50 mt-2 w-64 origin-top-right divide-y divide-gray-200 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none'>
                     {userFamilies.map((family) => (
                       <Listbox.Option
                         key={family.familyId}
