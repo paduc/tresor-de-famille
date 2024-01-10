@@ -3,46 +3,68 @@ import { AppUserId } from '../../domain/AppUserId'
 import { FamilyId } from '../../domain/FamilyId'
 import { OnboardingUserUploadedPhotoOfFamily } from '../../events/onboarding/OnboardingUserUploadedPhotoOfFamily'
 import { OnboardingUserUploadedPhotoOfThemself } from '../../events/onboarding/OnboardingUserUploadedPhotoOfThemself'
+import { asFamilyId } from '../../libs/typeguards'
+import { PhotoEvent } from '../_getPhotoEvents'
 import { isPhotoDeleted } from '../_isPhotoDeleted'
+import { UserAddedCaptionToPhoto } from '../photo/UserAddedCaptionToPhoto'
+import { UserDeletedPhoto } from '../photoApi/UserDeletedPhoto'
+import { UserUploadedPhoto } from '../photoApi/UserUploadedPhoto'
+import { UserUploadedPhotoToFamily } from '../photoApi/UserUploadedPhotoToFamily'
+import { PhotoClonedForSharing } from '../thread/ThreadPage/PhotoClonedForSharing'
 import { UserInsertedPhotoInRichTextThread } from '../thread/UserInsertedPhotoInRichTextThread'
 import { UserUploadedPhotoToChat } from '../thread/uploadPhotoToChat/UserUploadedPhotoToChat'
 import { PhotoListProps } from './PhotoListPage'
 
 type GetPhotoListPageProsArgs = {
-  familyId: FamilyId
   userId: AppUserId
+  familyId?: FamilyId
 }
 
 export const getPhotoListPageProps = async ({ userId, familyId }: GetPhotoListPageProsArgs): Promise<PhotoListProps> => {
-  const photoList = await getEventList<
-    | UserUploadedPhotoToChat
-    | OnboardingUserUploadedPhotoOfFamily
-    | OnboardingUserUploadedPhotoOfThemself
-    | UserInsertedPhotoInRichTextThread
-  >(
-    [
-      'OnboardingUserUploadedPhotoOfFamily',
-      'OnboardingUserUploadedPhotoOfThemself',
-      'UserUploadedPhotoToChat',
-      'UserInsertedPhotoInRichTextThread',
-    ],
-    {
-      familyId,
-    }
+  const photos: PhotoEvent[] = []
+
+  photos.push(
+    ...(await getEventList<
+      | PhotoClonedForSharing
+      | UserUploadedPhotoToChat
+      | UserUploadedPhotoToFamily
+      | UserInsertedPhotoInRichTextThread
+      | OnboardingUserUploadedPhotoOfThemself
+      | OnboardingUserUploadedPhotoOfFamily
+    >(
+      [
+        'PhotoClonedForSharing',
+        'UserUploadedPhotoToChat',
+        'UserUploadedPhotoToFamily',
+        'UserInsertedPhotoInRichTextThread',
+        'OnboardingUserUploadedPhotoOfFamily',
+        'OnboardingUserUploadedPhotoOfThemself',
+      ],
+      {
+        familyId: familyId || userId,
+      }
+    ))
   )
 
-  const photos = []
+  if (!familyId || familyId === asFamilyId(userId)) {
+    photos.push(
+      ...(await getEventList<UserUploadedPhoto>(['UserUploadedPhoto'], {
+        userId,
+      }))
+    )
+  }
 
-  for (const photoEvent of photoList) {
+  const nonDeletedPhotos = []
+  for (const photoEvent of photos) {
     if (await isPhotoDeleted(photoEvent.payload.photoId)) continue
     // if (await isPhotoCloned(photoEvent.payload.photoId)) continue
-    photos.push(photoEvent)
+    nonDeletedPhotos.push(photoEvent)
   }
 
   return {
-    photos: photos.map(({ payload: { photoId } }) => ({
+    photos: nonDeletedPhotos.map(({ payload: { photoId } }) => ({
       photoId,
     })),
-    currentFamilyId: familyId,
+    currentFamilyId: familyId || asFamilyId(userId),
   }
 }

@@ -10,6 +10,7 @@ import { pageRouter } from '../pageRouter'
 import { UserUploadedPhoto } from './UserUploadedPhoto'
 import { UserUploadedPhotoToFamily } from './UserUploadedPhotoToFamily'
 import { detectFacesInPhotoUsingAWS } from '../photo/recognizeFacesInChatPhoto/detectFacesInPhotoUsingAWS'
+import { asFamilyId } from '../../libs/typeguards'
 
 const FILE_SIZE_LIMIT_MB = 20
 const upload = multer({
@@ -38,7 +39,7 @@ pageRouter.route('/upload-photo').post(requireAuth(), upload.single('photo'), as
 
     const location = await uploadPhoto({ contents: fs.createReadStream(originalPath), id: photoId })
 
-    if (familyId) {
+    if (familyId && familyId !== asFamilyId(userId)) {
       await addToHistory(
         UserUploadedPhotoToFamily({
           photoId,
