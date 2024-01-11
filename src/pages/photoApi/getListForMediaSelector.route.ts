@@ -33,7 +33,7 @@ pageRouter.route(MediaSelectorListURL()).get(requireAuth(), async (request, resp
     }
 
     const sortedUniquePhotos = new Set(
-      photos.sort((a, b) => a.occurredAt.getTime() - b.occurredAt.getTime()).map((item) => item.photoId)
+      photos.sort((a, b) => b.occurredAt.getTime() - a.occurredAt.getTime()).map((item) => item.photoId)
     )
 
     return response.json({ photos: Array.from(sortedUniquePhotos) })
