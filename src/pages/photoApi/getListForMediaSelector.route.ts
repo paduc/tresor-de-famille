@@ -32,8 +32,16 @@ pageRouter.route(MediaSelectorListURL()).get(requireAuth(), async (request, resp
       photos.push(...familyPhotos)
     }
 
+    const nonClonedPhotos = []
+    for (const photo of photos) {
+      // Remove photos that are clones from another photo in the list
+      if (!photo.clonedFrom || !photos.some((p) => p.photoId === photo.clonedFrom)) {
+        nonClonedPhotos.push(photo)
+      }
+    }
+
     const sortedUniquePhotos = new Set(
-      photos.sort((a, b) => b.occurredAt.getTime() - a.occurredAt.getTime()).map((item) => item.photoId)
+      nonClonedPhotos.sort((a, b) => b.occurredAt.getTime() - a.occurredAt.getTime()).map((item) => item.photoId)
     )
 
     return response.json({ photos: Array.from(sortedUniquePhotos) })
@@ -43,7 +51,13 @@ pageRouter.route(MediaSelectorListURL()).get(requireAuth(), async (request, resp
   }
 })
 
-async function getFamilyPhotos({ familyId, userId }: { userId: AppUserId; familyId: FamilyId }) {
+async function getFamilyPhotos({ familyId, userId }: { userId: AppUserId; familyId: FamilyId }): Promise<
+  {
+    photoId: PhotoId
+    clonedFrom?: PhotoId
+    occurredAt: Date
+  }[]
+> {
   const photos: PhotoEvent[] = []
 
   photos.push(
@@ -84,8 +98,18 @@ async function getFamilyPhotos({ familyId, userId }: { userId: AppUserId; family
     nonDeletedPhotos.push(photoEvent)
   }
 
-  return nonDeletedPhotos.map(({ payload: { photoId }, occurredAt }) => ({
-    photoId,
-    occurredAt,
-  }))
+  return nonDeletedPhotos.map(({ type, payload, occurredAt }) => {
+    if (type === 'PhotoClonedForSharing') {
+      return {
+        photoId: payload.photoId,
+        clonedFrom: payload.clonedFrom.photoId,
+        occurredAt,
+      }
+    }
+
+    return {
+      photoId: payload.photoId,
+      occurredAt,
+    }
+  })
 }
