@@ -10,6 +10,9 @@ const fakeProfilePicUrl =
 export const Basique = () => (
   <MediaSelectorComponent
     isOpen={true}
+    onPhotoAdded={(photoId) => alert(`Click on ${photoId}`)}
+    close={() => alert('close')}
+    status='idle'
     photos={[
       { photoId: makePhotoId(), url: fakeProfilePicUrl },
       { photoId: makePhotoId(), url: fakeProfilePicUrl },
@@ -27,6 +30,25 @@ export const Basique = () => (
       { photoId: makePhotoId(), url: fakeProfilePicUrl },
       { photoId: makePhotoId(), url: fakeProfilePicUrl },
     ]}
-    close={() => {}}
+  />
+)
+
+export const ChargementEnCours = () => (
+  <MediaSelectorComponent
+    isOpen={true}
+    onPhotoAdded={(photoId) => alert(`Click on ${photoId}`)}
+    close={() => alert('close')}
+    status='downloading'
+    photos={[]}
+  />
+)
+
+export const Erreur = () => (
+  <MediaSelectorComponent
+    isOpen={true}
+    onPhotoAdded={(photoId) => alert(`Click on ${photoId}`)}
+    close={() => alert('close')}
+    status='error'
+    photos={[]}
   />
 )
