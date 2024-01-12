@@ -23,12 +23,14 @@ export type TipTapAttrs<ItemProps extends {}> = {
 
 export type ParagraphNode = {
   type: 'paragraph'
-  content: [
-    {
-      type: 'text'
-      text: string
-    }
-  ]
+  content:
+    | [
+        {
+          type: 'text'
+          text: string
+        }
+      ]
+    | []
 }
 
 type InsertMarkerNode = {
@@ -65,3 +67,38 @@ export const decodeTipTapJSON = (contentAsJSONEncoded: string): TipTapContentAsJ
 }
 
 export const encodeStringy = (json: JSON) => encodeURIComponent(JSON.stringify(json))
+
+/**
+ * Remove the empty paragraphs between photoNodes
+ * reverses the effects of separatePhotoNodes
+ * @param contentAsJson
+ * @returns
+ */
+export const removeEmptySpaceBetweenPhotos = (contentAsJson: TipTapContentAsJSON): TipTapContentAsJSON => {
+  const cleanContentAsJson: TipTapContentAsJSON = {
+    type: 'doc',
+    content: [],
+  }
+
+  let nminus1Node: TipTapJSON | null = null
+  let nminus2Node: TipTapJSON | null = null
+  for (const node of contentAsJson.content) {
+    // Look for photoNode-paragraph-photoNode with empty paragraph
+    if (
+      node.type === 'photoNode' &&
+      nminus1Node &&
+      nminus2Node &&
+      nminus2Node.type === 'photoNode' &&
+      nminus1Node.type === 'paragraph' &&
+      (!nminus1Node.content || nminus1Node.content.length === 0)
+    ) {
+      cleanContentAsJson.content.pop()
+    }
+
+    cleanContentAsJson.content.push(node)
+    nminus2Node = nminus1Node
+    nminus1Node = node
+  }
+
+  return cleanContentAsJson
+}

@@ -123,24 +123,24 @@ export const AvecUnMelangeDePhotoEtMessage = () => (
             unrecognizedFacesInPhoto: 0,
           },
         },
-        {
-          type: 'paragraph',
-          content: [
-            {
-              type: 'text',
-              text: 'Second message',
-            },
-          ],
-        },
-        {
-          type: 'paragraph',
-          content: [
-            {
-              type: 'text',
-              text: 'Third message',
-            },
-          ],
-        },
+        // {
+        //   type: 'paragraph',
+        //   content: [
+        //     {
+        //       type: 'text',
+        //       text: 'Second message',
+        //     },
+        //   ],
+        // },
+        // {
+        //   type: 'paragraph',
+        //   content: [
+        //     {
+        //       type: 'text',
+        //       text: ' ',
+        //     },
+        //   ],
+        // },
         {
           type: 'photoNode',
           attrs: {

@@ -1,16 +1,10 @@
 import { formatRelative } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import debounce from 'lodash.debounce'
-import React, { ReactHTML, createContext, useCallback, useContext, useEffect, useState } from 'react'
+import React, { createContext, useCallback, useContext, useEffect, useState } from 'react'
 import { UUID } from '../../../domain'
 import { withBrowserBundle } from '../../../libs/ssr/withBrowserBundle'
-import {
-  buttonIconStyles,
-  linkStyles,
-  primaryButtonStyles,
-  secondaryButtonStyles,
-  secondaryCircularButtons,
-} from '../../_components/Button'
+import { buttonIconStyles, secondaryCircularButtons } from '../../_components/Button'
 import { ProgressiveImg } from '../../_components/ProgressiveImg'
 import { AppLayout } from '../../_components/layout/AppLayout'
 
@@ -26,9 +20,9 @@ import {
   JSONContent,
   NodeViewWrapper,
   ReactNodeViewRenderer,
+  findChildren,
   mergeAttributes,
   useEditor,
-  findChildren,
 } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import { FamilyId } from '../../../domain/FamilyId'
@@ -37,13 +31,13 @@ import { ThreadId } from '../../../domain/ThreadId'
 import { fixedForwardRef } from '../../../libs/fixedForwardRef'
 import { Epoch } from '../../../libs/typeguards'
 import { useLoader } from '../../_components/layout/LoaderContext'
-import { ThreadUrl } from '../ThreadUrl'
-import { TipTapContentAsJSON } from '../TipTapTypes'
-import { ThreadSharingButton } from './ThreadSharingButton'
-import { ReadWriteToggle } from './ReadWriteToggle'
-import { MediaSelector } from '../MediaSelector'
 import { PhotoPageUrl } from '../../photo/PhotoPageUrl'
 import { PhotoURL } from '../../photoApi/PhotoURL'
+import { MediaSelector } from '../MediaSelector'
+import { ThreadUrl } from '../ThreadUrl'
+import { TipTapContentAsJSON, removeEmptySpaceBetweenPhotos } from '../TipTapTypes'
+import { ReadWriteToggle } from './ReadWriteToggle'
+import { ThreadSharingButton } from './ThreadSharingButton'
 
 // @ts-ignore
 function classNames(...classes) {
@@ -66,7 +60,7 @@ export const ThreadPage = withBrowserBundle(
   ({ title, contentAsJSON: contentAsJSONFromServer, lastUpdated, threadId, familyId, isAuthor }: ThreadPageProps) => {
     const richTextEditorRef = React.useRef<RichTextEditorRef>(null)
 
-    let contentAsJSON = contentAsJSONFromServer
+    let contentAsJSON = separatePhotoNodesInJSONContent(contentAsJSONFromServer)
 
     // if (isBrowserContext && localStorage.getItem(threadId)) {
     //   try {
@@ -185,7 +179,7 @@ const Title = ({ title, threadId }: { title: string | undefined; threadId: Threa
     })
   }
 
-  const debouncedSave = useCallback(debounce(save, 3000), [])
+  const debouncedSave = useCallback(debounce(save, 1500), [])
 
   return (
     <div className='relative w-full max-w-2xl'>
@@ -220,7 +214,8 @@ const useAutosaveEditor = (
   const [status, setStatus] = useState<AutosaveStatus>('idle')
   const [lastUpdated, setLastUpdated] = useState<Epoch | undefined>(initialLastUpdated)
 
-  const save = (newJSON: any) => {
+  const save = (json: TipTapContentAsJSON) => {
+    const newJSON = removeEmptySpaceBetweenPhotos(json)
     setStatus('saving')
     // setTimeout(() => {
     //   setStatus('saved')
@@ -241,7 +236,6 @@ const useAutosaveEditor = (
         return
       }
       setStatus('saved')
-      setLatestHTML(newJSON)
       setLastUpdated(Date.now() as Epoch)
       setTimeout(() => {
         setStatus('idle')
@@ -255,9 +249,13 @@ const useAutosaveEditor = (
     // console.log('autosave useEffect 1')
 
     const insideSave = () => {
-      const newHTML = editor?.getHTML()
+      if (!editor) return
+      const newHTML = editor.getHTML()
       // console.log('editor on update', latestHTML, newHTML)
-      if (newHTML && latestHTML !== newHTML) debouncedSave(editor?.getJSON())
+      if (newHTML && latestHTML !== newHTML) {
+        setLatestHTML(newHTML)
+        debouncedSave(editor.getJSON() as TipTapContentAsJSON)
+      }
     }
 
     if (editor) {
@@ -341,6 +339,8 @@ const RichTextEditor = fixedForwardRef<RichTextEditorRef, RichTextEditorProps>((
 
         editor.chain().insertContentAt(size, '<p></p>').run()
       }
+
+      separatePhotoNodes(editor)
     })
   }, [editor])
   const editorRef: React.MutableRefObject<Editor | null> = React.useRef(null)
@@ -600,4 +600,46 @@ function StatusIndicator({ status }: { status: AutosaveStatus }) {
       ) : null}
     </>
   )
+}
+
+/**
+ * Insert a paragraph between two photos to help with edition (ex: inserting text between images)
+ * @param editor Editor instance
+ */
+function separatePhotoNodes(editor: Editor) {
+  const topContent = editor.view.state.doc.content
+
+  let currentSize = 0
+  let childCount = topContent.childCount
+  for (let i = 0; i < childCount - 1; i++) {
+    if (i > 0 && topContent.child(i - 1).type.name === 'photoNode' && topContent.child(i).type.name === 'photoNode') {
+      editor.chain().insertContentAt(currentSize, `<p></p>`).run()
+      currentSize++
+      i++
+      childCount += 1
+    }
+    currentSize += topContent.child(i).nodeSize
+  }
+}
+
+/**
+ * Same as above but for content as json (only for first print)
+ * @param contentAsJSON
+ */
+function separatePhotoNodesInJSONContent(contentAsJSON: TipTapContentAsJSON): TipTapContentAsJSON {
+  const newContentAsJson: TipTapContentAsJSON = {
+    type: 'doc',
+    content: [],
+  }
+
+  let previousNode = null
+  for (const node of contentAsJSON.content) {
+    if (node.type === 'photoNode' && previousNode && previousNode.type === 'photoNode') {
+      newContentAsJson.content.push({ type: 'paragraph', content: [] })
+    }
+    newContentAsJson.content.push(node)
+    previousNode = node
+  }
+
+  return newContentAsJson
 }
