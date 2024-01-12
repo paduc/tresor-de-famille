@@ -1,7 +1,7 @@
 import { formatRelative } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import debounce from 'lodash.debounce'
-import React, { createContext, useCallback, useContext, useEffect, useState } from 'react'
+import React, { ReactHTML, createContext, useCallback, useContext, useEffect, useState } from 'react'
 import { UUID } from '../../../domain'
 import { withBrowserBundle } from '../../../libs/ssr/withBrowserBundle'
 import {
@@ -249,10 +249,11 @@ const useAutosaveEditor = (
     })
   }
 
-  const debouncedSave = useCallback(debounce(save, 3000), [])
+  const debouncedSave = useCallback(debounce(save, 1500), [])
 
   useEffect(() => {
     // console.log('autosave useEffect 1')
+
     const insideSave = () => {
       const newHTML = editor?.getHTML()
       // console.log('editor on update', latestHTML, newHTML)
