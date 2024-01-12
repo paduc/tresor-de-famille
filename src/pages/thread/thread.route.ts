@@ -186,7 +186,6 @@ pageRouter
         )
         return response.redirect(ThreadUrl(threadId, true))
       } else if (action === 'insertPhotoAtMarker') {
-        const requestId = getUuid()
         const { file } = request
         const photoId = makePhotoId()
 

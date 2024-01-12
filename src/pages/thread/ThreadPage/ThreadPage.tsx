@@ -1,14 +1,21 @@
 import { formatRelative } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import debounce from 'lodash.debounce'
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { createContext, useCallback, useContext, useEffect, useState } from 'react'
 import { UUID } from '../../../domain'
 import { withBrowserBundle } from '../../../libs/ssr/withBrowserBundle'
-import { buttonIconStyles } from '../../_components/Button'
+import {
+  buttonIconStyles,
+  linkStyles,
+  primaryButtonStyles,
+  secondaryButtonStyles,
+  secondaryCircularButtons,
+} from '../../_components/Button'
 import { ProgressiveImg } from '../../_components/ProgressiveImg'
 import { AppLayout } from '../../_components/layout/AppLayout'
 
 import { PhotoIcon } from '@heroicons/react/20/solid'
+import { TrashIcon } from '@heroicons/react/24/outline'
 import { Node } from '@tiptap/core'
 import {
   Attributes,
@@ -21,6 +28,7 @@ import {
   ReactNodeViewRenderer,
   mergeAttributes,
   useEditor,
+  findChildren,
 } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import { FamilyId } from '../../../domain/FamilyId'
@@ -113,13 +121,23 @@ export type PhotoItemProps = {
   threadId: ThreadId
 }
 const PhotoItem = (props: PhotoItemProps) => {
+  const deletePhoto = useDeletePhoto()
   const { description, url, personsInPhoto, unrecognizedFacesInPhoto } = props
   const descriptionOfPeople = personsInPhoto.join(', ')
 
   const photoPageUrl = `${PhotoPageUrl(props.photoId)}?threadId=${props.threadId}&updated=1`
 
   return (
-    <div className='grid grid-cols-1 w-full px-4 sm:px-0 py-2'>
+    <div className='relative grid grid-cols-1 w-full px-4 sm:px-0 py-2'>
+      <div className='absolute top-4 left-6 sm:left-3'>
+        <button
+          onClick={() => deletePhoto(props.photoId)}
+          title='Retirer la photo'
+          className={`${secondaryCircularButtons} bg-opacity-60`}>
+          <TrashIcon className={`h-5 w-5`} />
+        </button>
+      </div>
+
       <div className='mb-2'>
         <a href={photoPageUrl}>
           <div className='max-w-full max-h-[50vh]'>
@@ -273,6 +291,18 @@ type RichTextEditorProps = {
 type RichTextEditorRef = {
   getContents: () => JSONContent
 }
+
+const DeletePhotoCtx = createContext<((photoId: PhotoId) => unknown) | null>(null)
+
+const useDeletePhoto = () => {
+  const deletePhoto = useContext(DeletePhotoCtx)
+  if (deletePhoto === null) {
+    throw new Error('This hook should only be used in a proper Provider')
+  }
+
+  return deletePhoto
+}
+
 const RichTextEditor = fixedForwardRef<RichTextEditorRef, RichTextEditorProps>((props, ref) => {
   const setLoader = useLoader()
   const [contentAsJSONEncoded, setContentAsJSONEncoded] = useState('')
@@ -324,7 +354,22 @@ const RichTextEditor = fixedForwardRef<RichTextEditorRef, RichTextEditorProps>((
   editorRef.current = editor
 
   return (
-    <>
+    <DeletePhotoCtx.Provider
+      value={(photoId) => {
+        const photoNodes = findChildren(
+          editor.state.doc,
+          (node) => node.type.name === 'photoNode' && node.attrs['photoId'] === photoId
+        )
+
+        if (photoNodes.length) {
+          const photoNode = photoNodes.at(0)!
+          editor
+            .chain()
+            .focus()
+            .deleteRange({ from: photoNode.pos, to: photoNode.pos + photoNode.node.nodeSize })
+            .run()
+        }
+      }}>
       <form method='post' ref={photoUploadForm} encType='multipart/form-data'>
         <input type='hidden' name='action' value='insertPhotoAtMarker' />
         <input type='hidden' name='contentAsJSONEncoded' value={contentAsJSONEncoded} />
@@ -394,7 +439,7 @@ const RichTextEditor = fixedForwardRef<RichTextEditorRef, RichTextEditorProps>((
           Dernière mise à jour {formatRelative(lastUpdated, Date.now(), { locale: fr })}
         </div>
       ) : null}
-    </>
+    </DeletePhotoCtx.Provider>
   )
 })
 

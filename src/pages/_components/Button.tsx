@@ -1,5 +1,3 @@
-import React from 'react'
-
 const sharedButtonStyles =
   'cursor-pointer inline-flex items-center px-3 py-1.5 border border-transparent text-md font-medium rounded-full shadow-sm'
 
@@ -19,6 +17,11 @@ export const secondaryRedButtonStyles = `${sharedButtonStyles} ${sharedSecondary
 
 export const buttonIconStyles = '-ml-0.5 mr-2 h-6 w-6'
 export const smallButtonIconStyles = '-ml-0.5 mr-1 h-4 w-4'
+
+export const primaryCircularButtons = 'cursor-pointer rounded-full bg-indigo-600 p-1.5 text-white shadow-sm hover:bg-indigo-500'
+
+export const secondaryCircularButtons =
+  'cursor-pointer rounded-full border border-2 border-indigo-600 bg-white p-1.5 text-indigo-600 shadow-sm hover:bg-indigo-600 hover:text-white hover:font-bold'
 
 export const linkStyles = 'font-medium text-indigo-600 hover:text-indigo-500 cursor-pointer inline-flex items-center text-md'
 
