@@ -5,9 +5,10 @@ import { ThreadId } from '../../../domain/ThreadId'
 import { withBrowserBundle } from '../../../libs/ssr/withBrowserBundle'
 import { Epoch } from '../../../libs/typeguards'
 import { AppLayout } from '../../_components/layout/AppLayout'
-import { TipTapAttrs, TipTapContentAsJSON } from '../TipTapTypes'
+import { TipTapContentAsJSON } from '../TipTapTypes'
 import { ReadWriteToggle } from './ReadWriteToggle'
 import { ThreadSharingButton } from './ThreadSharingButton'
+import { UUID } from '../../../domain'
 
 export type ReadOnlyThreadPageProps = {
   title?: string
@@ -103,7 +104,7 @@ type ReadonlyPhotoItemProps = {
   threadId: ThreadId
 }
 const ReadonlyPhotoItem = (props: ReadonlyPhotoItemProps) => {
-  const { threadId, description, url, personsInPhoto, unrecognizedFacesInPhoto } = props
+  const { threadId, description, url, personsInPhoto } = props
   const descriptionOfPeople = personsInPhoto.join(', ')
 
   const photoPageUrl = `/photo/${props.photoId}/photo.html?threadId=${threadId}`
@@ -122,4 +123,16 @@ const ReadonlyPhotoItem = (props: ReadonlyPhotoItemProps) => {
       </div>
     </div>
   )
+}
+
+type TipTapAttrs<ItemProps extends {}> = {
+  [Attr in keyof ItemProps]: ItemProps[Attr] extends ThreadId
+    ? ThreadId
+    : ItemProps[Attr] extends PhotoId
+    ? PhotoId
+    : ItemProps[Attr] extends UUID
+    ? UUID
+    : ItemProps[Attr] extends number
+    ? number
+    : string
 }

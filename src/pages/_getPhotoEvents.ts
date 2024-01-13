@@ -7,6 +7,7 @@ import { UserAddedCaptionToPhoto } from './photo/UserAddedCaptionToPhoto'
 import { UserDeletedPhoto } from './photoApi/UserDeletedPhoto'
 import { UserUploadedPhoto } from './photoApi/UserUploadedPhoto'
 import { UserUploadedPhotoToFamily } from './photoApi/UserUploadedPhotoToFamily'
+import { PhotoAutoSharedWithThread } from './thread/PhotoAutoSharedWithThread'
 import { PhotoClonedForSharing } from './thread/ThreadPage/PhotoClonedForSharing'
 import { UserInsertedPhotoInRichTextThread } from './thread/UserInsertedPhotoInRichTextThread'
 import { UserUploadedPhotoToChat } from './thread/uploadPhotoToChat/UserUploadedPhotoToChat'
@@ -21,6 +22,7 @@ export type PhotoEvent =
   | UserAddedCaptionToPhoto
   | OnboardingUserUploadedPhotoOfThemself
   | OnboardingUserUploadedPhotoOfFamily
+  | PhotoAutoSharedWithThread
 
 export async function getPhotoEvents(photoId: PhotoId): Promise<PhotoEvent[]> {
   const photoClonedEvent = await getSingleEvent<PhotoClonedForSharing>('PhotoClonedForSharing', { photoId })
@@ -34,6 +36,7 @@ export async function getPhotoEvents(photoId: PhotoId): Promise<PhotoEvent[]> {
     | UserAddedCaptionToPhoto
     | OnboardingUserUploadedPhotoOfThemself
     | OnboardingUserUploadedPhotoOfFamily
+    | PhotoAutoSharedWithThread
   >(
     [
       'UserUploadedPhotoToChat',
@@ -44,6 +47,7 @@ export async function getPhotoEvents(photoId: PhotoId): Promise<PhotoEvent[]> {
       'UserAddedCaptionToPhoto',
       'OnboardingUserUploadedPhotoOfFamily',
       'OnboardingUserUploadedPhotoOfThemself',
+      'PhotoAutoSharedWithThread',
     ],
     {
       photoId,

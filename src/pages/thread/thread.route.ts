@@ -22,16 +22,18 @@ import { getFacesInPhoto } from '../_getFacesInPhoto'
 import { getPersonByIdOrThrow } from '../_getPersonById'
 import { getThreadAuthor } from '../_getThreadAuthor'
 import { getThreadFamily } from '../_getThreadFamily'
+import { isPhotoAccessibleToFamily } from '../_isPhotoAccessibleToFamily'
 import { pageRouter } from '../pageRouter'
 import { UserAddedCaptionToPhoto } from '../photo/UserAddedCaptionToPhoto'
 import { detectFacesInPhotoUsingAWS } from '../photo/recognizeFacesInChatPhoto/detectFacesInPhotoUsingAWS'
 import { PersonClonedForSharing } from '../share/PersonClonedForSharing'
+import { PhotoAutoSharedWithThread } from './PhotoAutoSharedWithThread'
 import { PhotoClonedForSharing } from './ThreadPage/PhotoClonedForSharing'
 import { ReadOnlyThreadPage } from './ThreadPage/ReadonlyThreadPage'
 import { ThreadClonedForSharing } from './ThreadPage/ThreadClonedForSharing'
 import { ThreadPage } from './ThreadPage/ThreadPage'
 import { ThreadUrl } from './ThreadUrl'
-import { TipTapContentAsJSON, decodeTipTapJSON, encodeStringy } from './TipTapTypes'
+import { TipTapContentAsJSON, TipTapJSON, decodeTipTapJSON, encodeStringy, zIsTipTapContentAsJSON } from './TipTapTypes'
 import { UserInsertedPhotoInRichTextThread } from './UserInsertedPhotoInRichTextThread'
 import { UserSetChatTitle } from './UserSetChatTitle'
 import { UserUpdatedThreadAsRichText } from './UserUpdatedThreadAsRichText'
@@ -127,7 +129,6 @@ pageRouter
           action: z.enum([
             'clientsideTitleUpdate',
             'newMessage',
-            'saveRichContentsAsJSON',
             'insertPhotoAtMarker',
             'clientsideUpdate',
             'shareWithFamily',
@@ -157,7 +158,24 @@ pageRouter
         return response.redirect(ThreadUrl(threadId, true))
       } else if (action === 'clientsideUpdate') {
         try {
-          const { contentAsJSON } = z.object({ contentAsJSON: z.any() }).parse(request.body)
+          const { contentAsJSON } = z.object({ contentAsJSON: zIsTipTapContentAsJSON }).parse(request.body)
+
+          const photoIds = contentAsJSON.content
+            .filter((node): node is TipTapJSON & { type: 'photoNode' } => node.type === 'photoNode')
+            .map((node) => node.attrs.photoId)
+
+          // For each photoId, make sure the photo is accessible to the Thread family
+          for (const photoId of photoIds) {
+            if (!(await isPhotoAccessibleToFamily({ photoId, familyId }))) {
+              await addToHistory(
+                PhotoAutoSharedWithThread({
+                  photoId,
+                  threadId,
+                  familyId,
+                })
+              )
+            }
+          }
 
           await addToHistory(
             UserUpdatedThreadAsRichText({

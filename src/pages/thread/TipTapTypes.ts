@@ -1,61 +1,39 @@
 import { z } from 'zod'
 import type { JSON } from '../../dependencies/DomainEvent'
-import { zIsPhotoId, type PhotoId } from '../../domain/PhotoId'
-import type { ThreadId } from '../../domain/ThreadId'
-import type { UUID } from '../../domain/UUID'
-import type { PhotoItemProps } from './ThreadPage/ThreadPage'
+import { zIsPhotoId } from '../../domain/PhotoId'
 
-export type PhotoNode = {
-  type: 'photoNode'
-  attrs: Record<string, any> & { photoId: PhotoId }
-}
+// TipTap Types
 
-export type TipTapAttrs<ItemProps extends {}> = {
-  [Attr in keyof ItemProps]: ItemProps[Attr] extends ThreadId
-    ? ThreadId
-    : ItemProps[Attr] extends PhotoId
-    ? PhotoId
-    : ItemProps[Attr] extends UUID
-    ? UUID
-    : ItemProps[Attr] extends number
-    ? number
-    : string
-}
+export type TipTapJSON = z.infer<typeof zIsTipTapJSON> // = ParagraphNode | PhotoNode
+export type TipTapContentAsJSON = z.infer<typeof zIsTipTapContentAsJSON> // = { type: doc, content: TipTapJSON[]}
 
-export type ParagraphNode = {
+export type ParagraphNode = TipTapJSON & {
   type: 'paragraph'
-  content?:
-    | [
-        {
-          type: 'text'
-          text: string
-        }
-      ]
-    | []
+}
+export type PhotoNode = TipTapJSON & {
+  type: 'photoNode'
 }
 
-type InsertMarkerNode = {
-  type: 'insertPhotoMarker'
-}
+// Zod validators
 
-// type TipTapJSON = PhotoNode | ParagraphNode | InsertMarkerNode
+const zIsParagraphNode = z.object({
+  type: z.literal('paragraph'),
+  content: z.array(z.object({ type: z.literal('text'), text: z.string() })).optional(),
+})
 
-export const zIsTipTapJSON = z.union([
-  z.object({
-    type: z.literal('paragraph'),
-    content: z.array(z.object({ type: z.literal('text'), text: z.string() })).optional(),
-  }),
-  z.object({ type: z.literal('photoNode'), attrs: z.object({ photoId: zIsPhotoId }) }),
-  z.object({ type: z.literal('insertPhotoMarker') }),
-])
+const zIsPhotoNode = z.object({
+  type: z.literal('photoNode'),
+  attrs: z.object({ photoId: zIsPhotoId }).and(z.record(z.any())),
+})
 
-export type TipTapJSON = z.infer<typeof zIsTipTapJSON>
+export const zIsTipTapJSON = z.union([zIsParagraphNode, zIsPhotoNode, z.object({ type: z.literal('insertPhotoMarker') })])
 
 export const zIsTipTapContentAsJSON = z.object({
   type: z.literal('doc'),
   content: z.array(zIsTipTapJSON),
 })
-export type TipTapContentAsJSON = z.infer<typeof zIsTipTapContentAsJSON>
+
+// Utilities to parse/serialize TipTapJSON
 
 export const decodeTipTapJSON = (contentAsJSONEncoded: string): TipTapContentAsJSON => {
   try {

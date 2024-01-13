@@ -18,6 +18,7 @@ export async function getPhotoFamilyId(photoId: PhotoId): Promise<FamilyId> {
     case 'UserInsertedPhotoInRichTextThread':
     case 'UserUploadedPhotoToChat':
     case 'UserUploadedPhotoToFamily':
+    case 'PhotoAutoSharedWithThread':
       return creationEvent.payload.familyId
     case 'UserUploadedPhoto':
       return creationEvent.payload.userId as unknown as FamilyId

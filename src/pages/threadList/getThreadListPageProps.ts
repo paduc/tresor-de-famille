@@ -129,7 +129,7 @@ function getContents(threadEvents: readonly ThreadEvent[]): string {
 
   const textNodes = nodes.filter((node): node is ParagraphNode => node.type === 'paragraph' && !!node.content)
 
-  return textNodes.map((node) => node.content[0].text).join('\n')
+  return textNodes.map((node) => (node.content?.length ? node.content[0].text : '')).join('\n')
 }
 
 function getTitle(threadEvents: readonly ThreadEvent[]): string | undefined {
