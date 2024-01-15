@@ -350,27 +350,34 @@ const RichTextEditor = fixedForwardRef<RichTextEditorRef, RichTextEditorProps>((
       return editorRef.current!.getJSON()
     },
   }))
+
+  const handleDeletePhoto = useCallback(
+    (photoId: PhotoId) => {
+      if (!editor) return null
+
+      const photoNodes = findChildren(
+        editor.state.doc,
+        (node) => node.type.name === 'photoNode' && node.attrs['photoId'] === photoId
+      )
+
+      if (photoNodes.length) {
+        const photoNode = photoNodes.at(0)!
+        editor
+          .chain()
+          .focus()
+          .deleteRange({ from: photoNode.pos, to: photoNode.pos + photoNode.node.nodeSize })
+          .run()
+      }
+    },
+    [editor]
+  )
+
   if (!editor) return null
 
   editorRef.current = editor
 
   return (
-    <DeletePhotoCtx.Provider
-      value={(photoId) => {
-        const photoNodes = findChildren(
-          editor.state.doc,
-          (node) => node.type.name === 'photoNode' && node.attrs['photoId'] === photoId
-        )
-
-        if (photoNodes.length) {
-          const photoNode = photoNodes.at(0)!
-          editor
-            .chain()
-            .focus()
-            .deleteRange({ from: photoNode.pos, to: photoNode.pos + photoNode.node.nodeSize })
-            .run()
-        }
-      }}>
+    <DeletePhotoCtx.Provider value={handleDeletePhoto}>
       <form method='post' ref={photoUploadForm} encType='multipart/form-data'>
         <input type='hidden' name='action' value='insertPhotoAtMarker' />
         <input type='hidden' name='contentAsJSONEncoded' value={contentAsJSONEncoded} />
