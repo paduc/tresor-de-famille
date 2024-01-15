@@ -74,7 +74,9 @@ export const getThreadPageProps = async ({
   const firstEventPayload = threadEvents.at(0)!.payload
 
   const familyId = firstEventPayload.familyId
-  const contentAsJSON: TipTapContentAsJSON = DEFAULT_CONTENT
+
+  const contentAsJSON: TipTapContentAsJSON = Object.assign({}, DEFAULT_CONTENT)
+
   if (lastUpdateEvent) {
     const {
       contentAsJSON: { content },

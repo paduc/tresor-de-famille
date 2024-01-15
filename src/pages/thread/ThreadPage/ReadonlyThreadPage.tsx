@@ -1,14 +1,14 @@
 import React from 'react'
+import { z } from 'zod'
 import { FamilyId } from '../../../domain/FamilyId'
-import { PhotoId } from '../../../domain/PhotoId'
-import { ThreadId } from '../../../domain/ThreadId'
+import { PhotoId, zIsPhotoId } from '../../../domain/PhotoId'
+import { ThreadId, zIsThreadId } from '../../../domain/ThreadId'
 import { withBrowserBundle } from '../../../libs/ssr/withBrowserBundle'
 import { Epoch } from '../../../libs/typeguards'
 import { AppLayout } from '../../_components/layout/AppLayout'
 import { TipTapContentAsJSON } from '../TipTapTypes'
 import { ReadWriteToggle } from './ReadWriteToggle'
 import { ThreadSharingButton } from './ThreadSharingButton'
-import { UUID } from '../../../domain'
 
 export type ReadOnlyThreadPageProps = {
   title?: string
@@ -44,7 +44,7 @@ export const ReadOnlyThreadPage = withBrowserBundle(
                 }
 
                 if (block.type === 'photoNode') {
-                  return <ReadonlyPhotoItemWrappedForTipTap key={`block_${index}`} node={block} />
+                  return <ReadonlyPhotoItem key={`block_${index}`} node={block} />
                 }
               })}
             </div>
@@ -62,77 +62,49 @@ export const ReadOnlyThreadPage = withBrowserBundle(
   }
 )
 
-const ReadonlyPhotoItemWrappedForTipTap = (props: {
+const ReadonlyPhotoItem = (props: {
   node: {
-    attrs: TipTapAttrs<ReadonlyPhotoItemProps>
+    attrs: {
+      photoId: PhotoId
+      [key: string]: any
+    }
   }
 }) => {
   try {
-    const parsedPersonsInPhoto: string[] = JSON.parse(decodeURIComponent(props.node.attrs.personsInPhoto))
+    const attrs = props.node.attrs
 
-    if (!Array.isArray(parsedPersonsInPhoto) || parsedPersonsInPhoto.some((nom) => typeof nom !== 'string')) {
-      throw new Error('Illegal name list')
-    }
+    const personsInPhoto: string[] = z.array(z.string()).parse(JSON.parse(decodeURIComponent(attrs.personsInPhoto)))
 
-    const remixedProps: ReadonlyPhotoItemProps = { ...props.node.attrs, personsInPhoto: parsedPersonsInPhoto }
+    const { threadId, photoId, unrecognizedFacesInPhoto, url, description } = z
+      .object({
+        threadId: zIsThreadId,
+        photoId: zIsPhotoId,
+        unrecognizedFacesInPhoto: z.number(),
+        url: z.string(),
+        description: z.string().optional(),
+      })
+      .parse(attrs)
 
-    const { threadId, photoId, url, description, personsInPhoto, unrecognizedFacesInPhoto } = remixedProps
+    const descriptionOfPeople = personsInPhoto.join(', ')
+
+    const photoPageUrl = `/photo/${photoId}/photo.html?threadId=${threadId}`
 
     return (
-      <ReadonlyPhotoItem
-        threadId={threadId}
-        personsInPhoto={personsInPhoto}
-        photoId={photoId}
-        unrecognizedFacesInPhoto={unrecognizedFacesInPhoto}
-        url={url}
-        description={description}
-        key={photoId}
-      />
+      <div className='grid grid-cols-1 w-full px-4 sm:px-0 py-2'>
+        <div className='mb-2'>
+          <a href={photoPageUrl}>
+            <img src={`${url}?threadId=${threadId}`} className='max-w-full max-h-[50vh] border border-gray-300 shadow-sm' />
+          </a>
+        </div>
+
+        <div className=''>
+          <p className='text-md text-gray-600 mb-1 whitespace-pre-wrap'>{description}</p>
+          {descriptionOfPeople ? <p className='text-md text-gray-600 mb-1'>avec {descriptionOfPeople}</p> : null}
+        </div>
+      </div>
     )
   } catch (error) {
     console.error(error)
     return <div>Erreur: photo dont les données sont illisibles.</div>
   }
-}
-
-type ReadonlyPhotoItemProps = {
-  photoId: PhotoId
-  url: string
-  description?: string
-  personsInPhoto: string[]
-  unrecognizedFacesInPhoto: number
-  threadId: ThreadId
-}
-const ReadonlyPhotoItem = (props: ReadonlyPhotoItemProps) => {
-  const { threadId, description, url, personsInPhoto } = props
-  const descriptionOfPeople = personsInPhoto.join(', ')
-
-  const photoPageUrl = `/photo/${props.photoId}/photo.html?threadId=${threadId}`
-
-  return (
-    <div className='grid grid-cols-1 w-full px-4 sm:px-0 py-2'>
-      <div className='mb-2'>
-        <a href={photoPageUrl}>
-          <img src={`${url}?threadId=${threadId}`} className='max-w-full max-h-[50vh] border border-gray-300 shadow-sm' />
-        </a>
-      </div>
-
-      <div className=''>
-        <p className='text-md text-gray-600 mb-1 whitespace-pre-wrap'>{description}</p>
-        {descriptionOfPeople ? <p className='text-md text-gray-600 mb-1'>avec {descriptionOfPeople}</p> : null}
-      </div>
-    </div>
-  )
-}
-
-type TipTapAttrs<ItemProps extends {}> = {
-  [Attr in keyof ItemProps]: ItemProps[Attr] extends ThreadId
-    ? ThreadId
-    : ItemProps[Attr] extends PhotoId
-    ? PhotoId
-    : ItemProps[Attr] extends UUID
-    ? UUID
-    : ItemProps[Attr] extends number
-    ? number
-    : string
 }
