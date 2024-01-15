@@ -39,6 +39,7 @@ import { UserSetChatTitle } from './UserSetChatTitle'
 import { UserUpdatedThreadAsRichText } from './UserUpdatedThreadAsRichText'
 import { getThreadContents, getThreadPageProps } from './getThreadPageProps'
 import { UserSentMessageToChat } from './sendMessageToChat/UserSentMessageToChat'
+import { ThreadSharedWithFamilies } from './ThreadPage/ThreadSharedWithFamilies'
 
 const fakeProfilePicUrl =
   'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80'
@@ -126,7 +127,14 @@ pageRouter
 
       const { action } = z
         .object({
-          action: z.enum(['clientsideTitleUpdate', 'newMessage', 'clientsideUpdate', 'shareWithFamily', 'createNewFamily']),
+          action: z.enum([
+            'clientsideTitleUpdate',
+            'newMessage',
+            'clientsideUpdate',
+            'shareWithFamily',
+            'createNewFamily',
+            'shareWithMultipleFamilies',
+          ]),
         })
         .parse(request.body)
 
@@ -235,6 +243,15 @@ pageRouter
           })
         )
         return response.redirect(ThreadUrl(cloneThreadId))
+      } else if (action === 'shareWithMultipleFamilies') {
+        const { familiesToShareWith } = z.object({ familiesToShareWith: z.array(zIsFamilyId) }).parse(request.body)
+
+        // Check if no-op
+
+        // Trigger ThreadSharedWithFamilies
+        await addToHistory(ThreadSharedWithFamilies())
+
+        return response.redirect(ThreadUrl(threadId))
       }
 
       // TODO: try catch error and send it back as HTML (or redirect if OK)
