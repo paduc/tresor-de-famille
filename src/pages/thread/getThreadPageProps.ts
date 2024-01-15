@@ -18,8 +18,6 @@ import { UserUpdatedThreadAsRichText } from './UserUpdatedThreadAsRichText'
 import { getThreadAuthor } from '../_getThreadAuthor'
 import { ThreadEvent, getThreadEvents } from '../_getThreadEvents'
 
-const DEFAULT_CONTENT: TipTapContentAsJSON = { type: 'doc', content: [] } as const
-
 export const getThreadPageProps = async ({
   threadId,
   userId,
@@ -27,6 +25,8 @@ export const getThreadPageProps = async ({
   threadId: ThreadId
   userId: AppUserId
 }): Promise<ThreadPageProps> => {
+  const DEFAULT_CONTENT: TipTapContentAsJSON = { type: 'doc', content: [] } as const
+
   const threadEvents = await getThreadEvents(threadId)
   if (!threadEvents.length) {
     // New thread
