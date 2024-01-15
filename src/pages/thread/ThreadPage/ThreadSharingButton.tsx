@@ -458,3 +458,146 @@ function ShareCodeModal({ isOpen, onClose, onChangeFamily, currentFamily }: Shar
     </TDFModal>
   )
 }
+
+type ShareWithMultipleFamilyModalProps = {
+  isOpen: boolean
+  onClose: () => unknown
+  onNewFamily: () => unknown
+  currentFamilyIds: FamilyId[]
+  userFamilies: Family[]
+}
+
+export function ShareWithMultipleFamilyModal({
+  isOpen,
+  onClose,
+  onNewFamily,
+  currentFamilyIds,
+  userFamilies,
+}: ShareWithMultipleFamilyModalProps) {
+  const [selectedFamilies, setSelectedFamilies] = useState<FamilyId[]>(currentFamilyIds)
+
+  function addSelected(familyId: FamilyId) {
+    setSelectedFamilies((state) => [familyId, ...state])
+  }
+
+  function removeSelected(familyId: FamilyId) {
+    setSelectedFamilies((state) => state.filter((famId) => famId !== familyId))
+  }
+
+  return (
+    <TDFModal
+      title='Choisissez les familles avec laquelle vous voulez partager cette histoire'
+      isOpen={isOpen}
+      close={() => {
+        setSelectedFamilies(currentFamilyIds)
+        onClose()
+      }}>
+      <form method='POST'>
+        <input type='hidden' name='action' value='shareWithMultipleFamilies' />
+        {/* <input type='hidden' name='familyId' value={selectedFamily?.familyId} /> */}
+        <fieldset className='border-b border-t border-gray-200'>
+          <div className='-space-y-px rounded-md bg-white mt-8'>
+            <div
+              className={classNames(
+                'rounded-tl-md rounded-tr-md',
+                userFamilies.length === 1 ? 'rounded-bl-md rounded-br-md' : '',
+                'z-10 border-indigo-200 bg-indigo-50',
+                'relative flex border p-4 focus:outline-none'
+              )}>
+              <input type='checkbox' checked={true} className='h-4 w-4 rounded border-gray-300 text-gray-600 ' />
+              <span className='ml-3 flex flex-col'>
+                <span
+                  className={classNames('text-gray-900', 'inline-flex justify-items-start items-center text-sm font-medium ')}
+                  id='headlessui-label-:rc:'>
+                  <LockClosedIcon className='h-4 w-4 mr-1' />
+                  Votre espace personnel
+                </span>
+
+                <span className={classNames('text-gray-500', 'block text-sm')}>
+                  Un espace pour vos histoires confidentielles et vous seul pouvez y accéder.
+                </span>
+              </span>
+            </div>
+            {userFamilies
+              .filter((fam) => !fam.isUserSpace)
+              .map((family, familyIndex) => {
+                const checked = selectedFamilies.includes(family.familyId)
+                return (
+                  <div
+                    key={family.familyId}
+                    onClick={(e) => {
+                      if (checked) {
+                        removeSelected(family.familyId)
+                      } else {
+                        addSelected(family.familyId)
+                      }
+                    }}
+                    className={classNames(
+                      familyIndex === userFamilies.length - 2 ? 'rounded-bl-md rounded-br-md' : '',
+                      checked ? 'z-10 border-indigo-200 bg-indigo-50' : 'border-gray-200',
+                      'relative flex cursor-pointer border p-4 focus:outline-none'
+                    )}>
+                    <input
+                      type='checkbox'
+                      name='familiesToShareWith'
+                      value={family.familyId}
+                      checked={checked}
+                      onChange={(e) => {
+                        if (checked) {
+                          removeSelected(family.familyId)
+                        } else {
+                          addSelected(family.familyId)
+                        }
+                      }}
+                      className='h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600'
+                    />
+                    <span className='ml-3 flex flex-col'>
+                      <span
+                        className={classNames(
+                          checked ? 'text-indigo-900' : 'text-gray-900',
+                          'inline-flex justify-items-start items-center text-sm font-medium '
+                        )}
+                        id='headlessui-label-:rc:'>
+                        <UsersIcon className='h-4 w-4 mr-1' />
+                        {family.familyName}
+                      </span>
+                      {family.isUserSpace ? (
+                        <span className={classNames(checked ? 'text-indigo-700' : 'text-gray-500', 'block text-sm')}>
+                          Un espace pour vos histoires confidentielles et vous seul pouvez y accéder.
+                        </span>
+                      ) : (
+                        <span className={classNames(checked ? 'text-indigo-700' : 'text-gray-500', 'block text-sm')}>
+                          {family.about}
+                        </span>
+                      )}
+                    </span>
+                  </div>
+                )
+              })}
+          </div>
+        </fieldset>
+
+        <button
+          onClick={(e) => {
+            e.preventDefault()
+            onNewFamily()
+          }}
+          className={`mt-3 text-sm ${linkStyles}`}>
+          <PlusIcon className={`${buttonIconStyles}`} />
+          Nouvelle famille
+        </button>
+        <div className='mt-6'>
+          <button type='submit' className={`mb-4 ${primaryButtonStyles.replace(/inline\-flex/g, '')}  w-full text-center`}>
+            Valider
+          </button>
+          <button
+            type='reset'
+            onClick={onClose}
+            className={`mb-4 ${secondaryButtonStyles.replace(/inline\-flex/g, '')}  w-full text-center`}>
+            Annuler
+          </button>
+        </div>
+      </form>
+    </TDFModal>
+  )
+}
