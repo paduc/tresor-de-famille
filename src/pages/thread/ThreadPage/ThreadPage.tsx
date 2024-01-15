@@ -50,13 +50,22 @@ export type ThreadPageProps = {
   threadId: ThreadId
   isAuthor: boolean
   familyId: FamilyId
+  sharedWithFamilyIds?: FamilyId[]
   isNewThread: boolean
 }
 
 const isBrowserContext = typeof window !== 'undefined'
 
 export const ThreadPage = withBrowserBundle(
-  ({ title, contentAsJSON: contentAsJSONFromServer, lastUpdated, threadId, familyId, isAuthor }: ThreadPageProps) => {
+  ({
+    title,
+    contentAsJSON: contentAsJSONFromServer,
+    lastUpdated,
+    threadId,
+    familyId,
+    sharedWithFamilyIds,
+    isAuthor,
+  }: ThreadPageProps) => {
     const richTextEditorRef = React.useRef<RichTextEditorRef>(null)
 
     let contentAsJSON = separatePhotoNodesInJSONContent(contentAsJSONFromServer)
@@ -84,7 +93,7 @@ export const ThreadPage = withBrowserBundle(
       <AppLayout>
         <div className='w-full sm:ml-6 max-w-2xl pt-3 pb-40'>
           <div className='w-full mb-3 px-2'>
-            <ThreadSharingButton isAuthor={isAuthor} familyId={familyId} />
+            <ThreadSharingButton isAuthor={isAuthor} familyId={familyId} sharedWithFamilyIds={sharedWithFamilyIds} />
           </div>
           <div className='divide-y divide-gray-200 overflow-hidden sm:rounded-lg bg-white shadow'>
             {title ? <Title title={title} threadId={threadId} /> : null}

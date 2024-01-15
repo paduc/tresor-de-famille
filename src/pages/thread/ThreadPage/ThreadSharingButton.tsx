@@ -10,12 +10,13 @@ import { TDFModal } from '../../_components/TDFModal'
 
 type ThreadSharingButtonProps = {
   familyId: FamilyId
+  sharedWithFamilyIds?: FamilyId[]
   isAuthor: boolean
 }
 
 type Family = ReturnType<typeof useLoggedInSession>['userFamilies'][number]
 
-export function ThreadSharingButton({ familyId, isAuthor }: ThreadSharingButtonProps) {
+export function ThreadSharingButton({ familyId, sharedWithFamilyIds, isAuthor }: ThreadSharingButtonProps) {
   const session = useLoggedInSession()
   const [isFamilyModalOpen, openFamilyModal] = useState<boolean>(false)
   const [isShareCodeModalOpen, openShareCodeModal] = useState<boolean>(false)
@@ -31,6 +32,16 @@ export function ThreadSharingButton({ familyId, isAuthor }: ThreadSharingButtonP
 
   return (
     <>
+      {/* <ShareWithMultipleFamilyModal
+          onNewFamily={() => {
+            openFamilyModal(false)
+            openNewFamilyModal(true)
+          }}
+          onClose={() => openFamilyModal(false)}
+          currentFamilyIds={sharedWithFamilyIds}
+          isOpen={isFamilyModalOpen}
+          latestUserFamilies={latestUserFamilies}
+        /> */}
       <ShareWithFamilyModal
         onNewFamily={() => {
           openFamilyModal(false)
@@ -464,7 +475,7 @@ type ShareWithMultipleFamilyModalProps = {
   onClose: () => unknown
   onNewFamily: () => unknown
   currentFamilyIds: FamilyId[]
-  userFamilies: Family[]
+  latestUserFamilies: Family[]
 }
 
 export function ShareWithMultipleFamilyModal({
@@ -472,7 +483,7 @@ export function ShareWithMultipleFamilyModal({
   onClose,
   onNewFamily,
   currentFamilyIds,
-  userFamilies,
+  latestUserFamilies: userFamilies,
 }: ShareWithMultipleFamilyModalProps) {
   const [selectedFamilies, setSelectedFamilies] = useState<FamilyId[]>(currentFamilyIds)
 

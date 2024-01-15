@@ -3,18 +3,14 @@ import { SessionContext } from '../../_components/SessionContext'
 
 import { ShareWithMultipleFamilyModal } from './ThreadSharingButton'
 
-import { Epoch } from '../../../libs/typeguards'
-import { makeThreadId } from '../../../libs/makeThreadId'
-import { PhotoId } from '../../../domain/PhotoId'
+import { SearchIndex } from 'algoliasearch/lite'
 import { AppUserId } from '../../../domain/AppUserId'
 import { FamilyId } from '../../../domain/FamilyId'
-import { PersonSearchContext } from '../../_components/usePersonSearch'
-import { SearchIndex } from 'algoliasearch/lite'
-import { makeAppUserId } from '../../../libs/makeUserId'
 import { makeFamilyId } from '../../../libs/makeFamilyId'
-import { ReadOnlyThreadPage } from './ReadonlyThreadPage'
-import { LocationContext } from '../../_components/LocationContext'
+import { makeAppUserId } from '../../../libs/makeUserId'
 import { FamilyColorCodes } from '../../../libs/ssr/FamilyColorCodes'
+import { LocationContext } from '../../_components/LocationContext'
+import { PersonSearchContext } from '../../_components/usePersonSearch'
 
 const fakePersonSearch = async (query: string) => {
   return {
@@ -91,7 +87,7 @@ export const Base = () => (
     onClose={() => {}}
     onNewFamily={() => {}}
     currentFamilyIds={[]}
-    userFamilies={[
+    latestUserFamilies={[
       {
         familyId: 'a' as FamilyId,
         familyName: 'Votre espace personnel',
@@ -105,14 +101,6 @@ export const Base = () => (
         familyName: 'Famille A',
         about: 'La famille A',
         color: FamilyColorCodes[1],
-        isUserSpace: false,
-        shareUrl: '',
-      },
-      {
-        familyId: makeFamilyId(),
-        familyName: 'Famille B',
-        about: 'La famille B',
-        color: FamilyColorCodes[2],
         isUserSpace: false,
         shareUrl: '',
       },

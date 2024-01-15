@@ -17,6 +17,7 @@ import { UserSetChatTitle } from './UserSetChatTitle'
 import { UserUpdatedThreadAsRichText } from './UserUpdatedThreadAsRichText'
 import { getThreadAuthor } from '../_getThreadAuthor'
 import { ThreadEvent, getThreadEvents } from '../_getThreadEvents'
+import { ThreadSharedWithFamilies } from './ThreadPage/ThreadSharedWithFamilies'
 
 export const getThreadPageProps = async ({
   threadId,
@@ -36,6 +37,7 @@ export const getThreadPageProps = async ({
       lastUpdated: undefined,
       title: '',
       familyId: userId as string as FamilyId,
+      sharedWithFamilyIds: [],
       isAuthor: true,
       isNewThread: true,
     }
@@ -43,6 +45,8 @@ export const getThreadPageProps = async ({
 
   const threadAuthorId = await getThreadAuthor(threadId)
   const isAuthor = threadAuthorId === userId
+
+  const sharedWithFamilyIds = await getFamiliesWithWhichThreadIsShared(threadId)
 
   if (threadEvents.every((event): event is UserSetChatTitle => event.type === 'UserSetChatTitle')) {
     // All events are title events
@@ -55,6 +59,7 @@ export const getThreadPageProps = async ({
       lastUpdated: getEpoch(latestSetTitleEvent.occurredAt),
       title,
       familyId,
+      sharedWithFamilyIds,
       isAuthor,
       isNewThread: false,
     }
@@ -119,6 +124,7 @@ export const getThreadPageProps = async ({
     lastUpdated: getEpoch(threadEvents.at(-1)!.occurredAt),
     title: latestTitleEvent?.payload.title || '',
     familyId,
+    sharedWithFamilyIds,
     isAuthor,
     isNewThread: false,
   }
@@ -200,4 +206,20 @@ export async function getThreadContents(
     authorId: (latestEvent || setTitleEvent)!.payload.userId,
     familyId: (latestEvent || setTitleEvent)!.payload.familyId,
   }
+}
+
+async function getFamiliesWithWhichThreadIsShared(threadId: ThreadId): Promise<FamilyId[] | undefined> {
+  const latestShareEvent = await getSingleEvent<ThreadClonedForSharing | ThreadSharedWithFamilies>(
+    ['ThreadClonedForSharing', 'ThreadSharedWithFamilies'],
+    { threadId }
+  )
+
+  switch (latestShareEvent?.type) {
+    case 'ThreadClonedForSharing':
+      return [latestShareEvent.payload.familyId]
+    case 'ThreadSharedWithFamilies':
+      return latestShareEvent.payload.familyIds
+  }
+
+  return
 }
