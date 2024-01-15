@@ -303,8 +303,6 @@ const useDeletePhoto = () => {
 }
 
 const RichTextEditor = fixedForwardRef<RichTextEditorRef, RichTextEditorProps>((props, ref) => {
-  const setLoader = useLoader()
-  const [contentAsJSONEncoded, setContentAsJSONEncoded] = useState('')
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -315,7 +313,6 @@ const RichTextEditor = fixedForwardRef<RichTextEditorRef, RichTextEditorProps>((
         },
       }),
       TipTapPhotoNode,
-      InsertPhotoMarker,
     ],
     content: props.content,
     autofocus: null,
@@ -327,8 +324,6 @@ const RichTextEditor = fixedForwardRef<RichTextEditorRef, RichTextEditorProps>((
   })
 
   const { status, lastUpdated } = useAutosaveEditor(editor, props.threadId, props.lastUpdated)
-
-  const photoUploadForm = React.useRef<HTMLFormElement>(null)
 
   // Make sure the content always ends with a paragraph
   useEffect(() => {
@@ -378,35 +373,6 @@ const RichTextEditor = fixedForwardRef<RichTextEditorRef, RichTextEditorProps>((
 
   return (
     <DeletePhotoCtx.Provider value={handleDeletePhoto}>
-      <form method='post' ref={photoUploadForm} encType='multipart/form-data'>
-        <input type='hidden' name='action' value='insertPhotoAtMarker' />
-        <input type='hidden' name='contentAsJSONEncoded' value={contentAsJSONEncoded} />
-        <input
-          type='file'
-          id={`file-input-insert-file-in-rich-text`}
-          name='photo'
-          className='hidden'
-          accept='image/png, image/jpeg, image/jpg'
-          onChange={(e) => {
-            editor
-              .chain()
-              .focus()
-              .insertContent({
-                type: 'insertPhotoMarker',
-              })
-              .run()
-
-            const contentAsJSON = editor.getJSON()
-
-            setContentAsJSONEncoded(encodeURIComponent(JSON.stringify(contentAsJSON)))
-
-            setLoader(true)
-            setTimeout(() => {
-              photoUploadForm.current?.submit()
-            }, 200)
-          }}
-        />
-      </form>
       <div className='sm:ml-6 max-w-2xl relative'>
         <EditorContent editor={editor} />
         <FloatingMenu editor={editor} tippyOptions={{ duration: 100 }}>
@@ -420,7 +386,7 @@ const RichTextEditor = fixedForwardRef<RichTextEditorRef, RichTextEditorProps>((
                   attrs: {
                     photoId,
                     url: PhotoURL(photoId),
-                    description: 'Cliquer pour ajouter une description',
+                    description: 'Cliquer sur la photo pour ajouter une description',
                     personsInPhoto: '[]', // This should be stringified JSON
                     unrecognizedFacesInPhoto: 0,
                     threadId: props.threadId,
@@ -532,26 +498,6 @@ const TipTapPhotoNode = Node.create({
 
   addNodeView() {
     return ReactNodeViewRenderer(PhotoItemWrappedForTipTap)
-  },
-})
-
-const InsertPhotoMarker = Node.create({
-  name: 'insertPhotoMarker',
-
-  group: 'block',
-
-  atom: true,
-
-  parseHTML() {
-    return [
-      {
-        tag: 'insert-photo-here',
-      },
-    ]
-  },
-
-  renderHTML({ HTMLAttributes }) {
-    return ['insert-photo-here', mergeAttributes(HTMLAttributes)]
   },
 })
 

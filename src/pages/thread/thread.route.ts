@@ -126,14 +126,7 @@ pageRouter
 
       const { action } = z
         .object({
-          action: z.enum([
-            'clientsideTitleUpdate',
-            'newMessage',
-            'insertPhotoAtMarker',
-            'clientsideUpdate',
-            'shareWithFamily',
-            'createNewFamily',
-          ]),
+          action: z.enum(['clientsideTitleUpdate', 'newMessage', 'clientsideUpdate', 'shareWithFamily', 'createNewFamily']),
         })
         .parse(request.body)
 
@@ -202,48 +195,6 @@ pageRouter
             familyId,
           })
         )
-        return response.redirect(ThreadUrl(threadId, true))
-      } else if (action === 'insertPhotoAtMarker') {
-        const { file } = request
-        const photoId = makePhotoId()
-
-        if (!file) return new Error('We did not receive any image.')
-        const { path: originalPath } = file
-
-        const { contentAsJSONEncoded } = z.object({ contentAsJSONEncoded: z.string() }).parse(request.body)
-
-        const contentAsJSON = decodeTipTapJSON(contentAsJSONEncoded)
-
-        const markerIndex = contentAsJSON.content.findIndex((node) => node.type === 'insertPhotoMarker')
-        if (markerIndex === -1) throw new Error('Cannot find marker in content')
-
-        contentAsJSON.content.splice(markerIndex, 1, {
-          type: 'photoNode',
-          attrs: {
-            photoId,
-            threadId,
-            personsInPhoto: encodeStringy([]),
-            unrecognizedFacesInPhoto: 0,
-            description: '',
-            url: '',
-          },
-        })
-
-        const location = await uploadPhoto({ contents: fs.createReadStream(originalPath), id: photoId })
-
-        await addToHistory(
-          UserInsertedPhotoInRichTextThread({
-            threadId,
-            photoId,
-            userId,
-            location,
-            contentAsJSON,
-            familyId,
-          })
-        )
-
-        await detectFacesInPhotoUsingAWS({ file, photoId })
-
         return response.redirect(ThreadUrl(threadId, true))
       } else if (action === 'shareWithFamily') {
         const { familyId: destinationFamilyId } = z.object({ familyId: zIsFamilyId }).parse(request.body)

@@ -26,7 +26,7 @@ const zIsPhotoNode = z.object({
   attrs: z.object({ photoId: zIsPhotoId }).and(z.record(z.any())),
 })
 
-export const zIsTipTapJSON = z.union([zIsParagraphNode, zIsPhotoNode, z.object({ type: z.literal('insertPhotoMarker') })])
+export const zIsTipTapJSON = z.union([zIsParagraphNode, zIsPhotoNode])
 
 export const zIsTipTapContentAsJSON = z.object({
   type: z.literal('doc'),

@@ -18,6 +18,9 @@ export type UserInsertedPhotoInRichTextThread = DomainEvent<
   }
 >
 
-export const UserInsertedPhotoInRichTextThread = makeDomainEvent<UserInsertedPhotoInRichTextThread>(
-  'UserInsertedPhotoInRichTextThread'
-)
+/**
+ * @deprecated
+ * Used to add a photo to a Thread.
+ * Replaced by clientside addition => UserUpdatedThreadAsRichText
+ */
+export const UserInsertedPhotoInRichTextThread = undefined
