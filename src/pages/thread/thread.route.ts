@@ -3,40 +3,26 @@ import z from 'zod'
 import { addToHistory } from '../../dependencies/addToHistory'
 import { requireAuth } from '../../dependencies/authn'
 import { postgres } from '../../dependencies/database'
-import { getSingleEvent } from '../../dependencies/getSingleEvent'
-import { personsIndex } from '../../dependencies/search'
 import { AppUserId } from '../../domain/AppUserId'
-import { FaceId } from '../../domain/FaceId'
 import { FamilyId, zIsFamilyId } from '../../domain/FamilyId'
-import { PersonId } from '../../domain/PersonId'
-import { PhotoId } from '../../domain/PhotoId'
 import { ThreadId, zIsThreadId } from '../../domain/ThreadId'
-import { getUuid } from '../../libs/getUuid'
-import { makePersonId } from '../../libs/makePersonId'
-import { makePhotoId } from '../../libs/makePhotoId'
 import { makeThreadId } from '../../libs/makeThreadId'
 import { responseAsHtml } from '../../libs/ssr/responseAsHtml'
-import { getFacesInPhoto } from '../_getFacesInPhoto'
-import { getPersonByIdOrThrow } from '../_getPersonById'
 import { getThreadAuthor } from '../_getThreadAuthor'
+import { getThreadFamilies } from '../_getThreadFamilies'
 import { getThreadFamily } from '../_getThreadFamily'
 import { isPhotoAccessibleToFamily } from '../_isPhotoAccessibleToFamily'
 import { pageRouter } from '../pageRouter'
-import { UserAddedCaptionToPhoto } from '../photo/UserAddedCaptionToPhoto'
-import { PersonClonedForSharing } from '../share/PersonClonedForSharing'
 import { PhotoAutoSharedWithThread } from './PhotoAutoSharedWithThread'
-import { PhotoClonedForSharing } from './ThreadPage/PhotoClonedForSharing'
 import { ReadOnlyThreadPage } from './ThreadPage/ReadonlyThreadPage'
 import { ThreadClonedForSharing } from './ThreadPage/ThreadClonedForSharing'
 import { ThreadPage } from './ThreadPage/ThreadPage'
 import { ThreadSharedWithFamilies } from './ThreadPage/ThreadSharedWithFamilies'
 import { ThreadUrl } from './ThreadUrl'
-import { PhotoNode, TipTapContentAsJSON, TipTapJSON, encodeStringy, zIsTipTapContentAsJSON } from './TipTapTypes'
+import { PhotoNode, TipTapJSON, zIsTipTapContentAsJSON } from './TipTapTypes'
 import { UserSetChatTitle } from './UserSetChatTitle'
 import { UserUpdatedThreadAsRichText } from './UserUpdatedThreadAsRichText'
 import { getThreadContents, getThreadPageProps } from './getThreadPageProps'
-import { UserSentMessageToChat } from '../../events/deprecated/UserSentMessageToChat'
-import { getThreadFamilies } from '../_getThreadFamilies'
 
 const fakeProfilePicUrl =
   'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80'
@@ -98,14 +84,7 @@ pageRouter
 
       const { action } = z
         .object({
-          action: z.enum([
-            'clientsideTitleUpdate',
-            'newMessage',
-            'clientsideUpdate',
-            'shareWithFamily',
-            'createNewFamily',
-            'shareWithMultipleFamilies',
-          ]),
+          action: z.enum(['clientsideTitleUpdate', 'clientsideUpdate', 'shareWithMultipleFamilies']),
         })
         .parse(request.body)
 
@@ -163,45 +142,6 @@ pageRouter
           })
         )
         return response.redirect(ThreadUrl(threadId, true))
-      } else if (action === 'shareWithFamily') {
-        const { familyId: destinationFamilyId } = z.object({ familyId: zIsFamilyId }).parse(request.body)
-
-        // Check if no-op
-        const threadCurrentFamily = await getThreadFamily(threadId)
-        if (destinationFamilyId === threadCurrentFamily) {
-          return response.redirect(ThreadUrl(threadId))
-        }
-
-        const cloneThreadId = makeThreadId()
-        const contents = await getThreadContents(threadId)
-        if (contents === null) {
-          throw new Error('Histoire introuvable.')
-        }
-        const { title, contentAsJSON: originalContents, familyId: originalFamilyId } = contents
-
-        const cloneContentAsJSON = await makeCloneOfContentAsJSON({
-          originalContents,
-          userId,
-          originalFamilyId,
-          destinationFamilyId,
-          cloneThreadId,
-          originalThreadId: threadId,
-        })
-
-        await addToHistory(
-          ThreadClonedForSharing({
-            threadId: cloneThreadId,
-            userId,
-            familyId: destinationFamilyId,
-            title,
-            contentAsJSON: cloneContentAsJSON,
-            clonedFrom: {
-              threadId,
-              familyId: originalFamilyId,
-            },
-          })
-        )
-        return response.redirect(ThreadUrl(cloneThreadId))
       } else if (action === 'shareWithMultipleFamilies') {
         const { familiesToShareWith } = z.object({ familiesToShareWith: z.array(zIsFamilyId) }).parse(request.body)
 
@@ -247,200 +187,12 @@ pageRouter
     }
   })
 
-async function makeCloneOfContentAsJSON({
-  originalContents,
-  userId,
-  destinationFamilyId,
-  cloneThreadId,
-  originalFamilyId,
-  originalThreadId,
-}: {
-  userId: AppUserId
-  originalFamilyId: FamilyId
-  destinationFamilyId: FamilyId
-  originalContents: TipTapContentAsJSON
-  cloneThreadId: ThreadId
-  originalThreadId: ThreadId
-}): Promise<TipTapContentAsJSON> {
-  const cloneContentAsJSON: TipTapContentAsJSON = { type: 'doc', content: [] }
-  for (const contentNode of originalContents.content) {
-    if (contentNode.type !== 'photoNode') {
-      cloneContentAsJSON.content.push(contentNode)
-      continue
-    }
-
-    const { photoId: originalPhotoId } = contentNode.attrs
-
-    if (!originalPhotoId) continue
-
-    const destinationPhotoId = makePhotoId()
-
-    const caption = await getCaptionByPhotoId(originalPhotoId)
-
-    const faces = await makeCloneOfFacesInPhoto({
-      userId,
-      originalPhotoId,
-      destinationPhotoId,
-      originalFamilyId,
-      destinationFamilyId,
-    })
-
-    await addToHistory(
-      PhotoClonedForSharing({
-        userId,
-        familyId: destinationFamilyId,
-
-        photoId: destinationPhotoId,
-
-        faces,
-        caption,
-
-        threadId: cloneThreadId,
-
-        clonedFrom: {
-          familyId: originalFamilyId,
-          photoId: originalPhotoId,
-          threadId: originalThreadId,
-        },
-      })
-    )
-
-    // TODO: clone the people tagged in the photos (if don't exist in the family)
-    cloneContentAsJSON.content.push({
-      type: 'photoNode',
-      attrs: {
-        photoId: destinationPhotoId,
-        threadId: cloneThreadId,
-        description: '',
-        personsInPhoto: encodeStringy([]),
-        unrecognizedFacesInPhoto: 0,
-        url: '',
-      },
-    })
-  }
-  return cloneContentAsJSON
-}
-
-async function getCaptionByPhotoId(originalPhotoId: PhotoId) {
-  return (await getSingleEvent<UserAddedCaptionToPhoto>('UserAddedCaptionToPhoto', { photoId: originalPhotoId }))?.payload
-    .caption.body
-}
-
-async function makeCloneOfFacesInPhoto({
-  userId,
-  originalPhotoId,
-  destinationPhotoId,
-  originalFamilyId,
-  destinationFamilyId,
-}: {
-  userId: AppUserId
-  originalPhotoId: PhotoId
-  destinationPhotoId: PhotoId
-  originalFamilyId: FamilyId
-  destinationFamilyId: FamilyId
-}): Promise<
-  {
-    faceId: FaceId
-    personId?: PersonId | undefined
-    isIgnored?: boolean
-  }[]
-> {
-  // Get all faces from original photo
-  // Get the persons that have been tagged (in original family)
-  // Get the faces that were ignored (in original family)
-  const facesInOriginalFamily = await getFacesInPhoto({ photoId: originalPhotoId })
-
-  const facesInDestinationFamily: {
-    faceId: FaceId
-    personId?: PersonId | undefined
-    isIgnored?: boolean
-  }[] = []
-
-  for (const face of facesInOriginalFamily) {
-    if (face.personId) {
-      const { rows } = await postgres.query<PersonClonedForSharing>(
-        `SELECT * FROM history WHERE type='PersonClonedForSharing' AND payload->'clonedFrom'->>'personId'=$1 LIMIT 1`,
-        [face.personId]
-      )
-
-      const personClonedEvent = rows[0]
-
-      if (personClonedEvent) {
-        // there is an equivalent, substitute
-        facesInDestinationFamily.push({
-          faceId: face.faceId,
-          personId: personClonedEvent.payload.personId,
-        })
-        continue
-      }
-
-      const personId = makePersonId()
-      const { name } = await getPersonByIdOrThrow({ personId: face.personId })
-
-      // No equivalent, time to create one !
-      await addToHistory(
-        PersonClonedForSharing({
-          userId,
-          familyId: destinationFamilyId,
-          personId,
-
-          name,
-          faceId: face.faceId,
-          profilePicPhotoId: destinationPhotoId,
-
-          clonedFrom: {
-            familyId: originalFamilyId,
-            personId: face.personId,
-          },
-        })
-      )
-
-      try {
-        await personsIndex.saveObject({
-          objectID: personId,
-          personId,
-          name,
-          familyId: destinationFamilyId,
-          visible_by: [`family/${destinationFamilyId}`, `user/${userId}`],
-        })
-      } catch (error) {
-        console.error('Could not add person clone to algolia index', error)
-      }
-
-      facesInDestinationFamily.push({
-        faceId: face.faceId,
-        personId,
-      })
-    } else {
-      facesInDestinationFamily.push({
-        faceId: face.faceId,
-        isIgnored: face.isIgnored,
-      })
-    }
-  }
-
-  // Replace all personIds from the original family to the destinationFamily
-  // If personId, get the equivalent thanks to PersonClonedForSharing
-  // or clone the original if no equivalent exists
-
-  return facesInDestinationFamily
-}
-
 async function canEditThread({ userId, threadId }: { userId: AppUserId; threadId: ThreadId }): Promise<boolean> {
   const authorId = await getThreadAuthor(threadId)
 
   if (authorId && authorId === userId) return true
 
   if (!authorId) return true
-
-  // const threadFamily = await getThreadFamily(threadId)
-
-  // if (threadFamily) {
-  //   const userFamilies = await getUserFamilies(userId)
-  //   if (userFamilies.map((f) => f.familyId).includes(threadFamily)) {
-  //     return true
-  //   }
-  // }
 
   return false
 }
