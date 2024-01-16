@@ -1,16 +1,13 @@
 import * as React from 'react'
 
-import { LockClosedIcon, UsersIcon } from '@heroicons/react/20/solid'
 import { PlusIcon } from '@heroicons/react/24/outline'
 import { FamilyId } from '../../domain/FamilyId'
 import { ThreadId } from '../../domain/ThreadId'
 import { withBrowserBundle } from '../../libs/ssr/withBrowserBundle'
 import { linkStyles } from '../_components/Button'
-import { useLoggedInSession } from '../_components/SessionContext'
 import { SuccessError } from '../_components/SuccessError'
-import { AppLayout } from '../_components/layout/AppLayout'
-import { ThreadUrl } from '../thread/ThreadUrl'
 import { ThreadList } from '../_components/ThreadList'
+import { AppLayout } from '../_components/layout/AppLayout'
 
 // @ts-ignore
 function classNames(...classes) {
