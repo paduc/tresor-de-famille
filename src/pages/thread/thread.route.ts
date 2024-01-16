@@ -36,6 +36,7 @@ import { UserSetChatTitle } from './UserSetChatTitle'
 import { UserUpdatedThreadAsRichText } from './UserUpdatedThreadAsRichText'
 import { getThreadContents, getThreadPageProps } from './getThreadPageProps'
 import { UserSentMessageToChat } from './sendMessageToChat/UserSentMessageToChat'
+import { getThreadFamilies } from '../_getThreadFamilies'
 
 const fakeProfilePicUrl =
   'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80'
@@ -162,15 +163,20 @@ pageRouter
             .map((node) => node.attrs.photoId)
 
           // For each photoId, make sure the photo is accessible to the Thread family
-          for (const photoId of photoIds) {
-            if (!(await isPhotoAccessibleToFamily({ photoId, familyId }))) {
-              await addToHistory(
-                PhotoAutoSharedWithThread({
-                  photoId,
-                  threadId,
-                  familyId,
-                })
-              )
+          const threadFamilies = await getThreadFamilies(threadId)
+          if (threadFamilies) {
+            for (const photoId of photoIds) {
+              for (const familyId of threadFamilies) {
+                if (!(await isPhotoAccessibleToFamily({ photoId, familyId }))) {
+                  await addToHistory(
+                    PhotoAutoSharedWithThread({
+                      photoId,
+                      threadId,
+                      familyId,
+                    })
+                  )
+                }
+              }
             }
           }
 
