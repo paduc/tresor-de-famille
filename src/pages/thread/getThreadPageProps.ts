@@ -213,7 +213,6 @@ async function getFamiliesWithWhichThreadIsShared(threadId: ThreadId): Promise<F
     ['ThreadClonedForSharing', 'ThreadSharedWithFamilies'],
     { threadId }
   )
-
   switch (latestShareEvent?.type) {
     case 'ThreadClonedForSharing':
       return [latestShareEvent.payload.familyId]
@@ -221,5 +220,5 @@ async function getFamiliesWithWhichThreadIsShared(threadId: ThreadId): Promise<F
       return latestShareEvent.payload.familyIds
   }
 
-  return
+  return []
 }

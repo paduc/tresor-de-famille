@@ -24,15 +24,16 @@ export function ThreadSharingButton({ familyId, sharedWithFamilyIds, isAuthor }:
 
   const [latestUserFamilies, setLatestUserFamilies] = useState(session.userFamilies)
 
-  const currentFamily = useMemo(() => latestUserFamilies.find((f) => f.familyId === familyId), [latestUserFamilies, familyId])
+  // const currentFamily = useMemo(() => latestUserFamilies.find((f) => f.familyId === familyId), [latestUserFamilies, familyId])
 
-  if (!currentFamily) {
-    return null
-  }
+  // if (!currentFamily) {
+  //   return null
+  // }
 
   return (
     <>
-      {/* <ShareWithMultipleFamilyModal
+      {sharedWithFamilyIds && (
+        <ShareWithMultipleFamilyModal
           onNewFamily={() => {
             openFamilyModal(false)
             openNewFamilyModal(true)
@@ -41,8 +42,9 @@ export function ThreadSharingButton({ familyId, sharedWithFamilyIds, isAuthor }:
           currentFamilyIds={sharedWithFamilyIds}
           isOpen={isFamilyModalOpen}
           latestUserFamilies={latestUserFamilies}
-        /> */}
-      <ShareWithFamilyModal
+        />
+      )}
+      {/* <ShareWithFamilyModal
         onNewFamily={() => {
           openFamilyModal(false)
           openNewFamilyModal(true)
@@ -51,21 +53,46 @@ export function ThreadSharingButton({ familyId, sharedWithFamilyIds, isAuthor }:
         currentFamilyId={currentFamily.familyId}
         isOpen={isFamilyModalOpen}
         latestUserFamilies={latestUserFamilies}
-      />
-      <ShareCodeModal
+      /> */}
+      {/* <ShareCodeModal
         isOpen={isShareCodeModalOpen}
         currentFamily={currentFamily}
         onClose={() => openShareCodeModal(false)}
         onChangeFamily={() => openFamilyModal(true)}
-      />
+      /> */}
       <CreateNewFamilyModal
         isOpen={isNewFamilyModalOpen}
         onClose={() => openNewFamilyModal(false)}
         setLatestUserFamilies={setLatestUserFamilies}
         onOpenShareWithFamilyModal={() => openFamilyModal(true)}
       />
-      <div className='w-full inline-flex items-center place-content-end'>
-        {currentFamily.isUserSpace ? (
+      <div className='w-full'>
+        {sharedWithFamilyIds?.length ? (
+          <>
+            <span className='text-gray-500 mr-2'>Partagé avec les membres de</span>
+            <ul className='inline'>
+              {sharedWithFamilyIds.map((familyId) => {
+                const family = latestUserFamilies.find((f) => f.familyId === familyId)
+
+                if (!family) return null
+
+                return (
+                  <li className='inline' key={`family_badge_${familyId}`}>
+                    <button
+                      onClick={() => {
+                        if (isAuthor) {
+                          openFamilyModal(true)
+                        }
+                      }}
+                      className={`px-3 py-1.5 border border-transparent text-md font-medium rounded-full shadow-sm ring-inset ring-2 hover:bg-white hover:ring-4 ${family.color} ring-2`}>
+                      {family.familyName}
+                    </button>
+                  </li>
+                )
+              })}
+            </ul>
+          </>
+        ) : (
           <>
             <span className='text-gray-500 mr-2'>Uniquement vous pouvez voir cette histoire.</span>
             <button
@@ -73,22 +100,6 @@ export function ThreadSharingButton({ familyId, sharedWithFamilyIds, isAuthor }:
               onClick={() => (latestUserFamilies.length > 1 ? openFamilyModal(true) : openNewFamilyModal(true))}>
               Partager
             </button>
-          </>
-        ) : (
-          <>
-            <div className='text-gray-500 mr-2'>Partagé avec les membres de</div>
-            {isAuthor ? (
-              <button
-                onClick={() => openShareCodeModal(true)}
-                className={`px-3 py-1.5 border border-transparent text-md font-medium rounded-full shadow-sm ring-inset ring-2 hover:bg-white hover:ring-4 ${currentFamily.color} ring-2`}>
-                {currentFamily.familyName}
-              </button>
-            ) : (
-              <span
-                className={`inline-flex items-center px-3 py-1.5 border border-transparent text-md font-medium rounded-full shadow-sm ring-inset ${currentFamily.color} ring-2`}>
-                {currentFamily.familyName}
-              </span>
-            )}
           </>
         )}
       </div>
@@ -262,131 +273,131 @@ function CreateNewFamilyModal({
   )
 }
 
-type ShareWithFamilyModalProps = {
-  isOpen: boolean
-  onClose: () => unknown
-  onNewFamily: () => unknown
-  currentFamilyId: FamilyId
-  latestUserFamilies: Family[]
-}
+// type ShareWithFamilyModalProps = {
+//   isOpen: boolean
+//   onClose: () => unknown
+//   onNewFamily: () => unknown
+//   currentFamilyId: FamilyId
+//   latestUserFamilies: Family[]
+// }
 
-function ShareWithFamilyModal({
-  isOpen,
-  onClose,
-  onNewFamily,
-  currentFamilyId,
-  latestUserFamilies,
-}: ShareWithFamilyModalProps) {
-  const currentFamily: Family | undefined = useMemo(() => {
-    return latestUserFamilies.find((fam) => fam.familyId === currentFamilyId)
-  }, [latestUserFamilies, currentFamilyId])
-  const [selectedFamily, setSelectedFamily] = useState<Family | undefined>(currentFamily)
+// function ShareWithFamilyModal({
+//   isOpen,
+//   onClose,
+//   onNewFamily,
+//   currentFamilyId,
+//   latestUserFamilies,
+// }: ShareWithFamilyModalProps) {
+//   const currentFamily: Family | undefined = useMemo(() => {
+//     return latestUserFamilies.find((fam) => fam.familyId === currentFamilyId)
+//   }, [latestUserFamilies, currentFamilyId])
+//   const [selectedFamily, setSelectedFamily] = useState<Family | undefined>(currentFamily)
 
-  return (
-    <TDFModal
-      title='Choisissez la famille avec laquelle vous voulez partager cette histoire'
-      isOpen={isOpen}
-      close={() => {
-        setSelectedFamily(currentFamily)
-        onClose()
-      }}>
-      <form method='POST'>
-        <input type='hidden' name='action' value='shareWithFamily' />
-        <input type='hidden' name='familyId' value={selectedFamily?.familyId} />
-        <div>
-          <RadioGroup name='family' value={selectedFamily} onChange={setSelectedFamily}>
-            <RadioGroup.Label className='sr-only'>Privacy setting</RadioGroup.Label>
-            <div className='-space-y-px rounded-md bg-white mt-8'>
-              {latestUserFamilies.map((family, familyIndex) => (
-                <RadioGroup.Option
-                  key={family.familyId}
-                  value={family}
-                  className={({ checked }) =>
-                    classNames(
-                      familyIndex === 0 ? 'rounded-tl-md rounded-tr-md' : '',
-                      familyIndex === latestUserFamilies.length - 1 ? 'rounded-bl-md rounded-br-md' : '',
-                      checked ? 'z-10 border-indigo-200 bg-indigo-50' : 'border-gray-200',
-                      'relative flex cursor-pointer border p-4 focus:outline-none'
-                    )
-                  }>
-                  {({ active, checked }) => (
-                    <>
-                      <span
-                        className={classNames(
-                          checked ? 'bg-indigo-600 border-transparent' : 'bg-white border-gray-300',
-                          active ? 'ring-2 ring-offset-2 ring-indigo-600' : '',
-                          'mt-0.5 h-4 w-4 shrink-0 cursor-pointer rounded-full border flex items-center justify-center'
-                        )}
-                        aria-hidden='true'>
-                        <span className='rounded-full bg-white w-1.5 h-1.5' />
-                      </span>
-                      <span className='ml-3 flex flex-col'>
-                        {family.isUserSpace ? (
-                          <RadioGroup.Label
-                            as='span'
-                            className={classNames(
-                              checked ? 'text-indigo-900' : 'text-gray-900',
-                              'inline-flex justify-items-start items-center text-sm font-medium '
-                            )}>
-                            <LockClosedIcon className='h-4 w-4 mr-1' />
-                            {family.familyName}
-                          </RadioGroup.Label>
-                        ) : (
-                          <RadioGroup.Label
-                            as='span'
-                            className={classNames(
-                              checked ? 'text-indigo-900' : 'text-gray-900',
-                              'inline-flex justify-items-start items-center text-sm font-medium'
-                            )}>
-                            <UsersIcon className='h-4 w-4 mr-1' />
-                            {family.familyName}
-                          </RadioGroup.Label>
-                        )}
-                        {family.isUserSpace ? (
-                          <RadioGroup.Description
-                            as='span'
-                            className={classNames(checked ? 'text-indigo-700' : 'text-gray-500', 'block text-sm')}>
-                            Cette anecdote reste confidentielle et vous seul pouvez y accéder.
-                          </RadioGroup.Description>
-                        ) : (
-                          <RadioGroup.Description
-                            as='span'
-                            className={classNames(checked ? 'text-indigo-700' : 'text-gray-500', 'block text-sm')}>
-                            {family.about}
-                          </RadioGroup.Description>
-                        )}
-                      </span>
-                    </>
-                  )}
-                </RadioGroup.Option>
-              ))}
-            </div>
-          </RadioGroup>
-        </div>
-        <button
-          onClick={(e) => {
-            e.preventDefault()
-            onNewFamily()
-          }}
-          className={`mt-3 text-sm ${linkStyles}`}>
-          <PlusIcon className={`${buttonIconStyles}`} />
-          Nouvelle famille
-        </button>
-        <div className='mt-6'>
-          <button type='submit' className={`mb-4 ${primaryButtonStyles.replace(/inline\-flex/g, '')}  w-full text-center`}>
-            Valider
-          </button>
-          <button
-            type='reset'
-            onClick={onClose}
-            className={`mb-4 ${secondaryButtonStyles.replace(/inline\-flex/g, '')}  w-full text-center`}>
-            Annuler
-          </button>
-        </div>
-      </form>
-    </TDFModal>
-  )
-}
+//   return (
+//     <TDFModal
+//       title='Choisissez la famille avec laquelle vous voulez partager cette histoire'
+//       isOpen={isOpen}
+//       close={() => {
+//         setSelectedFamily(currentFamily)
+//         onClose()
+//       }}>
+//       <form method='POST'>
+//         <input type='hidden' name='action' value='shareWithFamily' />
+//         <input type='hidden' name='familyId' value={selectedFamily?.familyId} />
+//         <div>
+//           <RadioGroup name='family' value={selectedFamily} onChange={setSelectedFamily}>
+//             <RadioGroup.Label className='sr-only'>Privacy setting</RadioGroup.Label>
+//             <div className='-space-y-px rounded-md bg-white mt-8'>
+//               {latestUserFamilies.map((family, familyIndex) => (
+//                 <RadioGroup.Option
+//                   key={family.familyId}
+//                   value={family}
+//                   className={({ checked }) =>
+//                     classNames(
+//                       familyIndex === 0 ? 'rounded-tl-md rounded-tr-md' : '',
+//                       familyIndex === latestUserFamilies.length - 1 ? 'rounded-bl-md rounded-br-md' : '',
+//                       checked ? 'z-10 border-indigo-200 bg-indigo-50' : 'border-gray-200',
+//                       'relative flex cursor-pointer border p-4 focus:outline-none'
+//                     )
+//                   }>
+//                   {({ active, checked }) => (
+//                     <>
+//                       <span
+//                         className={classNames(
+//                           checked ? 'bg-indigo-600 border-transparent' : 'bg-white border-gray-300',
+//                           active ? 'ring-2 ring-offset-2 ring-indigo-600' : '',
+//                           'mt-0.5 h-4 w-4 shrink-0 cursor-pointer rounded-full border flex items-center justify-center'
+//                         )}
+//                         aria-hidden='true'>
+//                         <span className='rounded-full bg-white w-1.5 h-1.5' />
+//                       </span>
+//                       <span className='ml-3 flex flex-col'>
+//                         {family.isUserSpace ? (
+//                           <RadioGroup.Label
+//                             as='span'
+//                             className={classNames(
+//                               checked ? 'text-indigo-900' : 'text-gray-900',
+//                               'inline-flex justify-items-start items-center text-sm font-medium '
+//                             )}>
+//                             <LockClosedIcon className='h-4 w-4 mr-1' />
+//                             {family.familyName}
+//                           </RadioGroup.Label>
+//                         ) : (
+//                           <RadioGroup.Label
+//                             as='span'
+//                             className={classNames(
+//                               checked ? 'text-indigo-900' : 'text-gray-900',
+//                               'inline-flex justify-items-start items-center text-sm font-medium'
+//                             )}>
+//                             <UsersIcon className='h-4 w-4 mr-1' />
+//                             {family.familyName}
+//                           </RadioGroup.Label>
+//                         )}
+//                         {family.isUserSpace ? (
+//                           <RadioGroup.Description
+//                             as='span'
+//                             className={classNames(checked ? 'text-indigo-700' : 'text-gray-500', 'block text-sm')}>
+//                             Cette anecdote reste confidentielle et vous seul pouvez y accéder.
+//                           </RadioGroup.Description>
+//                         ) : (
+//                           <RadioGroup.Description
+//                             as='span'
+//                             className={classNames(checked ? 'text-indigo-700' : 'text-gray-500', 'block text-sm')}>
+//                             {family.about}
+//                           </RadioGroup.Description>
+//                         )}
+//                       </span>
+//                     </>
+//                   )}
+//                 </RadioGroup.Option>
+//               ))}
+//             </div>
+//           </RadioGroup>
+//         </div>
+//         <button
+//           onClick={(e) => {
+//             e.preventDefault()
+//             onNewFamily()
+//           }}
+//           className={`mt-3 text-sm ${linkStyles}`}>
+//           <PlusIcon className={`${buttonIconStyles}`} />
+//           Nouvelle famille
+//         </button>
+//         <div className='mt-6'>
+//           <button type='submit' className={`mb-4 ${primaryButtonStyles.replace(/inline\-flex/g, '')}  w-full text-center`}>
+//             Valider
+//           </button>
+//           <button
+//             type='reset'
+//             onClick={onClose}
+//             className={`mb-4 ${secondaryButtonStyles.replace(/inline\-flex/g, '')}  w-full text-center`}>
+//             Annuler
+//           </button>
+//         </div>
+//       </form>
+//     </TDFModal>
+//   )
+// }
 
 const createNewFamily = async ({
   familyName,
@@ -410,65 +421,65 @@ const createNewFamily = async ({
   return Promise.reject()
 }
 
-type ShareCodeModalProps = {
-  isOpen: boolean
-  onClose: () => unknown
-  onChangeFamily: () => unknown
-  currentFamily: Family
-}
+// type ShareCodeModalProps = {
+//   isOpen: boolean
+//   onClose: () => unknown
+//   onChangeFamily: () => unknown
+//   currentFamily: Family
+// }
 
-function ShareCodeModal({ isOpen, onClose, onChangeFamily, currentFamily }: ShareCodeModalProps) {
-  return (
-    <TDFModal
-      isOpen={isOpen}
-      close={() => {
-        onClose()
-      }}>
-      <div>Votre histoire est partagée avec {currentFamily.familyName}.</div>
-      <div className='mt-2'>Vous pouvez inviter des personnes à rejoindre la famille en copiant le lien suivant:</div>
-      <div className='mt-3 w-full inline-flex rounded-full shadow-sm'>
-        <input
-          type='text'
-          value={`${currentFamily.shareUrl}`}
-          className='block w-full rounded-none rounded-l-full border-0 py-1.5 pl-4 text-gray-900 ring-2 ring-inset ring-indigo-600 text-sm sm:leading-6 cursor-text'
-          disabled
-        />
-        <button
-          type='button'
-          onClick={() => {
-            navigator.clipboard.writeText(currentFamily.shareUrl).then(
-              () => {
-                alert(
-                  'Le lien de partage est bien copié.\n\nVous pouvez maintenant le partager par email, sms, whatsapp, ou tout autre moyen de communication.'
-                )
-              },
-              () => {
-                alert(
-                  'Impossible de copier le lien de partager.\n\nVous pouvez essayer de le faire en copiant le contenu de la case.'
-                )
-              }
-            )
-          }}
-          className='relative -ml-px inline-flex items-center gap-x-1.5 rounded-r-full px-3 py-2 text-sm font-semibold text-indigo-600 bg-white ring-2 ring-inset ring-indigo-600 hover:bg-indigo-600 hover:text-white'>
-          <DocumentDuplicateIcon className='-ml-0.5 h-5 w-5 ' aria-hidden='true' title='Copier' />
-        </button>
-      </div>
-      <div className='mt-6'>
-        <button
-          onClick={() => {
-            onClose()
-            onChangeFamily()
-          }}
-          className={`mb-4 ${primaryButtonStyles.replace(/inline\-flex/g, '')}  w-full text-center`}>
-          Changer de famille
-        </button>
-        <button onClick={onClose} className={`mb-4 ${secondaryButtonStyles.replace(/inline\-flex/g, '')}  w-full text-center`}>
-          Ok
-        </button>
-      </div>
-    </TDFModal>
-  )
-}
+// function ShareCodeModal({ isOpen, onClose, onChangeFamily, currentFamily }: ShareCodeModalProps) {
+//   return (
+//     <TDFModal
+//       isOpen={isOpen}
+//       close={() => {
+//         onClose()
+//       }}>
+//       <div>Votre histoire est partagée avec {currentFamily.familyName}.</div>
+//       <div className='mt-2'>Vous pouvez inviter des personnes à rejoindre la famille en copiant le lien suivant:</div>
+//       <div className='mt-3 w-full inline-flex rounded-full shadow-sm'>
+//         <input
+//           type='text'
+//           value={`${currentFamily.shareUrl}`}
+//           className='block w-full rounded-none rounded-l-full border-0 py-1.5 pl-4 text-gray-900 ring-2 ring-inset ring-indigo-600 text-sm sm:leading-6 cursor-text'
+//           disabled
+//         />
+//         <button
+//           type='button'
+//           onClick={() => {
+//             navigator.clipboard.writeText(currentFamily.shareUrl).then(
+//               () => {
+//                 alert(
+//                   'Le lien de partage est bien copié.\n\nVous pouvez maintenant le partager par email, sms, whatsapp, ou tout autre moyen de communication.'
+//                 )
+//               },
+//               () => {
+//                 alert(
+//                   'Impossible de copier le lien de partager.\n\nVous pouvez essayer de le faire en copiant le contenu de la case.'
+//                 )
+//               }
+//             )
+//           }}
+//           className='relative -ml-px inline-flex items-center gap-x-1.5 rounded-r-full px-3 py-2 text-sm font-semibold text-indigo-600 bg-white ring-2 ring-inset ring-indigo-600 hover:bg-indigo-600 hover:text-white'>
+//           <DocumentDuplicateIcon className='-ml-0.5 h-5 w-5 ' aria-hidden='true' title='Copier' />
+//         </button>
+//       </div>
+//       <div className='mt-6'>
+//         <button
+//           onClick={() => {
+//             onClose()
+//             onChangeFamily()
+//           }}
+//           className={`mb-4 ${primaryButtonStyles.replace(/inline\-flex/g, '')}  w-full text-center`}>
+//           Changer de famille
+//         </button>
+//         <button onClick={onClose} className={`mb-4 ${secondaryButtonStyles.replace(/inline\-flex/g, '')}  w-full text-center`}>
+//           Ok
+//         </button>
+//       </div>
+//     </TDFModal>
+//   )
+// }
 
 type ShareWithMultipleFamilyModalProps = {
   isOpen: boolean
@@ -515,7 +526,7 @@ export function ShareWithMultipleFamilyModal({
                 'z-10 border-indigo-200 bg-indigo-50',
                 'relative flex border p-4 focus:outline-none'
               )}>
-              <input type='checkbox' checked={true} className='h-4 w-4 rounded border-gray-300 text-gray-600 ' />
+              <input type='checkbox' checked={true} className='h-4 w-4 rounded border-gray-300 text-gray-600 focus:ring-0' />
               <span className='ml-3 flex flex-col'>
                 <span
                   className={classNames('text-gray-900', 'inline-flex justify-items-start items-center text-sm font-medium ')}

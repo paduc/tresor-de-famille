@@ -1,11 +1,9 @@
 import multer from 'multer'
-import fs from 'node:fs'
 import z from 'zod'
 import { addToHistory } from '../../dependencies/addToHistory'
 import { requireAuth } from '../../dependencies/authn'
 import { postgres } from '../../dependencies/database'
 import { getSingleEvent } from '../../dependencies/getSingleEvent'
-import { uploadPhoto } from '../../dependencies/photo-storage'
 import { personsIndex } from '../../dependencies/search'
 import { AppUserId } from '../../domain/AppUserId'
 import { FaceId } from '../../domain/FaceId'
@@ -25,21 +23,19 @@ import { getThreadFamily } from '../_getThreadFamily'
 import { isPhotoAccessibleToFamily } from '../_isPhotoAccessibleToFamily'
 import { pageRouter } from '../pageRouter'
 import { UserAddedCaptionToPhoto } from '../photo/UserAddedCaptionToPhoto'
-import { detectFacesInPhotoUsingAWS } from '../photo/recognizeFacesInChatPhoto/detectFacesInPhotoUsingAWS'
 import { PersonClonedForSharing } from '../share/PersonClonedForSharing'
 import { PhotoAutoSharedWithThread } from './PhotoAutoSharedWithThread'
 import { PhotoClonedForSharing } from './ThreadPage/PhotoClonedForSharing'
 import { ReadOnlyThreadPage } from './ThreadPage/ReadonlyThreadPage'
 import { ThreadClonedForSharing } from './ThreadPage/ThreadClonedForSharing'
 import { ThreadPage } from './ThreadPage/ThreadPage'
+import { ThreadSharedWithFamilies } from './ThreadPage/ThreadSharedWithFamilies'
 import { ThreadUrl } from './ThreadUrl'
-import { TipTapContentAsJSON, TipTapJSON, decodeTipTapJSON, encodeStringy, zIsTipTapContentAsJSON } from './TipTapTypes'
-import { UserInsertedPhotoInRichTextThread } from './UserInsertedPhotoInRichTextThread'
+import { PhotoNode, TipTapContentAsJSON, TipTapJSON, encodeStringy, zIsTipTapContentAsJSON } from './TipTapTypes'
 import { UserSetChatTitle } from './UserSetChatTitle'
 import { UserUpdatedThreadAsRichText } from './UserUpdatedThreadAsRichText'
 import { getThreadContents, getThreadPageProps } from './getThreadPageProps'
 import { UserSentMessageToChat } from './sendMessageToChat/UserSentMessageToChat'
-import { ThreadSharedWithFamilies } from './ThreadPage/ThreadSharedWithFamilies'
 
 const fakeProfilePicUrl =
   'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80'
@@ -246,10 +242,32 @@ pageRouter
       } else if (action === 'shareWithMultipleFamilies') {
         const { familiesToShareWith } = z.object({ familiesToShareWith: z.array(zIsFamilyId) }).parse(request.body)
 
-        // Check if no-op
+        // TODO: Check if no-op
+
+        // Share photos in thread
+        const threadContents = await getThreadContents(threadId)
+        if (threadContents !== null) {
+          const photoIds = threadContents.contentAsJSON.content
+            .filter((c): c is PhotoNode => c.type === 'photoNode')
+            .map((c) => c.attrs.photoId)
+
+          for (const photoId of photoIds) {
+            for (const familyId of familiesToShareWith) {
+              if (!(await isPhotoAccessibleToFamily({ photoId, familyId }))) {
+                await addToHistory(PhotoAutoSharedWithThread({ photoId, threadId, familyId }))
+              }
+            }
+          }
+        }
 
         // Trigger ThreadSharedWithFamilies
-        await addToHistory(ThreadSharedWithFamilies())
+        await addToHistory(
+          ThreadSharedWithFamilies({
+            threadId,
+            familyIds: familiesToShareWith,
+            userId,
+          })
+        )
 
         return response.redirect(ThreadUrl(threadId))
       }

@@ -16,16 +16,17 @@ export type ReadOnlyThreadPageProps = {
   lastUpdated: Epoch | undefined
   threadId: ThreadId
   isAuthor: boolean
+  sharedWithFamilyIds?: FamilyId[]
   familyId: FamilyId
 }
 
 export const ReadOnlyThreadPage = withBrowserBundle(
-  ({ contentAsJSON, title, familyId, threadId, isAuthor }: ReadOnlyThreadPageProps) => {
+  ({ contentAsJSON, title, familyId, threadId, isAuthor, sharedWithFamilyIds }: ReadOnlyThreadPageProps) => {
     return (
       <AppLayout>
         <div className='w-full sm:ml-6 max-w-2xl pt-3 pb-40'>
           <div className='w-full mb-3 px-2'>
-            <ThreadSharingButton isAuthor={isAuthor} familyId={familyId} />
+            <ThreadSharingButton isAuthor={isAuthor} familyId={familyId} sharedWithFamilyIds={sharedWithFamilyIds} />
           </div>
           <div className='divide-y divide-gray-200 overflow-hidden sm:rounded-lg bg-white shadow'>
             {title ? <div className='relative w-full max-w-2xl px-4 py-5 sm:px-6 text-gray-800 text-xl'>{title}</div> : null}
