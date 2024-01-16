@@ -35,7 +35,7 @@ import { PhotoNode, TipTapContentAsJSON, TipTapJSON, encodeStringy, zIsTipTapCon
 import { UserSetChatTitle } from './UserSetChatTitle'
 import { UserUpdatedThreadAsRichText } from './UserUpdatedThreadAsRichText'
 import { getThreadContents, getThreadPageProps } from './getThreadPageProps'
-import { UserSentMessageToChat } from './sendMessageToChat/UserSentMessageToChat'
+import { UserSentMessageToChat } from '../../events/deprecated/UserSentMessageToChat'
 import { getThreadFamilies } from '../_getThreadFamilies'
 
 const fakeProfilePicUrl =
@@ -47,37 +47,11 @@ const upload = multer({
   limits: { fileSize: FILE_SIZE_LIMIT_MB * 1024 * 1024 /* MB */ },
 })
 
-pageRouter
-  .route('/thread.html')
-  .get(requireAuth(), async (request, response) => {
-    const newThreadId = makeThreadId()
+pageRouter.route('/thread.html').get(requireAuth(), async (request, response) => {
+  const newThreadId = makeThreadId()
 
-    response.redirect(ThreadUrl(newThreadId, true))
-  })
-  .post(requireAuth(), async (request, response) => {
-    const userId = request.session.user!.id
-
-    const threadId = makeThreadId()
-
-    const { message } = request.body
-
-    if (message) {
-      const messageId = getUuid()
-
-      await addToHistory(
-        UserSentMessageToChat({
-          threadId,
-          userId,
-          message,
-          messageId,
-          familyId: userId as string as FamilyId,
-        })
-      )
-    }
-
-    // TODO: try catch error and send it back as HTML (or redirect if OK)
-    return response.redirect(ThreadUrl(threadId, true))
-  })
+  response.redirect(ThreadUrl(newThreadId, true))
+})
 
 pageRouter
   .route(ThreadUrl())
@@ -137,24 +111,7 @@ pageRouter
 
       const familyId = (await getThreadFamily(threadId)) || (userId as string as FamilyId)
 
-      if (action === 'newMessage') {
-        const { message } = z.object({ message: z.string() }).parse(request.body)
-        const messageId = getUuid()
-
-        if (message.trim().length) {
-          await addToHistory(
-            UserSentMessageToChat({
-              threadId,
-              userId,
-              message: message.trim(),
-              messageId,
-              familyId,
-            })
-          )
-        }
-
-        return response.redirect(ThreadUrl(threadId, true))
-      } else if (action === 'clientsideUpdate') {
+      if (action === 'clientsideUpdate') {
         try {
           const { contentAsJSON } = z.object({ contentAsJSON: zIsTipTapContentAsJSON }).parse(request.body)
 

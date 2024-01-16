@@ -29,7 +29,7 @@ import { ThreadClonedForSharing } from '../thread/ThreadPage/ThreadClonedForShar
 import { UserInsertedPhotoInRichTextThread } from '../thread/UserInsertedPhotoInRichTextThread'
 import { UserSetChatTitle } from '../thread/UserSetChatTitle'
 import { UserUpdatedThreadAsRichText } from '../thread/UserUpdatedThreadAsRichText'
-import { UserSentMessageToChat } from '../thread/sendMessageToChat/UserSentMessageToChat'
+import { UserSentMessageToChat } from '../../events/deprecated/UserSentMessageToChat'
 import { getSingleEvent } from '../../dependencies/getSingleEvent'
 import { PersonClonedForSharing } from '../share/PersonClonedForSharing'
 import { getFaceAndPhotoForPerson } from '../_getProfilePicUrlForPerson'

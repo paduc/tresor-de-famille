@@ -13,7 +13,7 @@ import { ParagraphNode, PhotoNode } from '../thread/TipTapTypes'
 import { UserInsertedPhotoInRichTextThread } from '../thread/UserInsertedPhotoInRichTextThread'
 import { UserSetChatTitle } from '../thread/UserSetChatTitle'
 import { UserUpdatedThreadAsRichText } from '../thread/UserUpdatedThreadAsRichText'
-import { UserSentMessageToChat } from '../thread/sendMessageToChat/UserSentMessageToChat'
+import { UserSentMessageToChat } from '../../events/deprecated/UserSentMessageToChat'
 import { ThreadListPageProps } from './ThreadListPage'
 
 type ThreadEvent =
