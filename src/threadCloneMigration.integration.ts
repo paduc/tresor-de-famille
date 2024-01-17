@@ -34,7 +34,9 @@ describe('threadCloneMigration', () => {
     it('should do nothing', async () => {
       await threadCloneMigration()
 
-      const events = await postgres.query<DomainEvent>('SELECT * FROM history')
+      const events = await postgres.query<DomainEvent>(
+        "SELECT * FROM history WHERE type!='MigrationStart' AND type!='MigrationSuccess';"
+      )
 
       expect(events.rowCount).toEqual(1)
     })
@@ -65,7 +67,9 @@ describe('threadCloneMigration', () => {
     it('should do nothing', async () => {
       await threadCloneMigration()
 
-      const events = await postgres.query<DomainEvent>('SELECT * FROM history')
+      const events = await postgres.query<DomainEvent>(
+        "SELECT * FROM history WHERE type!='MigrationStart' AND type!='MigrationSuccess';"
+      )
 
       expect(events.rowCount).toEqual(2)
     })
@@ -127,7 +131,9 @@ describe('threadCloneMigration', () => {
 
       await threadCloneMigration()
 
-      const events = await postgres.query<DomainEvent>('SELECT * FROM history')
+      const events = await postgres.query<DomainEvent>(
+        "SELECT * FROM history WHERE type!='MigrationStart' AND type!='MigrationSuccess';"
+      )
 
       expect(events.rowCount).toEqual(6)
     })

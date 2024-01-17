@@ -11,6 +11,7 @@ import { sessionStore } from './dependencies/session'
 import { factViewerRouter } from './facts/viewer/factViewer.route'
 import { pageRouter } from './pages'
 import { MulterError } from 'multer'
+import { threadCloneMigration } from './threadCloneMigration'
 
 const PORT: number = parseInt(process.env.PORT ?? '3000')
 
@@ -87,6 +88,7 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
 
 app.listen(PORT, async (): Promise<void> => {
   await createHistoryTable()
+  await threadCloneMigration()
 
   // eslint-disable-next-line no-console
   console.log('Server listening to port', PORT)

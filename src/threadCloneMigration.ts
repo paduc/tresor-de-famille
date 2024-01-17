@@ -1,11 +1,13 @@
 import { addToHistory } from './dependencies/addToHistory'
 import { postgres } from './dependencies/database'
-import { DomainEvent } from './dependencies/DomainEvent'
 import { getEventList } from './dependencies/getEventList'
 import { getSingleEvent } from './dependencies/getSingleEvent'
 import { FamilyId } from './domain/FamilyId'
 import { ThreadId } from './domain/ThreadId'
 import { UserSentMessageToChat } from './events/deprecated/UserSentMessageToChat'
+import { MigrationFailure } from './events/migrations/MigrationFailure'
+import { MigrationStart } from './events/migrations/MigrationStart'
+import { MigrationSuccess } from './events/migrations/MigrationSuccess'
 import { OnboardingUserStartedFirstThread } from './events/onboarding/OnboardingUserStartedFirstThread'
 import { getOriginalPhotoId } from './pages/_getOriginalPhotoId'
 import { PhotoAutoSharedWithThread } from './pages/thread/PhotoAutoSharedWithThread'
@@ -25,66 +27,84 @@ type ThreadEvent =
   | ThreadClonedForSharing
 
 export const threadCloneMigration = async () => {
-  const threadEvents = await getEventList<ThreadEvent>([
-    'OnboardingUserStartedFirstThread',
-    'UserSentMessageToChat',
-    'UserUpdatedThreadAsRichText',
-    'UserInsertedPhotoInRichTextThread',
-    'ThreadClonedForSharing',
-    'UserSetChatTitle',
-  ])
+  const migrationName = 'threadClone'
+  const migration = await getSingleEvent<MigrationStart>('MigrationStart', { name: migrationName })
 
-  const uniqueThreads = new Map<ThreadId, ThreadEvent[]>()
-  for (const threadEvent of threadEvents) {
-    const { threadId } = threadEvent.payload
+  if (migration) return
 
-    if (!uniqueThreads.has(threadId)) {
-      uniqueThreads.set(threadId, [])
+  await addToHistory(MigrationStart({ name: migrationName }))
+
+  try {
+    const threadEvents = await getEventList<ThreadEvent>([
+      'OnboardingUserStartedFirstThread',
+      'UserSentMessageToChat',
+      'UserUpdatedThreadAsRichText',
+      'UserInsertedPhotoInRichTextThread',
+      'ThreadClonedForSharing',
+      'UserSetChatTitle',
+    ])
+
+    const uniqueThreads = new Map<ThreadId, ThreadEvent[]>()
+    for (const threadEvent of threadEvents) {
+      const { threadId } = threadEvent.payload
+
+      if (!uniqueThreads.has(threadId)) {
+        uniqueThreads.set(threadId, [])
+      }
+
+      uniqueThreads.get(threadId)!.push(threadEvent)
     }
 
-    uniqueThreads.get(threadId)!.push(threadEvent)
-  }
+    for (const [threadId, thisThreadsEvents] of uniqueThreads) {
+      const firstEvent = thisThreadsEvents.at(0)!
 
-  for (const [threadId, thisThreadsEvents] of uniqueThreads) {
-    const firstEvent = thisThreadsEvents.at(0)!
+      // Ignore clone threads
+      if (firstEvent.type === 'ThreadClonedForSharing') {
+        continue
+      }
 
-    // Ignore clone threads
-    if (firstEvent.type === 'ThreadClonedForSharing') {
-      continue
-    }
+      // Has it been cloned ?
+      const cloneEvents = await getClones(threadId)
+      if (cloneEvents.length) {
+        // Get the latest clone
+        const latestClone = cloneEvents.sort((a, b) => a.occurredAt.getTime() - b.occurredAt.getTime()).at(-1)!
 
-    // Has it been cloned ?
-    const cloneEvents = await getClones(threadId)
-    if (cloneEvents.length) {
-      // Get the latest clone
-      const latestClone = cloneEvents.sort((a, b) => a.occurredAt.getTime() - b.occurredAt.getTime()).at(-1)!
-
-      const latestUpdateOfClone = await getSingleEvent<UserUpdatedThreadAsRichText>('UserUpdatedThreadAsRichText', {
-        threadId: latestClone.payload.threadId,
-      })
-
-      const latestContentAsJSON = latestUpdateOfClone?.payload.contentAsJSON || latestClone.payload.contentAsJSON
-      await addToHistory(
-        UserUpdatedThreadAsRichText({
-          contentAsJSON: await replacePhotoClonesWithOriginals(latestContentAsJSON),
-          threadId,
-          userId: firstEvent.payload.userId,
-          familyId: firstEvent.payload.familyId,
+        const latestUpdateOfClone = await getSingleEvent<UserUpdatedThreadAsRichText>('UserUpdatedThreadAsRichText', {
+          threadId: latestClone.payload.threadId,
         })
-      )
 
-      // Share with the clone family
-      await addToHistory(
-        ThreadSharedWithFamilies({
+        const latestContentAsJSON = latestUpdateOfClone?.payload.contentAsJSON || latestClone.payload.contentAsJSON
+        await addToHistory(
+          UserUpdatedThreadAsRichText({
+            contentAsJSON: await replacePhotoClonesWithOriginals(latestContentAsJSON),
+            threadId,
+            userId: firstEvent.payload.userId,
+            familyId: firstEvent.payload.familyId,
+          })
+        )
+
+        // Share with the clone family
+        await addToHistory(
+          ThreadSharedWithFamilies({
+            threadId,
+            familyIds: [firstEvent.payload.familyId, latestClone.payload.familyId],
+            userId: latestClone.payload.userId,
+          })
+        )
+
+        // Share the original photos with new family
+        await sharePhotosInContent({
+          contentAsJSON: latestContentAsJSON,
           threadId,
-          familyIds: [firstEvent.payload.familyId, latestClone.payload.familyId],
-          userId: latestClone.payload.userId,
+          shareFamilyId: latestClone.payload.familyId,
         })
-      )
-
-      // Share the original photos with new family
-      await sharePhotosInContent({ contentAsJSON: latestContentAsJSON, threadId, shareFamilyId: latestClone.payload.familyId })
+      }
     }
+
+    await addToHistory(MigrationSuccess({ name: migrationName }))
+  } catch (error) {
+    console.error(`Migration ${migrationName} failed`, error)
+    await addToHistory(MigrationFailure({ name: migrationName }))
   }
 }
 
