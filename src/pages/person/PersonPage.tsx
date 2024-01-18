@@ -12,6 +12,7 @@ import { AppLayout } from '../_components/layout/AppLayout'
 import { PersonPageURL } from './PersonPageURL'
 import { useLoggedInSession } from '../_components/SessionContext'
 import { FamilyId } from '../../domain/FamilyId'
+import { ThumbnailURL } from '../photoApi/ThumbnailURL'
 
 // @ts-ignore
 function classNames(...classes) {
@@ -150,7 +151,7 @@ export const PersonPage = withBrowserBundle(({ person, photos, alternateProfileP
               <div className='group aspect-h-7 aspect-w-10 block w-full overflow-hidden rounded-lg bg-gray-100 focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 focus-within:ring-offset-gray-100'>
                 <img src={photo.url} alt='' className='pointer-events-none object-cover group-hover:opacity-75' />
                 <a
-                  href={`/photo/${photo.photoId}` + `/photo.html?profileId=${person.personId}`}
+                  href={`${ThumbnailURL(photo.photoId)}?profileId=${person.personId}`}
                   className='absolute inset-0 focus:outline-none'>
                   <span className='sr-only'>Voir la photo</span>
                 </a>
