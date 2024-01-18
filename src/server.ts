@@ -12,6 +12,7 @@ import { factViewerRouter } from './facts/viewer/factViewer.route'
 import { pageRouter } from './pages'
 import { MulterError } from 'multer'
 import { threadCloneMigration } from './threadCloneMigration'
+import { photoCloneMigration } from './photoCloneMigration'
 
 const PORT: number = parseInt(process.env.PORT ?? '3000')
 
@@ -89,6 +90,7 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
 app.listen(PORT, async (): Promise<void> => {
   await createHistoryTable()
   // await threadCloneMigration()
+  // await photoCloneMigration()
 
   // eslint-disable-next-line no-console
   console.log('Server listening to port', PORT)
