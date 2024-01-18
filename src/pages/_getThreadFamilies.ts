@@ -1,7 +1,6 @@
 import { getSingleEvent } from '../dependencies/getSingleEvent'
 import { FamilyId } from '../domain/FamilyId'
 import { ThreadId } from '../domain/ThreadId'
-import { ThreadClonedForSharing } from './thread/ThreadPage/ThreadClonedForSharing'
 import { ThreadSharedWithFamilies } from './thread/ThreadPage/ThreadSharedWithFamilies'
 
 /**
@@ -11,15 +10,10 @@ import { ThreadSharedWithFamilies } from './thread/ThreadPage/ThreadSharedWithFa
  * @returns familyIds FamilleId[]
  */
 export async function getThreadFamilies(threadId: ThreadId): Promise<FamilyId[] | undefined> {
-  const latestShareEvent = await getSingleEvent<ThreadClonedForSharing | ThreadSharedWithFamilies>(
-    ['ThreadClonedForSharing', 'ThreadSharedWithFamilies'],
-    { threadId }
-  )
-  switch (latestShareEvent?.type) {
-    case 'ThreadClonedForSharing':
-      return [latestShareEvent.payload.familyId]
-    case 'ThreadSharedWithFamilies':
-      return latestShareEvent.payload.familyIds
+  const latestShareEvent = await getSingleEvent<ThreadSharedWithFamilies>(['ThreadSharedWithFamilies'], { threadId })
+
+  if (latestShareEvent) {
+    return latestShareEvent.payload.familyIds
   }
 
   return []

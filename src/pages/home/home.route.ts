@@ -25,7 +25,6 @@ import { PersonId, zIsPersonId } from '../../domain/PersonId'
 import { UserRecognizedThemselfAsPerson } from '../../events/onboarding/UserRecognizedThemselfAsPerson'
 import { getPersonFamily } from '../_getPersonFamily'
 import { OnboardingUserStartedFirstThread } from '../../events/onboarding/OnboardingUserStartedFirstThread'
-import { ThreadClonedForSharing } from '../thread/ThreadPage/ThreadClonedForSharing'
 import { UserInsertedPhotoInRichTextThread } from '../thread/UserInsertedPhotoInRichTextThread'
 import { UserSetChatTitle } from '../thread/UserSetChatTitle'
 import { UserUpdatedThreadAsRichText } from '../thread/UserUpdatedThreadAsRichText'
@@ -162,30 +161,6 @@ pageRouter
 
     return response.redirect('/')
   })
-
-async function hasUserCreatedAThread(userId: AppUserId): Promise<boolean> {
-  type ThreadEvent =
-    | UserSentMessageToChat
-    | OnboardingUserStartedFirstThread
-    | UserUpdatedThreadAsRichText
-    | UserInsertedPhotoInRichTextThread
-    | ThreadClonedForSharing
-    | UserSetChatTitle
-
-  const threadEvent = await getSingleEvent<ThreadEvent>(
-    [
-      'OnboardingUserStartedFirstThread',
-      'UserSentMessageToChat',
-      'UserUpdatedThreadAsRichText',
-      'UserInsertedPhotoInRichTextThread',
-      'ThreadClonedForSharing',
-      'UserSetChatTitle',
-    ],
-    { userId }
-  )
-
-  return !!threadEvent
-}
 
 async function fetchFaceAndPhotoForPerson({
   userId,

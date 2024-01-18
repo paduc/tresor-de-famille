@@ -15,7 +15,6 @@ import { isPhotoAccessibleToFamily } from '../_isPhotoAccessibleToFamily'
 import { pageRouter } from '../pageRouter'
 import { PhotoAutoSharedWithThread } from './PhotoAutoSharedWithThread'
 import { ReadOnlyThreadPage } from './ThreadPage/ReadonlyThreadPage'
-import { ThreadClonedForSharing } from './ThreadPage/ThreadClonedForSharing'
 import { ThreadPage } from './ThreadPage/ThreadPage'
 import { ThreadSharedWithFamilies } from './ThreadPage/ThreadSharedWithFamilies'
 import { ThreadUrl } from './ThreadUrl'
@@ -46,11 +45,6 @@ pageRouter
 
     const userId = request.session.user!.id
     const isEditable = edit === 'edit'
-
-    const laterThreadId = await getLaterThreadVersion(threadId)
-    if (laterThreadId) {
-      return response.redirect(ThreadUrl(laterThreadId, isEditable))
-    }
 
     const props = await getThreadPageProps({ threadId, userId })
 
@@ -195,16 +189,4 @@ async function canEditThread({ userId, threadId }: { userId: AppUserId; threadId
   if (!authorId) return true
 
   return false
-}
-
-async function getLaterThreadVersion(threadId: ThreadId): Promise<ThreadId | null> {
-  const { rows: clonedEvents } = await postgres.query<ThreadClonedForSharing>(
-    `SELECT * FROM history WHERE type='ThreadClonedForSharing' AND payload->'clonedFrom'->>'threadId'=$1 LIMIT 1`,
-    [threadId]
-  )
-  if (clonedEvents.length > 0) {
-    return clonedEvents[0].payload.threadId
-  }
-
-  return null
 }

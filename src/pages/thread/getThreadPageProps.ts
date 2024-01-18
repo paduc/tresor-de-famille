@@ -9,15 +9,14 @@ import { getEpoch } from '../../libs/typeguards'
 import { getFacesInPhoto } from '../_getFacesInPhoto'
 import { getPersonByIdOrThrow } from '../_getPersonById'
 import { getPhotoCaption } from '../_getPhotoCaption'
-import { ThreadClonedForSharing } from './ThreadPage/ThreadClonedForSharing'
+import { getThreadAuthor } from '../_getThreadAuthor'
+import { ThreadEvent, getThreadEvents } from '../_getThreadEvents'
+import { getThreadFamilies } from '../_getThreadFamilies'
 import { ThreadPageProps } from './ThreadPage/ThreadPage'
 import { TipTapContentAsJSON, encodeStringy } from './TipTapTypes'
 import { UserInsertedPhotoInRichTextThread } from './UserInsertedPhotoInRichTextThread'
 import { UserSetChatTitle } from './UserSetChatTitle'
 import { UserUpdatedThreadAsRichText } from './UserUpdatedThreadAsRichText'
-import { getThreadAuthor } from '../_getThreadAuthor'
-import { ThreadEvent, getThreadEvents } from '../_getThreadEvents'
-import { getThreadFamilies } from '../_getThreadFamilies'
 
 export const getThreadPageProps = async ({
   threadId,
@@ -69,12 +68,7 @@ export const getThreadPageProps = async ({
     .filter((event): event is Exclude<ThreadEvent, UserSetChatTitle> => event.type !== 'UserSetChatTitle')
     .at(-1)
 
-  const latestTitleEvent = threadEvents
-    .filter(
-      (event): event is UserSetChatTitle | ThreadClonedForSharing =>
-        event.type === 'UserSetChatTitle' || event.type === 'ThreadClonedForSharing'
-    )
-    .at(-1)
+  const latestTitleEvent = threadEvents.filter((event): event is UserSetChatTitle => event.type === 'UserSetChatTitle').at(-1)
 
   const firstEventPayload = threadEvents.at(0)!.payload
 
@@ -171,26 +165,13 @@ export async function getThreadContents(
 ): Promise<{ contentAsJSON: TipTapContentAsJSON; title: string | undefined; authorId: AppUserId; familyId: FamilyId } | null> {
   const DEFAULT_CONTENT: TipTapContentAsJSON = { type: 'doc', content: [] }
 
-  let latestEvent:
-    | UserUpdatedThreadAsRichText
-    | UserSetChatTitle
-    | UserInsertedPhotoInRichTextThread
-    | ThreadClonedForSharing // to make latestEvent compatible with cloneEvent below
-    | undefined = await getSingleEvent<UserUpdatedThreadAsRichText | UserInsertedPhotoInRichTextThread>(
-    ['UserUpdatedThreadAsRichText', 'UserInsertedPhotoInRichTextThread'],
-    {
-      threadId,
-    }
-  )
-
-  const cloneEvent = await getSingleEvent<ThreadClonedForSharing>('ThreadClonedForSharing', { threadId })
-
-  if (cloneEvent) {
-    if (!latestEvent || latestEvent.occurredAt.getTime() > cloneEvent.occurredAt.getTime()) {
-      // The latest on this thread is the cloneEvent
-      latestEvent = cloneEvent
-    }
-  }
+  let latestEvent: UserUpdatedThreadAsRichText | UserSetChatTitle | UserInsertedPhotoInRichTextThread | undefined =
+    await getSingleEvent<UserUpdatedThreadAsRichText | UserInsertedPhotoInRichTextThread>(
+      ['UserUpdatedThreadAsRichText', 'UserInsertedPhotoInRichTextThread'],
+      {
+        threadId,
+      }
+    )
 
   const setTitleEvent = await getSingleEvent<UserSetChatTitle>('UserSetChatTitle', { threadId })
 
@@ -198,7 +179,7 @@ export async function getThreadContents(
     return null
   }
 
-  const title = (setTitleEvent || cloneEvent)?.payload.title
+  const title = setTitleEvent?.payload.title
 
   return {
     contentAsJSON: latestEvent?.payload.contentAsJSON || DEFAULT_CONTENT,
