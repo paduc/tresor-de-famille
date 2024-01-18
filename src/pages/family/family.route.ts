@@ -10,8 +10,9 @@ import { RelationshipId, zIsRelationshipId } from '../../domain/RelationshipId'
 import { exhaustiveGuard } from '../../libs/exhaustiveGuard'
 import { responseAsHtml } from '../../libs/ssr/responseAsHtml'
 import { asFamilyId } from '../../libs/typeguards'
-import { createCloneIfOutsideOfFamily } from '../_createCloneIfOutsideOfFamily'
+import { isPersonSharedWithFamily } from '../_isPersonSharedWithFamily'
 import { pageRouter } from '../pageRouter'
+import { PersonAutoSharedWithRelationship } from '../share/PersonAutoSharedWithRelationship'
 import { FamilyPage } from './FamilyPage'
 import { FamilyPageURLWithFamily } from './FamilyPageURL'
 import { UserCreatedNewRelationship } from './UserCreatedNewRelationship'
@@ -50,7 +51,7 @@ pageRouter.route('/family/saveNewRelationship').post(requireAuth(), async (reque
     .parse(request.body)
 
   if (await relationshipExists({ userId, relationshipId: relationship.id })) {
-    return response.status(403).send()
+    return response.status(200).send()
   }
 
   if (newPerson) {
@@ -78,26 +79,29 @@ pageRouter.route('/family/saveNewRelationship').post(requireAuth(), async (reque
   } else {
     await addToHistory(
       UserCreatedNewRelationship({
-        relationship: await translateRelationshipForFamily({ relationship, familyId, userId }),
+        relationship,
         userId,
         familyId,
       })
     )
+
+    await sharePersonsInRelationshipWithFamily({ relationship, familyId })
   }
 
   if (secondaryRelationships) {
     for (const secondaryRelationship of secondaryRelationships) {
       await addToHistory(
         UserCreatedNewRelationship({
-          relationship: await translateRelationshipForFamily({
-            relationship: secondaryRelationship,
-            familyId,
-            userId,
-          }),
+          relationship: secondaryRelationship,
           userId,
           familyId,
         })
       )
+
+      await sharePersonsInRelationshipWithFamily({
+        relationship: secondaryRelationship,
+        familyId,
+      })
     }
   }
 
@@ -142,57 +146,66 @@ async function relationshipExists({ userId, relationshipId }: { userId: AppUserI
   return !!existingRelationshipWithId
 }
 
-async function translateRelationshipForFamily({
+async function sharePersonsInRelationshipWithFamily({
   relationship,
   familyId,
-  userId,
 }: {
   relationship: Relationship
   familyId: FamilyId
-  userId: AppUserId
-}): Promise<Relationship> {
+}): Promise<void> {
   const relationshipType = relationship.type
+  const relationshipId = relationship.id
   switch (relationshipType) {
     case 'friends': {
       const [person1Id, person2Id] = relationship.friendIds
-      const friendIds: [PersonId, PersonId] = [
-        await createCloneIfOutsideOfFamily({ personId: person1Id, familyId, userId }),
-        await createCloneIfOutsideOfFamily({ personId: person2Id, familyId, userId }),
-      ]
-
-      return {
-        id: relationship.id,
-        type: 'friends',
-        friendIds,
-      }
+      await sharePersonIfOutsideOfFamily({ personId: person1Id, familyId, relationshipId })
+      await sharePersonIfOutsideOfFamily({ personId: person2Id, familyId, relationshipId })
+      return
     }
     case 'spouses': {
       const [person1Id, person2Id] = relationship.spouseIds
-      const spouseIds: [PersonId, PersonId] = [
-        await createCloneIfOutsideOfFamily({ personId: person1Id, familyId, userId }),
-        await createCloneIfOutsideOfFamily({ personId: person2Id, familyId, userId }),
-      ]
-
-      return {
-        id: relationship.id,
-        type: 'spouses',
-        spouseIds,
-      }
+      await sharePersonIfOutsideOfFamily({ personId: person1Id, familyId, relationshipId })
+      await sharePersonIfOutsideOfFamily({ personId: person2Id, familyId, relationshipId })
+      return
     }
     case 'parent': {
       const { childId, parentId } = relationship
-
-      const newChildId = await createCloneIfOutsideOfFamily({ personId: childId, familyId, userId })
-      const newParentId = await createCloneIfOutsideOfFamily({ personId: parentId, familyId, userId })
-
-      return {
-        id: relationship.id,
-        type: 'parent',
-        childId: newChildId,
-        parentId: newParentId,
-      }
+      await sharePersonIfOutsideOfFamily({ personId: childId, familyId, relationshipId })
+      await sharePersonIfOutsideOfFamily({ personId: parentId, familyId, relationshipId })
+      return
     }
     default:
       exhaustiveGuard(relationshipType)
+  }
+}
+
+async function sharePersonIfOutsideOfFamily({
+  personId,
+  familyId,
+  relationshipId,
+}: {
+  personId: PersonId
+  familyId: FamilyId
+  relationshipId: RelationshipId
+}): Promise<void> {
+  if (await isPersonSharedWithFamily({ personId, familyId })) {
+    return
+  }
+
+  await addToHistory(
+    PersonAutoSharedWithRelationship({
+      personId,
+      familyId,
+      relationshipId,
+    })
+  )
+
+  try {
+    await personsIndex.partialUpdateObject({
+      objectID: personId,
+      visible_by: [`family/${familyId}`],
+    })
+  } catch (error) {
+    console.error('Could not share person with family to algolia index', error)
   }
 }

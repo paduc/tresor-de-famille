@@ -8,7 +8,6 @@ import { UserNamedPersonInPhoto } from '../events/onboarding/UserNamedPersonInPh
 import { UserNamedThemself } from '../events/onboarding/UserNamedThemself'
 import { UserCreatedRelationshipWithNewPerson } from '../pages/family/UserCreatedRelationshipWithNewPerson'
 import { UserChangedPersonName } from '../pages/person/UserChangedPersonName'
-import { PersonClonedForSharing } from '../pages/share/PersonClonedForSharing'
 import { actionsRouter } from './actionsRouter'
 
 actionsRouter.get('/resetAlgoliaIndex', requireAuth(), async (request, response) => {
@@ -34,14 +33,6 @@ actionsRouter.get('/resetAlgoliaIndex', requireAuth(), async (request, response)
 
   try {
     await indexUserNamedPersonInPhoto()
-  } catch (error) {
-    console.error(error)
-    // @ts-ignore
-    response.send(error.message).status(400)
-  }
-
-  try {
-    await indexPersonClonedForSharing()
   } catch (error) {
     console.error(error)
     // @ts-ignore
@@ -93,23 +84,6 @@ async function indexUserNamedThemself() {
       name,
       familyId: onboardedPerson.payload.familyId,
       visible_by: [`family/${onboardedPerson.payload.familyId}`, `user/${onboardedPerson.payload.userId}`],
-    })
-  }
-}
-
-async function indexPersonClonedForSharing() {
-  const { rows: clonedPersons } = await postgres.query<PersonClonedForSharing>(
-    "SELECT * FROM history WHERE type = 'PersonClonedForSharing'"
-  )
-
-  for (const clonedPerson of clonedPersons) {
-    const { personId, name } = clonedPerson.payload
-    await personsIndex.saveObject({
-      objectID: personId,
-      id: personId,
-      name,
-      familyId: clonedPerson.payload.familyId,
-      visible_by: [`family/${clonedPerson.payload.familyId}`, `user/${clonedPerson.payload.userId}`],
     })
   }
 }

@@ -6,14 +6,9 @@ import { FamilyId } from '../../domain/FamilyId'
 import { PersonId } from '../../domain/PersonId'
 import { UserNamedPersonInPhoto } from '../../events/onboarding/UserNamedPersonInPhoto'
 import { UserNamedThemself } from '../../events/onboarding/UserNamedThemself'
-import { UserRecognizedThemselfAsPerson } from '../../events/onboarding/UserRecognizedThemselfAsPerson'
-import { asFamilyId } from '../../libs/typeguards'
-import { getPersonById } from '../_getPersonById'
 import { getPersonForUser } from '../_getPersonForUser'
-import { getPersonForUserForFamily } from '../_getPersonForUserForFamily'
 import { getProfilePicUrlForPerson } from '../_getProfilePicUrlForPerson'
 import { UserChangedPersonName } from '../person/UserChangedPersonName'
-import { PersonClonedForSharing } from '../share/PersonClonedForSharing'
 
 import { FamilyPageProps } from './FamilyPage'
 import { UserCreatedNewRelationship } from './UserCreatedNewRelationship'
@@ -27,7 +22,7 @@ export const getFamilyPageProps = async ({
   userId: AppUserId
   familyId: FamilyId
 }): Promise<FamilyPageProps> => {
-  const userPersonInFamily = await getPersonForUserForFamily({ userId, familyId })
+  const personForUser = await getPersonForUser({ userId })
 
   const persons = await getFamilyPersons({ userId, familyId })
   const relationships = await getFamilyRelationships(
@@ -43,7 +38,7 @@ export const getFamilyPageProps = async ({
   return {
     initialPersons: persons,
     initialRelationships: relationships,
-    initialOriginPersonId: userPersonInFamily?.personId,
+    initialOriginPersonId: personForUser?.personId,
     familyId,
   }
 }
@@ -51,11 +46,12 @@ export const getFamilyPageProps = async ({
 type Person = FamilyPageProps['initialPersons'][number]
 
 export async function getFamilyPersons({ userId, familyId }: { userId: AppUserId; familyId: FamilyId }): Promise<Person[]> {
-  const events = await getEventList<
-    UserNamedPersonInPhoto | UserNamedThemself | UserCreatedRelationshipWithNewPerson | PersonClonedForSharing
-  >(['UserNamedPersonInPhoto', 'UserNamedThemself', 'UserCreatedRelationshipWithNewPerson', 'PersonClonedForSharing'], {
-    familyId,
-  })
+  const events = await getEventList<UserNamedPersonInPhoto | UserNamedThemself | UserCreatedRelationshipWithNewPerson>(
+    ['UserNamedPersonInPhoto', 'UserNamedThemself', 'UserCreatedRelationshipWithNewPerson'],
+    {
+      familyId,
+    }
+  )
 
   const persons = new Map<PersonId, Person>()
   for (const event of events) {

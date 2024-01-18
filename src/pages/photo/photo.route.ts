@@ -1,12 +1,11 @@
-import multer from 'multer'
 import zod, { z } from 'zod'
 import { addToHistory } from '../../dependencies/addToHistory'
 import { requireAuth } from '../../dependencies/authn'
 import { personsIndex } from '../../dependencies/search'
-import { zIsFaceId } from '../../domain/FaceId'
-import { zIsFamilyId } from '../../domain/FamilyId'
-import { zIsPersonId } from '../../domain/PersonId'
-import { zIsPhotoId } from '../../domain/PhotoId'
+import { FaceId, zIsFaceId } from '../../domain/FaceId'
+import { FamilyId, zIsFamilyId } from '../../domain/FamilyId'
+import { PersonId, zIsPersonId } from '../../domain/PersonId'
+import { PhotoId, zIsPhotoId } from '../../domain/PhotoId'
 import { zIsThreadId } from '../../domain/ThreadId'
 import { FaceIgnoredInPhoto } from '../../events/onboarding/FaceIgnoredInPhoto'
 import { UserNamedPersonInPhoto } from '../../events/onboarding/UserNamedPersonInPhoto'
@@ -14,19 +13,14 @@ import { UserRecognizedPersonInPhoto } from '../../events/onboarding/UserRecogni
 import { getUuid } from '../../libs/getUuid'
 import { makePersonId } from '../../libs/makePersonId'
 import { responseAsHtml } from '../../libs/ssr/responseAsHtml'
-import { createCloneIfOutsideOfFamily as createPersonCloneIfOutsideOfFamily } from '../_createCloneIfOutsideOfFamily'
 import { getPhotoFamilyId } from '../_getPhotoFamily'
+import { isPersonSharedWithFamily } from '../_isPersonSharedWithFamily'
 import { pageRouter } from '../pageRouter'
+import { PersonAutoSharedWithPhotoFace } from '../share/PersonAutoSharedWithPhotoFace'
 import { NewPhotoPage } from './PhotoPage/NewPhotoPage'
 import { PhotoPageUrl } from './PhotoPageUrl'
 import { UserAddedCaptionToPhoto } from './UserAddedCaptionToPhoto'
 import { getNewPhotoPageProps } from './getNewPhotoPageProps'
-
-const FILE_SIZE_LIMIT_MB = 20
-const upload = multer({
-  dest: 'temp/photos',
-  limits: { fileSize: FILE_SIZE_LIMIT_MB * 1024 * 1024 /* MB */ },
-})
 
 const fakeProfilePicUrl =
   'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80'
@@ -154,14 +148,15 @@ pageRouter
             if (!familyId) {
               throw new Error('Trying to submit family member name but cannot find the photo family')
             }
-            const personId = await createPersonCloneIfOutsideOfFamily({ personId: existingFamilyMemberId, familyId, userId })
+
+            await sharePersonIfOutsideOfFamily({ personId: existingFamilyMemberId, familyId, photoId, faceId })
 
             await addToHistory(
               UserRecognizedPersonInPhoto({
                 userId,
                 photoId,
                 faceId,
-                personId,
+                personId: existingFamilyMemberId,
               })
             )
           }
@@ -190,3 +185,37 @@ pageRouter
       return response.status(500).send("Boom, crash, bing. Quelque chose ne s'est pas bien passé.")
     }
   })
+
+async function sharePersonIfOutsideOfFamily({
+  personId,
+  familyId,
+  photoId,
+  faceId,
+}: {
+  personId: PersonId
+  familyId: FamilyId
+  photoId: PhotoId
+  faceId: FaceId
+}): Promise<void> {
+  if (await isPersonSharedWithFamily({ personId, familyId })) {
+    return
+  }
+
+  await addToHistory(
+    PersonAutoSharedWithPhotoFace({
+      personId,
+      familyId,
+      photoId,
+      faceId,
+    })
+  )
+
+  try {
+    await personsIndex.partialUpdateObject({
+      objectID: personId,
+      visible_by: [`family/${familyId}`],
+    })
+  } catch (error) {
+    console.error('Could not share person with family to algolia index', error)
+  }
+}

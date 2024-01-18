@@ -5,14 +5,12 @@ import { UserNamedPersonInPhoto } from '../events/onboarding/UserNamedPersonInPh
 import { UserNamedThemself } from '../events/onboarding/UserNamedThemself'
 import { UserCreatedRelationshipWithNewPerson } from './family/UserCreatedRelationshipWithNewPerson'
 import { UserChangedPersonName } from './person/UserChangedPersonName'
-import { PersonClonedForSharing } from './share/PersonClonedForSharing'
 
 export type PersonEvent =
   | UserCreatedRelationshipWithNewPerson
   | UserNamedThemself
   | UserNamedPersonInPhoto
   | UserChangedPersonName
-  | PersonClonedForSharing
 
 export const getPersonEvents = async (personId: PersonId): Promise<PersonEvent[]> => {
   const personEvents: PersonEvent[] = []
@@ -24,11 +22,12 @@ export const getPersonEvents = async (personId: PersonId): Promise<PersonEvent[]
 
   personEvents.push(...personsAddedWithNewRelationship)
 
-  const userNamedEvents = await getEventList<
-    UserNamedThemself | UserNamedPersonInPhoto | UserChangedPersonName | PersonClonedForSharing
-  >(['UserNamedThemself', 'UserNamedPersonInPhoto', 'UserChangedPersonName', 'PersonClonedForSharing'], {
-    personId,
-  })
+  const userNamedEvents = await getEventList<UserNamedThemself | UserNamedPersonInPhoto | UserChangedPersonName>(
+    ['UserNamedThemself', 'UserNamedPersonInPhoto', 'UserChangedPersonName'],
+    {
+      personId,
+    }
+  )
 
   personEvents.push(...userNamedEvents)
 

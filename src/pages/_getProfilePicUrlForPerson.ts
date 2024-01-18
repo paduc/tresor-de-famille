@@ -8,7 +8,6 @@ import { UserConfirmedHisFace } from '../events/onboarding/UserConfirmedHisFace'
 import { UserNamedPersonInPhoto } from '../events/onboarding/UserNamedPersonInPhoto'
 import { UserRecognizedPersonInPhoto } from '../events/onboarding/UserRecognizedPersonInPhoto'
 import { UserSelectedNewProfilePic } from './person/UserSelectedNewProfilePic'
-import { PersonClonedForSharing } from './share/PersonClonedForSharing'
 
 export const getProfilePicUrlForPerson = async ({
   userId,
@@ -50,16 +49,6 @@ export const getFaceAndPhotoForPerson = async ({
     const { photoId, faceId } = faceEvent.payload
 
     return { faceId, photoId }
-  }
-
-  const cloneEvent = await getSingleEvent<PersonClonedForSharing>(['PersonClonedForSharing'], { personId })
-
-  if (cloneEvent) {
-    const { profilePicPhotoId, faceId } = cloneEvent.payload
-
-    if (faceId && profilePicPhotoId) {
-      return { faceId, photoId: profilePicPhotoId }
-    }
   }
 
   const personInPhotoEvents = await getEventList<UserNamedPersonInPhoto | UserRecognizedPersonInPhoto>(

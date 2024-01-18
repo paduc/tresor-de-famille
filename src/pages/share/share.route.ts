@@ -1,24 +1,21 @@
 import { z } from 'zod'
 import { addToHistory } from '../../dependencies/addToHistory'
 import { requireAuth } from '../../dependencies/authn'
+import { personsIndex } from '../../dependencies/search'
+import { AppUserId } from '../../domain/AppUserId'
 import { makeFamilyId } from '../../libs/makeFamilyId'
 import { makeFamilyShareCode } from '../../libs/makeFamilyShareCode'
+import { FamilyColorCodes } from '../../libs/ssr/FamilyColorCodes'
 import { responseAsHtml } from '../../libs/ssr/responseAsHtml'
+import { LoggedInSession } from '../_components/SessionContext'
+import { getPersonForUser } from '../_getPersonForUser'
+import { getUserFamilies } from '../_getUserFamilies'
 import { pageRouter } from '../pageRouter'
+import { InvitationWithCodeUrl } from './InvitationWithCodeUrl'
+import { PersonAutoShareWithFamilyCreation } from './PersonAutoShareWithFamilyCreation'
 import { SharePage } from './SharePage'
 import { UserCreatedNewFamily } from './UserCreatedNewFamily'
 import { getSharePageProps } from './getSharePageProps'
-import { getUserFamilies } from '../_getUserFamilies'
-import { FamilyId } from '../../domain/FamilyId'
-import { makePersonId } from '../../libs/makePersonId'
-import { getPersonForUser } from '../_getPersonForUser'
-import { getFaceAndPhotoForPerson } from '../_getProfilePicUrlForPerson'
-import { PersonClonedForSharing } from './PersonClonedForSharing'
-import { AppUserId } from '../../domain/AppUserId'
-import { personsIndex } from '../../dependencies/search'
-import { FamilyColorCodes } from '../../libs/ssr/FamilyColorCodes'
-import { InvitationWithCodeUrl } from './InvitationWithCodeUrl'
-import { LoggedInSession } from '../_components/SessionContext'
 
 pageRouter
   .route('/share.html')
@@ -90,47 +87,22 @@ async function createNewFamily({ userId, familyName, about }: { userId: AppUserI
     })
   )
 
-  // Create a new person identical to the user's person
-  const previousFamilyId = userId as string as FamilyId
   const userPerson = await getPersonForUser({ userId })
-
   if (!userPerson) return
 
-  let profilePicPhotoId
-  let faceId
-
-  const faceAndPhoto = await getFaceAndPhotoForPerson({ userId, personId: userPerson.personId })
-
-  if (faceAndPhoto) {
-    faceId = faceAndPhoto.faceId
-    profilePicPhotoId = faceAndPhoto.photoId
-  }
-
-  const clonePersonId = makePersonId()
+  const personId = userPerson.personId
   await addToHistory(
-    PersonClonedForSharing({
+    PersonAutoShareWithFamilyCreation({
+      personId,
       familyId,
-      userId,
-      personId: clonePersonId,
-      name: userPerson.name,
-      profilePicPhotoId,
-      faceId,
-      clonedFrom: {
-        personId: userPerson.personId,
-        familyId: previousFamilyId,
-      },
     })
   )
-
   try {
-    await personsIndex.saveObject({
-      objectID: clonePersonId,
-      personId: clonePersonId,
-      name: userPerson.name,
-      familyId,
-      visible_by: [`family/${familyId}`, `user/${userId}`],
+    await personsIndex.partialUpdateObject({
+      objectID: personId,
+      visible_by: [`family/${familyId}`],
     })
   } catch (error) {
-    console.error('Could not add person clone to algolia index', error)
+    console.error('Could not add person to algolia index', error)
   }
 }

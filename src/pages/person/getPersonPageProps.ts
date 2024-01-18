@@ -12,13 +12,10 @@ import { PhotoId } from '../../domain/PhotoId'
 import { UserNamedPersonInPhoto } from '../../events/onboarding/UserNamedPersonInPhoto'
 import { UserRecognizedPersonInPhoto } from '../../events/onboarding/UserRecognizedPersonInPhoto'
 import { getFamilyById } from '../_getFamilyById'
-import { getPersonClones } from '../_getPersonClones'
-import { getPersonFamily } from '../_getPersonFamily'
+import { getOriginalPersonFamily } from '../_getOriginalPersonFamily'
 import { getPhotoFamilyId } from '../_getPhotoFamily'
 import { getProfilePicUrlForPerson } from '../_getProfilePicUrlForPerson'
-import { getUserFamilies } from '../_getUserFamilies'
 import { PhotoManuallyAnnotated } from '../photo/annotateManually/PhotoManuallyAnnotated'
-import { PersonClonedForSharing } from '../share/PersonClonedForSharing'
 import { PersonPageProps } from './PersonPage'
 
 export const getPersonPageProps = async ({
@@ -28,11 +25,24 @@ export const getPersonPageProps = async ({
   personId: PersonId
   userId: AppUserId
 }): Promise<PersonPageProps> => {
-  // const { photos, alternateProfilePics } = await getPersonPhotos(personId, userId)
-
   const { name } = (await getPersonById({ personId })) || { name: 'N/A' }
+  const personFamilyId = await getOriginalPersonFamily(personId)
 
-  const personFamilyId = await getPersonFamily(personId)
+  // const userFamilies = (await getUserFamilies(userId))
+  // const shareFamilies = await getFamiliesWithAccessToPerson({ personId })
+  // const sharedWithFamilies = []
+  // for (const familyId of shareFamilies) {
+  //   if (familyId === personFamilyId) continue
+
+  //   // Ne retenir que les familles
+  //   const family = userFamilies.find(uf => uf.familyId === familyId)
+  //   const familyName = family?.familyName || '' // Don't display family name for
+
+  //   sharedWithFamilies.push({
+  //     familyId,
+  //     familyName,
+  //   })
+  // }
 
   const { photos, alternateProfilePics } = await getPersonPhotos(personId, personFamilyId)
 
@@ -46,31 +56,12 @@ export const getPersonPageProps = async ({
 
   const profilePicUrl = await getProfilePicUrlForPerson({ personId, userId })
 
-  const clones = await getPersonClonesForUser(personId, userId)
-
   return {
     person: { personId, name, profilePicUrl, familyName, familyId: personFamilyId },
     photos,
     alternateProfilePics,
-    clones,
+    sharedWithFamilies: [],
   }
-}
-
-async function getPersonClonesForUser(personId: PersonId, userId: AppUserId) {
-  const personClones = await getPersonClones({ personId })
-  const userFamilies = await getUserFamilies(userId)
-  const clones = personClones
-    .filter((clone) => clone.personId !== personId)
-    .reduce((clones, { personId, familyId: cloneFamilyId }) => {
-      // Only keep the clones that are in one of the users families
-      const userFamily = userFamilies.find((uf) => cloneFamilyId === uf.familyId)
-      if (userFamily) {
-        return clones.concat([{ personId, familyName: userFamily.familyName }])
-      }
-
-      return clones
-    }, [] as PersonPageProps['clones'])
-  return clones
 }
 
 async function getPersonPhotos(
@@ -81,23 +72,10 @@ async function getPersonPhotos(
   // -> personId => personFacesIds: FaceId[]
 
   const personFaceEvents = await getEventList<
-    | PersonClonedForSharing
-    | PhotoManuallyAnnotated
-    | UserRecognizedPersonInPhoto
-    | UserNamedPersonInPhoto
-    | UserConfirmedHisFace
-  >(
-    [
-      'PersonClonedForSharing',
-      'PhotoManuallyAnnotated',
-      'UserRecognizedPersonInPhoto',
-      'UserNamedPersonInPhoto',
-      'UserConfirmedHisFace',
-    ],
-    {
-      personId,
-    }
-  )
+    PhotoManuallyAnnotated | UserRecognizedPersonInPhoto | UserNamedPersonInPhoto | UserConfirmedHisFace
+  >(['PhotoManuallyAnnotated', 'UserRecognizedPersonInPhoto', 'UserNamedPersonInPhoto', 'UserConfirmedHisFace'], {
+    personId,
+  })
 
   // TODO: handle the case when PersonCloned can have multiple faceIds
 

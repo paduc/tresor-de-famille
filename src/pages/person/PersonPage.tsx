@@ -32,13 +32,13 @@ export type PersonPageProps = {
     photoId: PhotoId
     url: string
   }[]
-  clones: {
-    personId: PersonId
+  sharedWithFamilies: {
+    familyId: FamilyId
     familyName: string
   }[]
 }
 
-export const PersonPage = withBrowserBundle(({ person, photos, alternateProfilePics, clones }: PersonPageProps) => {
+export const PersonPage = withBrowserBundle(({ person, photos, alternateProfilePics, sharedWithFamilies }: PersonPageProps) => {
   const { userFamilies } = useLoggedInSession()
   const [isProfilePicOpen, openProfilePic] = React.useState<boolean>(false)
   const closeProfilePic = React.useCallback(() => openProfilePic(false), [])
@@ -110,17 +110,19 @@ export const PersonPage = withBrowserBundle(({ person, photos, alternateProfileP
       {userFamilies.length > 1 ? (
         <div className='my-5 bg-white p-6'>
           Ce profil fait partie de {person.familyName}.
-          {clones.length > 0 ? (
+          {sharedWithFamilies.length > 0 ? (
             <div>
               Cette personne est aussi présente dans{' '}
               <ul className='inline-block'>
-                {clones.map((clone, index) => (
-                  <li className='inline-block mr-1' key={`clone_${clone.personId}`}>
-                    <a href={PersonPageURL(clone.personId)} className={`${linkStyles}`}>
-                      {clone.familyName}
-                    </a>
-                    {clones.length >= 2 && index === clones.length - 2 ? <span className='ml-1'>et</span> : null}
-                    {clones.length >= 2 && index >= 0 && index < clones.length - 2 ? <span className=''>, </span> : null}
+                {sharedWithFamilies.map((family, index) => (
+                  <li className='inline-block mr-1' key={`family_${family.familyId}`}>
+                    {family.familyName}
+                    {sharedWithFamilies.length >= 2 && index === sharedWithFamilies.length - 2 ? (
+                      <span className='ml-1'>et</span>
+                    ) : null}
+                    {sharedWithFamilies.length >= 2 && index >= 0 && index < sharedWithFamilies.length - 2 ? (
+                      <span className=''>, </span>
+                    ) : null}
                   </li>
                 ))}
               </ul>

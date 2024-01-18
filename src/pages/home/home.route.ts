@@ -1,38 +1,18 @@
-import multer from 'multer'
-import fs from 'node:fs'
 import { z } from 'zod'
 import { addToHistory } from '../../dependencies/addToHistory'
 import { requireAuth } from '../../dependencies/authn'
-import { uploadPhoto } from '../../dependencies/photo-storage'
 import { personsIndex } from '../../dependencies/search'
-import { AppUserId } from '../../domain/AppUserId'
-import { FaceId, zIsFaceId } from '../../domain/FaceId'
-import { FamilyId } from '../../domain/FamilyId'
-import { PhotoId, zIsPhotoId } from '../../domain/PhotoId'
-import { OnboardingUserUploadedPhotoOfThemself } from '../../events/onboarding/OnboardingUserUploadedPhotoOfThemself'
-import { UserConfirmedHisFace } from '../../events/onboarding/UserConfirmedHisFace'
+import { zIsPersonId } from '../../domain/PersonId'
 import { UserNamedThemself } from '../../events/onboarding/UserNamedThemself'
+import { UserRecognizedThemselfAsPerson } from '../../events/onboarding/UserRecognizedThemselfAsPerson'
 import { makePersonId } from '../../libs/makePersonId'
-import { makePhotoId } from '../../libs/makePhotoId'
 import { responseAsHtml } from '../../libs/ssr/responseAsHtml'
-import { getPersonForUser } from '../_getPersonForUser'
+import { asFamilyId } from '../../libs/typeguards'
+import { getOriginalPersonFamily } from '../_getOriginalPersonFamily'
+import { getPersonById } from '../_getPersonById'
 import { pageRouter } from '../pageRouter'
-import { detectFacesInPhotoUsingAWS } from '../photo/recognizeFacesInChatPhoto/detectFacesInPhotoUsingAWS'
 import { HomePage } from './HomePage'
 import { getHomePageProps } from './getHomePageProps'
-import { asFamilyId } from '../../libs/typeguards'
-import { PersonId, zIsPersonId } from '../../domain/PersonId'
-import { UserRecognizedThemselfAsPerson } from '../../events/onboarding/UserRecognizedThemselfAsPerson'
-import { getPersonFamily } from '../_getPersonFamily'
-import { OnboardingUserStartedFirstThread } from '../../events/onboarding/OnboardingUserStartedFirstThread'
-import { UserInsertedPhotoInRichTextThread } from '../thread/UserInsertedPhotoInRichTextThread'
-import { UserSetChatTitle } from '../thread/UserSetChatTitle'
-import { UserUpdatedThreadAsRichText } from '../thread/UserUpdatedThreadAsRichText'
-import { UserSentMessageToChat } from '../../events/deprecated/UserSentMessageToChat'
-import { getSingleEvent } from '../../dependencies/getSingleEvent'
-import { PersonClonedForSharing } from '../share/PersonClonedForSharing'
-import { getFaceAndPhotoForPerson } from '../_getProfilePicUrlForPerson'
-import { getPersonById } from '../_getPersonById'
 
 pageRouter
   .route('/')
@@ -102,7 +82,7 @@ pageRouter
       }
 
       if (existingPersonId) {
-        const personFamilyId = await getPersonFamily(existingPersonId)
+        const personFamilyId = await getOriginalPersonFamily(existingPersonId)
 
         if (!personFamilyId) {
           console.error('setUserPerson existingPersonId is unknown')
@@ -117,42 +97,18 @@ pageRouter
           })
         )
 
-        if (personFamilyId !== asFamilyId(userId)) {
-          // The person needs to exist in the user's personnal space
-          const { faceId, profilePicPhotoId } = await fetchFaceAndPhotoForPerson({ userId, personId: existingPersonId })
+        const personWithName = await getPersonById({ personId: existingPersonId })
+        const name = personWithName ? personWithName.name : ''
+        request.session.user!.name = name
 
-          const personWithName = await getPersonById({ personId: existingPersonId })
-          const name = personWithName ? personWithName.name : ''
-
-          request.session.user!.name = name
-
-          const newCloneId = makePersonId()
-          await addToHistory(
-            PersonClonedForSharing({
-              personId: newCloneId,
-              familyId: asFamilyId(userId),
-              faceId,
-              profilePicPhotoId,
-              name,
-              clonedFrom: {
-                personId: existingPersonId,
-                familyId: personFamilyId,
-              },
-              userId,
-            })
-          )
-
-          try {
-            await personsIndex.saveObject({
-              objectID: newCloneId,
-              personId: newCloneId,
-              name,
-              familyId: asFamilyId(userId),
-              visible_by: [`user/${userId}`],
-            })
-          } catch (error) {
-            console.error('Could not add person clone to algolia index', error)
-          }
+        try {
+          await personsIndex.partialUpdateObject({
+            objectID: existingPersonId,
+            personId: existingPersonId,
+            visible_by: [`user/${userId}`],
+          })
+        } catch (error) {
+          console.error('Could not add person clone to algolia index', error)
         }
 
         request.session.isOnboarding = false
@@ -161,22 +117,3 @@ pageRouter
 
     return response.redirect('/')
   })
-
-async function fetchFaceAndPhotoForPerson({
-  userId,
-  personId,
-}: {
-  userId: AppUserId
-  personId: PersonId
-}): Promise<{ faceId: FaceId | undefined; profilePicPhotoId: PhotoId | undefined }> {
-  const faceAndPhotoForPerson = await getFaceAndPhotoForPerson({ userId, personId })
-  if (faceAndPhotoForPerson) {
-    const { faceId, photoId } = faceAndPhotoForPerson
-    return { faceId, profilePicPhotoId: photoId }
-  }
-
-  return {
-    faceId: undefined,
-    profilePicPhotoId: undefined,
-  }
-}
