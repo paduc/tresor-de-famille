@@ -14,7 +14,6 @@ export async function getPhotoFamilyId(photoId: PhotoId): Promise<FamilyId> {
   switch (creationEvent.type) {
     case 'OnboardingUserUploadedPhotoOfFamily':
     case 'OnboardingUserUploadedPhotoOfThemself':
-    case 'PhotoClonedForSharing':
     case 'UserInsertedPhotoInRichTextThread':
     case 'UserUploadedPhotoToChat':
     case 'UserUploadedPhotoToFamily':

@@ -1,5 +1,4 @@
 import { getEventList } from '../dependencies/getEventList'
-import { getSingleEvent } from '../dependencies/getSingleEvent'
 import { PhotoId } from '../domain/PhotoId'
 import { OnboardingUserUploadedPhotoOfFamily } from '../events/onboarding/OnboardingUserUploadedPhotoOfFamily'
 import { OnboardingUserUploadedPhotoOfThemself } from '../events/onboarding/OnboardingUserUploadedPhotoOfThemself'
@@ -8,12 +7,10 @@ import { UserDeletedPhoto } from './photoApi/UserDeletedPhoto'
 import { UserUploadedPhoto } from './photoApi/UserUploadedPhoto'
 import { UserUploadedPhotoToFamily } from './photoApi/UserUploadedPhotoToFamily'
 import { PhotoAutoSharedWithThread } from './thread/PhotoAutoSharedWithThread'
-import { PhotoClonedForSharing } from './thread/ThreadPage/PhotoClonedForSharing'
 import { UserInsertedPhotoInRichTextThread } from './thread/UserInsertedPhotoInRichTextThread'
 import { UserUploadedPhotoToChat } from './thread/uploadPhotoToChat/UserUploadedPhotoToChat'
 
 export type PhotoEvent =
-  | PhotoClonedForSharing
   | UserUploadedPhotoToChat
   | UserUploadedPhotoToFamily
   | UserUploadedPhoto
@@ -25,9 +22,7 @@ export type PhotoEvent =
   | PhotoAutoSharedWithThread
 
 export async function getPhotoEvents(photoId: PhotoId): Promise<PhotoEvent[]> {
-  const photoClonedEvent = await getSingleEvent<PhotoClonedForSharing>('PhotoClonedForSharing', { photoId })
-
-  const updateEvents = await getEventList<
+  const photoEvents = await getEventList<
     | UserUploadedPhotoToChat
     | UserUploadedPhotoToFamily
     | UserUploadedPhoto
@@ -54,7 +49,7 @@ export async function getPhotoEvents(photoId: PhotoId): Promise<PhotoEvent[]> {
     }
   )
 
-  return [photoClonedEvent, ...updateEvents]
+  return photoEvents
     .filter((event): event is PhotoEvent => !!event)
     .sort((a, b) => a.occurredAt.getTime() - b.occurredAt.getTime())
 }

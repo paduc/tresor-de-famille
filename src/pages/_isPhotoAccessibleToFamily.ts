@@ -15,7 +15,6 @@ export const isPhotoAccessibleToFamily = async ({
     switch (photoEvent.type) {
       case 'OnboardingUserUploadedPhotoOfFamily':
       case 'OnboardingUserUploadedPhotoOfThemself':
-      case 'PhotoClonedForSharing':
       case 'UserInsertedPhotoInRichTextThread':
       case 'UserUploadedPhotoToChat':
       case 'UserUploadedPhotoToFamily':

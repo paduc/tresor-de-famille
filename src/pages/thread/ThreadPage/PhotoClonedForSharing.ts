@@ -31,4 +31,7 @@ export type PhotoClonedForSharing = DomainEvent<
   }
 >
 
+/**
+ * @deprecated
+ */
 export const PhotoClonedForSharing = makeDomainEvent<PhotoClonedForSharing>('PhotoClonedForSharing')

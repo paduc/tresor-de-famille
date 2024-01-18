@@ -3,14 +3,15 @@ import { postgres } from './dependencies/database'
 import { getEventList } from './dependencies/getEventList'
 import { getSingleEvent } from './dependencies/getSingleEvent'
 import { FamilyId } from './domain/FamilyId'
+import { PhotoId } from './domain/PhotoId'
 import { ThreadId } from './domain/ThreadId'
 import { UserSentMessageToChat } from './events/deprecated/UserSentMessageToChat'
 import { MigrationFailure } from './events/migrations/MigrationFailure'
 import { MigrationStart } from './events/migrations/MigrationStart'
 import { MigrationSuccess } from './events/migrations/MigrationSuccess'
 import { OnboardingUserStartedFirstThread } from './events/onboarding/OnboardingUserStartedFirstThread'
-import { getOriginalPhotoId } from './pages/_getOriginalPhotoId'
 import { PhotoAutoSharedWithThread } from './pages/thread/PhotoAutoSharedWithThread'
+import { PhotoClonedForSharing } from './pages/thread/ThreadPage/PhotoClonedForSharing'
 import { ThreadClonedForSharing } from './pages/thread/ThreadPage/ThreadClonedForSharing'
 import { ThreadSharedWithFamilies } from './pages/thread/ThreadPage/ThreadSharedWithFamilies'
 import { TipTapContentAsJSON } from './pages/thread/TipTapTypes'
@@ -165,4 +166,14 @@ async function getClones(threadId: ThreadId): Promise<ThreadClonedForSharing[]> 
   }
 
   return clones
+}
+
+async function getOriginalPhotoId(photoId: PhotoId): Promise<PhotoId> {
+  const isPhotoCloned = await getSingleEvent<PhotoClonedForSharing>('PhotoClonedForSharing', { photoId })
+
+  if (isPhotoCloned) {
+    return getOriginalPhotoId(isPhotoCloned.payload.clonedFrom.photoId)
+  }
+
+  return photoId
 }

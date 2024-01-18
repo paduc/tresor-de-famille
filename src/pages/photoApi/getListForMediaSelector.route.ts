@@ -10,7 +10,6 @@ import { PhotoEvent } from '../_getPhotoEvents'
 import { getUserFamilies } from '../_getUserFamilies'
 import { isPhotoDeleted } from '../_isPhotoDeleted'
 import { pageRouter } from '../pageRouter'
-import { PhotoClonedForSharing } from '../thread/ThreadPage/PhotoClonedForSharing'
 import { UserInsertedPhotoInRichTextThread } from '../thread/UserInsertedPhotoInRichTextThread'
 import { UserUploadedPhotoToChat } from '../thread/uploadPhotoToChat/UserUploadedPhotoToChat'
 import { MediaSelectorListURL } from './MediaSelectorListURL'
@@ -62,7 +61,6 @@ async function getFamilyPhotos({ familyId, userId }: { userId: AppUserId; family
 
   photos.push(
     ...(await getEventList<
-      | PhotoClonedForSharing
       | UserUploadedPhotoToChat
       | UserUploadedPhotoToFamily
       | UserInsertedPhotoInRichTextThread
@@ -70,7 +68,6 @@ async function getFamilyPhotos({ familyId, userId }: { userId: AppUserId; family
       | OnboardingUserUploadedPhotoOfFamily
     >(
       [
-        'PhotoClonedForSharing',
         'UserUploadedPhotoToChat',
         'UserUploadedPhotoToFamily',
         'UserInsertedPhotoInRichTextThread',
@@ -99,14 +96,6 @@ async function getFamilyPhotos({ familyId, userId }: { userId: AppUserId; family
   }
 
   return nonDeletedPhotos.map(({ type, payload, occurredAt }) => {
-    if (type === 'PhotoClonedForSharing') {
-      return {
-        photoId: payload.photoId,
-        clonedFrom: payload.clonedFrom.photoId,
-        occurredAt,
-      }
-    }
-
     return {
       photoId: payload.photoId,
       occurredAt,

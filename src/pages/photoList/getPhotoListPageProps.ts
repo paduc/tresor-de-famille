@@ -6,11 +6,8 @@ import { OnboardingUserUploadedPhotoOfThemself } from '../../events/onboarding/O
 import { asFamilyId } from '../../libs/typeguards'
 import { PhotoEvent } from '../_getPhotoEvents'
 import { isPhotoDeleted } from '../_isPhotoDeleted'
-import { UserAddedCaptionToPhoto } from '../photo/UserAddedCaptionToPhoto'
-import { UserDeletedPhoto } from '../photoApi/UserDeletedPhoto'
 import { UserUploadedPhoto } from '../photoApi/UserUploadedPhoto'
 import { UserUploadedPhotoToFamily } from '../photoApi/UserUploadedPhotoToFamily'
-import { PhotoClonedForSharing } from '../thread/ThreadPage/PhotoClonedForSharing'
 import { UserInsertedPhotoInRichTextThread } from '../thread/UserInsertedPhotoInRichTextThread'
 import { UserUploadedPhotoToChat } from '../thread/uploadPhotoToChat/UserUploadedPhotoToChat'
 import { PhotoListProps } from './PhotoListPage'
@@ -25,7 +22,6 @@ export const getPhotoListPageProps = async ({ userId, familyId }: GetPhotoListPa
 
   photos.push(
     ...(await getEventList<
-      | PhotoClonedForSharing
       | UserUploadedPhotoToChat
       | UserUploadedPhotoToFamily
       | UserInsertedPhotoInRichTextThread
@@ -33,7 +29,6 @@ export const getPhotoListPageProps = async ({ userId, familyId }: GetPhotoListPa
       | OnboardingUserUploadedPhotoOfFamily
     >(
       [
-        'PhotoClonedForSharing',
         'UserUploadedPhotoToChat',
         'UserUploadedPhotoToFamily',
         'UserInsertedPhotoInRichTextThread',

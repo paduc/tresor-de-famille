@@ -4,7 +4,6 @@ import { OnboardingUserUploadedPhotoOfFamily } from '../events/onboarding/Onboar
 import { OnboardingUserUploadedPhotoOfThemself } from '../events/onboarding/OnboardingUserUploadedPhotoOfThemself'
 import { UserUploadedPhoto } from './photoApi/UserUploadedPhoto'
 import { UserUploadedPhotoToFamily } from './photoApi/UserUploadedPhotoToFamily'
-import { PhotoClonedForSharing } from './thread/ThreadPage/PhotoClonedForSharing'
 import { UserInsertedPhotoInRichTextThread } from './thread/UserInsertedPhotoInRichTextThread'
 import { UserUploadedPhotoToChat } from './thread/uploadPhotoToChat/UserUploadedPhotoToChat'
 
@@ -15,7 +14,6 @@ export const doesPhotoExist = async ({ photoId }: { photoId: PhotoId }): Promise
     | UserUploadedPhoto
     | OnboardingUserUploadedPhotoOfThemself
     | OnboardingUserUploadedPhotoOfFamily
-    | PhotoClonedForSharing
     | UserInsertedPhotoInRichTextThread
   >(
     [
@@ -24,7 +22,6 @@ export const doesPhotoExist = async ({ photoId }: { photoId: PhotoId }): Promise
       'UserUploadedPhoto',
       'OnboardingUserUploadedPhotoOfThemself',
       'OnboardingUserUploadedPhotoOfFamily',
-      'PhotoClonedForSharing',
       'UserInsertedPhotoInRichTextThread',
     ],
     {

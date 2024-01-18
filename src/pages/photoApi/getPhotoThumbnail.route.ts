@@ -5,9 +5,8 @@ import { requireAuth } from '../../dependencies/authn'
 import { downloadPhoto } from '../../dependencies/photo-storage'
 import { zIsPhotoId } from '../../domain/PhotoId'
 import { doesPhotoExist } from '../_doesPhotoExist'
-import { ThumbnailURL } from './ThumbnailURL'
-import { getOriginalPhotoId } from '../_getOriginalPhotoId'
 import { pageRouter } from '../pageRouter'
+import { ThumbnailURL } from './ThumbnailURL'
 
 pageRouter.route(ThumbnailURL(':photoId')).get(requireAuth(), async (request, response) => {
   try {
@@ -17,10 +16,8 @@ pageRouter.route(ThumbnailURL(':photoId')).get(requireAuth(), async (request, re
       return response.status(404).send('Photo introuvable')
     }
 
-    const originalPhotoId = await getOriginalPhotoId(photoId)
-
     // Get the original image as a Readable stream
-    const originalImageStream = downloadPhoto(originalPhotoId)
+    const originalImageStream = downloadPhoto(photoId)
 
     const pipeline = sharp().resize(300, 300, { fit: 'cover' }).rotate() // to keep original orientation
 

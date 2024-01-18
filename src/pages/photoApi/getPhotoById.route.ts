@@ -3,7 +3,6 @@ import { requireAuth } from '../../dependencies/authn'
 import { downloadPhoto } from '../../dependencies/photo-storage'
 import { zIsPhotoId } from '../../domain/PhotoId'
 import { doesPhotoExist } from '../_doesPhotoExist'
-import { getOriginalPhotoId } from '../_getOriginalPhotoId'
 import { pageRouter } from '../pageRouter'
 import { PhotoURL } from './PhotoURL'
 
@@ -17,9 +16,7 @@ pageRouter.route(PhotoURL(':photoId')).get(requireAuth(), async (request, respon
     const photoExists = await doesPhotoExist({ photoId })
     if (!photoExists) return response.sendStatus(404)
 
-    const originalPhotoId = await getOriginalPhotoId(photoId)
-
-    downloadPhoto(originalPhotoId).pipe(response)
+    downloadPhoto(photoId).pipe(response)
   } catch (error) {
     console.error('getPhotoById', error)
     response.status(500).send()

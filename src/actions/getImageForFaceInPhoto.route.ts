@@ -5,10 +5,9 @@ import { postgres } from '../dependencies/database'
 import { downloadPhoto } from '../dependencies/photo-storage'
 import { zIsFaceId } from '../domain/FaceId'
 import { zIsPhotoId } from '../domain/PhotoId'
+import { doesPhotoExist } from '../pages/_doesPhotoExist'
 import { AWSDetectedFacesInPhoto } from '../pages/photo/recognizeFacesInChatPhoto/AWSDetectedFacesInPhoto'
 import { actionsRouter } from './actionsRouter'
-import { getOriginalPhotoId } from '../pages/_getOriginalPhotoId'
-import { doesPhotoExist } from '../pages/_doesPhotoExist'
 
 actionsRouter.route('/photo/:photoId/face/:faceId').get(requireAuth(), async (request, response) => {
   try {
@@ -17,11 +16,9 @@ actionsRouter.route('/photo/:photoId/face/:faceId').get(requireAuth(), async (re
     const photoExists = await doesPhotoExist({ photoId })
     if (!photoExists) return response.sendStatus(404)
 
-    const originalPhotoId = await getOriginalPhotoId(photoId)
-
     const { rows } = await postgres.query<AWSDetectedFacesInPhoto>(
       "SELECT * FROM history WHERE type='AWSDetectedFacesInPhoto' AND payload->>'photoId'=$1 ORDER BY \"occurredAt\" DESC LIMIT 1",
-      [originalPhotoId]
+      [photoId]
     )
 
     if (!rows.length) {
@@ -42,7 +39,7 @@ actionsRouter.route('/photo/:photoId/face/:faceId').get(requireAuth(), async (re
     const Left = oLeft! - (Width - oWidth!) / 2
 
     // Get the original image as a Readable stream
-    const originalImageStream = downloadPhoto(originalPhotoId)
+    const originalImageStream = downloadPhoto(photoId)
 
     const pipeline = sharp()
 

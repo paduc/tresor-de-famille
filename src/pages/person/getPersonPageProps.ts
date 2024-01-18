@@ -14,7 +14,6 @@ import { UserRecognizedPersonInPhoto } from '../../events/onboarding/UserRecogni
 import { getFamilyById } from '../_getFamilyById'
 import { getPersonClones } from '../_getPersonClones'
 import { getPersonFamily } from '../_getPersonFamily'
-import { getPhotoClones } from '../_getPhotoClones'
 import { getPhotoFamilyId } from '../_getPhotoFamily'
 import { getProfilePicUrlForPerson } from '../_getProfilePicUrlForPerson'
 import { getUserFamilies } from '../_getUserFamilies'
@@ -135,15 +134,6 @@ async function getPersonPhotos(
     if (photoFamilyId === familyId) {
       photosInFamily.add(photoId)
       findAndAddProfilePics(photoId, faces)
-    } else {
-      // and if not in family
-      // 3.2) Get clone in the family (possibly none)
-      const clones = await getPhotoClones({ photoId })
-      const cloneInFamily = clones.find((clone) => clone.familyId === familyId)
-      if (cloneInFamily) {
-        photosInFamily.add(cloneInFamily.photoId)
-        findAndAddProfilePics(photoId, faces)
-      }
     }
   }
 
