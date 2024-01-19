@@ -13,6 +13,7 @@ import { pageRouter } from './pages'
 import { MulterError } from 'multer'
 import { threadCloneMigration } from './threadCloneMigration'
 import { photoCloneMigration } from './photoCloneMigration'
+import { personCloneMigration } from './personCloneMigration'
 
 const PORT: number = parseInt(process.env.PORT ?? '3000')
 
@@ -91,6 +92,7 @@ app.listen(PORT, async (): Promise<void> => {
   await createHistoryTable()
   // await threadCloneMigration()
   // await photoCloneMigration()
+  // await personCloneMigration()
 
   // eslint-disable-next-line no-console
   console.log('Server listening to port', PORT)

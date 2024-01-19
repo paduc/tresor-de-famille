@@ -1,6 +1,6 @@
 import { DomainEvent, makeDomainEvent } from '../../dependencies/DomainEvent'
 
-export type MigrationName = 'threadClone' | 'photoClone'
+export type MigrationName = 'threadClone' | 'photoClone' | 'personClone'
 
 export type MigrationStart = DomainEvent<
   'MigrationStart',
