@@ -219,7 +219,7 @@ describe('threadCloneMigration', () => {
       await threadCloneMigration()
     })
 
-    it('should put original photos back in the content', async () => {
+    it('should put original photos back in the content (with original photoId & threadId)', async () => {
       const newUpdateEvent = await getSingleEvent<UserUpdatedThreadAsRichText>('UserUpdatedThreadAsRichText', { threadId })
 
       expect(newUpdateEvent?.payload.contentAsJSON).toMatchObject({
@@ -229,6 +229,7 @@ describe('threadCloneMigration', () => {
             type: 'photoNode',
             attrs: {
               photoId: originalPhotoId,
+              threadId,
             },
           },
         ],

@@ -77,7 +77,7 @@ export const threadCloneMigration = async () => {
         const latestContentAsJSON = latestUpdateOfClone?.payload.contentAsJSON || latestClone.payload.contentAsJSON
         await addToHistory(
           UserUpdatedThreadAsRichText({
-            contentAsJSON: await replacePhotoClonesWithOriginals(latestContentAsJSON),
+            contentAsJSON: await replacePhotoClonesWithOriginals({ contentAsJSON: latestContentAsJSON, threadId }),
             threadId,
             userId: firstEvent.payload.userId,
             familyId: firstEvent.payload.familyId,
@@ -132,7 +132,13 @@ async function sharePhotosInContent({
   }
 }
 
-async function replacePhotoClonesWithOriginals(contentAsJSON: TipTapContentAsJSON): Promise<TipTapContentAsJSON> {
+async function replacePhotoClonesWithOriginals({
+  contentAsJSON,
+  threadId,
+}: {
+  contentAsJSON: TipTapContentAsJSON
+  threadId: ThreadId
+}): Promise<TipTapContentAsJSON> {
   const newContentAsJSON: TipTapContentAsJSON = {
     type: 'doc',
     content: [],
@@ -142,6 +148,7 @@ async function replacePhotoClonesWithOriginals(contentAsJSON: TipTapContentAsJSO
     if (node.type === 'photoNode') {
       const originalPhotoId = await getOriginalPhotoId(node.attrs.photoId)
       node.attrs.photoId = originalPhotoId
+      node.attrs.threadId = threadId
     }
 
     newContentAsJSON.content.push(node)
