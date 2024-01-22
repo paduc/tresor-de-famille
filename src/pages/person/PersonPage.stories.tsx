@@ -5,96 +5,141 @@ import { makePhotoId } from '../../libs/makePhotoId'
 import { SessionContext } from '../_components/SessionContext'
 import { PersonPage } from './PersonPage'
 import { makePersonId } from '../../libs/makePersonId'
+import { SearchIndex } from 'algoliasearch'
+import { FamilyId } from '../../domain/FamilyId'
+import { makeAppUserId } from '../../libs/makeUserId'
+import { PersonSearchContext } from '../_components/usePersonSearch'
+import { makeFamilyId } from '../../libs/makeFamilyId'
+const fakePersonSearch = async (query: string) => {
+  return {
+    hits: [
+      { objectID: makeAppUserId(), name: 'John Doe' },
+      { objectID: makeAppUserId(), name: 'Zelda Moroney' },
+      { objectID: makeAppUserId(), name: 'Claire Politi' },
+      ,
+    ],
+  }
+}
 
-export default { title: 'Page Personne', component: PersonPage, parameters: { layout: 'fullscreen' } }
+const familyABCId = makeFamilyId()
+
+export default {
+  title: 'Page Personne',
+  component: PersonPage,
+  parameters: { layout: 'fullscreen' },
+  decorators: [
+    (Story: any) => {
+      return (
+        <SessionContext.Provider
+          value={{
+            isLoggedIn: true,
+            userId: 'a' as AppUserId,
+
+            userFamilies: [
+              {
+                familyId: 'a' as FamilyId,
+                familyName: 'Espace personnel',
+                about: '',
+                color: 'bg-indigo-50 text-indigo-700 ring-indigo-700/10',
+                isUserSpace: true,
+                shareUrl: '',
+              },
+              {
+                familyId: familyABCId,
+                familyName: 'Famille ABC',
+                about: 'La famille qui connait le début de son alphabet',
+                color: 'bg-red-50 text-red-700 ring-red-600/10',
+                isUserSpace: true,
+                shareUrl: '',
+              },
+            ],
+            hasFamiliesOtherThanDefault: true,
+
+            userName: 'toto',
+            profilePic: null,
+            isAdmin: false,
+            arePhotosEnabled: true,
+            areThreadsEnabled: true,
+            areVideosEnabled: true,
+            arePersonsEnabled: true,
+          }}>
+          <PersonSearchContext.Provider value={{ search: fakePersonSearch } as unknown as SearchIndex}>
+            <Story />
+          </PersonSearchContext.Provider>
+        </SessionContext.Provider>
+      )
+    },
+  ],
+}
 
 export const AvecDesPhotos = () => (
-  <SessionContext.Provider
-    value={{
-      isLoggedIn: true,
-      userId: 'a' as AppUserId,
-      userFamilies: [],
-
-      userName: 'toto',
-      isAdmin: false,
-    }}>
-    <PersonPage
-      person={{
-        personId: makePersonId(),
-        name: 'John Doe',
-        familyName: 'Espace perso',
-        profilePicUrl:
-          'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=150&h=150&q=80',
-      }}
-      clones={[
-        {
-          personId: makePersonId(),
-          familyName: 'Famille Duduch',
-        },
-        {
-          personId: makePersonId(),
-          familyName: 'Famille Cardi',
-        },
-      ]}
-      alternateProfilePics={[
-        {
-          faceId: makeFaceId(),
-          photoId: makePhotoId(),
-          url: 'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=151&h=151&q=80',
-        },
-        {
-          faceId: makeFaceId(),
-          photoId: makePhotoId(),
-          url: 'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=150&h=150&q=80',
-        },
-        {
-          faceId: makeFaceId(),
-          photoId: makePhotoId(),
-          url: 'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=151&h=150&q=80',
-        },
-      ]}
-      photos={[
-        {
-          photoId: makePhotoId(),
-          url: 'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=3024&h=4032&q=80',
-        },
-        {
-          photoId: makePhotoId(),
-          url: 'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=3024&h=4032&q=80',
-        },
-        {
-          photoId: makePhotoId(),
-          url: 'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=3024&h=4032&q=80',
-        },
-        {
-          photoId: makePhotoId(),
-          url: 'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=3024&h=4032&q=80',
-        },
-        {
-          photoId: makePhotoId(),
-          url: 'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=3024&h=4032&q=80',
-        },
-        {
-          photoId: makePhotoId(),
-          url: 'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=3024&h=4032&q=80',
-        },
-        {
-          photoId: makePhotoId(),
-          url: 'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=3024&h=4032&q=80',
-        },
-        {
-          photoId: makePhotoId(),
-          url: 'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=3024&h=4032&q=80',
-        },
-        {
-          photoId: makePhotoId(),
-          url: 'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=3024&h=4032&q=80',
-        },
-        {
-          photoId: makePhotoId(),
-          url: 'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=3024&h=4032&q=80',
-        },
-      ]}
-    />
-  </SessionContext.Provider>
+  <PersonPage
+    person={{
+      personId: makePersonId(),
+      name: 'John Doe',
+      familyId: familyABCId,
+      profilePicUrl:
+        'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=150&h=150&q=80',
+    }}
+    sharedWithFamilies={[]}
+    alternateProfilePics={[
+      {
+        faceId: makeFaceId(),
+        photoId: makePhotoId(),
+        url: 'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=151&h=151&q=80',
+      },
+      {
+        faceId: makeFaceId(),
+        photoId: makePhotoId(),
+        url: 'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=150&h=150&q=80',
+      },
+      {
+        faceId: makeFaceId(),
+        photoId: makePhotoId(),
+        url: 'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=151&h=150&q=80',
+      },
+    ]}
+    photos={[
+      {
+        photoId: makePhotoId(),
+        url: 'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=3024&h=4032&q=80',
+      },
+      {
+        photoId: makePhotoId(),
+        url: 'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=3024&h=4032&q=80',
+      },
+      {
+        photoId: makePhotoId(),
+        url: 'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=3024&h=4032&q=80',
+      },
+      {
+        photoId: makePhotoId(),
+        url: 'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=3024&h=4032&q=80',
+      },
+      {
+        photoId: makePhotoId(),
+        url: 'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=3024&h=4032&q=80',
+      },
+      {
+        photoId: makePhotoId(),
+        url: 'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=3024&h=4032&q=80',
+      },
+      {
+        photoId: makePhotoId(),
+        url: 'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=3024&h=4032&q=80',
+      },
+      {
+        photoId: makePhotoId(),
+        url: 'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=3024&h=4032&q=80',
+      },
+      {
+        photoId: makePhotoId(),
+        url: 'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=3024&h=4032&q=80',
+      },
+      {
+        photoId: makePhotoId(),
+        url: 'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=3024&h=4032&q=80',
+      },
+    ]}
+  />
 )

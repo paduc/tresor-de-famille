@@ -24,7 +24,6 @@ export type PersonPageProps = {
     personId: PersonId
     name: string
     profilePicUrl: string | null
-    familyName: string
     familyId: FamilyId
   }
   photos: { photoId: PhotoId; url: string }[]
@@ -108,7 +107,7 @@ export const PersonPage = withBrowserBundle(({ person, photos, alternateProfileP
         </div>
       </div>
 
-      {userFamilies.length > 1 ? (
+      {/* {userFamilies.length > 1 ? (
         <div className='my-5 bg-white p-6'>
           Ce profil fait partie de {person.familyName}.
           {sharedWithFamilies.length > 0 ? (
@@ -131,7 +130,7 @@ export const PersonPage = withBrowserBundle(({ person, photos, alternateProfileP
             </div>
           ) : null}
         </div>
-      ) : null}
+      ) : null} */}
 
       <div className='bg-white p-6'>
         <h3 className='text-lg font-medium leading-6 text-gray-900'>Photos de {person.name}</h3>
