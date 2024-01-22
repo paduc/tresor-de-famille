@@ -3,11 +3,16 @@ import { postgres } from '../dependencies/database'
 import { getEventList } from '../dependencies/getEventList'
 import { personsIndex } from '../dependencies/search'
 import { UUID } from '../domain'
+import { PersonId } from '../domain/PersonId'
 import { GedcomImported } from '../events/GedcomImported'
 import { UserNamedPersonInPhoto } from '../events/onboarding/UserNamedPersonInPhoto'
 import { UserNamedThemself } from '../events/onboarding/UserNamedThemself'
+import { getFamiliesWithAccessToPerson } from '../pages/_getFamiliesWithAccessToPerson'
 import { UserCreatedRelationshipWithNewPerson } from '../pages/family/UserCreatedRelationshipWithNewPerson'
 import { UserChangedPersonName } from '../pages/person/UserChangedPersonName'
+import { PersonAutoShareWithFamilyCreation } from '../pages/share/PersonAutoShareWithFamilyCreation'
+import { PersonAutoSharedWithPhotoFace } from '../pages/share/PersonAutoSharedWithPhotoFace'
+import { PersonAutoSharedWithRelationship } from '../pages/share/PersonAutoSharedWithRelationship'
 import { actionsRouter } from './actionsRouter'
 
 actionsRouter.get('/resetAlgoliaIndex', requireAuth(), async (request, response) => {
@@ -67,6 +72,25 @@ actionsRouter.get('/resetAlgoliaIndex', requireAuth(), async (request, response)
       }
     }
   } catch (error) {}
+
+  const personShareEvents = await getEventList<
+    PersonAutoShareWithFamilyCreation | PersonAutoSharedWithPhotoFace | PersonAutoSharedWithRelationship
+  >(['PersonAutoShareWithFamilyCreation', 'PersonAutoSharedWithPhotoFace', 'PersonAutoSharedWithRelationship'])
+
+  const personsDone = new Set<PersonId>()
+  for (const event of personShareEvents) {
+    const { personId } = event.payload
+
+    if (personsDone.has(personId)) continue
+
+    const personFamilies = await getFamiliesWithAccessToPerson({ personId })
+    await personsIndex.partialUpdateObject({
+      objectID: personId,
+      visible_by: personFamilies.map((familyId) => `family/${familyId}`),
+    })
+
+    personsDone.add(personId)
+  }
 
   response.send('Everything is OK: algolia persons index has been rebuilt')
 })

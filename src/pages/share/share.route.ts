@@ -16,6 +16,7 @@ import { PersonAutoShareWithFamilyCreation } from './PersonAutoShareWithFamilyCr
 import { SharePage } from './SharePage'
 import { UserCreatedNewFamily } from './UserCreatedNewFamily'
 import { getSharePageProps } from './getSharePageProps'
+import { getFamiliesWithAccessToPerson } from '../_getFamiliesWithAccessToPerson'
 
 pageRouter
   .route('/share.html')
@@ -98,9 +99,10 @@ async function createNewFamily({ userId, familyName, about }: { userId: AppUserI
     })
   )
   try {
+    const personFamilies = await getFamiliesWithAccessToPerson({ personId })
     await personsIndex.partialUpdateObject({
       objectID: personId,
-      visible_by: [`family/${familyId}`],
+      visible_by: personFamilies.map((familyId) => `family/${familyId}`),
     })
   } catch (error) {
     console.error('Could not add person to algolia index', error)

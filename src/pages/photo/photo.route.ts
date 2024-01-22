@@ -21,6 +21,7 @@ import { NewPhotoPage } from './PhotoPage/NewPhotoPage'
 import { PhotoPageUrl } from './PhotoPageUrl'
 import { UserAddedCaptionToPhoto } from './UserAddedCaptionToPhoto'
 import { getNewPhotoPageProps } from './getNewPhotoPageProps'
+import { getFamiliesWithAccessToPerson } from '../_getFamiliesWithAccessToPerson'
 
 const fakeProfilePicUrl =
   'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80'
@@ -211,9 +212,10 @@ async function sharePersonIfOutsideOfFamily({
   )
 
   try {
+    const personFamilies = await getFamiliesWithAccessToPerson({ personId })
     await personsIndex.partialUpdateObject({
       objectID: personId,
-      visible_by: [`family/${familyId}`],
+      visible_by: personFamilies.map((familyId) => `family/${familyId}`),
     })
   } catch (error) {
     console.error('Could not share person with family to algolia index', error)

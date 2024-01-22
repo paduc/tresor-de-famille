@@ -13,6 +13,7 @@ import { getPersonById } from '../_getPersonById'
 import { pageRouter } from '../pageRouter'
 import { HomePage } from './HomePage'
 import { getHomePageProps } from './getHomePageProps'
+import { getFamiliesWithAccessToPerson } from '../_getFamiliesWithAccessToPerson'
 
 pageRouter
   .route('/')
@@ -102,10 +103,11 @@ pageRouter
         request.session.user!.name = name
 
         try {
+          const personFamilies = await getFamiliesWithAccessToPerson({ personId: existingPersonId })
           await personsIndex.partialUpdateObject({
             objectID: existingPersonId,
             personId: existingPersonId,
-            visible_by: [`user/${userId}`],
+            visible_by: personFamilies.map((familyId) => `family/${familyId}`),
           })
         } catch (error) {
           console.error('Could not add person clone to algolia index', error)

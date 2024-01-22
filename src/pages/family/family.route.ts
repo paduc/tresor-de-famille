@@ -20,6 +20,7 @@ import { UserCreatedRelationshipWithNewPerson } from './UserCreatedRelationshipW
 import { UserRemovedRelationship } from './UserRemovedRelationship'
 import { getFamilyPageProps, getFamilyPersons, getFamilyRelationships } from './getFamilyPageProps'
 import { zIsRelationship } from './zIsRelationship'
+import { getFamiliesWithAccessToPerson } from '../_getFamiliesWithAccessToPerson'
 
 pageRouter.route(FamilyPageURLWithFamily()).get(requireAuth(), async (request, response) => {
   const { familyId } = z.object({ familyId: zIsFamilyId.optional() }).parse(request.params)
@@ -201,9 +202,10 @@ async function sharePersonIfOutsideOfFamily({
   )
 
   try {
+    const personFamilies = await getFamiliesWithAccessToPerson({ personId })
     await personsIndex.partialUpdateObject({
       objectID: personId,
-      visible_by: [`family/${familyId}`],
+      visible_by: personFamilies.map((familyId) => `family/${familyId}`),
     })
   } catch (error) {
     console.error('Could not share person with family to algolia index', error)
