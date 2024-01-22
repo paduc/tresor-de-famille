@@ -137,7 +137,26 @@ pageRouter
         )
         return response.redirect(ThreadUrl(threadId, true))
       } else if (action === 'shareWithMultipleFamilies') {
-        const { familiesToShareWith } = z.object({ familiesToShareWith: z.array(zIsFamilyId) }).parse(request.body)
+        let { familiesToShareWith } = z
+          .object({ familiesToShareWith: z.array(zIsFamilyId).or(zIsFamilyId).optional() })
+          .parse(request.body)
+
+        if (!familiesToShareWith) {
+          // Trigger ThreadSharedWithFamilies with no families
+          await addToHistory(
+            ThreadSharedWithFamilies({
+              threadId,
+              familyIds: [],
+              userId,
+            })
+          )
+
+          return response.redirect(ThreadUrl(threadId))
+        }
+
+        if (!Array.isArray(familiesToShareWith)) {
+          familiesToShareWith = [familiesToShareWith]
+        }
 
         // TODO: Check if no-op
 
