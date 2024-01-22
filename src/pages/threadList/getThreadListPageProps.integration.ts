@@ -81,7 +81,7 @@ describe('getThreadListPageProps', () => {
         ],
         contents: 'Test',
         thumbnails: [],
-        familyId: userFamily,
+        familyIds: [userFamily],
       })
     })
   })
@@ -138,7 +138,7 @@ describe('getThreadListPageProps', () => {
         ],
         contents: 'Test',
         thumbnails: [],
-        familyId: userFamily,
+        familyIds: [userFamily],
       })
     })
   })
@@ -195,7 +195,7 @@ describe('getThreadListPageProps', () => {
         ],
         contents: '',
         thumbnails: [],
-        familyId: userFamily,
+        familyIds: [userFamily],
       })
     })
   })
@@ -260,7 +260,7 @@ describe('getThreadListPageProps', () => {
         ],
         contents: '',
         thumbnails: [ThumbnailURL(photoId)],
-        familyId: userFamily,
+        familyIds: [userFamily],
       })
     })
   })
@@ -324,7 +324,7 @@ describe('getThreadListPageProps', () => {
         ],
         contents: 'Coucou',
         thumbnails: [ThumbnailURL(photoId)],
-        familyId: userFamily,
+        familyIds: [userFamily],
       })
     })
   })
@@ -394,10 +394,11 @@ describe('getThreadListPageProps', () => {
     })
   })
 
-  describe.only('when the user has access to the family of a thread', () => {
+  describe('when the user has access to the family of a thread', () => {
     const viewerUserId = makeAppUserId()
     const threadId = makeThreadId()
     const sharedFamily = makeFamilyId()
+    const authorUserId = makeAppUserId()
     let lastUpdatedOn: number = 0
 
     beforeAll(async () => {
@@ -432,7 +433,6 @@ describe('getThreadListPageProps', () => {
         })
       )
 
-      const authorUserId = makeAppUserId()
       // Create second user: the thread author
       await addToHistory(
         UserRegisteredWithEmailAndPassword({
@@ -489,7 +489,7 @@ describe('getThreadListPageProps', () => {
         ],
         contents: 'Coucou',
         thumbnails: [],
-        // familyId: sharedFamily,
+        familyIds: [sharedFamily],
       })
     })
   })

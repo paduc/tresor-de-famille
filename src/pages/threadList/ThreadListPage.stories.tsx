@@ -9,6 +9,7 @@ import { makeFamilyId } from '../../libs/makeFamilyId'
 import { PersonSearchContext } from '../_components/usePersonSearch'
 import { makeAppUserId } from '../../libs/makeUserId'
 import { SearchIndex } from 'algoliasearch/lite'
+import { asFamilyId } from '../../libs/typeguards'
 
 const fakePersonSearch = async (query: string) => {
   return {
@@ -40,12 +41,16 @@ export default {
                 familyName: 'Espace personnel',
                 about: '',
                 color: 'bg-indigo-50 text-indigo-700 ring-indigo-700/10',
+                isUserSpace: true,
+                shareUrl: '',
               },
               {
                 familyId: familyABCId,
                 familyName: 'Famille ABC',
                 about: 'La famille qui connait le début de son alphabet',
                 color: 'bg-red-50 text-red-700 ring-red-600/10',
+                isUserSpace: false,
+                shareUrl: '',
               },
             ],
             hasFamiliesOtherThanDefault: true,
@@ -83,7 +88,7 @@ export const AvecFils = () => (
           },
         ],
 
-        familyId: 'a' as FamilyId,
+        familyIds: ['a' as FamilyId],
         thumbnails: [],
         title: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
         contents: '',
@@ -97,7 +102,7 @@ export const AvecFils = () => (
             // profilePicUrl: fakeProfilePicUrl,
           },
         ],
-        familyId: 'a' as FamilyId,
+        familyIds: ['a' as FamilyId],
         thumbnails: [
           'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80',
           'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80',
@@ -128,7 +133,7 @@ export const AvecFils = () => (
             // profilePicUrl: fakeProfilePicUrl,
           },
         ],
-        familyId: familyABCId,
+        familyIds: [asFamilyId('a'), familyABCId, familyABCId, familyABCId, familyABCId, familyABCId],
         thumbnails: [
           'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80',
         ],

@@ -17,13 +17,19 @@ export function ThreadList({
     }[]
     contents: string
     thumbnails: string[]
-    familyId: FamilyId
+    familyIds: FamilyId[]
   }[]
 }) {
   const session = useLoggedInSession()
 
-  function getFamily(familyId: FamilyId) {
-    return session.userFamilies.find((f) => f.familyId === familyId)
+  function getFamilies(familyIds: FamilyId[]): typeof session['userFamilies'] {
+    const families = familyIds.map((familyId) => session.userFamilies.find((f) => f.familyId === familyId)!).filter((f) => !!f)
+
+    if (families.length > 1) {
+      return families.filter((f) => !f.isUserSpace)
+    }
+
+    return families
   }
 
   function getTitle({ title, contents }: { title: string | undefined; contents: string }): string {
@@ -55,25 +61,28 @@ export function ThreadList({
     <ul role='list' className='divide-y divide-gray-200'>
       {threads.map((thread) => {
         const chatPageUrl = ThreadUrl(thread.threadId)
-        const threadFamily = getFamily(thread.familyId)
+        const threadFamilies = getFamilies(thread.familyIds)
         return (
           <li key={thread.threadId} className='flex flex-wrap items-center justify-between gap-y-2 ml-0 sm:flex-nowrap'>
             <a href={chatPageUrl} className='w-full py-5 px-6 hover:bg-gray-50'>
-              <p className='mb-3 -ml-2'>
-                <span
-                  className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ring-1 ring-inset ${threadFamily?.color}`}>
-                  {(threadFamily?.familyId as string) === (session.userId as string) ? (
-                    <>
-                      <LockClosedIcon className='h-4 w-4 mr-1' />
-                      {threadFamily?.familyName}
-                    </>
-                  ) : (
-                    <>
-                      <UsersIcon className='h-4 w-4 mr-1' />
-                      {threadFamily?.familyName}
-                    </>
-                  )}
-                </span>
+              <p className='mb-3 -ml-2 flex flex-wrap gap-1'>
+                {threadFamilies.map((threadFamily) => (
+                  <span
+                    key={`threadFamily_${thread.threadId}_${threadFamily.familyId}`}
+                    className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ring-1 ring-inset ${threadFamily.color}`}>
+                    {(threadFamily.familyId as string) === (session.userId as string) ? (
+                      <>
+                        <LockClosedIcon className='h-4 w-4 mr-1' />
+                        {threadFamily.familyName}
+                      </>
+                    ) : (
+                      <>
+                        <UsersIcon className='h-4 w-4 mr-1' />
+                        {threadFamily.familyName}
+                      </>
+                    )}
+                  </span>
+                ))}
               </p>
               <p className='text-base text-gray-900 max-w-xl'>{getTitle(thread)}</p>
               {getContents(thread).length ? (

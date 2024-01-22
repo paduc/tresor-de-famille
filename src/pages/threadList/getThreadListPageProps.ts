@@ -1,6 +1,7 @@
 import { postgres } from '../../dependencies/database'
 import { getEventList } from '../../dependencies/getEventList'
 import { AppUserId } from '../../domain/AppUserId'
+import { FamilyId } from '../../domain/FamilyId'
 import { ThreadId } from '../../domain/ThreadId'
 import { UserSentMessageToChat } from '../../events/deprecated/UserSentMessageToChat'
 import { OnboardingUserStartedFirstThread } from '../../events/onboarding/OnboardingUserStartedFirstThread'
@@ -28,7 +29,7 @@ export const getThreadListPageProps = async (userId: AppUserId): Promise<ThreadL
   type Thread = ThreadListPageProps['threads'][number]
   const threads: Thread[] = []
 
-  const uniqueThreadIds = new Set<ThreadId>()
+  const uniqueThreads = new Map<ThreadId, Set<FamilyId>>()
 
   for (const userFamilyId of userFamilyIds) {
     if (userFamilyId === asFamilyId(userId)) {
@@ -44,7 +45,11 @@ export const getThreadListPageProps = async (userId: AppUserId): Promise<ThreadL
       )
 
       for (const event of threadEvents) {
-        uniqueThreadIds.add(event.payload.threadId)
+        const threadId = event.payload.threadId
+        if (!uniqueThreads.has(threadId)) {
+          uniqueThreads.set(threadId, new Set())
+        }
+        uniqueThreads.get(threadId)!.add(userFamilyId)
       }
 
       continue
@@ -57,11 +62,15 @@ export const getThreadListPageProps = async (userId: AppUserId): Promise<ThreadL
     )
 
     for (const event of res.rows) {
-      uniqueThreadIds.add(event.payload.threadId)
+      const threadId = event.payload.threadId
+      if (!uniqueThreads.has(threadId)) {
+        uniqueThreads.set(threadId, new Set())
+      }
+      uniqueThreads.get(threadId)!.add(userFamilyId)
     }
   }
 
-  for (const threadId of uniqueThreadIds) {
+  for (const threadId of uniqueThreads.keys()) {
     const threadEvents = await getEventList<ThreadEvent>(
       [
         'UserSentMessageToChat',
@@ -83,7 +92,7 @@ export const getThreadListPageProps = async (userId: AppUserId): Promise<ThreadL
       authors,
       contents: getContents(threadEvents),
       lastUpdatedOn: latestEvent.occurredAt.getTime(),
-      familyId: threadEvents.at(0)!.payload.familyId,
+      familyIds: Array.from(uniqueThreads.get(threadId)!.values()),
       thumbnails: getThumbnails(threadEvents),
     })
   }

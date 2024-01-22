@@ -30,7 +30,7 @@ export type HomePageProps =
         }[]
         contents: string
         thumbnails: string[]
-        familyId: FamilyId
+        familyIds: FamilyId[]
       }[]
     }
 
