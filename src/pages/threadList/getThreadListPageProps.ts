@@ -1,11 +1,14 @@
+import { postgres } from '../../dependencies/database'
 import { getEventList } from '../../dependencies/getEventList'
 import { AppUserId } from '../../domain/AppUserId'
 import { ThreadId } from '../../domain/ThreadId'
 import { UserSentMessageToChat } from '../../events/deprecated/UserSentMessageToChat'
 import { OnboardingUserStartedFirstThread } from '../../events/onboarding/OnboardingUserStartedFirstThread'
+import { asFamilyId } from '../../libs/typeguards'
 import { getPersonForUser } from '../_getPersonForUser'
 import { getUserFamilies } from '../_getUserFamilies'
 import { ThumbnailURL } from '../photoApi/ThumbnailURL'
+import { ThreadSharedWithFamilies } from '../thread/ThreadPage/ThreadSharedWithFamilies'
 import { ParagraphNode, PhotoNode } from '../thread/TipTapTypes'
 import { UserInsertedPhotoInRichTextThread } from '../thread/UserInsertedPhotoInRichTextThread'
 import { UserSetChatTitle } from '../thread/UserSetChatTitle'
@@ -25,9 +28,40 @@ export const getThreadListPageProps = async (userId: AppUserId): Promise<ThreadL
   type Thread = ThreadListPageProps['threads'][number]
   const threads: Thread[] = []
 
-  for (const userFamilyId of userFamilyIds) {
-    // Get threads
+  const uniqueThreadIds = new Set<ThreadId>()
 
+  for (const userFamilyId of userFamilyIds) {
+    if (userFamilyId === asFamilyId(userId)) {
+      const threadEvents = await getEventList<ThreadEvent>(
+        [
+          'UserSentMessageToChat',
+          'OnboardingUserStartedFirstThread',
+          'UserUpdatedThreadAsRichText',
+          'UserInsertedPhotoInRichTextThread',
+          'UserSetChatTitle',
+        ],
+        { familyId: userFamilyId }
+      )
+
+      for (const event of threadEvents) {
+        uniqueThreadIds.add(event.payload.threadId)
+      }
+
+      continue
+    }
+
+    // Get threads
+    const res = await postgres.query<ThreadSharedWithFamilies>(
+      `SELECT * FROM history WHERE type='ThreadSharedWithFamilies' AND payload->'familyIds' ? $1`,
+      [userFamilyId]
+    )
+
+    for (const event of res.rows) {
+      uniqueThreadIds.add(event.payload.threadId)
+    }
+  }
+
+  for (const threadId of uniqueThreadIds) {
     const threadEvents = await getEventList<ThreadEvent>(
       [
         'UserSentMessageToChat',
@@ -36,36 +70,22 @@ export const getThreadListPageProps = async (userId: AppUserId): Promise<ThreadL
         'UserInsertedPhotoInRichTextThread',
         'UserSetChatTitle',
       ],
-      { familyId: userFamilyId }
+      { threadId }
     )
 
-    const uniqueThreads = new Map<ThreadId, ThreadEvent[]>()
-    for (const threadEvent of threadEvents) {
-      const { threadId } = threadEvent.payload
+    const authors = await getAuthors(threadEvents)
 
-      if (!uniqueThreads.has(threadId)) {
-        uniqueThreads.set(threadId, [])
-      }
+    const latestEvent = threadEvents.at(-1)!
 
-      uniqueThreads.get(threadId)!.push(threadEvent)
-    }
-
-    const threadsArr = Array.from(uniqueThreads.entries())
-    for (const [threadId, threadEvents] of threadsArr) {
-      const authors = await getAuthors(threadEvents)
-
-      const latestEvent = threadEvents.at(-1)!
-
-      threads.push({
-        threadId,
-        title: getTitle(threadEvents),
-        authors,
-        contents: getContents(threadEvents),
-        lastUpdatedOn: latestEvent.occurredAt.getTime(),
-        familyId: userFamilyId,
-        thumbnails: getThumbnails(threadEvents),
-      })
-    }
+    threads.push({
+      threadId,
+      title: getTitle(threadEvents),
+      authors,
+      contents: getContents(threadEvents),
+      lastUpdatedOn: latestEvent.occurredAt.getTime(),
+      familyId: threadEvents.at(0)!.payload.familyId,
+      thumbnails: getThumbnails(threadEvents),
+    })
   }
 
   return {

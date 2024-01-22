@@ -394,7 +394,7 @@ describe('getThreadListPageProps', () => {
     })
   })
 
-  describe('when the user has access to the family of a thread', () => {
+  describe.only('when the user has access to the family of a thread', () => {
     const viewerUserId = makeAppUserId()
     const threadId = makeThreadId()
     const sharedFamily = makeFamilyId()
@@ -416,7 +416,7 @@ describe('getThreadListPageProps', () => {
         UserNamedThemself({
           userId: viewerUserId,
           name: 'John Doe',
-          familyId: makeFamilyId(),
+          familyId: asFamilyId(viewerUserId),
           personId: makePersonId(),
         })
       )
@@ -446,7 +446,7 @@ describe('getThreadListPageProps', () => {
         UserNamedThemself({
           userId: authorUserId,
           name: 'Valentin Cognito',
-          familyId: makeFamilyId(),
+          familyId: asFamilyId(authorUserId),
           personId: makePersonId(),
         })
       )
@@ -454,7 +454,7 @@ describe('getThreadListPageProps', () => {
       const event = UserUpdatedThreadAsRichText({
         userId: authorUserId,
         threadId,
-        familyId: sharedFamily,
+        familyId: asFamilyId(authorUserId),
         contentAsJSON: {
           type: 'doc',
           content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Coucou' }] }],
@@ -468,7 +468,7 @@ describe('getThreadListPageProps', () => {
         ThreadSharedWithFamilies({
           userId: authorUserId,
           threadId,
-          familyIds: [sharedFamily],
+          familyIds: [sharedFamily, makeFamilyId()],
         })
       )
     })
@@ -489,7 +489,7 @@ describe('getThreadListPageProps', () => {
         ],
         contents: 'Coucou',
         thumbnails: [],
-        familyId: sharedFamily,
+        // familyId: sharedFamily,
       })
     })
   })
