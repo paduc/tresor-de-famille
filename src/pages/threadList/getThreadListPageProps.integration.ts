@@ -493,4 +493,99 @@ describe('getThreadListPageProps', () => {
       })
     })
   })
+
+  describe('when the thread family sharing changes, excluding the user', () => {
+    const viewerUserId = makeAppUserId()
+    const threadId = makeThreadId()
+    const sharedFamily = makeFamilyId()
+    const authorUserId = makeAppUserId()
+    let lastUpdatedOn: number = 0
+
+    beforeAll(async () => {
+      await resetDatabase()
+
+      // Create first user: the viewer
+      await addToHistory(
+        UserRegisteredWithEmailAndPassword({
+          userId: viewerUserId,
+          email: '',
+          passwordHash: '',
+        })
+      )
+
+      await addToHistory(
+        UserNamedThemself({
+          userId: viewerUserId,
+          name: 'John Doe',
+          familyId: asFamilyId(viewerUserId),
+          personId: makePersonId(),
+        })
+      )
+
+      // Add viewer to sharedFamily
+      await addToHistory(
+        UserCreatedNewFamily({
+          userId: viewerUserId,
+          familyId: sharedFamily,
+          shareCode: '' as FamilyShareCode,
+          familyName: '',
+          about: '',
+        })
+      )
+
+      // Create second user: the thread author
+      await addToHistory(
+        UserRegisteredWithEmailAndPassword({
+          userId: authorUserId,
+          email: '',
+          passwordHash: '',
+        })
+      )
+
+      await addToHistory(
+        UserNamedThemself({
+          userId: authorUserId,
+          name: 'Valentin Cognito',
+          familyId: asFamilyId(authorUserId),
+          personId: makePersonId(),
+        })
+      )
+
+      const event = UserUpdatedThreadAsRichText({
+        userId: authorUserId,
+        threadId,
+        familyId: asFamilyId(authorUserId),
+        contentAsJSON: {
+          type: 'doc',
+          content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Coucou' }] }],
+        },
+      })
+      lastUpdatedOn = event.occurredAt.getTime()
+      await addToHistory(event)
+
+      // Share event
+      await addToHistory(
+        ThreadSharedWithFamilies({
+          userId: authorUserId,
+          threadId,
+          familyIds: [sharedFamily, makeFamilyId()],
+        })
+      )
+
+      // Unshare event
+      await addToHistory(
+        ThreadSharedWithFamilies({
+          userId: authorUserId,
+          threadId,
+          familyIds: [makeFamilyId()],
+        })
+      )
+    })
+
+    it('should not return the thread in question', async () => {
+      const { threads } = await getThreadListPageProps(viewerUserId)
+
+      expect(threads).toHaveLength(0)
+    })
+  })
 })

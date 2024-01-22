@@ -46,25 +46,33 @@ pageRouter
     const userId = request.session.user!.id
     const isEditable = edit === 'edit'
 
-    const props = await getThreadPageProps({ threadId, userId })
+    try {
+      const props = await getThreadPageProps({ threadId, userId })
 
-    if (isEditable) {
-      // If it is new or it's someone that has the right to edit
-      if (props.isNewThread || (await canEditThread({ threadId, userId }))) {
-        return responseAsHtml(request, response, ThreadPage(props))
+      if (isEditable) {
+        // If it is new or it's someone that has the right to edit
+        if (props.isNewThread || (await canEditThread({ threadId, userId }))) {
+          return responseAsHtml(request, response, ThreadPage(props))
+        }
+
+        // remove the edit
+        return response.redirect(ThreadUrl(threadId))
       }
 
-      // remove the edit
-      return response.redirect(ThreadUrl(threadId))
-    }
+      // Add edit
+      if (props.isNewThread) {
+        return response.redirect(ThreadUrl(threadId, true))
+      }
 
-    // Add edit
-    if (props.isNewThread) {
-      return response.redirect(ThreadUrl(threadId, true))
-    }
+      // By default, return the readonly version
+      return responseAsHtml(request, response, ReadOnlyThreadPage(props))
+    } catch (error) {
+      if (error instanceof Error && error.message.startsWith('Unauthorized')) {
+        return response.status(403).send(error.message)
+      }
 
-    // By default, return the readonly version
-    return responseAsHtml(request, response, ReadOnlyThreadPage(props))
+      return response.status(500).send(`Il y a eu un problème lors du chargement de cette histoire.`)
+    }
   })
   .post(requireAuth(), upload.single('photo'), async (request, response) => {
     try {

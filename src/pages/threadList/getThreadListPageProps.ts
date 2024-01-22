@@ -1,5 +1,6 @@
 import { postgres } from '../../dependencies/database'
 import { getEventList } from '../../dependencies/getEventList'
+import { getSingleEvent } from '../../dependencies/getSingleEvent'
 import { AppUserId } from '../../domain/AppUserId'
 import { FamilyId } from '../../domain/FamilyId'
 import { ThreadId } from '../../domain/ThreadId'
@@ -62,6 +63,15 @@ export const getThreadListPageProps = async (userId: AppUserId): Promise<ThreadL
     )
 
     for (const event of res.rows) {
+      // Is it the most recent share event for this thread ?
+      const mostRecentShareEvent = await getSingleEvent<ThreadSharedWithFamilies>('ThreadSharedWithFamilies', {
+        threadId: event.payload.threadId,
+      })
+
+      if (mostRecentShareEvent!.id !== event.id) {
+        continue
+      }
+
       const threadId = event.payload.threadId
       if (!uniqueThreads.has(threadId)) {
         uniqueThreads.set(threadId, new Set())
