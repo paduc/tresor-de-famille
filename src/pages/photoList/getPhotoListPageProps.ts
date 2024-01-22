@@ -8,6 +8,7 @@ import { PhotoEvent } from '../_getPhotoEvents'
 import { isPhotoDeleted } from '../_isPhotoDeleted'
 import { UserUploadedPhoto } from '../photoApi/UserUploadedPhoto'
 import { UserUploadedPhotoToFamily } from '../photoApi/UserUploadedPhotoToFamily'
+import { PhotoAutoSharedWithThread } from '../thread/PhotoAutoSharedWithThread'
 import { UserInsertedPhotoInRichTextThread } from '../thread/UserInsertedPhotoInRichTextThread'
 import { UserUploadedPhotoToChat } from '../thread/uploadPhotoToChat/UserUploadedPhotoToChat'
 import { PhotoListProps } from './PhotoListPage'
@@ -42,11 +43,17 @@ export const getPhotoListPageProps = async ({ userId, familyId }: GetPhotoListPa
   )
 
   if (!familyId || familyId === asFamilyId(userId)) {
+    // Look for photos from the user
     photos.push(
       ...(await getEventList<UserUploadedPhoto>(['UserUploadedPhoto'], {
         userId,
       }))
     )
+  } else {
+    // Look for shared photos
+    const sharedPhotos = await getEventList<PhotoAutoSharedWithThread>('PhotoAutoSharedWithThread', { familyId })
+
+    photos.push(...sharedPhotos)
   }
 
   const nonDeletedPhotos = []
