@@ -8,8 +8,9 @@ import { zIsPhotoId } from '../domain/PhotoId'
 import { doesPhotoExist } from '../pages/_doesPhotoExist'
 import { AWSDetectedFacesInPhoto } from '../pages/photo/recognizeFacesInChatPhoto/AWSDetectedFacesInPhoto'
 import { actionsRouter } from './actionsRouter'
+import { PhotoFaceURL } from './PhotoFaceURL'
 
-actionsRouter.route('/photo/:photoId/face/:faceId').get(requireAuth(), async (request, response) => {
+actionsRouter.route(PhotoFaceURL()).get(requireAuth(), async (request, response) => {
   try {
     const { photoId, faceId } = zod.object({ photoId: zIsPhotoId, faceId: zIsFaceId }).parse(request.params)
 

@@ -4,18 +4,18 @@ import { getPhotoUrlFromId } from '../../dependencies/photo-storage'
 import { UserConfirmedHisFace } from '../../events/onboarding/UserConfirmedHisFace'
 import { getPersonById } from '../_getPersonById'
 
+import { PhotoFaceURL } from '../../actions/PhotoFaceURL'
+import { getSingleEvent } from '../../dependencies/getSingleEvent'
 import { AppUserId } from '../../domain/AppUserId'
 import { FaceId } from '../../domain/FaceId'
-import { FamilyId } from '../../domain/FamilyId'
 import { PersonId } from '../../domain/PersonId'
 import { PhotoId } from '../../domain/PhotoId'
 import { UserNamedPersonInPhoto } from '../../events/onboarding/UserNamedPersonInPhoto'
 import { UserRecognizedPersonInPhoto } from '../../events/onboarding/UserRecognizedPersonInPhoto'
-import { getFamilyById } from '../_getFamilyById'
-import { getOriginalPersonFamily } from '../_getOriginalPersonFamily'
-import { getPhotoFamilyId } from '../_getPhotoFamily'
 import { getProfilePicUrlForPerson } from '../_getProfilePicUrlForPerson'
+import { isPhotoAccessibleToUser } from '../_isPhotoAccessibleToUser'
 import { PhotoManuallyAnnotated } from '../photo/annotateManually/PhotoManuallyAnnotated'
+import { UserDeletedPhoto } from '../photoApi/UserDeletedPhoto'
 import { PersonPageProps } from './PersonPage'
 
 export const getPersonPageProps = async ({
@@ -26,107 +26,87 @@ export const getPersonPageProps = async ({
   userId: AppUserId
 }): Promise<PersonPageProps> => {
   const { name } = (await getPersonById({ personId })) || { name: 'N/A' }
-  const personFamilyId = await getOriginalPersonFamily(personId)
-
-  // const userFamilies = (await getUserFamilies(userId))
-  // const shareFamilies = await getFamiliesWithAccessToPerson({ personId })
-  // const sharedWithFamilies = []
-  // for (const familyId of shareFamilies) {
-  //   if (familyId === personFamilyId) continue
-
-  //   // Ne retenir que les familles
-  //   const family = userFamilies.find(uf => uf.familyId === familyId)
-  //   const familyName = family?.familyName || '' // Don't display family name for
-
-  //   sharedWithFamilies.push({
-  //     familyId,
-  //     familyName,
-  //   })
-  // }
-
-  const { photos, alternateProfilePics } = await getPersonPhotos(personId, personFamilyId)
-
-  let familyName: string
-  if (!personFamilyId || (personFamilyId as string) === (userId as string)) {
-    familyName = 'Espace personnel'
-  } else {
-    const family = await getFamilyById(personFamilyId)
-    familyName = family.name
-  }
-
   const profilePicUrl = await getProfilePicUrlForPerson({ personId, userId })
 
-  return {
-    person: { personId, name, profilePicUrl, familyName, familyId: personFamilyId },
-    photos,
-    alternateProfilePics,
-    sharedWithFamilies: [],
+  const photoIds = new Set<PhotoId>()
+  const profilePhotoAndFace = new Map<PhotoId, Set<FaceId>>()
+
+  function addProfilePhotoFace(photoId: PhotoId, faceId: FaceId) {
+    if (!profilePhotoAndFace.has(photoId)) {
+      profilePhotoAndFace.set(photoId, new Set())
+    }
+    profilePhotoAndFace.get(photoId)!.add(faceId)
   }
-}
 
-async function getPersonPhotos(
-  personId: PersonId,
-  familyId: FamilyId
-): Promise<Pick<PersonPageProps, 'photos' | 'alternateProfilePics'>> {
-  // 1) Get all faces for the personId (in PersonCloned, 'PhotoManuallyAnnotated', 'UserRecognizedPersonInPhoto', 'UserNamedPersonInPhoto', 'UserConfirmedHisFace')
-  // -> personId => personFacesIds: FaceId[]
-
-  const personFaceEvents = await getEventList<
+  // Get all the photos where the person has been tagged
+  const personInPhotoEvents = await getEventList<
     PhotoManuallyAnnotated | UserRecognizedPersonInPhoto | UserNamedPersonInPhoto | UserConfirmedHisFace
   >(['PhotoManuallyAnnotated', 'UserRecognizedPersonInPhoto', 'UserNamedPersonInPhoto', 'UserConfirmedHisFace'], {
     personId,
   })
+  for (const event of personInPhotoEvents) {
+    // Check if it's the latest event for this faceId / personId
+    const latest = await getSingleEvent<
+      PhotoManuallyAnnotated | UserRecognizedPersonInPhoto | UserNamedPersonInPhoto | UserConfirmedHisFace
+    >(['PhotoManuallyAnnotated', 'UserRecognizedPersonInPhoto', 'UserNamedPersonInPhoto', 'UserConfirmedHisFace'], {
+      photoId: event.payload.photoId,
+      faceId: event.payload.faceId,
+    })
 
-  // TODO: handle the case when PersonCloned can have multiple faceIds
+    if (latest!.id === event.id) {
+      photoIds.add(event.payload.photoId)
+      addProfilePhotoFace(event.payload.photoId, event.payload.faceId)
+    }
+  }
 
-  const personFaceIds = new Set(
-    personFaceEvents.map((event) => event.payload.faceId).filter((faceId): faceId is FaceId => !!faceId)
-  )
-
-  // 2) Get all photos with faces (in AWSDetected*)
-  // -> personFaceIds => photosWithFaces: PhotoId[]
+  // Get the photos where the link has been done automatically
+  const personFaceIds = new Set(personInPhotoEvents.map((event) => event.payload.faceId))
   const { rows: photosWithFaces } = await postgres.query<{ photoId: PhotoId; faces: { faceId: FaceId }[] }>(
     "SELECT payload->>'photoId' AS \"photoId\", payload->'faces' AS faces from history where type='AWSDetectedFacesInPhoto' and EXISTS ( SELECT 1 FROM jsonb_array_elements(history.payload->'faces') AS face WHERE (face->>'faceId') = ANY ($1));",
     [Array.from(personFaceIds)]
   )
-
-  const alternateProfilePics: {
-    faceId: FaceId
-    photoId: PhotoId
-    url: string
-  }[] = []
-  function findAndAddProfilePics(photoId: PhotoId, faces: { faceId: FaceId }[]) {
-    const face = faces.find((face) => personFaceIds.has(face.faceId))
-    if (face) {
-      const { faceId } = face
-      alternateProfilePics.push({ faceId, photoId, url: `/photo/${photoId}/face/${faceId}` })
+  for (const event of photosWithFaces) {
+    photoIds.add(event.photoId)
+    for (const { faceId } of event.faces) {
+      if (personFaceIds.has(faceId)) {
+        addProfilePhotoFace(event.photoId, faceId)
+      }
     }
   }
 
-  // 3) Filter to get photos in person family
-  // For each photo,
-  const photosInFamily = new Set<PhotoId>()
-  for (const { photoId, faces } of photosWithFaces) {
-    // 3.1) Get the family
-    const photoFamilyId = await getPhotoFamilyId(photoId)
-    if (photoFamilyId === familyId) {
-      photosInFamily.add(photoId)
-      findAndAddProfilePics(photoId, faces)
+  // Check if the photo has been deleted
+  const undeletedPhotos = new Set<PhotoId>()
+  for (const photoId of photoIds) {
+    const isDeleted = await getSingleEvent<UserDeletedPhoto>('UserDeletedPhoto', { photoId })
+
+    if (!isDeleted) {
+      undeletedPhotos.add(photoId)
+    } else {
+      profilePhotoAndFace.delete(photoId)
     }
   }
 
-  // Filter the deleted photos
-  const { rows: deletedPhotosIds } = await postgres.query<{ photoId: PhotoId }>(
-    "SELECT payload->>'photoId' AS \"photoId\" from history where type='UserDeletedPhoto' and payload->>'photoId' = ANY ($1);",
-    [Array.from(photosInFamily)]
+  // Filter by user accessibility
+  const photosAccessibleToUser = []
+  for (const photoId of undeletedPhotos) {
+    if (await isPhotoAccessibleToUser({ photoId, userId })) {
+      photosAccessibleToUser.push({
+        photoId,
+        url: getPhotoUrlFromId(photoId),
+      })
+    } else {
+      profilePhotoAndFace.delete(photoId)
+    }
+  }
+
+  // Flatten alternative profile pics
+  const alternateProfilePics = Array.from(profilePhotoAndFace).flatMap(([photoId, faceIdSet]) =>
+    Array.from(faceIdSet).map((faceId) => ({ faceId, photoId, url: PhotoFaceURL({ photoId, faceId }) }))
   )
-  const uniqueDeletedPhotoIds = new Set(deletedPhotosIds.map((e) => e.photoId))
 
-  const nonDeletedPhotosInFamily = Array.from(photosInFamily).filter((photoId) => !uniqueDeletedPhotoIds.has(photoId))
-
-  // return the photos in the family containing the face of the person
   return {
-    photos: nonDeletedPhotosInFamily.map((photoId) => ({ photoId, url: getPhotoUrlFromId(photoId) })),
+    person: { personId, name, profilePicUrl },
+    photos: photosAccessibleToUser,
     alternateProfilePics,
   }
 }
