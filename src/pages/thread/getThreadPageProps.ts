@@ -28,18 +28,6 @@ export const getThreadPageProps = async ({
 }): Promise<ThreadPageProps> => {
   const DEFAULT_CONTENT: TipTapContentAsJSON = { type: 'doc', content: [] } as const
 
-  const threadAuthorId = await getThreadAuthor(threadId)
-  const isAuthor = threadAuthorId === userId
-
-  const sharedWithFamilyIds = await getThreadFamilies(threadId)
-
-  if (!isAuthor) {
-    const userFamilyIds = (await getUserFamilies(userId)).map((f) => f.familyId)
-    if (!userFamilyIds.some((userFamilyId) => sharedWithFamilyIds?.includes(userFamilyId))) {
-      throw new Error(`Unauthorized: vous n'avez pas le droit de voir ce fil.`)
-    }
-  }
-
   const threadEvents = await getThreadEvents(threadId)
   if (!threadEvents.length) {
     // New thread
@@ -52,6 +40,18 @@ export const getThreadPageProps = async ({
       sharedWithFamilyIds: [],
       isAuthor: true,
       isNewThread: true,
+    }
+  }
+
+  const threadAuthorId = await getThreadAuthor(threadId)
+  const isAuthor = threadAuthorId === userId
+
+  const sharedWithFamilyIds = await getThreadFamilies(threadId)
+
+  if (!isAuthor) {
+    const userFamilyIds = (await getUserFamilies(userId)).map((f) => f.familyId)
+    if (!userFamilyIds.some((userFamilyId) => sharedWithFamilyIds?.includes(userFamilyId))) {
+      throw new Error(`Unauthorized: vous n'avez pas le droit de voir ce fil.`)
     }
   }
 
