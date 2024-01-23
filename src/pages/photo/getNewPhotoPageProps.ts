@@ -26,7 +26,7 @@ export const getNewPhotoPageProps = async ({
 
   const faces: PhotoFace[] = await Promise.all(
     (
-      await getFacesInPhoto({ photoId })
+      await getFacesInPhoto({ photoId, userId })
     ).map(async (face): Promise<PhotoFace> => {
       const { faceId } = face
 
