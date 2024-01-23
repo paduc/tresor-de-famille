@@ -98,7 +98,7 @@ export const getThreadPageProps = async ({
 
       if (!photoId || !threadId || !isThreadId(threadId)) continue
 
-      const photoInfo = await retrievePhotoInfo({ photoId, familyId })
+      const photoInfo = await retrievePhotoInfo({ photoId, userId })
 
       if (!photoInfo) continue
 
@@ -132,12 +132,12 @@ export const getThreadPageProps = async ({
   }
 }
 
-async function retrievePhotoInfo({ photoId, familyId }: { photoId: PhotoId; familyId: FamilyId }): Promise<{
+async function retrievePhotoInfo({ photoId, userId }: { photoId: PhotoId; userId: AppUserId }): Promise<{
   description: string
   personsInPhoto: string[]
   unrecognizedFacesInPhoto: number
 } | null> {
-  const facesInPhoto = await getFacesInPhoto({ photoId })
+  const facesInPhoto = await getFacesInPhoto({ photoId, userId })
 
   const personsInPhoto = (
     await Promise.all(
