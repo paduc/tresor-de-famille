@@ -30,11 +30,6 @@ export const getFamilyPageProps = async ({
     familyId
   )
 
-  if (!persons.length) {
-    // Ce cas ne devrait pas exister puisque lors de la création d'une famille, nous "clonons" la personne de l'utilisateur
-    throw new Error("Il n'y a personne dans cette famille")
-  }
-
   return {
     initialPersons: persons,
     initialRelationships: relationships,
