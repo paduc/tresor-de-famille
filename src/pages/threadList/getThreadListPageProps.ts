@@ -81,29 +81,32 @@ export const getThreadListPageProps = async (userId: AppUserId): Promise<ThreadL
   }
 
   for (const threadId of uniqueThreads.keys()) {
-    const threadEvents = await getEventList<ThreadEvent>(
+    const threadEvents = await getEventList<ThreadEvent | ThreadSharedWithFamilies>(
       [
         'UserSentMessageToChat',
         'OnboardingUserStartedFirstThread',
         'UserUpdatedThreadAsRichText',
         'UserInsertedPhotoInRichTextThread',
         'UserSetChatTitle',
+        'ThreadSharedWithFamilies',
       ],
       { threadId }
     )
 
-    const authors = await getAuthors(threadEvents)
+    const threadContentEvents = threadEvents.filter((event): event is ThreadEvent => event.type !== 'ThreadSharedWithFamilies')
+
+    const authors = await getAuthors(threadContentEvents)
 
     const latestEvent = threadEvents.at(-1)!
 
     threads.push({
       threadId,
-      title: getTitle(threadEvents),
+      title: getTitle(threadContentEvents),
       authors,
-      contents: getContents(threadEvents),
+      contents: getContents(threadContentEvents),
       lastUpdatedOn: latestEvent.occurredAt.getTime(),
       familyIds: Array.from(uniqueThreads.get(threadId)!.values()),
-      thumbnails: getThumbnails(threadEvents),
+      thumbnails: getThumbnails(threadContentEvents),
     })
   }
 
