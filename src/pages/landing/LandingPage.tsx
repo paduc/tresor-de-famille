@@ -7,7 +7,7 @@ type LandingPageProps = {}
 export const LandingPage = ({}: LandingPageProps) => {
   return (
     <BareLayout>
-      <div className='relative isolate overflow-hidden bg-gray-900'>
+      <div className='relative isolate overflow-hidden bg-indigo-950'>
         {/** Background ondulation */}
         <div
           className='absolute left-[calc(50%-4rem)] top-10 -z-10 transform-gpu blur-3xl sm:left-[calc(50%-18rem)] lg:left-48 lg:top-[calc(50%-30rem)] xl:left-[calc(50%-24rem)]'
@@ -25,11 +25,11 @@ export const LandingPage = ({}: LandingPageProps) => {
             {/** LOGO */}
 
             <div className='inline-flex items-center'>
-              <Logo className='h-16 mr-6' />
+              <Logo className='h-12 sm:h-16 mr-6' />
               <span className='text-white text-opacity-70 uppercase tracking-wide text-xl font-bold'>Trésor de famille</span>
             </div>
             {/** Petits badges au dessus du slogan */}
-            <div className='mt-24 sm:mt-32 lg:mt-16'>
+            <div className='mt-12 sm:mt-24'>
               {/* <a href='#' className='inline-flex space-x-6'>
                 <span className='rounded-full bg-indigo-500/10 px-3 py-1 text-sm font-semibold leading-6 text-indigo-400 ring-1 ring-inset ring-indigo-500/20'>
                   What's new
@@ -44,31 +44,44 @@ export const LandingPage = ({}: LandingPageProps) => {
               Certains souvenirs méritent d'être préservés
             </h1>
             <p className='mt-6 text-lg leading-8 text-gray-300'>
-              Parce que si nous ne faisons rien, le temps peut balayer nos plus beaux souvenirs. Trésor de famille est une
-              application pour vous aider à enrichir vos documents, photos, vidéos, ... et les garder pour l'éternité.
+              Parce que si nous ne faisons rien, le temps aura raison de nos plus beaux souvenirs.
+            </p>
+            <p className='mt-2 text-lg leading-8 text-gray-300'>
+              Trésor de famille est une application pour vous aider à enrichir vos documents, photos, vidéos, ... et les
+              conserver pour l'éternité.
             </p>
             <div className='mt-10 flex items-center gap-x-6'>
               <a
                 href='#'
                 className='rounded-md bg-indigo-500 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-400'>
-                Get started
+                Démarrer
               </a>
               <a href='#' className='text-sm font-semibold leading-6 text-white'>
-                Learn more <span aria-hidden='true'>→</span>
+                En savoir plus <span aria-hidden='true'>→</span>
               </a>
             </div>
           </div>
-          <div className='mx-auto mt-16 flex max-w-2xl sm:mt-24 lg:ml-10 lg:mr-0 lg:mt-0 lg:max-w-none lg:flex-none xl:ml-32'>
+
+          <div className='mx-auto flex mt-10 sm:max-w-2xl lg:mt-0 lg:aspect-h-7 lg:aspect-w-10 w-full overflow-hidden rounded-lg'>
+            <img
+              // src='https://tailwindui.com/img/component-images/dark-project-app-screenshot.png'
+              src='https://tresordefamille.org/images/Treasure-chest-3.png'
+              alt='Un coffre en bois, dans un grenier, rempli des vieilles photos, pellicules, films, est éclairé par un rayon de soleil et retrouve la vie !'
+              className='transform -scale-x-100 w-full sm:w-[50vw] object-scale-down sm:object-cover rounded-md bg-white/5 shadow-2xl ring-1 ring-white/10'
+            />
+          </div>
+          {/* <div className='mx-auto mt-16 flex max-w-2xl sm:mt-24 lg:ml-10 lg:mr-0 lg:mt-0 lg:max-w-none lg:flex-none xl:ml-32'>
             <div className='max-w-3xl flex-none sm:max-w-5xl lg:max-w-none'>
               <img
-                src='https://tailwindui.com/img/component-images/dark-project-app-screenshot.png'
+                // src='https://tailwindui.com/img/component-images/dark-project-app-screenshot.png'
+                src='https://tresordefamille.org/images/Treasure-chest-1.png'
                 alt='App screenshot'
-                width={2432}
-                height={1442}
+                width={1024}
+                height={1024}
                 className='w-[76rem] rounded-md bg-white/5 shadow-2xl ring-1 ring-white/10'
               />
             </div>
-          </div>
+          </div> */}
         </div>
       </div>
     </BareLayout>
