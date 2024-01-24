@@ -6,6 +6,9 @@ import { makeThreadId } from '../../libs/makeThreadId'
 import { SessionContext } from '../_components/SessionContext'
 import { PersonSearchContext } from '../_components/usePersonSearch'
 import { HomePage } from './HomePage'
+import { FamilyId } from '../../domain/FamilyId'
+import { makeFamilyId } from '../../libs/makeFamilyId'
+import { asFamilyId } from '../../libs/typeguards'
 
 const fakePersonSearch = async (query: string) => {
   return {
@@ -17,6 +20,7 @@ const fakePersonSearch = async (query: string) => {
   }
 }
 
+const familyABCId = makeFamilyId()
 export default {
   title: "Page d'accueil",
   component: HomePage,
@@ -28,7 +32,24 @@ export default {
           value={{
             isLoggedIn: true,
             userId: 'a' as AppUserId,
-            userFamilies: [],
+            userFamilies: [
+              {
+                familyId: 'a' as FamilyId,
+                familyName: 'Espace personnel',
+                about: '',
+                color: 'bg-indigo-50 text-indigo-700 ring-indigo-700/10',
+                isUserSpace: true,
+                shareUrl: '',
+              },
+              {
+                familyId: familyABCId,
+                familyName: 'Famille ABC',
+                about: 'La famille qui connait le début de son alphabet',
+                color: 'bg-red-50 text-red-700 ring-red-600/10',
+                isUserSpace: true,
+                shareUrl: '',
+              },
+            ],
 
             userName: '',
             profilePic: null,
@@ -52,7 +73,16 @@ export const AfterOnboarding = () => (
     value={{
       isLoggedIn: true,
       userId: 'a' as AppUserId,
-      userFamilies: [],
+      userFamilies: [
+        {
+          familyId: 'a' as FamilyId,
+          familyName: 'Espace personnel',
+          about: '',
+          color: 'bg-indigo-50 text-indigo-700 ring-indigo-700/10',
+          isUserSpace: true,
+          shareUrl: '',
+        },
+      ],
 
       userName: 'John Doe Adear',
       profilePic:
@@ -74,7 +104,16 @@ export const AfterOnboardingAvecSouvenirs = () => (
     value={{
       isLoggedIn: true,
       userId: 'a' as AppUserId,
-      userFamilies: [],
+      userFamilies: [
+        {
+          familyId: 'a' as FamilyId,
+          familyName: 'Espace personnel',
+          about: '',
+          color: 'bg-indigo-50 text-indigo-700 ring-indigo-700/10',
+          isUserSpace: true,
+          shareUrl: '',
+        },
+      ],
 
       userName: 'John Doe Adear',
       profilePic:
@@ -92,14 +131,33 @@ export const AfterOnboardingAvecSouvenirs = () => (
           threadId: makeThreadId(),
           title: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
           lastUpdatedOn: Date.now(),
+          authors: [{ name: 'John Doe' }],
+          contents: 'Ceci est le reste du contenu',
+          thumbnails: [],
+          familyIds: [asFamilyId('a' as AppUserId)],
         },
         {
           threadId: makeThreadId(),
           title:
             'Et diam cursus quis sed purus nam. Scelerisque amet elit non sit ut tincidunt condimentum. Nisl ultrices eu venenatis diam.',
           lastUpdatedOn: Date.now(),
+          authors: [{ name: 'John Doe' }],
+          contents: 'Ceci est le reste du contenu',
+          thumbnails: [],
+          familyIds: [asFamilyId('a' as AppUserId)],
+        },
+        {
+          threadId: makeThreadId(),
+          title:
+            'Et diam cursus quis sed purus nam. Scelerisque amet elit non sit ut tincidunt condimentum. Nisl ultrices eu venenatis diam.',
+          lastUpdatedOn: Date.now(),
+          authors: [{ name: 'John Doe' }],
+          contents: 'Ceci est le reste du contenu',
+          thumbnails: [],
+          familyIds: [asFamilyId('a' as AppUserId)],
         },
       ]}
+      hasMoreThreads={true}
     />
   </SessionContext.Provider>
 )

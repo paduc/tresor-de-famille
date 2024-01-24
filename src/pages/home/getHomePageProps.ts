@@ -3,6 +3,7 @@ import { getPersonForUser } from '../_getPersonForUser'
 import { getThreadListPageProps } from '../threadList/getThreadListPageProps'
 import { GetUserName, HomePageProps } from './HomePage'
 
+const displayCount = 3
 export const getHomePageProps = async (userId: AppUserId): Promise<HomePageProps> => {
   const step1 = await getGetUserName(userId)
 
@@ -13,11 +14,12 @@ export const getHomePageProps = async (userId: AppUserId): Promise<HomePageProps
   }
 
   const { threads } = await getThreadListPageProps(userId)
-  const latestThreads = threads.sort((a, b) => b.lastUpdatedOn - a.lastUpdatedOn).slice(0, 3)
+  const latestThreads = threads.sort((a, b) => b.lastUpdatedOn - a.lastUpdatedOn).slice(0, displayCount)
 
   return {
     isOnboarding,
     latestThreads,
+    hasMoreThreads: threads.length > displayCount,
   }
 }
 

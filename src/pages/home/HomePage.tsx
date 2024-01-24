@@ -12,6 +12,7 @@ import { useLoggedInSession, useSession } from '../_components/SessionContext'
 import { ThreadList } from '../_components/ThreadList'
 import { AppLayout } from '../_components/layout/AppLayout'
 import { usePersonSearch } from '../_components/usePersonSearch'
+import { ThreadListPageUrl } from '../threadList/ThreadListPageUrl'
 
 type Steps = GetUserName
 export type HomePageProps =
@@ -32,6 +33,7 @@ export type HomePageProps =
         thumbnails: string[]
         familyIds: FamilyId[]
       }[]
+      hasMoreThreads: boolean
     }
 
 export const HomePage = withBrowserBundle((props: HomePageProps) => {
@@ -67,6 +69,13 @@ export const HomePage = withBrowserBundle((props: HomePageProps) => {
           </div>
           <div className='mt-3 bg-white border border-gray-300 shadow-sm -mx-4 sm:max-w-lg md:max-w-xl'>
             <ThreadList threads={props.latestThreads} />
+            {props.hasMoreThreads ? (
+              <a
+                href={ThreadListPageUrl}
+                className={`${linkStyles} w-full justify-center sm:justify-start -mt-1 py-6 px-6 border-t border-gray-200 shadow-sm sm:max-w-lg md:max-w-xl`}>
+                Voir plus de souvenirs
+              </a>
+            ) : null}
           </div>
         </div>
       ) : null}
