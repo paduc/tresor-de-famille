@@ -76,6 +76,10 @@ export function ThreadSharingButton({ familyId, sharedWithFamilyIds, isAuthor }:
 
                 if (!family) return null
 
+                if (sharedWithFamilyIds.length > 1 && family.isUserSpace) {
+                  return null
+                }
+
                 return (
                   <li className='inline' key={`family_badge_${familyId}`}>
                     <button
