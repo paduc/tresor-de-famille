@@ -2,7 +2,7 @@ import React, { useCallback, useState } from 'react'
 import TextareaAutosize from 'react-textarea-autosize'
 
 import { Dialog, Transition } from '@headlessui/react'
-import { XMarkIcon } from '@heroicons/react/20/solid'
+import { ChevronLeftIcon, XMarkIcon } from '@heroicons/react/20/solid'
 import { EyeIcon, EyeSlashIcon, TrashIcon } from '@heroicons/react/24/outline'
 import { FaceId } from '../../../domain/FaceId'
 import { PersonId } from '../../../domain/PersonId'
@@ -115,6 +115,21 @@ export const NewPhotoPage = withBrowserBundle(({ context, caption, photoId, phot
           className='absolute top-2 right-2 text-gray-300'>
           <XMarkIcon className='cursor-pointer h-8 w-8' />
         </a>
+        {context ? (
+          <a
+            href={`${
+              context.type === 'thread'
+                ? ThreadUrl(context.threadId, context.editable)
+                : context.type === 'profile'
+                ? PersonPageURL(context.profileId)
+                : context.type === 'familyPhotoList'
+                ? PhotoListPageUrlWithFamily(context.familyId)
+                : PhotoListPageUrl
+            }`}
+            className='absolute top-1 left-1 text-gray-300'>
+            <ChevronLeftIcon className='cursor-pointer h-10 w-10' />
+          </a>
+        ) : null}
         <div className='grid place-items-center h-[95svh]'>
           <img src={photoUrl} className='max-w-full max-h-[95svh]' />
         </div>

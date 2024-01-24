@@ -25,7 +25,6 @@ export const getHomePageProps = async (userId: AppUserId): Promise<HomePageProps
 
 async function getGetUserName(userId: AppUserId): Promise<GetUserName> {
   const personForUser = await getPersonForUser({ userId })
-
   if (personForUser) {
     const { name, personId } = personForUser
     return {
