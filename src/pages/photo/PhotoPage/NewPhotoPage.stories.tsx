@@ -108,3 +108,7 @@ export const PhotoWithFaces = () => (
 export const PhotoWithoutFaces = () => (
   <NewPhotoPage faces={[]} photoId={getUuid()} photoUrl={fakePhoto({ width: 1000, height: 1000 })} />
 )
+
+export const PhotoPendingFaceDetection = () => (
+  <NewPhotoPage faces={undefined} photoId={getUuid()} photoUrl={fakePhoto({ width: 1000, height: 1000 })} />
+)
