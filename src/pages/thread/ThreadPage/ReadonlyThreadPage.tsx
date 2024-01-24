@@ -6,7 +6,7 @@ import { ThreadId, zIsThreadId } from '../../../domain/ThreadId'
 import { withBrowserBundle } from '../../../libs/ssr/withBrowserBundle'
 import { Epoch } from '../../../libs/typeguards'
 import { AppLayout } from '../../_components/layout/AppLayout'
-import { TipTapContentAsJSON } from '../TipTapTypes'
+import { TextMark, TipTapContentAsJSON } from '../TipTapTypes'
 import { ReadWriteToggle } from './ReadWriteToggle'
 import { ThreadSharingButton } from './ThreadSharingButton'
 
@@ -18,6 +18,10 @@ export type ReadOnlyThreadPageProps = {
   isAuthor: boolean
   sharedWithFamilyIds?: FamilyId[]
   familyId: FamilyId
+}
+
+function hasMark(mark: TextMark['type'], marks: TextMark[] | undefined, classStr: string) {
+  return marks?.some((m) => m.type === mark) ? classStr : ''
 }
 
 export const ReadOnlyThreadPage = withBrowserBundle(
@@ -38,7 +42,18 @@ export const ReadOnlyThreadPage = withBrowserBundle(
                       <p
                         key={`block_${index}`}
                         className='px-4 sm:px-0 py-4 text-gray-800 text-lg  whitespace-pre-wrap [&+p]:-mt-1 [&+p]:border-t-0 [&+p]:pt-0'>
-                        {block.content[0]?.text}
+                        {block.content.map((c) => {
+                          return (
+                            <span
+                              className={`${hasMark('bold', c.marks, 'font-bold')} ${hasMark(
+                                'italic',
+                                c.marks,
+                                'italic'
+                              )} ${hasMark('strike', c.marks, 'line-through')}`}>
+                              {c.text}
+                            </span>
+                          )
+                        })}
                       </p>
                     )
                   }

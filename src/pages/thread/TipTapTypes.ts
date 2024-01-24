@@ -15,10 +15,21 @@ export type PhotoNode = TipTapJSON & {
 }
 
 // Zod validators
+const zIsMark = z.object({ type: z.union([z.literal('bold'), z.literal('italic'), z.literal('strike')]) })
+
+export type TextMark = z.infer<typeof zIsMark>
 
 const zIsParagraphNode = z.object({
   type: z.literal('paragraph'),
-  content: z.array(z.object({ type: z.literal('text'), text: z.string() })).optional(),
+  content: z
+    .array(
+      z.object({
+        type: z.literal('text'),
+        text: z.string(),
+        marks: z.array(zIsMark).optional(),
+      })
+    )
+    .optional(),
 })
 
 const zIsPhotoNode = z.object({
