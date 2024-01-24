@@ -45,7 +45,7 @@ export type NewPhotoPageProps = {
   photoId: PhotoId
   familyId: FamilyId
   caption?: string
-  faces: PhotoFace[]
+  faces?: PhotoFace[]
   context?:
     | {
         type: 'thread'
@@ -74,9 +74,9 @@ export const NewPhotoPage = withBrowserBundle(({ context, caption, photoId, phot
     [caption]
   )
 
-  const ignoredFaces = faces.filter((face) => face.stage === 'ignored')
-  const annotatedFaces = faces.filter((face): face is PhotoFace & { stage: 'done' } => face.stage === 'done')
-  const pendingFaces = faces.filter((face) => face.stage === 'awaiting-name')
+  const ignoredFaces = faces?.filter((face) => face.stage === 'ignored') || []
+  const annotatedFaces = faces?.filter((face): face is PhotoFace & { stage: 'done' } => face.stage === 'done') || []
+  const pendingFaces = faces?.filter((face) => face.stage === 'awaiting-name') || []
 
   return (
     <div className='relative'>
@@ -151,61 +151,69 @@ export const NewPhotoPage = withBrowserBundle(({ context, caption, photoId, phot
                 </button>
               </form>
             </div>
-            {faces && faces.length ? (
-              <div className='py-3'>
-                <ul className='flex flex-wrap gap-2 pt-3'>
-                  {annotatedFaces.map((face) => (
-                    <li key={`photoface${face.faceId}`} className='text-gray-300 mr-2 mb-2'>
-                      <div onClick={() => setSelectedFaceForMenu(face)} className='flex flex-col items-center cursor-pointer'>
-                        <PhotoBadge faceId={face.faceId} photoId={photoId} className={``} altText={face.name || ''} />
-                        <div className='mt-1 max-w-[80px] truncate'>{face.name}</div>
-                      </div>
-                    </li>
-                  ))}
-                  {pendingFaces.map((face) => (
-                    <li
-                      key={`photoface${face.faceId}`}
-                      className='text-gray-500 mr-2 mb-2 flex flex-col items-center relative'
-                      onClick={() => setSelectedFaceForMenu(face)}>
-                      <PhotoBadge faceId={face.faceId} photoId={photoId} className={'cursor-pointer'} />
-                      <div className='absolute top-11 right-0 h-4 w-4 rounded-full bg-blue-600 -ring-2 ring-1  ring-white'>
-                        <div className='text-white text-xs text-center'>?</div>
-                      </div>
-                    </li>
-                  ))}
-                  {ignoredFaces.length && areIgnoredFacesVisible
-                    ? ignoredFaces.map((face) => (
+            {faces ? (
+              <>
+                {faces.length ? (
+                  <div className='py-3'>
+                    <ul className='flex flex-wrap gap-2 pt-3'>
+                      {annotatedFaces.map((face) => (
+                        <li key={`photoface${face.faceId}`} className='text-gray-300 mr-2 mb-2'>
+                          <div
+                            onClick={() => setSelectedFaceForMenu(face)}
+                            className='flex flex-col items-center cursor-pointer'>
+                            <PhotoBadge faceId={face.faceId} photoId={photoId} className={``} altText={face.name || ''} />
+                            <div className='mt-1 max-w-[80px] truncate'>{face.name}</div>
+                          </div>
+                        </li>
+                      ))}
+                      {pendingFaces.map((face) => (
                         <li
                           key={`photoface${face.faceId}`}
                           className='text-gray-500 mr-2 mb-2 flex flex-col items-center relative'
                           onClick={() => setSelectedFaceForMenu(face)}>
-                          <PhotoBadge faceId={face.faceId} photoId={photoId} className={`grayscale cursor-pointer`} />
-                          <div className='absolute top-11 right-0 h-4 w-4 rounded-full bg-red-600 -ring-2 ring-1 ring-white'>
-                            <div className='text-white text-center'>
-                              <XMarkIcon className='h-[3.5] w-[3.5]' />
-                            </div>
+                          <PhotoBadge faceId={face.faceId} photoId={photoId} className={'cursor-pointer'} />
+                          <div className='absolute top-11 right-0 h-4 w-4 rounded-full bg-blue-600 -ring-2 ring-1  ring-white'>
+                            <div className='text-white text-xs text-center'>?</div>
                           </div>
                         </li>
-                      ))
-                    : null}
-                </ul>
-                {ignoredFaces.length ? (
-                  <>
-                    {areIgnoredFacesVisible ? (
-                      <button className={`${linkStylesDarkMode} mt-4`} onClick={() => showIgnoredFaces(false)}>
-                        <EyeSlashIcon className='h-6 w-6 mr-1' />
-                        Masquer les visages ignorés
-                      </button>
-                    ) : (
-                      <button className={`${linkStylesDarkMode} mt-4`} onClick={() => showIgnoredFaces(true)}>
-                        <EyeIcon className='h-6 w-6 mr-1' />
-                        Afficher les visages ignorés
-                      </button>
-                    )}
-                  </>
+                      ))}
+                      {areIgnoredFacesVisible
+                        ? ignoredFaces.map((face) => (
+                            <li
+                              key={`photoface${face.faceId}`}
+                              className='text-gray-500 mr-2 mb-2 flex flex-col items-center relative'
+                              onClick={() => setSelectedFaceForMenu(face)}>
+                              <PhotoBadge faceId={face.faceId} photoId={photoId} className={`grayscale cursor-pointer`} />
+                              <div className='absolute top-11 right-0 h-4 w-4 rounded-full bg-red-600 -ring-2 ring-1 ring-white'>
+                                <div className='text-white text-center'>
+                                  <XMarkIcon className='h-[3.5] w-[3.5]' />
+                                </div>
+                              </div>
+                            </li>
+                          ))
+                        : null}
+                    </ul>
+                    {ignoredFaces.length ? (
+                      <>
+                        {areIgnoredFacesVisible ? (
+                          <button className={`${linkStylesDarkMode} mt-4`} onClick={() => showIgnoredFaces(false)}>
+                            <EyeSlashIcon className='h-6 w-6 mr-1' />
+                            Masquer les visages ignorés
+                          </button>
+                        ) : (
+                          <button className={`${linkStylesDarkMode} mt-4`} onClick={() => showIgnoredFaces(true)}>
+                            <EyeIcon className='h-6 w-6 mr-1' />
+                            Afficher les visages ignorés
+                          </button>
+                        )}
+                      </>
+                    ) : null}
+                  </div>
                 ) : null}
-              </div>
-            ) : null}
+              </>
+            ) : (
+              <div className='py-5 italic'>En attente de la détection de visage (penser a recharger la page).</div>
+            )}
             <form
               method='POST'
               action='/delete-photo'
