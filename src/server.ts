@@ -91,10 +91,10 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
 
 app.listen(PORT, async (): Promise<void> => {
   await createHistoryTable()
-  // await threadCloneMigration()
-  // await photoCloneMigration()
-  // await personCloneMigration()
-  // await deleteThreadclonesMigration()
+  await threadCloneMigration()
+  await photoCloneMigration()
+  await personCloneMigration()
+  await deleteThreadclonesMigration()
 
   // eslint-disable-next-line no-console
   console.log('Server listening to port', PORT)
