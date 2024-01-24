@@ -100,9 +100,9 @@ export const getThreadPageProps = async ({
         continue
       }
 
-      const { photoId, threadId } = contentNode.attrs
+      const { photoId } = contentNode.attrs
 
-      if (!photoId || !threadId || !isThreadId(threadId)) continue
+      if (!photoId) continue
 
       const photoInfo = await retrievePhotoInfo({ photoId, userId })
 
