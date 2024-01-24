@@ -91,9 +91,15 @@ export const getThreadPageProps = async ({
 
     for (const contentNode of content) {
       if (contentNode.type !== 'photoNode') {
+        // @ts-ignore
+        if (contentNode.type === 'insertPhotoMarker') {
+          // some threads have insertPhotoMarker nodes...
+          continue
+        }
         contentAsJSON.content.push(contentNode)
         continue
       }
+
       const { photoId, threadId } = contentNode.attrs
 
       if (!photoId || !threadId || !isThreadId(threadId)) continue
