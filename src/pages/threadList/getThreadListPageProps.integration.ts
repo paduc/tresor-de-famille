@@ -299,7 +299,13 @@ describe('getThreadListPageProps', () => {
         contentAsJSON: {
           type: 'doc',
           content: [
-            { type: 'paragraph', content: [{ type: 'text', text: 'Coucou' }] },
+            {
+              type: 'paragraph',
+              content: [
+                { type: 'text', text: 'Coucou' },
+                { type: 'text', text: ' tout le monde !' },
+              ],
+            },
             { type: 'photoNode', attrs: { photoId } },
           ],
         },
@@ -322,7 +328,7 @@ describe('getThreadListPageProps', () => {
             name: 'John Doe',
           },
         ],
-        contents: 'Coucou',
+        contents: 'Coucou tout le monde !',
         thumbnails: [ThumbnailURL(photoId)],
         familyIds: [userFamily],
       })
