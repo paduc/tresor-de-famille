@@ -88,7 +88,9 @@ export function ThreadSharingButton({ familyId, sharedWithFamilyIds, isAuthor }:
                           openFamilyModal(true)
                         }
                       }}
-                      className={`px-3 py-1.5 border border-transparent text-md font-medium rounded-full shadow-sm ring-inset ring-2 hover:bg-white hover:ring-4 ${family.color} ring-2`}>
+                      className={`px-3 py-1.5 border border-transparent text-md font-medium rounded-full shadow-sm ring-inset ring-2 ${
+                        isAuthor ? 'hover:bg-white hover:ring-4' : 'cursor-default'
+                      } ${family.color} ring-2`}>
                       {family.familyName}
                     </button>
                   </li>
