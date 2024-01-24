@@ -163,7 +163,7 @@ async function migrateUserRecognizedEvents() {
   }
 }
 
-async function getOriginalPersonId(personId: PersonId) {
+async function getOriginalPersonId(personId: PersonId): Promise<PersonId> {
   const cloneEvent = await getSingleEvent<PersonClonedForSharing>('PersonClonedForSharing', { personId })
 
   if (!cloneEvent) return personId

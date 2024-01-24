@@ -26,7 +26,7 @@ export const getThreadPageProps = async ({
   threadId: ThreadId
   userId: AppUserId
 }): Promise<ThreadPageProps> => {
-  const DEFAULT_CONTENT: TipTapContentAsJSON = { type: 'doc', content: [] } as const
+  const DEFAULT_CONTENT: TipTapContentAsJSON = { type: 'doc', content: [] }
 
   const threadEvents = await getThreadEvents(threadId)
   if (!threadEvents.length) {
