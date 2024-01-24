@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { addToHistory } from '../../dependencies/addToHistory'
 import { requireAuth } from '../../dependencies/authn'
-import { personsIndex } from '../../dependencies/search'
+import { addFamilyVisibilityToIndex, personsIndex } from '../../dependencies/search'
 import { zIsPersonId } from '../../domain/PersonId'
 import { UserNamedThemself } from '../../events/onboarding/UserNamedThemself'
 import { UserRecognizedThemselfAsPerson } from '../../events/onboarding/UserRecognizedThemselfAsPerson'
@@ -13,7 +13,6 @@ import { getPersonById } from '../_getPersonById'
 import { pageRouter } from '../pageRouter'
 import { HomePage } from './HomePage'
 import { getHomePageProps } from './getHomePageProps'
-import { getFamiliesWithAccessToPerson } from '../_getFamiliesWithAccessToPerson'
 
 pageRouter
   .route('/')
@@ -72,7 +71,7 @@ pageRouter
             personId,
             name: newPersonWithName,
             familyId: asFamilyId(userId),
-            visible_by: [`family/${asFamilyId(userId)}`, `user/${userId}`],
+            visible_by: [`family/${asFamilyId(userId)}`],
           })
         } catch (error) {
           console.error('Could not add new user to algolia index', error)
@@ -102,16 +101,7 @@ pageRouter
         const name = personWithName ? personWithName.name : ''
         request.session.user!.name = name
 
-        try {
-          const personFamilies = await getFamiliesWithAccessToPerson({ personId: existingPersonId })
-          await personsIndex.partialUpdateObject({
-            objectID: existingPersonId,
-            personId: existingPersonId,
-            visible_by: personFamilies.map((familyId) => `family/${familyId}`),
-          })
-        } catch (error) {
-          console.error('Could not add person clone to algolia index', error)
-        }
+        await addFamilyVisibilityToIndex({ personId: existingPersonId, familyId: personFamilyId })
 
         request.session.isOnboarding = false
       }

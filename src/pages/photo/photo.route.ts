@@ -1,7 +1,7 @@
 import zod, { z } from 'zod'
 import { addToHistory } from '../../dependencies/addToHistory'
 import { requireAuth } from '../../dependencies/authn'
-import { personsIndex } from '../../dependencies/search'
+import { addFamilyVisibilityToIndex, personsIndex } from '../../dependencies/search'
 import { FaceId, zIsFaceId } from '../../domain/FaceId'
 import { FamilyId, zIsFamilyId } from '../../domain/FamilyId'
 import { PersonId, zIsPersonId } from '../../domain/PersonId'
@@ -21,7 +21,6 @@ import { NewPhotoPage } from './PhotoPage/NewPhotoPage'
 import { PhotoPageUrl } from './PhotoPageUrl'
 import { UserAddedCaptionToPhoto } from './UserAddedCaptionToPhoto'
 import { getNewPhotoPageProps } from './getNewPhotoPageProps'
-import { getFamiliesWithAccessToPerson } from '../_getFamiliesWithAccessToPerson'
 
 const fakeProfilePicUrl =
   'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80'
@@ -132,7 +131,7 @@ pageRouter
                 personId,
                 name: newFamilyMemberName,
                 familyId,
-                visible_by: [`family/${familyId}`, `user/${userId}`],
+                visible_by: [`family/${familyId}`, `family/${userId}`],
               })
             } catch (error) {
               console.error('Could not add new family member to algolia index', error)
@@ -211,13 +210,5 @@ async function sharePersonIfOutsideOfFamily({
     })
   )
 
-  try {
-    const personFamilies = await getFamiliesWithAccessToPerson({ personId })
-    await personsIndex.partialUpdateObject({
-      objectID: personId,
-      visible_by: personFamilies.map((familyId) => `family/${familyId}`),
-    })
-  } catch (error) {
-    console.error('Could not share person with family to algolia index', error)
-  }
+  await addFamilyVisibilityToIndex({ personId, familyId })
 }

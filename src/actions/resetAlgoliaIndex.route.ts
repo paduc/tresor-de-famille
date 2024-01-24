@@ -1,13 +1,12 @@
 import { requireAuth } from '../dependencies/authn'
 import { postgres } from '../dependencies/database'
 import { getEventList } from '../dependencies/getEventList'
-import { personsIndex } from '../dependencies/search'
+import { addFamilyVisibilityToIndex, changePersonNameInIndex, personsIndex } from '../dependencies/search'
 import { UUID } from '../domain'
 import { PersonId } from '../domain/PersonId'
 import { GedcomImported } from '../events/GedcomImported'
 import { UserNamedPersonInPhoto } from '../events/onboarding/UserNamedPersonInPhoto'
 import { UserNamedThemself } from '../events/onboarding/UserNamedThemself'
-import { getFamiliesWithAccessToPerson } from '../pages/_getFamiliesWithAccessToPerson'
 import { UserCreatedRelationshipWithNewPerson } from '../pages/family/UserCreatedRelationshipWithNewPerson'
 import { UserChangedPersonName } from '../pages/person/UserChangedPersonName'
 import { PersonAutoShareWithFamilyCreation } from '../pages/share/PersonAutoShareWithFamilyCreation'
@@ -62,16 +61,11 @@ actionsRouter.get('/resetAlgoliaIndex', requireAuth(), async (request, response)
 
     const nameChanges = Object.entries(uniqueNameChangeEventsPerPerson)
     for (const [personId, name] of nameChanges) {
-      try {
-        await personsIndex.partialUpdateObject({
-          objectID: personId,
-          name,
-        })
-      } catch (error) {
-        console.error('Could not change persons name in algolia index', error)
-      }
+      await changePersonNameInIndex({ personId: personId as PersonId, name })
     }
-  } catch (error) {}
+  } catch (error) {
+    console.error('resetAlgoliaIndex failed to update a name')
+  }
 
   const personShareEvents = await getEventList<
     PersonAutoShareWithFamilyCreation | PersonAutoSharedWithPhotoFace | PersonAutoSharedWithRelationship
@@ -83,11 +77,7 @@ actionsRouter.get('/resetAlgoliaIndex', requireAuth(), async (request, response)
 
     if (personsDone.has(personId)) continue
 
-    const personFamilies = await getFamiliesWithAccessToPerson({ personId })
-    await personsIndex.partialUpdateObject({
-      objectID: personId,
-      visible_by: personFamilies.map((familyId) => `family/${familyId}`),
-    })
+    await addFamilyVisibilityToIndex({ personId, familyId: event.payload.familyId })
 
     personsDone.add(personId)
   }
@@ -107,7 +97,7 @@ async function indexUserNamedThemself() {
       id: personId,
       name,
       familyId: onboardedPerson.payload.familyId,
-      visible_by: [`family/${onboardedPerson.payload.familyId}`, `user/${onboardedPerson.payload.userId}`],
+      visible_by: [`family/${onboardedPerson.payload.familyId}`, `family/${onboardedPerson.payload.userId}`],
     })
   }
 }
@@ -124,7 +114,7 @@ async function indexPersonCreatedWithRelationship() {
       id: personId,
       name,
       familyId: newPerson.payload.familyId,
-      visible_by: [`family/${newPerson.payload.familyId}`, `user/${newPerson.payload.userId}`],
+      visible_by: [`family/${newPerson.payload.familyId}`, `family/${newPerson.payload.userId}`],
     })
   }
 }
@@ -141,7 +131,7 @@ async function indexUserNamedPersonInPhoto() {
       id: personId,
       name,
       familyId: userNamedPerson.payload.familyId,
-      visible_by: [`family/${userNamedPerson.payload.familyId}`, `user/${userNamedPerson.payload.userId}`],
+      visible_by: [`family/${userNamedPerson.payload.familyId}`, `family/${userNamedPerson.payload.userId}`],
     })
   }
 }
@@ -190,7 +180,7 @@ async function indexGedcom() {
       parents: Array.from(relationshipsById[id]?.parents || []).map((personId) => personById[personId]?.name),
       children: Array.from(relationshipsById[id]?.children || []).map((personId) => personById[personId]?.name),
       familyId,
-      visible_by: [`family/${familyId}`, `user/${gedcom.payload.userId}`],
+      visible_by: [`family/${familyId}`, `family/${gedcom.payload.userId}`],
     }))
 
     await personsIndex.saveObjects(personsForIndex)

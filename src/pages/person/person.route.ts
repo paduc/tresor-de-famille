@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { addToHistory } from '../../dependencies/addToHistory'
 import { requireAuth } from '../../dependencies/authn'
-import { personsIndex } from '../../dependencies/search'
+import { changePersonNameInIndex, personsIndex } from '../../dependencies/search'
 import { zIsFaceId } from '../../domain/FaceId'
 import { zIsPersonId } from '../../domain/PersonId'
 import { zIsPhotoId } from '../../domain/PhotoId'
@@ -76,14 +76,7 @@ pageRouter
             })
           )
 
-          try {
-            await personsIndex.partialUpdateObject({
-              objectID: personId,
-              name: newName,
-            })
-          } catch (error) {
-            console.error('Could not change persons name in algolia index', error)
-          }
+          await changePersonNameInIndex({ personId, name: newName })
         }
 
         return response.redirect(PersonPageURL(personId))
