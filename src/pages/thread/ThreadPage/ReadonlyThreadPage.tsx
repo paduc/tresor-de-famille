@@ -35,16 +35,17 @@ export const ReadOnlyThreadPage = withBrowserBundle(
           <div className='divide-y divide-gray-200 overflow-hidden sm:rounded-lg bg-white shadow'>
             {title ? <div className='relative w-full max-w-2xl px-4 py-5 sm:px-6 text-gray-800 text-xl'>{title}</div> : null}
             <div className='sm:ml-6 max-w-2xl relative'>
-              {contentAsJSON.content.map((block, index) => {
+              {contentAsJSON.content.map((block, blockIndex) => {
                 if (block.type === 'paragraph') {
                   if (block.content) {
                     return (
                       <p
-                        key={`block_${index}`}
+                        key={`block_${blockIndex}`}
                         className='px-4 sm:px-0 py-4 text-gray-800 text-lg  whitespace-pre-wrap [&+p]:-mt-1 [&+p]:border-t-0 [&+p]:pt-0'>
-                        {block.content.map((c) => {
+                        {block.content.map((c, textIndex) => {
                           return (
                             <span
+                              key={`${threadId}_${blockIndex}_${textIndex}`}
                               className={`${hasMark('bold', c.marks, 'font-bold')} ${hasMark(
                                 'italic',
                                 c.marks,
@@ -60,7 +61,7 @@ export const ReadOnlyThreadPage = withBrowserBundle(
                 }
 
                 if (block.type === 'photoNode') {
-                  return <ReadonlyPhotoItem key={`block_${index}`} node={block} />
+                  return <ReadonlyPhotoItem key={`block_${blockIndex}`} node={block} />
                 }
               })}
             </div>
