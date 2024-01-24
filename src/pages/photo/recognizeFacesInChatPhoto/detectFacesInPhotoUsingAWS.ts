@@ -37,10 +37,6 @@ export async function detectFacesInPhotoUsingAWS({ file, photoId }: DetectFacesI
     return
   }
 
-  if (!awsDetectedFaces.length) {
-    return
-  }
-
   const faces: AWSDetectedFacesInPhoto['payload']['faces'] = []
 
   function findFaceInPhotoWithSameAwsFaceId(awsFaceId: string) {
