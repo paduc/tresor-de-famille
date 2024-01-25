@@ -1,6 +1,9 @@
 import * as React from 'react'
-import { Logo } from '../_components/Logo'
 import { BareLayout } from '../_components/layout/Layout'
+
+// 950: 30 27 75
+// 800: 55 48 163
+// 700: 67 56 202
 
 type LandingPageProps = {}
 export const LandingPage = ({}: LandingPageProps) => {
@@ -31,14 +34,18 @@ export const LandingPage = ({}: LandingPageProps) => {
         <div className='mx-auto max-w-7xl px-6 pb-24 pt-10 sm:pb-32 lg:flex lg:px-8 lg:py-40'>
           <div className='mx-auto max-w-2xl flex-shrink-0 lg:mx-0 lg:max-w-xl lg:pt-8'>
             {/** LOGO */}
-
-            <div className='inline-flex items-center'>
-              <Logo className='h-12 sm:h-16 mr-6' />
-              <span className='text-white text-opacity-70 uppercase tracking-wide text-xl font-bold'>Trésor de famille</span>
+            <div className='relative lg:-top-10 flex-col items-center'>
+              <img
+                src='images/logo-dark-transparent.png'
+                className='opacity-80 transform scale-75 lg:scale-100 relative -left-8 lg:left-0'
+              />
+              <div className='text-white text-opacity-80 uppercase tracking-wide text-xl font-bold relative -top-4 lg:top-0'>
+                Trésor de famille
+              </div>
             </div>
             {/** Petits badges au dessus du slogan */}
-            <div className='mt-12 sm:mt-24'>
-              <span className='rounded-full bg-indigo-500/10 px-3 py-1 text-sm font-semibold leading-6 text-indigo-400 ring-1 ring-inset ring-indigo-500/20'>
+            <div className='mt-12 sm:mt-12'>
+              <span className='rounded-full bg-indigo-500/10 px-3 py-1 text-sm font-semibold leading-6 text-indigo-700 ring-1 ring-inset ring-indigo-500/20'>
                 En cours de construction
               </span>
               {/* <a href='#' className='inline-flex space-x-6'>
