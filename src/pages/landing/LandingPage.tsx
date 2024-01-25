@@ -3,11 +3,31 @@ import { BareLayout } from '../_components/layout/Layout'
 import { ChevronRightIcon } from '@heroicons/react/20/solid'
 import { Logo } from '../_components/Logo'
 
+import { useState } from 'react'
+import { Dialog } from '@headlessui/react'
+import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
+
+const navigation = [
+  { name: 'Product', href: '#' },
+  { name: 'Features', href: '#' },
+  { name: 'Marketplace', href: '#' },
+  { name: 'Company', href: '#' },
+]
+
 type LandingPageProps = {}
 export const LandingPage = ({}: LandingPageProps) => {
   return (
     <BareLayout>
       <div className='relative isolate overflow-hidden bg-indigo-950'>
+        <header className=''>
+          <nav className='mx-auto flex max-w-7xl items-center justify-between p-6 lg:px-8' aria-label='Global'>
+            <div className='flex flex-1 justify-end'>
+              <a href='login.html' className='text-sm leading-6 text-white text-opacity-60'>
+                M'identifier <span aria-hidden='true'>&rarr;</span>
+              </a>
+            </div>
+          </nav>
+        </header>
         {/** Background ondulation */}
         <div
           className='absolute left-[calc(50%-4rem)] top-10 -z-10 transform-gpu blur-3xl sm:left-[calc(50%-18rem)] lg:left-48 lg:top-[calc(50%-30rem)] xl:left-[calc(50%-24rem)]'
@@ -30,6 +50,9 @@ export const LandingPage = ({}: LandingPageProps) => {
             </div>
             {/** Petits badges au dessus du slogan */}
             <div className='mt-12 sm:mt-24'>
+              <span className='rounded-full bg-indigo-500/10 px-3 py-1 text-sm font-semibold leading-6 text-indigo-400 ring-1 ring-inset ring-indigo-500/20'>
+                En cours de construction
+              </span>
               {/* <a href='#' className='inline-flex space-x-6'>
                 <span className='rounded-full bg-indigo-500/10 px-3 py-1 text-sm font-semibold leading-6 text-indigo-400 ring-1 ring-inset ring-indigo-500/20'>
                   What's new
@@ -44,7 +67,7 @@ export const LandingPage = ({}: LandingPageProps) => {
               Certains souvenirs méritent d'être préservés
             </h1>
             <p className='mt-6 text-lg leading-8 text-gray-300'>
-              Parce que si nous ne faisons rien, le temps aura raison de nos plus beaux souvenirs.
+              Parce que si nous ne faisons rien, le temps aura raison de nos plus beaux souvenirs familiaux.
             </p>
             <p className='mt-2 text-lg leading-8 text-gray-300'>
               Trésor de famille est une application pour vous aider à enrichir vos documents, photos, vidéos, ... et les
@@ -52,12 +75,12 @@ export const LandingPage = ({}: LandingPageProps) => {
             </p>
             <div className='mt-10 flex items-center gap-x-6'>
               <a
-                href='#'
+                href='mailto:pierre-antoine@tresordefamille.org'
                 className='rounded-md bg-indigo-500 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-400'>
-                Démarrer
+                Ça m'intéresse
               </a>
-              <a href='#' className='text-sm font-semibold leading-6 text-white'>
-                En savoir plus <span aria-hidden='true'>→</span>
+              <a href='/login.html' className='text-sm font-semibold leading-6 text-white'>
+                J'y suis déjà <span aria-hidden='true'>→</span>
               </a>
             </div>
           </div>

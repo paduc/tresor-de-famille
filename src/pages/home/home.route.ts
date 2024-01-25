@@ -13,10 +13,15 @@ import { getPersonById } from '../_getPersonById'
 import { pageRouter } from '../pageRouter'
 import { HomePage } from './HomePage'
 import { getHomePageProps } from './getHomePageProps'
+import { LandingPage } from '../landing/LandingPage'
 
 pageRouter
   .route('/')
-  .get(requireAuth(), async (request, response) => {
+  .get(async (request, response) => {
+    if (!request.session.user) {
+      return responseAsHtml(request, response, LandingPage({}))
+    }
+
     try {
       const userId = request.session.user!.id
       const props = await getHomePageProps(userId)
