@@ -12,6 +12,8 @@ import { UserUploadedPhotoToFamily } from './UserUploadedPhotoToFamily'
 import { detectFacesInPhotoUsingAWS } from '../photo/recognizeFacesInChatPhoto/detectFacesInPhotoUsingAWS'
 import { asFamilyId } from '../../libs/typeguards'
 
+import { getExif } from './getExif'
+
 const FILE_SIZE_LIMIT_MB = 20
 const upload = multer({
   dest: 'temp/photos',
@@ -34,8 +36,10 @@ pageRouter.route('/upload-photo').post(requireAuth(), upload.single('photo'), as
     const { file } = request
     if (!file) return new Error("Aucune photo n'a été reçue par le server.")
 
-    const { path: originalPath } = file
+    const { path: originalPath, originalname } = file
     const photoId = makePhotoId()
+
+    const exif = getExif(file)
 
     const location = await uploadPhoto({ contents: fs.createReadStream(originalPath), id: photoId })
 
@@ -46,6 +50,7 @@ pageRouter.route('/upload-photo').post(requireAuth(), upload.single('photo'), as
           location,
           userId,
           familyId,
+          exif,
         })
       )
     } else {
@@ -54,6 +59,7 @@ pageRouter.route('/upload-photo').post(requireAuth(), upload.single('photo'), as
           photoId,
           location,
           userId,
+          exif,
         })
       )
     }
@@ -61,7 +67,8 @@ pageRouter.route('/upload-photo').post(requireAuth(), upload.single('photo'), as
     // Fire and forget
     detectFacesInPhotoUsingAWS({ file, photoId })
 
-    return response.status(200).json({ photoId })
+    return response.status(403).send('test ok')
+    // return response.status(200).json({ photoId })
   } catch (error) {
     console.error('Error in /upload-image route')
     throw error

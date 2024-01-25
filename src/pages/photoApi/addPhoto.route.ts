@@ -10,6 +10,9 @@ import { pageRouter } from '../pageRouter'
 import { UserUploadedPhoto } from './UserUploadedPhoto'
 import { UserUploadedPhotoToFamily } from './UserUploadedPhotoToFamily'
 import { detectFacesInPhotoUsingAWS } from '../photo/recognizeFacesInChatPhoto/detectFacesInPhotoUsingAWS'
+import { getExif } from './getExif'
+import { PhotoListPage } from '../photoList'
+import { PhotoListPageUrl } from '../photoList/PhotoListPageUrl'
 
 const FILE_SIZE_LIMIT_MB = 20
 const upload = multer({
@@ -39,6 +42,8 @@ pageRouter.route('/add-photo.html').post(requireAuth(), upload.single('photo'), 
     const { path: originalPath } = file
     const photoId = makePhotoId()
 
+    const exif = getExif(file)
+
     const location = await uploadPhoto({ contents: fs.createReadStream(originalPath), id: photoId })
 
     if (familyId) {
@@ -48,6 +53,7 @@ pageRouter.route('/add-photo.html').post(requireAuth(), upload.single('photo'), 
           location,
           userId,
           familyId,
+          exif,
         })
       )
     } else {
@@ -56,6 +62,7 @@ pageRouter.route('/add-photo.html').post(requireAuth(), upload.single('photo'), 
           photoId,
           location,
           userId,
+          exif,
         })
       )
     }
