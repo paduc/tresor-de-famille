@@ -1,24 +1,12 @@
 import * as React from 'react'
-import { BareLayout } from '../_components/layout/Layout'
-import { ChevronRightIcon } from '@heroicons/react/20/solid'
 import { Logo } from '../_components/Logo'
-
-import { useState } from 'react'
-import { Dialog } from '@headlessui/react'
-import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
-
-const navigation = [
-  { name: 'Product', href: '#' },
-  { name: 'Features', href: '#' },
-  { name: 'Marketplace', href: '#' },
-  { name: 'Company', href: '#' },
-]
+import { BareLayout } from '../_components/layout/Layout'
 
 type LandingPageProps = {}
 export const LandingPage = ({}: LandingPageProps) => {
   return (
     <BareLayout>
-      <div className='relative isolate overflow-hidden bg-indigo-950'>
+      <div className='relative h-full isolate overflow-hidden bg-indigo-950'>
         <header className=''>
           <nav className='mx-auto flex max-w-7xl items-center justify-between p-6 lg:px-8' aria-label='Global'>
             <div className='flex flex-1 justify-end'>
