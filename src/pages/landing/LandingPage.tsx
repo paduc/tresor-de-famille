@@ -88,7 +88,7 @@ export const LandingPage = ({}: LandingPageProps) => {
 
           <div className='mx-auto flex mt-10 sm:max-w-2xl lg:mt-0 lg:aspect-h-7 lg:aspect-w-10 w-full overflow-hidden rounded-lg'>
             <img
-              src='https://tresordefamille.org/images/Treasure-chest-3-optim.png'
+              src='https://tresordefamille.org/images/Treasure-chest-3-optim.jpg'
               alt='Un coffre en bois, dans un grenier, rempli des vieilles photos, pellicules, films, est éclairé par un rayon de soleil et retrouve la vie !'
               className='transform -scale-x-100 w-full sm:w-[50vw] object-scale-down sm:object-cover rounded-md bg-white/5 shadow-2xl ring-1 ring-white/10'
             />
