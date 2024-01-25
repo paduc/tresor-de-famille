@@ -6,7 +6,7 @@ type LandingPageProps = {}
 export const LandingPage = ({}: LandingPageProps) => {
   return (
     <BareLayout>
-      <div className='relative h-full isolate overflow-hidden bg-indigo-950'>
+      <div className='relative h-full isolate overflow-y-scroll overflow-x-hidden bg-indigo-950'>
         <header className=''>
           <nav className='mx-auto flex max-w-7xl items-center justify-between p-6 lg:px-8' aria-label='Global'>
             <div className='flex flex-1 justify-end'>
