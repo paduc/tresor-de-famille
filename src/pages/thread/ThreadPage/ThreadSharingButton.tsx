@@ -4,7 +4,13 @@ import { CheckCircleIcon, DocumentDuplicateIcon, PlusIcon } from '@heroicons/rea
 import classNames from 'classnames'
 import React, { useEffect, useMemo, useState } from 'react'
 import { FamilyId } from '../../../domain/FamilyId'
-import { buttonIconStyles, linkStyles, primaryButtonStyles, secondaryButtonStyles } from '../../_components/Button'
+import {
+  buttonIconStyles,
+  linkStyles,
+  primaryButtonStyles,
+  secondaryButtonStyles,
+  smallButtonIconStyles,
+} from '../../_components/Button'
 import { Session, useLoggedInSession } from '../../_components/SessionContext'
 import { TDFModal } from '../../_components/TDFModal'
 
@@ -23,6 +29,8 @@ export function ThreadSharingButton({ familyId, sharedWithFamilyIds, isAuthor }:
   const [isNewFamilyModalOpen, openNewFamilyModal] = useState<boolean>(false)
 
   const [latestUserFamilies, setLatestUserFamilies] = useState(session.userFamilies)
+
+  const userSpace = session.userFamilies.find((f) => f.isUserSpace)
 
   // const currentFamily = useMemo(() => latestUserFamilies.find((f) => f.familyId === familyId), [latestUserFamilies, familyId])
 
@@ -99,14 +107,17 @@ export function ThreadSharingButton({ familyId, sharedWithFamilyIds, isAuthor }:
             </ul>
           </>
         ) : (
-          <>
-            <span className='text-gray-500 mr-2'>Uniquement vous pouvez voir cette histoire.</span>
+          <div className='flex items-center gap-2'>
+            <span className='text-gray-500 mr-2 inline-flex items-center'>
+              <LockClosedIcon className='h-4 w-4 mr-1' />
+              Cette anecdote n'est pas encore partagée.
+            </span>
             <button
               className={`${primaryButtonStyles}`}
               onClick={() => (latestUserFamilies.length > 1 ? openFamilyModal(true) : openNewFamilyModal(true))}>
               Partager
             </button>
-          </>
+          </div>
         )}
       </div>
     </>
