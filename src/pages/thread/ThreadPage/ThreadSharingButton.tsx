@@ -157,7 +157,7 @@ function CreateNewFamilyModal({
             <li className='flex py-2'>
               <CheckCircleIcon className='shrink-0 h-6 w-6 mr-2 text-green-600' />
               <div className='flex-1'>
-                Vous et les membres de la famille rajoutez du contenu. Celui-ci sera immédiatement accessible aux autres membres
+                Vous et les membres de la famille ajoutez du contenu. Celui-ci sera immédiatement accessible aux autres membres
                 de la famille.
               </div>
             </li>

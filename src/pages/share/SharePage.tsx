@@ -50,15 +50,14 @@ export const SharePage = withBrowserBundle(({ userFamilies }: SharePageProps) =>
                 <li className='flex py-2'>
                   <CheckCircleIcon className='shrink-0 h-6 w-6 mr-2 text-green-600' />
                   <div className='flex-1'>
-                    Vous et les membres de la famille rajoutez du contenu. Celui-ci sera immédiatement accessible aux autres
+                    Vous et les membres de la famille ajoutez du contenu. Celui-ci sera immédiatement accessible aux autres
                     membres de la famille.
                   </div>
                 </li>
               </ul>
             </div>
             <p className='mt-2 max-w-full overflow-hidden md:max-w-xl text-sm leading-6 text-gray-600'>
-              Les contenus qui ne sont <b>pas explicitement partagés</b> avec cette famille, resteront <b>confidentiels</b> à
-              vous.
+              Les contenus qui ne sont <b>pas explicitement partagés</b> avec cette famille, resteront <b>confidentiels</b>.
             </p>
           </div>
 
