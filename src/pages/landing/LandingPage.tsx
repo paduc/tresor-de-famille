@@ -75,7 +75,8 @@ export const LandingPage = ({}: LandingPageProps) => {
             </p>
             <div className='mt-10 flex items-center gap-x-6'>
               <a
-                href='mailto:pierre-antoine@tresordefamille.org'
+                href='https://forms.gle/c347tRZBksQJVg9N7'
+                target='_blank'
                 className='rounded-md bg-indigo-500 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-400'>
                 Ça m'intéresse
               </a>
