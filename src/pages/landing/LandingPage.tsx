@@ -52,7 +52,7 @@ export const LandingPage = ({}: LandingPageProps) => {
               </a> */}
             </div>
             <h1 className='mt-10 text-4xl font-bold tracking-tight text-white sm:text-6xl'>
-              Certains souvenirs méritent d'être préservés
+              Valorisons notre mémoire familiale
             </h1>
             <p className='mt-6 text-lg leading-8 text-gray-300'>
               Parce que si nous ne faisons rien, le temps aura raison de nos plus beaux souvenirs familiaux.
