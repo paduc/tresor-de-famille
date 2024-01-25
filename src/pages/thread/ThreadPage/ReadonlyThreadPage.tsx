@@ -5,9 +5,10 @@ import { PhotoId, zIsPhotoId } from '../../../domain/PhotoId'
 import { ThreadId, zIsThreadId } from '../../../domain/ThreadId'
 import { withBrowserBundle } from '../../../libs/ssr/withBrowserBundle'
 import { Epoch } from '../../../libs/typeguards'
+import { secondaryButtonStyles } from '../../_components/Button'
 import { AppLayout } from '../../_components/layout/AppLayout'
+import { ThreadUrl } from '../ThreadUrl'
 import { TextMark, TipTapContentAsJSON } from '../TipTapTypes'
-import { ReadWriteToggle } from './ReadWriteToggle'
 import { ThreadSharingButton } from './ThreadSharingButton'
 
 export type ReadOnlyThreadPageProps = {
@@ -69,7 +70,9 @@ export const ReadOnlyThreadPage = withBrowserBundle(
           <div className='w-full mt-3 px-2'>
             {isAuthor ? (
               <div className='w-full inline-flex items-center place-content-start'>
-                <ReadWriteToggle readOnly threadId={threadId} />
+                <a href={ThreadUrl(threadId, true)} className={`${secondaryButtonStyles}`}>
+                  Modifier l'anecdote
+                </a>
               </div>
             ) : null}
           </div>

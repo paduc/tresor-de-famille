@@ -35,7 +35,6 @@ import { PhotoURL } from '../../photoApi/PhotoURL'
 import { MediaSelector } from '../MediaSelector'
 import { ThreadUrl } from '../ThreadUrl'
 import { TipTapContentAsJSON, removeEmptySpaceBetweenPhotos } from '../TipTapTypes'
-import { ReadWriteToggle } from './ReadWriteToggle'
 import { ThreadSharingButton } from './ThreadSharingButton'
 
 // @ts-ignore
@@ -100,13 +99,6 @@ export const ThreadPage = withBrowserBundle(
             <div className=''>
               <RichTextEditor ref={richTextEditorRef} content={contentAsJSON} threadId={threadId} lastUpdated={lastUpdated} />
             </div>
-          </div>
-          <div className='w-full mt-3 px-2'>
-            {isAuthor ? (
-              <div className='w-full inline-flex items-center place-content-start'>
-                <ReadWriteToggle threadId={threadId} />
-              </div>
-            ) : null}
           </div>
         </div>
       </AppLayout>
