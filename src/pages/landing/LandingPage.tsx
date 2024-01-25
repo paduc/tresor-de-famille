@@ -87,24 +87,11 @@ export const LandingPage = ({}: LandingPageProps) => {
 
           <div className='mx-auto flex mt-10 sm:max-w-2xl lg:mt-0 lg:aspect-h-7 lg:aspect-w-10 w-full overflow-hidden rounded-lg'>
             <img
-              // src='https://tailwindui.com/img/component-images/dark-project-app-screenshot.png'
-              src='https://tresordefamille.org/images/Treasure-chest-3.png'
+              src='https://tresordefamille.org/images/Treasure-chest-3-optim.png'
               alt='Un coffre en bois, dans un grenier, rempli des vieilles photos, pellicules, films, est éclairé par un rayon de soleil et retrouve la vie !'
               className='transform -scale-x-100 w-full sm:w-[50vw] object-scale-down sm:object-cover rounded-md bg-white/5 shadow-2xl ring-1 ring-white/10'
             />
           </div>
-          {/* <div className='mx-auto mt-16 flex max-w-2xl sm:mt-24 lg:ml-10 lg:mr-0 lg:mt-0 lg:max-w-none lg:flex-none xl:ml-32'>
-            <div className='max-w-3xl flex-none sm:max-w-5xl lg:max-w-none'>
-              <img
-                // src='https://tailwindui.com/img/component-images/dark-project-app-screenshot.png'
-                src='https://tresordefamille.org/images/Treasure-chest-1.png'
-                alt='App screenshot'
-                width={1024}
-                height={1024}
-                className='w-[76rem] rounded-md bg-white/5 shadow-2xl ring-1 ring-white/10'
-              />
-            </div>
-          </div> */}
         </div>
       </div>
     </BareLayout>
