@@ -11,6 +11,7 @@ import { useSession } from '../_components/SessionContext'
 import { SuccessError } from '../_components/SuccessError'
 import { AppLayout } from '../_components/layout/AppLayout'
 import { BareLayout } from '../_components/layout/Layout'
+import { Client } from 'pg'
 
 // @ts-ignore
 function classNames(...classes) {
@@ -71,124 +72,130 @@ export const InvitationPage = withBrowserBundle((props: InvitationPageProps) => 
                 </div>
               </div>
               <div className='pt-4'>
-                <div className='text-base font-semibold text-gray-900'>Créer un compte pour accepter</div>
-                <ClientOnly>
-                  <AlreadyRegisterUserLink />
-                </ClientOnly>
+                <details>
+                  <summary className='list-none text-base font-semibold text-gray-900 cursor-pointer'>
+                    Créer un compte pour accepter
+                  </summary>
 
-                <form method='post' aria-describedby={errors ? 'form-error-message' : undefined} className='mt-3 space-y-6'>
-                  <input type='hidden' name='action' value='registerWithInvite' />
-                  <input type='hidden' name='code' value={code} />
-                  <input type='hidden' name='familyId' value={family.familyId} />
-                  <div>
-                    <label htmlFor='emailField' className='block cursor-pointer text-sm font-medium text-gray-700'>
-                      Adresse email
-                    </label>
-                    <div className='mt-1 relative'>
-                      <input
-                        type='text'
-                        id='emailField'
-                        name='email'
-                        autoComplete='email'
-                        defaultValue={props.email}
-                        autoFocus={!props.email}
-                        aria-invalid={Boolean(errors?.email)}
-                        aria-describedby={errors?.email ? 'email-error' : undefined}
-                        required
-                        className={classNames(
-                          'appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm',
-                          {
-                            'border-red-300': !!errors?.email,
-                          }
+                  <form method='post' aria-describedby={errors ? 'form-error-message' : undefined} className='mt-3 space-y-6'>
+                    <input type='hidden' name='action' value='registerWithInvite' />
+                    <input type='hidden' name='code' value={code} />
+                    <input type='hidden' name='familyId' value={family.familyId} />
+                    <div>
+                      <label htmlFor='emailField' className='block cursor-pointer text-sm font-medium text-gray-700'>
+                        Adresse email
+                      </label>
+                      <div className='mt-1 relative'>
+                        <input
+                          type='text'
+                          id='emailField'
+                          name='email'
+                          autoComplete='email'
+                          defaultValue={props.email}
+                          autoFocus={!props.email}
+                          aria-invalid={Boolean(errors?.email)}
+                          aria-describedby={errors?.email ? 'email-error' : undefined}
+                          required
+                          className={classNames(
+                            'appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm',
+                            {
+                              'border-red-300': !!errors?.email,
+                            }
+                          )}
+                        />
+                        {errors?.email ? (
+                          <div className='absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none'>
+                            {/* Heroicon name: exclamation-circle */}
+                            <svg
+                              className='h-5 w-5 text-red-500'
+                              xmlns='http://www.w3.org/2000/svg'
+                              viewBox='0 0 20 20'
+                              fill='currentColor'
+                              aria-hidden='true'>
+                              <path
+                                fillRule='evenodd'
+                                d='M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z'
+                                clipRule='evenodd'
+                              />
+                            </svg>
+                          </div>
+                        ) : (
+                          ''
                         )}
-                      />
-                      {errors?.email ? (
-                        <div className='absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none'>
-                          {/* Heroicon name: exclamation-circle */}
-                          <svg
-                            className='h-5 w-5 text-red-500'
-                            xmlns='http://www.w3.org/2000/svg'
-                            viewBox='0 0 20 20'
-                            fill='currentColor'
-                            aria-hidden='true'>
-                            <path
-                              fillRule='evenodd'
-                              d='M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z'
-                              clipRule='evenodd'
-                            />
-                          </svg>
-                        </div>
-                      ) : (
-                        ''
-                      )}
+                      </div>
                     </div>
-                  </div>
-                  <div>
-                    <label htmlFor='passwordField' className='block  cursor-pointer text-sm font-medium text-gray-700'>
-                      Mot de passe
-                    </label>
-                    <div className='mt-1 relative'>
-                      <input
-                        id='passwordField'
-                        name='password'
-                        type='password'
-                        required
-                        autoFocus={!!props.email}
-                        className={classNames(
-                          'appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm',
-                          {
-                            'border-red-300': !!errors?.password,
-                          }
+                    <div>
+                      <label htmlFor='passwordField' className='block  cursor-pointer text-sm font-medium text-gray-700'>
+                        Mot de passe
+                      </label>
+                      <div className='mt-1 relative'>
+                        <input
+                          id='passwordField'
+                          name='password'
+                          type='password'
+                          required
+                          autoFocus={!!props.email}
+                          className={classNames(
+                            'appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm',
+                            {
+                              'border-red-300': !!errors?.password,
+                            }
+                          )}
+                          aria-invalid={Boolean(errors?.password) || undefined}
+                          aria-describedby={errors?.password ? 'password-error' : undefined}
+                        />
+                        {errors?.password ? (
+                          <div className='absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none'>
+                            {/* Heroicon name: exclamation-circle */}
+                            <svg
+                              className='h-5 w-5 text-red-500'
+                              xmlns='http://www.w3.org/2000/svg'
+                              viewBox='0 0 20 20'
+                              fill='currentColor'
+                              aria-hidden='true'>
+                              <path
+                                fillRule='evenodd'
+                                d='M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z'
+                                clipRule='evenodd'
+                              />
+                            </svg>
+                          </div>
+                        ) : (
+                          ''
                         )}
-                        aria-invalid={Boolean(errors?.password) || undefined}
-                        aria-describedby={errors?.password ? 'password-error' : undefined}
-                      />
-                      {errors?.password ? (
-                        <div className='absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none'>
-                          {/* Heroicon name: exclamation-circle */}
-                          <svg
-                            className='h-5 w-5 text-red-500'
-                            xmlns='http://www.w3.org/2000/svg'
-                            viewBox='0 0 20 20'
-                            fill='currentColor'
-                            aria-hidden='true'>
-                            <path
-                              fillRule='evenodd'
-                              d='M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z'
-                              clipRule='evenodd'
-                            />
-                          </svg>
-                        </div>
-                      ) : (
-                        ''
-                      )}
+                      </div>
                     </div>
-                  </div>
-                  {errors ? (
-                    <div className='rounded-md bg-red-50 p-4'>
-                      <div className='flex'>
-                        <div className='flex-shrink-0'>
-                          <XCircleIcon className='h-5 w-5 text-red-400' aria-hidden='true' />
-                        </div>
-                        <div className='ml-3'>
-                          {/* <h3 className="text-sm font-medium text-red-800">There were 2 errors with your submission</h3> */}
-                          <div className='text-sm text-red-700'>
-                            {Object.values(errors).map((errorMsg, index) => (
-                              <div key={`error_${index}`}>{errorMsg}</div>
-                            ))}
+                    {errors ? (
+                      <div className='rounded-md bg-red-50 p-4'>
+                        <div className='flex'>
+                          <div className='flex-shrink-0'>
+                            <XCircleIcon className='h-5 w-5 text-red-400' aria-hidden='true' />
+                          </div>
+                          <div className='ml-3'>
+                            {/* <h3 className="text-sm font-medium text-red-800">There were 2 errors with your submission</h3> */}
+                            <div className='text-sm text-red-700'>
+                              {Object.values(errors).map((errorMsg, index) => (
+                                <div key={`error_${index}`}>{errorMsg}</div>
+                              ))}
+                            </div>
                           </div>
                         </div>
                       </div>
+                    ) : null}
+                    <div>
+                      <button
+                        type='submit'
+                        className='w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
+                        Rejoindre la famille
+                      </button>
                     </div>
-                  ) : null}
-                  <div>
-                    <button
-                      type='submit'
-                      className='w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
-                      Rejoindre la famille
-                    </button>
-                  </div>
-                </form>
+                  </form>
+                </details>
+                <div className='border-t pt-4 mt-4 border-gray-300'>
+                  <ClientOnly>
+                    <AlreadyRegisterUserLink />
+                  </ClientOnly>
+                </div>
               </div>
             </div>
             <div className='px-4 py-5 sm:px-6'>

@@ -92,6 +92,7 @@ export const SharePage = withBrowserBundle(({ userFamilies }: SharePageProps) =>
                                 <button
                                   type='button'
                                   onClick={() => {
+                                    // This will not trigger on iOS if served by localhost
                                     navigator.clipboard.writeText(family.shareUrl).then(
                                       () => {
                                         alert(

@@ -6,8 +6,36 @@ import { SessionContext } from '../_components/SessionContext'
 import { InvitationPage } from './InvitationPage'
 import { makeFamilyId } from '../../libs/makeFamilyId'
 import { FamilyShareCode } from '../../domain/FamilyShareCode'
+import { SearchIndex } from 'algoliasearch'
+import { getUuid } from '../../libs/getUuid'
+import { PersonSearchContext } from '../_components/usePersonSearch'
 
-export default { title: 'Page Invitation', component: InvitationPage, parameters: { layout: 'fullscreen' } }
+export default {
+  title: 'Page Invitation',
+  component: InvitationPage,
+  parameters: { layout: 'fullscreen' },
+  decorators: [
+    (Story: any) => {
+      return (
+        <PersonSearchContext.Provider value={{ search: fakePersonSearch } as unknown as SearchIndex}>
+          <Story />
+        </PersonSearchContext.Provider>
+      )
+    },
+  ],
+}
+
+const fakePersonSearch = async (query: string) => {
+  return {
+    hits: [
+      { objectID: getUuid(), name: 'John Doe' },
+      { objectID: getUuid(), name: 'John Doe' },
+      { objectID: getUuid(), name: 'John Doe' },
+    ],
+  }
+}
+
+const familyABCId = makeFamilyId()
 
 export const UtilisateurConnecté = () => (
   <SessionContext.Provider
