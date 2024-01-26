@@ -88,6 +88,8 @@ const SingleUpdate = memo(({ file, mock, familyId, onPhotoAdded }: SingleUploadP
 
   useEffect(() => {
     if (mock) {
+      console.log('doRequest mock', file.name)
+
       let progress = 0
       const interval = setInterval(() => {
         if (progress >= 100) {
@@ -103,9 +105,11 @@ const SingleUpdate = memo(({ file, mock, familyId, onPhotoAdded }: SingleUploadP
     async function doRequest() {
       const formData = new FormData()
       formData.append('photo', file)
+
       if (familyId) {
         formData.append('familyId', familyId)
       }
+
       try {
         const res = await axios.post('/upload-photo', formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
@@ -113,7 +117,6 @@ const SingleUpdate = memo(({ file, mock, familyId, onPhotoAdded }: SingleUploadP
             setProgress(Math.round((e.loaded * 100) / (e.total || 1)))
           },
         })
-
         if (res.status !== 200) {
           setError({ code: res.status, text: res.statusText })
           console.error('Axios res.status', res.status)

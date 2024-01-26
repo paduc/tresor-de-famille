@@ -12,7 +12,7 @@ import { UserUploadedPhotoToFamily } from './UserUploadedPhotoToFamily'
 import { detectFacesInPhotoUsingAWS } from '../photo/recognizeFacesInChatPhoto/detectFacesInPhotoUsingAWS'
 import { asFamilyId } from '../../libs/typeguards'
 
-import { findEXIFinJPEG, findEXIFinHEIC } from './exif'
+import { getExif } from './getExif'
 
 const FILE_SIZE_LIMIT_MB = 20
 const upload = multer({
@@ -36,39 +36,38 @@ pageRouter.route('/upload-photo').post(requireAuth(), upload.single('photo'), as
     const { file } = request
     if (!file) return new Error("Aucune photo n'a été reçue par le server.")
 
-    console.log('A new photo has been uploaded')
-
-    const { path: originalPath } = file
+    const { path: originalPath, originalname } = file
     const photoId = makePhotoId()
 
-    // This is clientside code
-    const exif = findEXIFinJPEG(file.buffer)
+    const exif = getExif(file)
 
-    console.log({ exif })
+    console.log(JSON.stringify(exif, null, 2))
 
     const location = await uploadPhoto({ contents: fs.createReadStream(originalPath), id: photoId })
 
-    // if (familyId && familyId !== asFamilyId(userId)) {
-    //   await addToHistory(
-    //     UserUploadedPhotoToFamily({
-    //       photoId,
-    //       location,
-    //       userId,
-    //       familyId,
-    //     })
-    //   )
-    // } else {
-    //   await addToHistory(
-    //     UserUploadedPhoto({
-    //       photoId,
-    //       location,
-    //       userId,
-    //     })
-    //   )
-    // }
+    if (familyId && familyId !== asFamilyId(userId)) {
+      await addToHistory(
+        UserUploadedPhotoToFamily({
+          photoId,
+          location,
+          userId,
+          familyId,
+          exif,
+        })
+      )
+    } else {
+      await addToHistory(
+        UserUploadedPhoto({
+          photoId,
+          location,
+          userId,
+          exif,
+        })
+      )
+    }
 
-    // // Fire and forget
-    // detectFacesInPhotoUsingAWS({ file, photoId })
+    // Fire and forget
+    detectFacesInPhotoUsingAWS({ file, photoId })
 
     return response.status(403).send('test ok')
     // return response.status(200).json({ photoId })

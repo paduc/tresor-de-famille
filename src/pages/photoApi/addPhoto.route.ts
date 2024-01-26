@@ -10,6 +10,9 @@ import { pageRouter } from '../pageRouter'
 import { UserUploadedPhoto } from './UserUploadedPhoto'
 import { UserUploadedPhotoToFamily } from './UserUploadedPhotoToFamily'
 import { detectFacesInPhotoUsingAWS } from '../photo/recognizeFacesInChatPhoto/detectFacesInPhotoUsingAWS'
+import { getExif } from './getExif'
+import { PhotoListPage } from '../photoList'
+import { PhotoListPageUrl } from '../photoList/PhotoListPageUrl'
 
 const FILE_SIZE_LIMIT_MB = 20
 const upload = multer({
@@ -39,35 +42,42 @@ pageRouter.route('/add-photo.html').post(requireAuth(), upload.single('photo'), 
     const { path: originalPath } = file
     const photoId = makePhotoId()
 
-    const location = await uploadPhoto({ contents: fs.createReadStream(originalPath), id: photoId })
+    const exif = getExif(file)
 
-    if (familyId) {
-      await addToHistory(
-        UserUploadedPhotoToFamily({
-          photoId,
-          location,
-          userId,
-          familyId,
-        })
-      )
-    } else {
-      await addToHistory(
-        UserUploadedPhoto({
-          photoId,
-          location,
-          userId,
-        })
-      )
-    }
+    console.log('add photo exif', JSON.stringify(exif))
 
-    // Fire and forget
-    detectFacesInPhotoUsingAWS({ file, photoId })
+    // const location = await uploadPhoto({ contents: fs.createReadStream(originalPath), id: photoId })
 
-    if (familyId) {
-      return response.redirect(`/photo/${photoId}/photo.html?photoListForFamilyId=${familyId}`)
-    }
+    // if (familyId) {
+    //   await addToHistory(
+    //     UserUploadedPhotoToFamily({
+    //       photoId,
+    //       location,
+    //       userId,
+    //       familyId,
+    //       exif,
+    //     })
+    //   )
+    // } else {
+    //   await addToHistory(
+    //     UserUploadedPhoto({
+    //       photoId,
+    //       location,
+    //       userId,
+    //       exif,
+    //     })
+    //   )
+    // }
 
-    return response.redirect(`/photo/${photoId}/photo.html`)
+    // // Fire and forget
+    // detectFacesInPhotoUsingAWS({ file, photoId })
+
+    // if (familyId) {
+    //   return response.redirect(`/photo/${photoId}/photo.html?photoListForFamilyId=${familyId}`)
+    // }
+
+    // return response.redirect(`/photo/${photoId}/photo.html`)
+    return response.redirect(PhotoListPageUrl)
   } catch (error) {
     console.error('Error in chat route')
     throw error

@@ -1,11 +1,97 @@
 // @ts-nocheck
 
 /**
+ * From https://github.com/jwenjian/exif-viewer
+ *
+ * @paduc added some types
+ * @paduc tried to add more types, but failed so far: https://github.com/paduc/exif-viewer-ts
+ */
+
+/**
  * From https://github.com/exif-heic-js/exif-heic-js
  */
 var debug = false
 
-var ExifTags = {
+//Based on HEIC format decoded via https://github.com/exiftool/exiftool
+export function findEXIFinHEIC(data: ArrayBufferLike): EXIF | undefined {
+  var dataView = new DataView(data)
+  var ftypeSize = dataView.getUint32(0) // size of ftype box
+  var metadataSize = dataView.getUint32(ftypeSize) //size of metadata box
+
+  //Scan through metadata until we find (a) Exif, (b) iloc
+  let exifOffset = -1
+  var ilocOffset = -1
+  for (var i = ftypeSize; i < metadataSize + ftypeSize; i++) {
+    if (getStringFromDB(dataView, i, 4) == 'Exif') {
+      exifOffset = i
+    } else if (getStringFromDB(dataView, i, 4) == 'iloc') {
+      ilocOffset = i
+    }
+  }
+
+  if (exifOffset == -1 || ilocOffset == -1) {
+    return
+  }
+
+  var exifItemIndex = dataView.getUint16(exifOffset - 4)
+
+  //Scan through ilocs to find exif item location
+  for (let i = ilocOffset + 12; i < metadataSize + ftypeSize; i += 16) {
+    var itemIndex = dataView.getUint16(i)
+    if (itemIndex == exifItemIndex) {
+      var exifLocation = dataView.getUint32(i + 8)
+      dataView.getUint32(i + 12)
+      //Check prefix at exif exifOffset
+      var prefixSize = 4 + dataView.getUint32(exifLocation)
+      exifOffset = exifLocation + prefixSize
+
+      return readEXIFData(dataView, exifOffset)
+    }
+  }
+
+  return
+}
+
+//Based on Exif.js (https://github.com/exif-js/exif-js)
+export function findEXIFinJPEG(data: ArrayBufferLike): EXIF | undefined {
+  var dataView = new DataView(data)
+  if (dataView.getUint8(0) != 0xff || dataView.getUint8(1) != 0xd8) {
+    if (debug) console.log('Not a valid JPEG')
+    return // not a valid jpeg
+  }
+  var offset = 2,
+    length = data.byteLength,
+    marker
+  while (offset < length) {
+    if (dataView.getUint8(offset) != 0xff) {
+      if (debug) console.log('Not a valid marker at offset ' + offset + ', found: ' + dataView.getUint8(offset))
+      return // not a valid marker, something is wrong
+    }
+    marker = dataView.getUint8(offset + 1)
+    if (debug) console.log(marker)
+    // we could implement handling for other markers here,
+    // but we're only looking for 0xFFE1 for EXIF data
+    if (marker == 225) {
+      if (debug) console.log('Found 0xFFE1 marker')
+      return readEXIFData(dataView, offset + 4 + 6)
+    } else {
+      offset += 2 + dataView.getUint16(offset + 2)
+    }
+  }
+}
+
+export type EXIF = Partial<FromExifTags & FromTiffTags & FromGPSTags & FromStrings>
+
+type ValueType = string | number | number[] | undefined
+
+type FromExifTags = { [key in ExifTagValue]: ValueType }
+type FromTiffTags = { [key in TiffTagValue]: ValueType }
+type FromGPSTags = { [key in GPSTagValue]: ValueType }
+type FromStrings = {
+  [K in StringKeys]: StringValues[K][keyof StringValues[K]]
+}
+
+const ExifTags = {
   // version tags
   0x9000: 'ExifVersion', // EXIF version
   0xa000: 'FlashpixVersion', // Flashpix format version
@@ -20,7 +106,7 @@ var ExifTags = {
   0x9102: 'CompressedBitsPerPixel', // Compressed bits per pixel
 
   // user information
-  0x927c: 'MakerNote', // Any desired information written by the manufacturer
+  // 0x927c: 'MakerNote', // Any desired information written by the manufacturer
   0x9286: 'UserComment', // Comments by user
 
   // related file
@@ -78,8 +164,17 @@ var ExifTags = {
   // other tags
   0xa005: 'InteroperabilityIFDPointer',
   0xa420: 'ImageUniqueID', // Identifier assigned uniquely to each image
+} as const
+type ExifTagsKey = keyof typeof ExifTags
+type ExifTagValue = typeof ExifTags[ExifTagsKey]
+function isExifTagsKey(key: number): key is ExifTagsKey {
+  return key in Object.keys(ExifTags)
 }
-var TiffTags = {
+function isExifTagValue(value: any): value is ExifTagValue {
+  return value in Object.values(ExifTags)
+}
+
+const TiffTags = {
   0x0100: 'ImageWidth',
   0x0101: 'ImageHeight',
   0x8769: 'ExifIFDPointer',
@@ -113,9 +208,14 @@ var TiffTags = {
   0x0131: 'Software',
   0x013b: 'Artist',
   0x8298: 'Copyright',
+} as const
+type TiffTagKey = keyof typeof TiffTags
+type TiffTagValue = typeof TiffTags[TiffTagKey]
+function isTiffTagKey(key: number): key is TiffTagKey {
+  return key in Object.keys(TiffTags)
 }
 
-var GPSTags = {
+const GPSTags = {
   0x0000: 'GPSVersionID',
   0x0001: 'GPSLatitudeRef',
   0x0002: 'GPSLatitude',
@@ -147,9 +247,17 @@ var GPSTags = {
   0x001c: 'GPSAreaInformation',
   0x001d: 'GPSDateStamp',
   0x001e: 'GPSDifferential',
+} as const
+type GPSTagsKey = keyof typeof GPSTags
+type GPSTagValue = typeof GPSTags[GPSTagsKey]
+function isGPSTagsKey(key: number): key is GPSTagsKey {
+  return key in Object.keys(GPSTags)
+}
+function isGPSTagValue(value: any): value is GPSTagValue {
+  return value in Object.values(GPSTags)
 }
 
-var StringValues = {
+const StringValues = {
   ExposureProgram: {
     0: 'Not defined',
     1: 'Manual',
@@ -285,6 +393,12 @@ var StringValues = {
     5: 'G',
     6: 'B',
   },
+} as const
+type StringValues = typeof StringValues
+type StringKeys = keyof StringValues
+type StringValuesKey = keyof typeof StringValues
+function isStringValuesKey(key: string): key is StringValuesKey {
+  return key in Object.keys(StringValues)
 }
 
 function readTags(file, tiffStart, dirStart, strings, bigEnd) {
@@ -485,72 +599,4 @@ function readEXIFData(file, start) {
   }
 
   return tags
-}
-
-//Based on HEIC format decoded via https://github.com/exiftool/exiftool
-export const findEXIFinHEIC = function (data) {
-  var dataView = new DataView(data)
-  var ftypeSize = dataView.getUint32(0) // size of ftype box
-  var metadataSize = dataView.getUint32(ftypeSize) //size of metadata box
-
-  //Scan through metadata until we find (a) Exif, (b) iloc
-  let exifOffset = -1
-  var ilocOffset = -1
-  for (var i = ftypeSize; i < metadataSize + ftypeSize; i++) {
-    if (getStringFromDB(dataView, i, 4) == 'Exif') {
-      exifOffset = i
-    } else if (getStringFromDB(dataView, i, 4) == 'iloc') {
-      ilocOffset = i
-    }
-  }
-
-  if (exifOffset == -1 || ilocOffset == -1) {
-    return null
-  }
-
-  var exifItemIndex = dataView.getUint16(exifOffset - 4)
-
-  //Scan through ilocs to find exif item location
-  for (let i = ilocOffset + 12; i < metadataSize + ftypeSize; i += 16) {
-    var itemIndex = dataView.getUint16(i)
-    if (itemIndex == exifItemIndex) {
-      var exifLocation = dataView.getUint32(i + 8)
-      dataView.getUint32(i + 12)
-      //Check prefix at exif exifOffset
-      var prefixSize = 4 + dataView.getUint32(exifLocation)
-      exifOffset = exifLocation + prefixSize
-
-      return readEXIFData(dataView, exifOffset)
-    }
-  }
-
-  return null
-}
-
-//Based on Exif.js (https://github.com/exif-js/exif-js)
-export const findEXIFinJPEG = function (data) {
-  var dataView = new DataView(data)
-  if (dataView.getUint8(0) != 0xff || dataView.getUint8(1) != 0xd8) {
-    if (debug) console.log('Not a valid JPEG')
-    return false // not a valid jpeg
-  }
-  var offset = 2,
-    length = data.byteLength,
-    marker
-  while (offset < length) {
-    if (dataView.getUint8(offset) != 0xff) {
-      if (debug) console.log('Not a valid marker at offset ' + offset + ', found: ' + dataView.getUint8(offset))
-      return false // not a valid marker, something is wrong
-    }
-    marker = dataView.getUint8(offset + 1)
-    if (debug) console.log(marker)
-    // we could implement handling for other markers here,
-    // but we're only looking for 0xFFE1 for EXIF data
-    if (marker == 225) {
-      if (debug) console.log('Found 0xFFE1 marker')
-      return readEXIFData(dataView, offset + 4 + 6, dataView.getUint16(offset + 2) - 2)
-    } else {
-      offset += 2 + dataView.getUint16(offset + 2)
-    }
-  }
 }

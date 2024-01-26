@@ -2,6 +2,7 @@ import { DomainEvent, makeDomainEvent } from '../../dependencies/DomainEvent'
 import { AppUserId } from '../../domain/AppUserId'
 import { FamilyId } from '../../domain/FamilyId'
 import { PhotoId } from '../../domain/PhotoId'
+import { EXIF } from '../../libs/exif'
 
 export type PhotoLocation =
   | {
@@ -19,6 +20,7 @@ export type UserUploadedPhotoToFamily = DomainEvent<
     location: PhotoLocation
     userId: AppUserId
     familyId: FamilyId
+    exif?: EXIF
   }
 >
 

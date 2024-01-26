@@ -24,4 +24,7 @@ export type UserUploadedPhotoToChat = DomainEvent<
   }
 >
 
+/**
+ * @deprecated
+ */
 export const UserUploadedPhotoToChat = makeDomainEvent<UserUploadedPhotoToChat>('UserUploadedPhotoToChat')
