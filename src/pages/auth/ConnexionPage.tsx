@@ -16,8 +16,8 @@ export const ConnexionPage = ({ loginType = 'login', email, redirectTo, code, er
     <BareLayout>
       <div className='min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8'>
         <div className='sm:mx-auto sm:w-full sm:max-w-md'>
-          <div className='mx-auto h-12' style={{ width: 60 }}>
-            <Logo style={{ height: 60, width: 60 }} />
+          <div className='mx-auto h-[120px] w-[120px]'>
+            <Logo style={{ height: 120, width: 120 }} />
           </div>
 
           <h2 className='mt-6 text-center text-3xl font-extrabold text-gray-900'>Identifiez-vous</h2>

@@ -28,7 +28,6 @@ import React, { Fragment, useContext, useState } from 'react'
 import { PersonPageURL } from '../../person/PersonPageURL'
 import { PersonSearch } from './PersonSearch'
 import { LocationContext } from '../LocationContext'
-import { Logo } from '../Logo'
 import { useSession } from '../SessionContext'
 import { LoaderProvider } from './LoaderContext'
 
@@ -171,10 +170,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                   {/* Sidebar component, swap this element with another sidebar if you like */}
                   <div className='flex grow flex-col gap-y-5 overflow-y-auto bg-indigo-600 px-6 pb-4'>
                     <div className='flex h-16 shrink-0 items-center'>
-                      <a href='/'>
-                        <Logo className='h-10 w-auto cursor-pointer invert mix-blend-luminosity' />
-                      </a>
-                      <span className='group ml-3 text-indigo-100 rounded-md flex items-center text-md font-md'>
+                      <span className='group text-indigo-100 rounded-md flex items-center text-md font-md'>
                         Trésor de famille
                       </span>
                     </div>
@@ -252,10 +248,7 @@ export function AppLayout({ children }: AppLayoutProps) {
           {/* Sidebar component, swap this element with another sidebar if you like */}
           <div className='flex grow flex-col gap-y-5 overflow-y-auto bg-indigo-600 px-6 pb-4'>
             <div className='flex h-16 shrink-0 items-center'>
-              <a href='/'>
-                <Logo className='h-10 w-auto cursor-pointer invert mix-blend-luminosity' />
-              </a>
-              <span className='group ml-3 text-indigo-100 rounded-md flex items-center text-md font-md'>Trésor de famille</span>
+              <span className='group text-indigo-100 rounded-md flex items-center text-md font-md'>Trésor de famille</span>
             </div>
             <nav className='flex flex-1 flex-col'>
               <ul role='list' className='flex flex-1 flex-col gap-y-7'>
