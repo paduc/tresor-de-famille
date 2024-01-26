@@ -67,8 +67,7 @@ pageRouter.route('/upload-photo').post(requireAuth(), upload.single('photo'), as
     // Fire and forget
     detectFacesInPhotoUsingAWS({ file, photoId })
 
-    return response.status(403).send('test ok')
-    // return response.status(200).json({ photoId })
+    return response.status(200).json({ photoId })
   } catch (error) {
     console.error('Error in /upload-image route')
     throw error
