@@ -1,4 +1,5 @@
 import zod from 'zod'
+import { pipeline } from 'node:stream'
 import { requireAuth } from '../../dependencies/authn'
 import { downloadPhoto } from '../../dependencies/photo-storage'
 import { zIsPhotoId } from '../../domain/PhotoId'
@@ -16,7 +17,10 @@ pageRouter.route(PhotoURL(':photoId')).get(requireAuth(), async (request, respon
     const photoExists = await doesPhotoExist({ photoId })
     if (!photoExists) return response.sendStatus(404)
 
-    downloadPhoto(photoId).pipe(response)
+    // Await is necessary here to avoid memory leaks
+    await pipeline(downloadPhoto(photoId), response, async (err) => {
+      if (err) console.error('error on image serving', err)
+    })
   } catch (error) {
     console.error('getPhotoById', error)
     response.status(500).send()
