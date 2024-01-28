@@ -157,7 +157,15 @@ function UploadNewPhotos({ onPhotoUploaded }: UploadNewPhotosProps) {
         <label htmlFor='photo' className={`${primaryButtonStyles} ${smallButtonStyles}`}>
           Envoyer des nouvelles photos
         </label>
-        <input type='file' multiple name='photo' id='photo' className='hidden' onChange={handleFiles} accept='image/*' />
+        <input
+          type='file'
+          multiple
+          name='photo'
+          id='photo'
+          className='hidden'
+          onChange={handleFiles}
+          accept='image/heic, image/png, image/jpeg, image/jpg'
+        />
       </div>
 
       {photosToUpload.length ? (

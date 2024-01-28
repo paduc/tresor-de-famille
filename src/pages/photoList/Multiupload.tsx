@@ -47,7 +47,15 @@ export function Multiupload({ mock, children, familyId, onPhotoAdded }: Multiupl
             <label htmlFor='photo' className={`${primaryButtonStyles} ${smallButtonStyles}`}>
               Sélectionner des photos
             </label>
-            <input type='file' multiple name='photo' id='photo' className='hidden' onChange={handleFiles} accept='image/*' />
+            <input
+              type='file'
+              multiple
+              name='photo'
+              id='photo'
+              className='hidden'
+              onChange={handleFiles}
+              accept='image/heic, image/png, image/jpeg, image/jpg'
+            />
           </div>
 
           {photosToUpload.length ? (

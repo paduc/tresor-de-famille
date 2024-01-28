@@ -36,7 +36,7 @@ pageRouter.route('/upload-photo').post(requireAuth(), upload.single('photo'), as
     const { file } = request
     if (!file) return new Error("Aucune photo n'a été reçue par le server.")
 
-    const { path: originalPath, originalname } = file
+    const { path: originalPath } = file
     const photoId = makePhotoId()
 
     const exif = getExif(file)
