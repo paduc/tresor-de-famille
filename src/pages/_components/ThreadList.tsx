@@ -103,8 +103,10 @@ export function ThreadList({
                   </div>
                   {/** Large version */}
                   <div className='hidden sm:flex gap-2'>
-                    {thread.thumbnails.slice(0, 3).map((thumbnail) => (
-                      <div key={`thumbnail${thumbnail}`} className='h-24 w-32 overflow-hidden rounded-lg bg-gray-100'>
+                    {thread.thumbnails.slice(0, 3).map((thumbnail, index) => (
+                      <div
+                        key={`${thread.threadId}_thumbnail_${thumbnail}_${index}`}
+                        className='h-24 w-32 overflow-hidden rounded-lg bg-gray-100'>
                         <img src={thumbnail} alt='' className='h-24 w-32 object-cover' />
                       </div>
                     ))}
