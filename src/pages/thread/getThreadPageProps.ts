@@ -18,6 +18,7 @@ import { TipTapContentAsJSON, encodeStringy } from './TipTapTypes'
 import { UserInsertedPhotoInRichTextThread } from './UserInsertedPhotoInRichTextThread'
 import { UserSetChatTitle } from './UserSetChatTitle'
 import { UserUpdatedThreadAsRichText } from './UserUpdatedThreadAsRichText'
+import { getThreadComments } from '../commentApi/getThreadComments'
 
 export const getThreadPageProps = async ({
   threadId,
@@ -40,8 +41,11 @@ export const getThreadPageProps = async ({
       sharedWithFamilyIds: [],
       isAuthor: true,
       isNewThread: true,
+      comments: [],
     }
   }
+
+  const comments = await getThreadComments({ threadId })
 
   const threadAuthorId = await getThreadAuthor(threadId)
   const isAuthor = threadAuthorId === userId
@@ -69,6 +73,7 @@ export const getThreadPageProps = async ({
       sharedWithFamilyIds,
       isAuthor,
       isNewThread: false,
+      comments,
     }
   }
 
@@ -135,6 +140,7 @@ export const getThreadPageProps = async ({
     sharedWithFamilyIds,
     isAuthor,
     isNewThread: false,
+    comments,
   }
 }
 

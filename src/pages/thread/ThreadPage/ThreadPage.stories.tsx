@@ -15,6 +15,7 @@ import { makeFamilyId } from '../../../libs/makeFamilyId'
 import { ReadOnlyThreadPage } from './ReadonlyThreadPage'
 import { LocationContext } from '../../_components/LocationContext'
 import { FamilyColorCodes } from '../../../libs/ssr/FamilyColorCodes'
+import { makeCommentId } from '../../../libs/makeCommentId'
 
 const fakePersonSearch = async (query: string) => {
   return {
@@ -25,6 +26,9 @@ const fakePersonSearch = async (query: string) => {
     ],
   }
 }
+
+const fakeProfileUrl =
+  'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80'
 
 export default {
   title: 'Histoires et anecdotes',
@@ -71,7 +75,7 @@ export default {
             ],
 
             userName: 'Jean-Michel Trotro',
-            profilePic: null,
+            profilePic: fakeProfileUrl,
             isAdmin: false,
             arePhotosEnabled: true,
             areThreadsEnabled: true,
@@ -274,7 +278,7 @@ export const PartagéAuteur = () => (
     }}
   />
 )
-export const LectureSeule = () => (
+export const LectureSeuleSansCommentaire = () => (
   <LocationContext.Provider value={window.location.href}>
     <ReadOnlyThreadPage
       threadId={makeThreadId()}
@@ -296,6 +300,70 @@ export const LectureSeule = () => (
           },
         ],
       }}
+      comments={[]}
+      user={{
+        userId: makeAppUserId(),
+        profilePicUrl: fakeProfileUrl,
+      }}
+    />
+  </LocationContext.Provider>
+)
+
+export const LectureSeuleAvecCommentaires = () => (
+  <LocationContext.Provider value={window.location.href}>
+    <ReadOnlyThreadPage
+      threadId={makeThreadId()}
+      familyId={'b' as FamilyId}
+      isAuthor={true}
+      lastUpdated={t0 as Epoch}
+      title='Ceci est le titre'
+      contentAsJSON={{
+        type: 'doc',
+        content: [
+          {
+            type: 'paragraph',
+            content: [
+              {
+                type: 'text',
+                text: 'Message',
+              },
+            ],
+          },
+        ],
+      }}
+      user={{
+        userId: makeAppUserId(),
+        profilePicUrl: fakeProfileUrl,
+      }}
+      comments={[
+        {
+          commentId: makeCommentId(),
+          author: {
+            name: 'John Doe',
+            profilePicUrl: fakeProfileUrl,
+          },
+          body: 'Lorem ipsum !',
+          dateTime: '2023-01-23T15:56',
+        },
+        {
+          commentId: makeCommentId(),
+          author: {
+            name: 'John Doe',
+            profilePicUrl: fakeProfileUrl,
+          },
+          body: 'Et diam cursus quis sed purus nam. Scelerisque amet elit non sit ut tincidunt condimentum. Nisl ultrices eu venenatis diam.',
+          dateTime: '2023-01-23T15:56',
+        },
+        {
+          commentId: makeCommentId(),
+          author: {
+            name: 'John Doe',
+            profilePicUrl: fakeProfileUrl,
+          },
+          body: 'Tincidunt nunc ipsum tempor purus vitae id. Morbi in vestibulum nec varius. Et diam cursus quis sed purus nam. Scelerisque amet elit non sit ut tincidunt condimentum. Nisl ultrices eu venenatis diam.',
+          dateTime: '2023-01-23T15:56',
+        },
+      ]}
     />
   </LocationContext.Provider>
 )

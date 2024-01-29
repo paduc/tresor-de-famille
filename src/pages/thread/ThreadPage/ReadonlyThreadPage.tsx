@@ -1,5 +1,6 @@
 import React from 'react'
 import { z } from 'zod'
+
 import { FamilyId } from '../../../domain/FamilyId'
 import { PhotoId, zIsPhotoId } from '../../../domain/PhotoId'
 import { ThreadId, zIsThreadId } from '../../../domain/ThreadId'
@@ -9,6 +10,7 @@ import { secondaryButtonStyles } from '../../_components/Button'
 import { AppLayout } from '../../_components/layout/AppLayout'
 import { ThreadUrl } from '../ThreadUrl'
 import { TextMark, TipTapContentAsJSON } from '../TipTapTypes'
+import { Comment, Comments } from './Comments'
 import { ThreadSharingButton } from './ThreadSharingButton'
 
 export type ReadOnlyThreadPageProps = {
@@ -19,6 +21,7 @@ export type ReadOnlyThreadPageProps = {
   isAuthor: boolean
   sharedWithFamilyIds?: FamilyId[]
   familyId: FamilyId
+  comments: Comment[]
 }
 
 function hasMark(mark: TextMark['type'], marks: TextMark[] | undefined, classStr: string) {
@@ -26,7 +29,7 @@ function hasMark(mark: TextMark['type'], marks: TextMark[] | undefined, classStr
 }
 
 export const ReadOnlyThreadPage = withBrowserBundle(
-  ({ contentAsJSON, title, familyId, threadId, isAuthor, sharedWithFamilyIds }: ReadOnlyThreadPageProps) => {
+  ({ contentAsJSON, title, familyId, threadId, isAuthor, sharedWithFamilyIds, comments }: ReadOnlyThreadPageProps) => {
     return (
       <AppLayout>
         <div className='w-full sm:ml-6 max-w-2xl pt-3 pb-40'>
@@ -75,6 +78,10 @@ export const ReadOnlyThreadPage = withBrowserBundle(
                 </a>
               </div>
             ) : null}
+          </div>
+
+          <div className='mt-6'>
+            <Comments comments={comments} threadId={threadId} />
           </div>
         </div>
       </AppLayout>

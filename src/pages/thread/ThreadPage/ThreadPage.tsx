@@ -36,6 +36,7 @@ import { MediaSelector } from '../MediaSelector'
 import { ThreadUrl } from '../ThreadUrl'
 import { TipTapContentAsJSON, removeEmptySpaceBetweenPhotos } from '../TipTapTypes'
 import { ThreadSharingButton } from './ThreadSharingButton'
+import { Comment, Comments } from './Comments'
 
 // @ts-ignore
 function classNames(...classes) {
@@ -51,6 +52,7 @@ export type ThreadPageProps = {
   familyId: FamilyId
   sharedWithFamilyIds?: FamilyId[]
   isNewThread: boolean
+  comments: Comment[]
 }
 
 const isBrowserContext = typeof window !== 'undefined'
@@ -64,6 +66,7 @@ export const ThreadPage = withBrowserBundle(
     familyId,
     sharedWithFamilyIds,
     isAuthor,
+    comments,
   }: ThreadPageProps) => {
     const richTextEditorRef = React.useRef<RichTextEditorRef>(null)
 
@@ -99,6 +102,10 @@ export const ThreadPage = withBrowserBundle(
             <div className=''>
               <RichTextEditor ref={richTextEditorRef} content={contentAsJSON} threadId={threadId} lastUpdated={lastUpdated} />
             </div>
+          </div>
+
+          <div className='mt-6'>
+            <Comments comments={comments} threadId={threadId} />
           </div>
         </div>
       </AppLayout>
