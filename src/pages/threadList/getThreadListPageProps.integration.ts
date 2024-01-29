@@ -23,6 +23,8 @@ import { UserUpdatedThreadAsRichText } from '../thread/UserUpdatedThreadAsRichTe
 import { getThreadListPageProps } from './getThreadListPageProps'
 import { UserAddedCaptionToPhoto } from '../photo/UserAddedCaptionToPhoto'
 import { getUuid } from '../../libs/getUuid'
+import { UserAddedCommentOnThread } from '../thread/UserAddedCommentOnThread'
+import { makeCommentId } from '../../libs/makeCommentId'
 
 describe('getThreadListPageProps', () => {
   describe('when a user created a thread on the homepage (UserSetMessageToChat)', () => {
@@ -658,6 +660,85 @@ describe('getThreadListPageProps', () => {
         contents: 'This is a caption',
         thumbnails: [ThumbnailURL(photoId)],
         familyIds: [userFamily],
+      })
+    })
+  })
+
+  describe('when a thread has comments', () => {
+    const userId = makeAppUserId()
+    const threadId = makeThreadId()
+    const userFamily = asFamilyId(userId)
+    const photoId = makePhotoId()
+    let lastUpdatedOn = 0
+
+    beforeAll(async () => {
+      await resetDatabase()
+
+      await addToHistory(
+        UserRegisteredWithEmailAndPassword({
+          userId: userId,
+          email: '',
+          passwordHash: '',
+        })
+      )
+
+      await addToHistory(
+        UserNamedThemself({
+          userId,
+          name: 'John Doe',
+          familyId: userFamily,
+          personId: makePersonId(),
+        })
+      )
+
+      await addToHistory(
+        UserUpdatedThreadAsRichText({
+          userId,
+          threadId,
+          familyId: userFamily,
+          contentAsJSON: {
+            type: 'doc',
+            content: [{ type: 'photoNode', attrs: { photoId } }],
+          },
+        })
+      )
+
+      await addToHistory(
+        UserAddedCommentOnThread({
+          userId,
+          threadId,
+          body: 'Comment 1',
+          commentId: makeCommentId(),
+        })
+      )
+
+      const event = UserAddedCommentOnThread({
+        userId,
+        threadId,
+        body: 'Comment 2',
+        commentId: makeCommentId(),
+      })
+      lastUpdatedOn = event.occurredAt.getTime()
+      await addToHistory(event)
+    })
+
+    it('should return the comment count', async () => {
+      const { threads } = await getThreadListPageProps(userId)
+
+      expect(threads).toHaveLength(1)
+
+      expect(threads[0]).toMatchObject({
+        commentCount: 2,
+      })
+    })
+
+    it('should return the comment dateTimewq as lastUpdatedOn', async () => {
+      const { threads } = await getThreadListPageProps(userId)
+
+      expect(threads).toHaveLength(1)
+
+      expect(threads[0]).toMatchObject({
+        lastUpdatedOn,
       })
     })
   })

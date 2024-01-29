@@ -27,6 +27,7 @@ export type ThreadListPageProps = {
     contents: string
     thumbnails: string[]
     familyIds: FamilyId[]
+    commentCount: number
   }[]
 }
 

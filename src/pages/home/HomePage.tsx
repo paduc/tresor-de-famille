@@ -32,6 +32,7 @@ export type HomePageProps =
         contents: string
         thumbnails: string[]
         familyIds: FamilyId[]
+        commentCount: number
       }[]
       hasMoreThreads: boolean
     }

@@ -1,4 +1,4 @@
-import { LockClosedIcon, UsersIcon } from '@heroicons/react/24/outline'
+import { ChatBubbleLeftIcon, LockClosedIcon, UsersIcon } from '@heroicons/react/24/outline'
 import * as React from 'react'
 import { ThreadId } from '../../domain/ThreadId'
 import { useLoggedInSession } from './SessionContext'
@@ -18,6 +18,7 @@ export function ThreadList({
     contents: string
     thumbnails: string[]
     familyIds: FamilyId[]
+    commentCount: number
   }[]
 }) {
   const session = useLoggedInSession()
@@ -128,6 +129,15 @@ export function ThreadList({
                   </time>
                 </p>
               </div>
+              {thread.commentCount ? (
+                <div className='mt-1 flex w-full justify-start items-start gap-x-2 sm:w-auto'>
+                  <span className='sr-only'>Commentaires</span>
+                  <ChatBubbleLeftIcon className='h-6 w-6 text-gray-400' aria-hidden='true' />
+                  <div className='text-sm leading-6 text-gray-800'>
+                    {thread.commentCount} commentaire{thread.commentCount > 1 ? 's' : ''}
+                  </div>
+                </div>
+              ) : null}
             </a>
           </li>
         )

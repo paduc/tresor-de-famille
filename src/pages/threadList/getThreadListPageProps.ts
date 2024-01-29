@@ -9,6 +9,7 @@ import { OnboardingUserStartedFirstThread } from '../../events/onboarding/Onboar
 import { asFamilyId } from '../../libs/typeguards'
 import { getPersonForUser } from '../_getPersonForUser'
 import { getUserFamilies } from '../_getUserFamilies'
+import { getThreadComments } from '../commentApi/getThreadComments'
 import { UserAddedCaptionToPhoto } from '../photo/UserAddedCaptionToPhoto'
 import { ThumbnailURL } from '../photoApi/ThumbnailURL'
 import { ThreadSharedWithFamilies } from '../thread/ThreadPage/ThreadSharedWithFamilies'
@@ -100,14 +101,27 @@ export const getThreadListPageProps = async (userId: AppUserId): Promise<ThreadL
 
     const latestEvent = threadEvents.at(-1)!
 
+    let lastUpdatedOn = latestEvent.occurredAt.getTime()
+    const threadComments = await getThreadComments({ threadId })
+
+    const latestComment = threadComments?.at(-1)
+    if (latestComment) {
+      const latestCommentUpdatedOn = new Date(latestComment.dateTime).getTime()
+
+      if (latestCommentUpdatedOn > lastUpdatedOn) {
+        lastUpdatedOn = latestCommentUpdatedOn
+      }
+    }
+
     threads.push({
       threadId,
       title: getTitle(threadContentEvents),
       authors,
       contents: await getContents(threadContentEvents),
-      lastUpdatedOn: latestEvent.occurredAt.getTime(),
+      lastUpdatedOn,
       familyIds: Array.from(uniqueThreads.get(threadId)!.values()),
       thumbnails: getThumbnails(threadContentEvents),
+      commentCount: threadComments.length,
     })
   }
 

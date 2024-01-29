@@ -93,6 +93,7 @@ export const AvecFils = () => (
         title: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
         contents: '',
         lastUpdatedOn: Date.now(),
+        commentCount: 0,
       },
       {
         threadId: makeThreadId(),
@@ -116,6 +117,7 @@ export const AvecFils = () => (
         contents:
           'Et diam cursus quis sed purus nam. Scelerisque amet elit non sit ut tincidunt condimentum. Nisl ultrices eu venenatis diam.',
         lastUpdatedOn: Date.now(),
+        commentCount: 1,
       },
       {
         threadId: makeThreadId(),
@@ -140,6 +142,7 @@ export const AvecFils = () => (
         title: undefined,
         contents: 'Tincidunt nunc ipsum tempor purus vitae id. Morbi in vestibulum nec varius.',
         lastUpdatedOn: Date.now(),
+        commentCount: 12,
       },
     ]}
   />
