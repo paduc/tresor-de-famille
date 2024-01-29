@@ -28,7 +28,7 @@ import React, { Fragment, useContext, useState } from 'react'
 import { PersonPageURL } from '../../person/PersonPageURL'
 import { PersonSearch } from './PersonSearch'
 import { LocationContext } from '../LocationContext'
-import { useSession } from '../SessionContext'
+import { useLoggedInSession, useSession } from '../SessionContext'
 import { LoaderProvider } from './LoaderContext'
 
 // @ts-ignore
@@ -41,7 +41,7 @@ export type AppLayoutProps = {
 }
 
 export function AppLayout({ children }: AppLayoutProps) {
-  const session = useSession()
+  const session = useLoggedInSession()
   const url = useContext(LocationContext)
 
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -54,14 +54,13 @@ export function AppLayout({ children }: AppLayoutProps) {
   }
 
   React.useEffect(() => {
-    session.isLoggedIn && session.arePersonsEnabled && window.addEventListener('keydown', keyDownHandler)
+    if (session.arePersonsEnabled) {
+      window.addEventListener('keydown', keyDownHandler)
+    }
+    return () => window.removeEventListener('keydown', keyDownHandler)
   })
 
-  if (!session.isLoggedIn) {
-    return <p>Session not available</p>
-  }
-
-  const { arePhotosEnabled, areThreadsEnabled, isFamilyPageEnabled, isSharingEnabled, profilePic } = session
+  const { arePhotosEnabled, areThreadsEnabled, isFamilyPageEnabled, isSharingEnabled, profilePic, personId } = session
 
   const userName = session.userName || ''
 
@@ -77,6 +76,12 @@ export function AppLayout({ children }: AppLayoutProps) {
       href: '/',
       icon: HomeIcon,
       condition: () => true,
+    },
+    {
+      name: 'Mon profil',
+      href: PersonPageURL(personId!),
+      icon: BookOpenIcon,
+      condition: () => !!personId,
     },
     {
       name: 'Histoires et anecdotes',

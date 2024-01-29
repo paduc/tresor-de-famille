@@ -1,23 +1,15 @@
-import { getSingleEvent } from '../dependencies/getSingleEvent'
 import { AppUserId } from '../domain/AppUserId'
 import { PersonId } from '../domain/PersonId'
-import { UserNamedThemself } from '../events/onboarding/UserNamedThemself'
-import { UserRecognizedThemselfAsPerson } from '../events/onboarding/UserRecognizedThemselfAsPerson'
 import { getPersonById } from './_getPersonById'
+import { getPersonIdForUser } from './_getPersonIdForUser'
 
 type Person = { personId: PersonId; name: string }
 
 export const getPersonForUser = async ({ userId }: { userId: AppUserId }): Promise<Person | null> => {
-  const userEvent = await getSingleEvent<UserNamedThemself | UserRecognizedThemselfAsPerson>(
-    ['UserNamedThemself', 'UserRecognizedThemselfAsPerson'],
-    { userId }
-  )
-
-  if (!userEvent) {
+  const personId = await getPersonIdForUser({ userId })
+  if (!personId) {
     return null
   }
-
-  const { personId } = userEvent.payload
 
   const person = await getPersonById({ personId })
 

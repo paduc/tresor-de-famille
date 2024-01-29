@@ -14,6 +14,9 @@ import { FamilyId } from '../../domain/FamilyId'
 import { getUserFamilies } from '../../pages/_getUserFamilies'
 import { InvitationWithCodeUrl } from '../../pages/share/InvitationWithCodeUrl'
 import { FamilyColorCodes } from './FamilyColorCodes'
+import { getPersonForUser } from '../../pages/_getPersonForUser'
+import { getPersonIdForUser } from '../../pages/_getPersonIdForUser'
+import { getProfilePicUrlForPerson } from '../../pages/_getProfilePicUrlForPerson'
 
 const html = String.raw
 
@@ -128,7 +131,8 @@ async function getSession(request: Request): Promise<Session> {
       userFamilies.map((f) => f.familyId)
     )
 
-    const profilePic = await getProfilePicUrlForUser(userId)
+    const personId = await getPersonIdForUser({ userId })
+    const profilePic = personId ? await getProfilePicUrlForPerson({ userId, personId }) : ''
 
     return {
       isLoggedIn: true,
@@ -146,6 +150,7 @@ async function getSession(request: Request): Promise<Session> {
       hasCreatedFamilies: userFamilies.some((family) => family.isCreator),
       searchKey,
       isAdmin: userId === ADMIN_USERID,
+      personId,
       profilePic,
       arePhotosEnabled: !!user.name,
       arePersonsEnabled: !!user.name,

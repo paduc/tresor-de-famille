@@ -1,6 +1,7 @@
 import React, { useContext } from 'react'
 import { AppUserId } from '../../domain/AppUserId'
 import { FamilyId } from '../../domain/FamilyId'
+import { PersonId } from '../../domain/PersonId'
 
 export type Session =
   | { isSharingEnabled: boolean } & (
@@ -12,6 +13,7 @@ export type Session =
           userName: string
           userId: AppUserId
           profilePic: string | null
+          personId: PersonId | null
           userFamilies: {
             familyName: string
             about: string
