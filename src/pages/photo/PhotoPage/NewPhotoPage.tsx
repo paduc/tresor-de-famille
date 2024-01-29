@@ -43,6 +43,7 @@ type PhotoFace = {
 export type NewPhotoPageProps = {
   photoUrl: string
   photoId: PhotoId
+  isPhotoAuthor: boolean
   familyId: FamilyId
   caption?: string
   faces?: PhotoFace[]
@@ -59,197 +60,201 @@ export type NewPhotoPageProps = {
       }
 }
 
-export const NewPhotoPage = withBrowserBundle(({ context, caption, photoId, photoUrl, faces, familyId }: NewPhotoPageProps) => {
-  const [selectedFaceForMenu, setSelectedFaceForMenu] = useState<PhotoFace | null>(null)
-  const [selectedFaceForPersonSelector, setSelectedFaceForPersonSelector] = useState<PhotoFace | null>(null)
+export const NewPhotoPage = withBrowserBundle(
+  ({ context, caption, photoId, photoUrl, faces, familyId, isPhotoAuthor }: NewPhotoPageProps) => {
+    const [selectedFaceForMenu, setSelectedFaceForMenu] = useState<PhotoFace | null>(null)
+    const [selectedFaceForPersonSelector, setSelectedFaceForPersonSelector] = useState<PhotoFace | null>(null)
 
-  const [hasCaptionChanged, setCaptionChanged] = useState<boolean>(false)
-  const [areIgnoredFacesVisible, showIgnoredFaces] = useState<boolean>(false)
+    const [hasCaptionChanged, setCaptionChanged] = useState<boolean>(false)
+    const [areIgnoredFacesVisible, showIgnoredFaces] = useState<boolean>(false)
 
-  const handleCaptionChange = useCallback(
-    (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-      if (e.target.value !== caption) setCaptionChanged(true)
-      else setCaptionChanged(false)
-    },
-    [caption]
-  )
+    const handleCaptionChange = useCallback(
+      (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+        if (e.target.value !== caption) setCaptionChanged(true)
+        else setCaptionChanged(false)
+      },
+      [caption]
+    )
 
-  const ignoredFaces = faces?.filter((face) => face.stage === 'ignored') || []
-  const annotatedFaces = faces?.filter((face): face is PhotoFace & { stage: 'done' } => face.stage === 'done') || []
-  const pendingFaces = faces?.filter((face) => face.stage === 'awaiting-name') || []
+    const ignoredFaces = faces?.filter((face) => face.stage === 'ignored') || []
+    const annotatedFaces = faces?.filter((face): face is PhotoFace & { stage: 'done' } => face.stage === 'done') || []
+    const pendingFaces = faces?.filter((face) => face.stage === 'awaiting-name') || []
 
-  return (
-    <div className='relative'>
-      <ContextualMenu
-        selectedFace={selectedFaceForMenu}
-        close={() => {
-          setSelectedFaceForMenu(null)
-        }}
-        photoId={photoId}
-        gotoPersonSelector={(selectedFace) => {
-          setSelectedFaceForMenu(null)
-          setSelectedFaceForPersonSelector(selectedFace)
-        }}
-      />
-      <SelectPersonForFacePanel
-        selectedFace={selectedFaceForPersonSelector}
-        close={() => {
-          setSelectedFaceForPersonSelector(null)
-        }}
-        photoId={photoId}
-        familyId={familyId}
-      />
-      <div className='bg-black absolute overflow-y-scroll overflow-x-hidden top-0 bottom-0 left-0 right-0 w-[100vw] h-[100vh]'>
-        <a
-          href={`${
-            context
-              ? context.type === 'thread'
-                ? ThreadUrl(context.threadId, context.editable)
-                : context.type === 'profile'
-                ? PersonPageURL(context.profileId)
-                : context.type === 'familyPhotoList'
-                ? PhotoListPageUrlWithFamily(context.familyId)
-                : PhotoListPageUrl
-              : PhotoListPageUrl
-          }`}
-          className='absolute top-2 right-2 text-gray-300'>
-          <XMarkIcon className='cursor-pointer h-8 w-8' />
-        </a>
-        {context ? (
+    return (
+      <div className='relative'>
+        <ContextualMenu
+          selectedFace={selectedFaceForMenu}
+          close={() => {
+            setSelectedFaceForMenu(null)
+          }}
+          photoId={photoId}
+          gotoPersonSelector={(selectedFace) => {
+            setSelectedFaceForMenu(null)
+            setSelectedFaceForPersonSelector(selectedFace)
+          }}
+        />
+        <SelectPersonForFacePanel
+          selectedFace={selectedFaceForPersonSelector}
+          close={() => {
+            setSelectedFaceForPersonSelector(null)
+          }}
+          photoId={photoId}
+          familyId={familyId}
+        />
+        <div className='bg-black absolute overflow-y-scroll overflow-x-hidden top-0 bottom-0 left-0 right-0 w-[100vw] h-[100vh]'>
           <a
             href={`${
-              context.type === 'thread'
-                ? ThreadUrl(context.threadId, context.editable)
-                : context.type === 'profile'
-                ? PersonPageURL(context.profileId)
-                : context.type === 'familyPhotoList'
-                ? PhotoListPageUrlWithFamily(context.familyId)
+              context
+                ? context.type === 'thread'
+                  ? ThreadUrl(context.threadId, context.editable)
+                  : context.type === 'profile'
+                  ? PersonPageURL(context.profileId)
+                  : context.type === 'familyPhotoList'
+                  ? PhotoListPageUrlWithFamily(context.familyId)
+                  : PhotoListPageUrl
                 : PhotoListPageUrl
             }`}
-            className='absolute top-1 left-1 text-gray-300'>
-            <ChevronLeftIcon className='cursor-pointer h-10 w-10' />
+            className='absolute top-2 right-2 text-gray-300'>
+            <XMarkIcon className='cursor-pointer h-8 w-8' />
           </a>
-        ) : null}
-        <div className='grid place-items-center h-[95svh]'>
-          <img src={photoUrl} className='max-w-full max-h-[95svh]' />
-        </div>
-        <div className='bg-white bg-opacity-5 border-t border-gray-200/50'>
-          <div className='text-gray-200 px-3 py-4 pb-28 w-full sm:max-w-lg mx-auto divide divide-y divide-solid divide-gray-200/50'>
-            <div className='pb-1'>
-              <form method='POST' className='relative'>
-                <input type='hidden' name='action' value='addCaption' />
-                <div className='overflow-hidden pb-5'>
-                  <label htmlFor='caption' className='sr-only'>
-                    Ajouter une légende...
-                  </label>
-                  <TextareaAutosize
-                    name='caption'
-                    minRows={1}
-                    className='block w-full bg-none bg-transparent resize-none border-0 p-0 text-white focus:ring-0 focus:border-0 placeholder:text-gray-300 pb-3'
-                    placeholder='Ajouter une légende...'
-                    defaultValue={caption}
-                    onChange={handleCaptionChange}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && !e.altKey && !e.ctrlKey) {
-                        e.preventDefault()
-                        // @ts-ignore
-                        e.target.form.submit()
-                      }
-                    }}
-                  />
-                </div>
-                <button
-                  className={`mt-3 ${primaryButtonStyles} ${smallButtonStyles} absolute bottom-0 right-0 ${
-                    hasCaptionChanged ? 'visible' : 'invisible'
-                  }`}>
-                  Sauvegarder
-                </button>
-              </form>
-            </div>
-            {faces ? (
-              <>
-                {faces.length ? (
-                  <div className='py-3'>
-                    <ul className='flex flex-wrap gap-2 pt-3'>
-                      {annotatedFaces.map((face) => (
-                        <li key={`photoface${face.faceId}`} className='text-gray-300 mr-2 mb-2'>
-                          <div
-                            onClick={() => setSelectedFaceForMenu(face)}
-                            className='flex flex-col items-center cursor-pointer'>
-                            <PhotoBadge faceId={face.faceId} photoId={photoId} className={``} altText={face.name || ''} />
-                            <div className='mt-1 max-w-[80px] truncate'>{face.name}</div>
-                          </div>
-                        </li>
-                      ))}
-                      {pendingFaces.map((face) => (
-                        <li
-                          key={`photoface${face.faceId}`}
-                          className='text-gray-500 mr-2 mb-2 flex flex-col items-center relative'
-                          onClick={() => setSelectedFaceForMenu(face)}>
-                          <PhotoBadge faceId={face.faceId} photoId={photoId} className={'cursor-pointer'} />
-                          <div className='absolute top-11 right-0 h-4 w-4 rounded-full bg-blue-600 -ring-2 ring-1  ring-white'>
-                            <div className='text-white text-xs text-center'>?</div>
-                          </div>
-                        </li>
-                      ))}
-                      {areIgnoredFacesVisible
-                        ? ignoredFaces.map((face) => (
-                            <li
-                              key={`photoface${face.faceId}`}
-                              className='text-gray-500 mr-2 mb-2 flex flex-col items-center relative'
-                              onClick={() => setSelectedFaceForMenu(face)}>
-                              <PhotoBadge faceId={face.faceId} photoId={photoId} className={`grayscale cursor-pointer`} />
-                              <div className='absolute top-11 right-0 h-4 w-4 rounded-full bg-red-600 -ring-2 ring-1 ring-white'>
-                                <div className='text-white text-center'>
-                                  <XMarkIcon className='h-[3.5] w-[3.5]' />
-                                </div>
-                              </div>
-                            </li>
-                          ))
-                        : null}
-                    </ul>
-                    {ignoredFaces.length ? (
-                      <>
-                        {areIgnoredFacesVisible ? (
-                          <button className={`${linkStylesDarkMode} mt-4`} onClick={() => showIgnoredFaces(false)}>
-                            <EyeSlashIcon className='h-6 w-6 mr-1' />
-                            Masquer les visages ignorés
-                          </button>
-                        ) : (
-                          <button className={`${linkStylesDarkMode} mt-4`} onClick={() => showIgnoredFaces(true)}>
-                            <EyeIcon className='h-6 w-6 mr-1' />
-                            Afficher les visages ignorés
-                          </button>
-                        )}
-                      </>
-                    ) : null}
+          {context ? (
+            <a
+              href={`${
+                context.type === 'thread'
+                  ? ThreadUrl(context.threadId, context.editable)
+                  : context.type === 'profile'
+                  ? PersonPageURL(context.profileId)
+                  : context.type === 'familyPhotoList'
+                  ? PhotoListPageUrlWithFamily(context.familyId)
+                  : PhotoListPageUrl
+              }`}
+              className='absolute top-1 left-1 text-gray-300'>
+              <ChevronLeftIcon className='cursor-pointer h-10 w-10' />
+            </a>
+          ) : null}
+          <div className='grid place-items-center h-[95svh]'>
+            <img src={photoUrl} className='max-w-full max-h-[95svh]' />
+          </div>
+          <div className='bg-white bg-opacity-5 border-t border-gray-200/50'>
+            <div className='text-gray-200 px-3 py-4 pb-28 w-full sm:max-w-lg mx-auto divide divide-y divide-solid divide-gray-200/50'>
+              <div className='pb-1'>
+                <form method='POST' className='relative'>
+                  <input type='hidden' name='action' value='addCaption' />
+                  <div className='overflow-hidden pb-5'>
+                    <label htmlFor='caption' className='sr-only'>
+                      Ajouter une légende...
+                    </label>
+                    <TextareaAutosize
+                      name='caption'
+                      minRows={1}
+                      className='block w-full bg-none bg-transparent resize-none border-0 p-0 text-white focus:ring-0 focus:border-0 placeholder:text-gray-300 pb-3'
+                      placeholder='Ajouter une légende...'
+                      defaultValue={caption}
+                      onChange={handleCaptionChange}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.altKey && !e.ctrlKey) {
+                          e.preventDefault()
+                          // @ts-ignore
+                          e.target.form.submit()
+                        }
+                      }}
+                    />
                   </div>
-                ) : null}
-              </>
-            ) : (
-              <div className='py-5 italic'>En attente de la détection de visage (penser a recharger la page).</div>
-            )}
-            <form
-              method='POST'
-              action='/delete-photo'
-              onSubmit={(e) => {
-                const confirmed = confirm('Êtes-vous sur de vouloir supprimer cette photo ?')
-                if (!confirmed) e.preventDefault()
-              }}>
-              <input type='hidden' name='photoId' value={photoId} />
-              <button
-                type='submit'
-                className={`mt-4 inline-flex items-center cursor-pointer text-red-500 hover:text-red-600 text-md`}>
-                <TrashIcon className='h-6 w-6 mr-1' />
-                Supprimer cette photo
-              </button>
-            </form>
+                  <button
+                    className={`mt-3 ${primaryButtonStyles} ${smallButtonStyles} absolute bottom-0 right-0 ${
+                      hasCaptionChanged ? 'visible' : 'invisible'
+                    }`}>
+                    Sauvegarder
+                  </button>
+                </form>
+              </div>
+              {faces ? (
+                <>
+                  {faces.length ? (
+                    <div className='py-3'>
+                      <ul className='flex flex-wrap gap-2 pt-3'>
+                        {annotatedFaces.map((face) => (
+                          <li key={`photoface${face.faceId}`} className='text-gray-300 mr-2 mb-2'>
+                            <div
+                              onClick={() => setSelectedFaceForMenu(face)}
+                              className='flex flex-col items-center cursor-pointer'>
+                              <PhotoBadge faceId={face.faceId} photoId={photoId} className={``} altText={face.name || ''} />
+                              <div className='mt-1 max-w-[80px] truncate'>{face.name}</div>
+                            </div>
+                          </li>
+                        ))}
+                        {pendingFaces.map((face) => (
+                          <li
+                            key={`photoface${face.faceId}`}
+                            className='text-gray-500 mr-2 mb-2 flex flex-col items-center relative'
+                            onClick={() => setSelectedFaceForMenu(face)}>
+                            <PhotoBadge faceId={face.faceId} photoId={photoId} className={'cursor-pointer'} />
+                            <div className='absolute top-11 right-0 h-4 w-4 rounded-full bg-blue-600 -ring-2 ring-1  ring-white'>
+                              <div className='text-white text-xs text-center'>?</div>
+                            </div>
+                          </li>
+                        ))}
+                        {areIgnoredFacesVisible
+                          ? ignoredFaces.map((face) => (
+                              <li
+                                key={`photoface${face.faceId}`}
+                                className='text-gray-500 mr-2 mb-2 flex flex-col items-center relative'
+                                onClick={() => setSelectedFaceForMenu(face)}>
+                                <PhotoBadge faceId={face.faceId} photoId={photoId} className={`grayscale cursor-pointer`} />
+                                <div className='absolute top-11 right-0 h-4 w-4 rounded-full bg-red-600 -ring-2 ring-1 ring-white'>
+                                  <div className='text-white text-center'>
+                                    <XMarkIcon className='h-[3.5] w-[3.5]' />
+                                  </div>
+                                </div>
+                              </li>
+                            ))
+                          : null}
+                      </ul>
+                      {ignoredFaces.length ? (
+                        <>
+                          {areIgnoredFacesVisible ? (
+                            <button className={`${linkStylesDarkMode} mt-4`} onClick={() => showIgnoredFaces(false)}>
+                              <EyeSlashIcon className='h-6 w-6 mr-1' />
+                              Masquer les visages ignorés
+                            </button>
+                          ) : (
+                            <button className={`${linkStylesDarkMode} mt-4`} onClick={() => showIgnoredFaces(true)}>
+                              <EyeIcon className='h-6 w-6 mr-1' />
+                              Afficher les visages ignorés
+                            </button>
+                          )}
+                        </>
+                      ) : null}
+                    </div>
+                  ) : null}
+                </>
+              ) : (
+                <div className='py-5 italic'>En attente de la détection de visage (penser a recharger la page).</div>
+              )}
+              {isPhotoAuthor ? (
+                <form
+                  method='POST'
+                  action='/delete-photo'
+                  onSubmit={(e) => {
+                    const confirmed = confirm('Êtes-vous sur de vouloir supprimer cette photo ?')
+                    if (!confirmed) e.preventDefault()
+                  }}>
+                  <input type='hidden' name='photoId' value={photoId} />
+                  <button
+                    type='submit'
+                    className={`mt-4 inline-flex items-center cursor-pointer text-red-500 hover:text-red-600 text-md`}>
+                    <TrashIcon className='h-6 w-6 mr-1' />
+                    Supprimer cette photo
+                  </button>
+                </form>
+              ) : null}
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  )
-})
+    )
+  }
+)
 
 type PhotoBadgeProps = {
   photoId: PhotoId

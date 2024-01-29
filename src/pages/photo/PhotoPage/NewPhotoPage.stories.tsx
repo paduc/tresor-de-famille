@@ -111,7 +111,12 @@ export const PhotoWithoutFaces = () => (
 )
 
 export const PhotoPendingFaceDetection = () => (
-  <NewPhotoPage faces={undefined} photoId={makePhotoId()} photoUrl={fakePhoto({ width: 1000, height: 1000 })} />
+  <NewPhotoPage
+    faces={undefined}
+    photoId={makePhotoId()}
+    photoUrl={fakePhoto({ width: 1000, height: 1000 })}
+    isPhotoAuthor={false}
+  />
 )
 
 export const PhotoWithContext = () => (
@@ -136,5 +141,6 @@ export const PhotoWithContext = () => (
     photoUrl={fakePhoto({ width: 1000, height: 1000 })}
     caption='Ceci est une légende'
     context={{ type: 'profile', profileId: makePersonId() }}
+    isPhotoAuthor={true}
   />
 )

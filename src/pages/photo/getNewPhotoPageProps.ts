@@ -6,7 +6,9 @@ import { PhotoId } from '../../domain/PhotoId'
 import { doesPhotoExist } from '../_doesPhotoExist'
 import { getFacesInPhoto } from '../_getFacesInPhoto'
 import { getPersonByIdOrThrow } from '../_getPersonById'
+import { getPhotoAuthor } from '../_getPhotoAuthor'
 import { getPhotoCaption } from '../_getPhotoCaption'
+import { getPhotoEvents } from '../_getPhotoEvents'
 import { getPhotoFamilyId } from '../_getPhotoFamily'
 
 import { NewPhotoPageProps } from './PhotoPage/NewPhotoPage'
@@ -64,10 +66,13 @@ export const getNewPhotoPageProps = async ({
 
   const familyId = await getPhotoFamilyId(photoId)
 
+  const authorId = await getPhotoAuthor(photoId)
+
   return {
     photoUrl: getPhotoUrlFromId(photoId),
     photoId,
     familyId,
+    isPhotoAuthor: authorId === userId,
     caption,
     faces,
   }
