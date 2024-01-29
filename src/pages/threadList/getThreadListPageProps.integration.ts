@@ -21,6 +21,8 @@ import { UserInsertedPhotoInRichTextThread } from '../thread/UserInsertedPhotoIn
 import { UserSetChatTitle } from '../thread/UserSetChatTitle'
 import { UserUpdatedThreadAsRichText } from '../thread/UserUpdatedThreadAsRichText'
 import { getThreadListPageProps } from './getThreadListPageProps'
+import { UserAddedCaptionToPhoto } from '../photo/UserAddedCaptionToPhoto'
+import { getUuid } from '../../libs/getUuid'
 
 describe('getThreadListPageProps', () => {
   describe('when a user created a thread on the homepage (UserSetMessageToChat)', () => {
@@ -487,7 +489,6 @@ describe('getThreadListPageProps', () => {
       expect(threads[0]).toMatchObject({
         threadId,
         title: undefined,
-        lastUpdatedOn,
         authors: [
           {
             name: 'Valentin Cognito',
@@ -592,6 +593,72 @@ describe('getThreadListPageProps', () => {
       const { threads } = await getThreadListPageProps(viewerUserId)
 
       expect(threads).toHaveLength(0)
+    })
+  })
+
+  describe('when a thread has only photoNodes with captions', () => {
+    const userId = makeAppUserId()
+    const threadId = makeThreadId()
+    const userFamily = asFamilyId(userId)
+    const photoId = makePhotoId()
+
+    beforeAll(async () => {
+      await resetDatabase()
+
+      await addToHistory(
+        UserRegisteredWithEmailAndPassword({
+          userId: userId,
+          email: '',
+          passwordHash: '',
+        })
+      )
+
+      await addToHistory(
+        UserNamedThemself({
+          userId,
+          name: 'John Doe',
+          familyId: userFamily,
+          personId: makePersonId(),
+        })
+      )
+
+      await addToHistory(
+        UserAddedCaptionToPhoto({
+          photoId,
+          userId,
+          caption: { id: getUuid(), body: 'This is a caption' },
+        })
+      )
+
+      const event = UserUpdatedThreadAsRichText({
+        userId,
+        threadId,
+        familyId: userFamily,
+        contentAsJSON: {
+          type: 'doc',
+          content: [{ type: 'photoNode', attrs: { photoId } }],
+        },
+      })
+      await addToHistory(event)
+    })
+
+    it('should use the captions as content', async () => {
+      const { threads } = await getThreadListPageProps(userId)
+
+      expect(threads).toHaveLength(1)
+
+      expect(threads[0]).toMatchObject({
+        threadId,
+        title: undefined,
+        authors: [
+          {
+            name: 'John Doe',
+          },
+        ],
+        contents: 'This is a caption',
+        thumbnails: [ThumbnailURL(photoId)],
+        familyIds: [userFamily],
+      })
     })
   })
 })

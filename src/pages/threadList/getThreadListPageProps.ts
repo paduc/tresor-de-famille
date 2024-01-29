@@ -9,6 +9,7 @@ import { OnboardingUserStartedFirstThread } from '../../events/onboarding/Onboar
 import { asFamilyId } from '../../libs/typeguards'
 import { getPersonForUser } from '../_getPersonForUser'
 import { getUserFamilies } from '../_getUserFamilies'
+import { UserAddedCaptionToPhoto } from '../photo/UserAddedCaptionToPhoto'
 import { ThumbnailURL } from '../photoApi/ThumbnailURL'
 import { ThreadSharedWithFamilies } from '../thread/ThreadPage/ThreadSharedWithFamilies'
 import { ParagraphNode, PhotoNode } from '../thread/TipTapTypes'
@@ -103,7 +104,7 @@ export const getThreadListPageProps = async (userId: AppUserId): Promise<ThreadL
       threadId,
       title: getTitle(threadContentEvents),
       authors,
-      contents: getContents(threadContentEvents),
+      contents: await getContents(threadContentEvents),
       lastUpdatedOn: latestEvent.occurredAt.getTime(),
       familyIds: Array.from(uniqueThreads.get(threadId)!.values()),
       thumbnails: getThumbnails(threadContentEvents),
@@ -131,7 +132,7 @@ function getThumbnails(threadEvents: readonly ThreadEvent[]): string[] {
   return imageNodes.map((node) => node.attrs.photoId).map((photoId) => ThumbnailURL(photoId))
 }
 
-function getContents(threadEvents: readonly ThreadEvent[]): string {
+async function getContents(threadEvents: readonly ThreadEvent[]): Promise<string> {
   const latestContentEvent = [...threadEvents]
     .reverse()
     .find(
@@ -165,7 +166,22 @@ function getContents(threadEvents: readonly ThreadEvent[]): string {
 
   const textNodes = nodes.filter((node): node is ParagraphNode => node.type === 'paragraph' && !!node.content)
 
-  return textNodes.map((node) => (node.content?.length ? node.content.map((c) => c.text).join('') : '')).join('\n')
+  if (textNodes.length) {
+    return textNodes.map((node) => (node.content?.length ? node.content.map((c) => c.text).join('') : '')).join('\n')
+  }
+
+  const photoNodes = nodes.filter((node): node is PhotoNode => node.type === 'photoNode')
+
+  if (photoNodes.length) {
+    const { photoId } = photoNodes[0].attrs
+    const latestCaption = await getSingleEvent<UserAddedCaptionToPhoto>('UserAddedCaptionToPhoto', { photoId })
+
+    if (latestCaption) {
+      return latestCaption.payload.caption.body
+    }
+  }
+
+  return ''
 }
 
 function getTitle(threadEvents: readonly ThreadEvent[]): string | undefined {
