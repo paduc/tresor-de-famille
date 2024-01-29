@@ -8,6 +8,7 @@ import { AppUserId } from '../../domain/AppUserId'
 import { SearchIndex } from 'algoliasearch'
 import { makeAppUserId } from '../../libs/makeUserId'
 import { PersonSearchContext } from '../_components/usePersonSearch'
+import { FamilyShareCode } from '../../domain/FamilyShareCode'
 const fakePersonSearch = async (query: string) => {
   return {
     hits: [
@@ -23,16 +24,16 @@ export default {
   component: SharePage,
   parameters: {
     layout: 'fullscreen',
-    decorators: [
-      (Story: any) => {
-        return (
-          <PersonSearchContext.Provider value={{ search: fakePersonSearch } as unknown as SearchIndex}>
-            <Story />
-          </PersonSearchContext.Provider>
-        )
-      },
-    ],
   },
+  decorators: [
+    (Story: any) => {
+      return (
+        <PersonSearchContext.Provider value={{ search: fakePersonSearch } as unknown as SearchIndex}>
+          <Story />
+        </PersonSearchContext.Provider>
+      )
+    },
+  ],
 }
 
 export const PremiereNouvelleFamille = () => (
@@ -45,6 +46,9 @@ export const PremiereNouvelleFamille = () => (
           familyId: 'a' as FamilyId,
           familyName: 'Espace personnel',
           about: '',
+          isUserSpace: true,
+          shareUrl: '' as FamilyShareCode,
+          color: '',
         },
       ],
 
@@ -72,9 +76,20 @@ export const UneFamilleExistante = () => (
       userId: 'a' as AppUserId,
       userFamilies: [
         {
+          familyId: 'a' as FamilyId,
+          familyName: 'Espace personnel',
+          about: '',
+          isUserSpace: true,
+          shareUrl: '' as FamilyShareCode,
+          color: '',
+        },
+        {
           familyId,
           familyName: 'Ma famille avec un nom trop trop trop trop long',
           about: '',
+          isUserSpace: true,
+          shareUrl: '' as FamilyShareCode,
+          color: '',
         },
       ],
       userName: 'John Doe Adear',
@@ -94,7 +109,25 @@ export const UneFamilleExistante = () => (
           familyId: makeFamilyId(),
           name: 'Duchateau Henri Family',
           about: 'Les descendants de Henri Duchateau et les proches',
-          shareUrl: 'https://tresordefamille.org/?famille=CB5ACD2D3EF689A8FBEC4D06C576371834689673',
+          isUserSpace: false,
+          shareUrl: 'https://tresordefamille.org/?famille=CB5ACD2D3EF689A8FBEC4D06C576371834689673' as FamilyShareCode,
+          users: [
+            {
+              userId: makeAppUserId(),
+              name: 'Pierre-Antoine',
+              partialEmail: 'pie***ine@tre***lle.org',
+            },
+            {
+              userId: makeAppUserId(),
+              name: 'Pierre-Antoine',
+              partialEmail: 'pie***ine@tre***lle.org',
+            },
+            {
+              userId: makeAppUserId(),
+              name: 'Pierre-Antoine',
+              partialEmail: 'pie***ine@tre***lle.org',
+            },
+          ],
         },
       ]}
     />
@@ -111,11 +144,17 @@ export const UneFamilleCréée = () => (
           familyId: 'a' as FamilyId,
           familyName: 'Espace personnel',
           about: '',
+          isUserSpace: true,
+          shareUrl: '' as FamilyShareCode,
+          color: '',
         },
         {
           familyId: familyId,
           familyName: 'Ma famille',
           about: 'Voila une description de ma famille, avec quelques longs passages.',
+          isUserSpace: false,
+          shareUrl: '' as FamilyShareCode,
+          color: '',
         },
       ],
       userName: 'John Doe Adear',
@@ -128,7 +167,6 @@ export const UneFamilleCréée = () => (
       arePersonsEnabled: true,
       isSharingEnabled: true,
       isFamilyPageEnabled: true,
-      personId: makePersonId(),
     }}>
     <SharePage
       userFamilies={[
@@ -136,7 +174,9 @@ export const UneFamilleCréée = () => (
           familyId: makeFamilyId(),
           name: 'Duchateau Henri Family',
           about: 'Les descendants de Henri Duchateau et les proches',
-          shareUrl: 'https://tresordefamille.org/?famille=CB5ACD2D3EF689A8FBEC4D06C576371834689673',
+          isUserSpace: false,
+          shareUrl: 'https://tresordefamille.org/?famille=CB5ACD2D3EF689A8FBEC4D06C576371834689673' as FamilyShareCode,
+          users: [],
         },
       ]}
     />
@@ -154,11 +194,17 @@ export const PlusieursFamilleExistantes = () => (
           familyId: henriFamilyId,
           familyName: 'Duchateau Henri Family',
           about: 'Les descendants de Henri Duchateau',
+          isUserSpace: false,
+          shareUrl: '' as FamilyShareCode,
+          color: '',
         },
         {
           familyId: makeFamilyId(),
           familyName: 'Duchateau Louis Family',
           about: 'Les descendants de Louis Duchateau',
+          isUserSpace: false,
+          shareUrl: '' as FamilyShareCode,
+          color: '',
         },
       ],
       userName: 'John Doe Adear',
@@ -179,13 +225,33 @@ export const PlusieursFamilleExistantes = () => (
           familyId: makeFamilyId(),
           name: 'Duchateau Henri Family',
           about: 'Les descendants de Henri Duchateau et les proches',
-          shareUrl: 'https://tresordefamille.org/?famille=CB5ACD2D3EF689A8FBEC4D06C576371834689673',
+          isUserSpace: false,
+          shareUrl: 'https://tresordefamille.org/?famille=CB5ACD2D3EF689A8FBEC4D06C576371834689673' as FamilyShareCode,
+          users: [
+            {
+              userId: makeAppUserId(),
+              name: 'Pierre-Antoine',
+              partialEmail: 'pie***ine@tre***lle.org',
+            },
+            {
+              userId: makeAppUserId(),
+              name: 'Pierre-Antoine',
+              partialEmail: 'pie***ine@tre***lle.org',
+            },
+            {
+              userId: makeAppUserId(),
+              name: 'Pierre-Antoine',
+              partialEmail: 'pie***ine@tre***lle.org',
+            },
+          ],
         },
         {
           familyId: makeFamilyId(),
           name: 'Duchateau Louis Family',
           about: 'Les descendants de Louis Duchateau et leurss proches',
-          shareUrl: 'https://tresordefamille.org/?famille=CB5ACD2D3EF689A8FBEC4D06C576371834689673',
+          isUserSpace: false,
+          shareUrl: 'https://tresordefamille.org/?famille=CB5ACD2D3EF689A8FBEC4D06C576371834689673' as FamilyShareCode,
+          users: [],
         },
       ]}
     />

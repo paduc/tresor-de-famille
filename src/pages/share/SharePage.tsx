@@ -3,9 +3,10 @@ import * as React from 'react'
 import { CheckCircleIcon, DocumentDuplicateIcon } from '@heroicons/react/24/outline'
 import { FamilyId } from '../../domain/FamilyId'
 import { withBrowserBundle } from '../../libs/ssr/withBrowserBundle'
-import { primaryButtonStyles } from '../_components/Button'
+import { linkStyles, primaryButtonStyles } from '../_components/Button'
 import { useLoggedInSession, useSession } from '../_components/SessionContext'
 import { AppLayout } from '../_components/layout/AppLayout'
+import { AppUserId } from '../../domain/AppUserId'
 
 // @ts-ignore
 function classNames(...classes) {
@@ -19,6 +20,11 @@ export type SharePageProps = {
     about?: string
     shareUrl: string
     isUserSpace: boolean
+    users: {
+      userId: AppUserId
+      name: string
+      partialEmail: string
+    }[]
   }[]
 }
 
@@ -113,6 +119,16 @@ export const SharePage = withBrowserBundle(({ userFamilies }: SharePageProps) =>
                               </div>
                             </div>
                           </div>
+                          <details className='mt-3 text-sm text-gray-500'>
+                            <summary className={`${linkStyles}`}>Voir les personnes qui ont accepté leur invitation</summary>
+                            <ul className='mt-1'>
+                              {family.users.map((user) => (
+                                <li className='py-0.5' key={`family_${family.familyId}_user_${user.userId}`}>
+                                  {user.name} ({user.partialEmail})
+                                </li>
+                              ))}
+                            </ul>
+                          </details>
                         </div>
                       </li>
                     )
