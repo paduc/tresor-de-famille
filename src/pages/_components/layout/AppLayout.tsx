@@ -21,6 +21,7 @@ import {
   PhotoIcon,
   PlusSmallIcon,
   ShareIcon,
+  UserCircleIcon,
   UsersIcon,
   XMarkIcon,
 } from '@heroicons/react/24/outline'
@@ -80,7 +81,7 @@ export function AppLayout({ children }: AppLayoutProps) {
     {
       name: 'Mon profil',
       href: PersonPageURL(personId!),
-      icon: BookOpenIcon,
+      icon: UserCircleIcon,
       condition: () => !!personId,
     },
     {
