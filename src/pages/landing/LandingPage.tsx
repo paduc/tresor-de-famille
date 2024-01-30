@@ -35,10 +35,13 @@ export const LandingPage = ({}: LandingPageProps) => {
           <div className='mx-auto max-w-2xl flex-shrink-0 lg:mx-0 lg:max-w-xl lg:pt-8'>
             {/** LOGO */}
             <div className='relative lg:-top-10 flex items-center'>
-              <img src='images/tdf-picto-white-transparent.png' className='opacity-100 h-24 w-24 relative -left-3 lg:left-0' />
-              <div className='text-white text-opacity-100 uppercase tracking-wide text-xl font-bold relative -left-3 lg:left-0'>
+              <img
+                src='http://localhost:3000/images/2024-02-01 Logotype TDF2.png'
+                className='opacity-100 h-24 relative -left-3 lg:left-0'
+              />
+              {/* <div className='text-white text-opacity-100 uppercase tracking-wide text-xl font-bold relative -left-3 lg:left-0'>
                 Trésor de famille
-              </div>
+              </div> */}
             </div>
             {/** Petits badges au dessus du slogan */}
             <div className='mt-12 sm:mt-12'>

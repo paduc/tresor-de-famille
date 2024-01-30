@@ -102,10 +102,20 @@ export const AvecUnMelangeDePhotoEtMessage = () => (
     familyId={'a' as FamilyId}
     lastUpdated={t0 as Epoch}
     isAuthor={true}
-    title='Ceci est le titre'
+    // title='Ceci est le titre'
+    title=''
     contentAsJSON={{
       type: 'doc',
       content: [
+        {
+          type: 'paragraph',
+          content: [
+            {
+              type: 'text',
+              text: 'Message',
+            },
+          ],
+        },
         {
           type: 'paragraph',
           content: [
@@ -127,24 +137,26 @@ export const AvecUnMelangeDePhotoEtMessage = () => (
             unrecognizedFacesInPhoto: 0,
           },
         },
-        // {
-        //   type: 'paragraph',
-        //   content: [
-        //     {
-        //       type: 'text',
-        //       text: 'Second message',
-        //     },
-        //   ],
-        // },
-        // {
-        //   type: 'paragraph',
-        //   content: [
-        //     {
-        //       type: 'text',
-        //       text: ' ',
-        //     },
-        //   ],
-        // },
+        {
+          type: 'paragraph',
+          content: [
+            {
+              type: 'text',
+              text: 'Message',
+            },
+          ],
+        },
+        {
+          type: 'photoNode',
+          attrs: {
+            threadId: makeThreadId(),
+            photoId: 'photo123' as PhotoId,
+            url: 'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=1500&h=200&q=80',
+            description: '',
+            personsInPhoto: encodeURIComponent(JSON.stringify([])),
+            unrecognizedFacesInPhoto: 10,
+          },
+        },
         {
           type: 'photoNode',
           attrs: {
@@ -155,6 +167,15 @@ export const AvecUnMelangeDePhotoEtMessage = () => (
             personsInPhoto: encodeURIComponent(JSON.stringify([])),
             unrecognizedFacesInPhoto: 10,
           },
+        },
+        {
+          type: 'paragraph',
+          content: [
+            {
+              type: 'text',
+              text: 'Message',
+            },
+          ],
         },
       ],
     }}

@@ -14,6 +14,10 @@ export type PhotoNode = TipTapJSON & {
   type: 'photoNode'
 }
 
+export type SeparatorNode = TipTapJSON & {
+  type: 'separatorNode'
+}
+
 // Zod validators
 const zIsMark = z.object({ type: z.union([z.literal('bold'), z.literal('italic'), z.literal('strike')]) })
 
@@ -37,7 +41,11 @@ const zIsPhotoNode = z.object({
   attrs: z.object({ photoId: zIsPhotoId }).and(z.record(z.any())),
 })
 
-export const zIsTipTapJSON = z.union([zIsParagraphNode, zIsPhotoNode])
+const zIsSeparatorNode = z.object({
+  type: z.literal('separatorNode'),
+})
+
+export const zIsTipTapJSON = z.union([zIsParagraphNode, zIsPhotoNode, zIsSeparatorNode])
 
 export const zIsTipTapContentAsJSON = z.object({
   type: z.literal('doc'),
@@ -71,35 +79,21 @@ export const decodeTipTapJSON = (contentAsJSONEncoded: string): TipTapContentAsJ
 export const encodeStringy = (json: JSON) => encodeURIComponent(JSON.stringify(json))
 
 /**
- * Remove the empty paragraphs between photoNodes
- * reverses the effects of separatePhotoNodes
+ * Remove the separator nodes from content
  * @param contentAsJson
- * @returns
+ * @returns contentAsJson without separator nodes
  */
-export const removeEmptySpaceBetweenPhotos = (contentAsJson: TipTapContentAsJSON): TipTapContentAsJSON => {
+export const removeSeparatorNodes = (contentAsJson: TipTapContentAsJSON): TipTapContentAsJSON => {
   const cleanContentAsJson: TipTapContentAsJSON = {
     type: 'doc',
     content: [],
   }
 
-  let nminus1Node: TipTapJSON | null = null
-  let nminus2Node: TipTapJSON | null = null
   for (const node of contentAsJson.content) {
-    // Look for photoNode-paragraph-photoNode with empty paragraph
-    if (
-      node.type === 'photoNode' &&
-      nminus1Node &&
-      nminus2Node &&
-      nminus2Node.type === 'photoNode' &&
-      nminus1Node.type === 'paragraph' &&
-      (!nminus1Node.content || nminus1Node.content.length === 0)
-    ) {
-      cleanContentAsJson.content.pop()
-    }
+    // remove all separatorNodes
+    if (node.type === 'separatorNode') continue
 
     cleanContentAsJson.content.push(node)
-    nminus2Node = nminus1Node
-    nminus1Node = node
   }
 
   return cleanContentAsJson

@@ -1,14 +1,21 @@
 import { formatRelative } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import debounce from 'lodash.debounce'
-import React, { createContext, useCallback, useContext, useEffect, useState } from 'react'
+import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react'
 import { UUID } from '../../../domain'
 import { withBrowserBundle } from '../../../libs/ssr/withBrowserBundle'
-import { buttonIconStyles, secondaryCircularButtons } from '../../_components/Button'
+import {
+  buttonIconStyles,
+  primaryButtonStyles,
+  secondaryButtonStyles,
+  secondaryCircularButtons,
+  smallButtonIconStyles,
+  smallButtonStyles,
+} from '../../_components/Button'
 import { ProgressiveImg } from '../../_components/ProgressiveImg'
 import { AppLayout } from '../../_components/layout/AppLayout'
 
-import { PhotoIcon } from '@heroicons/react/20/solid'
+import { Bars3BottomLeftIcon, DocumentTextIcon, PhotoIcon } from '@heroicons/react/20/solid'
 import { TrashIcon } from '@heroicons/react/24/outline'
 import { Node } from '@tiptap/core'
 import {
@@ -34,7 +41,7 @@ import { PhotoPageUrl } from '../../photo/PhotoPageUrl'
 import { PhotoURL } from '../../photoApi/PhotoURL'
 import { MediaSelector } from '../MediaSelector'
 import { ThreadUrl } from '../ThreadUrl'
-import { TipTapContentAsJSON, removeEmptySpaceBetweenPhotos } from '../TipTapTypes'
+import { TipTapContentAsJSON, removeSeparatorNodes } from '../TipTapTypes'
 import { ThreadSharingButton } from './ThreadSharingButton'
 import { Comment, Comments } from './Comments'
 
@@ -86,9 +93,14 @@ export const ThreadPage = withBrowserBundle(
     //   }
     // }
 
-    if (contentAsJSON.content.at(-1)?.type !== 'paragraph') {
+    if (contentAsJSON.content.length === 0) {
       // @ts-ignore
       contentAsJSON.content.push({ type: 'paragraph' })
+    }
+
+    if (contentAsJSON.content.at(-1)?.type !== 'separatorNode') {
+      // @ts-ignore
+      contentAsJSON.content.push({ type: 'separatorNode' })
     }
 
     return (
@@ -222,7 +234,7 @@ const useAutosaveEditor = (
   const [lastUpdated, setLastUpdated] = useState<Epoch | undefined>(initialLastUpdated)
 
   const save = (json: TipTapContentAsJSON) => {
-    const newJSON = removeEmptySpaceBetweenPhotos(json)
+    const newJSON = removeSeparatorNodes(json)
     setStatus('saving')
     // setTimeout(() => {
     //   setStatus('saved')
@@ -309,6 +321,17 @@ const useDeletePhoto = () => {
   return deletePhoto
 }
 
+const EditorCtx = createContext<{ editorRef: React.MutableRefObject<Editor | null>; threadId: ThreadId } | null>(null)
+
+const useEditorCtx = () => {
+  const editorRef = useContext(EditorCtx)
+  if (editorRef === null) {
+    throw new Error('This hook should only be used in a proper Provider')
+  }
+
+  return editorRef
+}
+
 const RichTextEditor = fixedForwardRef<RichTextEditorRef, RichTextEditorProps>((props, ref) => {
   const editor = useEditor({
     extensions: [
@@ -319,7 +342,8 @@ const RichTextEditor = fixedForwardRef<RichTextEditorRef, RichTextEditorProps>((
           },
         },
       }),
-      TipTapPhotoNode,
+      PhotoNode,
+      SeparatorNode,
     ],
     content: props.content,
     autofocus: null,
@@ -335,14 +359,7 @@ const RichTextEditor = fixedForwardRef<RichTextEditorRef, RichTextEditorProps>((
   // Make sure the content always ends with a paragraph
   useEffect(() => {
     editor?.on('update', (e) => {
-      const editorHtml = editor.getHTML()
-      if (!editorHtml.endsWith('p>')) {
-        const { size } = editor.view.state.doc.content
-
-        editor.chain().insertContentAt(size, '<p></p>').run()
-      }
-
-      separatePhotoNodes(editor)
+      addSeparatorBetweenNodes(editor)
     })
   }, [editor])
   const editorRef: React.MutableRefObject<Editor | null> = React.useRef(null)
@@ -379,52 +396,54 @@ const RichTextEditor = fixedForwardRef<RichTextEditorRef, RichTextEditorProps>((
   editorRef.current = editor
 
   return (
-    <DeletePhotoCtx.Provider value={handleDeletePhoto}>
-      <div className='sm:ml-6 max-w-2xl relative'>
-        <EditorContent editor={editor} />
-        <FloatingMenu editor={editor} tippyOptions={{ duration: 100 }}>
-          <MediaSelector
-            onPhotoAdded={(photoId) => {
-              editor
-                .chain()
-                .focus()
-                .insertContent({
-                  type: 'photoNode',
-                  attrs: {
-                    photoId,
-                    url: PhotoURL(photoId),
-                    description: 'Cliquer sur la photo pour ajouter une description',
-                    personsInPhoto: '[]', // This should be stringified JSON
-                    unrecognizedFacesInPhoto: 0,
-                    threadId: props.threadId,
-                  },
-                })
-                .run()
-            }}>
-            {(open) => (
-              <span
-                onClick={() => open()}
-                className={`ml-10 sm:ml-5 pl-3 border border-y-0 border-r-0 border-l border-l-gray-300 cursor-pointer inline-flex items-center text-indigo-600 hover:underline hover:underline-offset-2`}>
-                <PhotoIcon className={`${buttonIconStyles} h-4 w-4`} aria-hidden='true' />
-                Insérer une photo
-              </span>
-            )}
-          </MediaSelector>
-        </FloatingMenu>
-        <div className='absolute top-4 right-2'>
-          <StatusIndicator status={status} />
+    <EditorCtx.Provider value={{ editorRef, threadId: props.threadId }}>
+      <DeletePhotoCtx.Provider value={handleDeletePhoto}>
+        <div className='sm:ml-6 max-w-2xl relative'>
+          <EditorContent editor={editor} />
+          {/* <FloatingMenu editor={editor} tippyOptions={{ duration: 100 }}>
+            <MediaSelector
+              onPhotoAdded={(photoId) => {
+                editor
+                  .chain()
+                  .focus()
+                  .insertContent({
+                    type: 'photoNode',
+                    attrs: {
+                      photoId,
+                      url: PhotoURL(photoId),
+                      description: 'Cliquer sur la photo pour ajouter une description',
+                      personsInPhoto: '[]', // This should be stringified JSON
+                      unrecognizedFacesInPhoto: 0,
+                      threadId: props.threadId,
+                    },
+                  })
+                  .run()
+              }}>
+              {(open) => (
+                <span
+                  onClick={() => open()}
+                  className={`ml-10 sm:ml-5 pl-3 border border-y-0 border-r-0 border-l border-l-gray-300 cursor-pointer inline-flex items-center text-indigo-600 hover:underline hover:underline-offset-2`}>
+                  <PhotoIcon className={`${buttonIconStyles} h-4 w-4`} aria-hidden='true' />
+                  Insérer une photo
+                </span>
+              )}
+            </MediaSelector>
+          </FloatingMenu> */}
+          <div className='absolute top-4 right-2'>
+            <StatusIndicator status={status} />
+          </div>
         </div>
-      </div>
-      {!!lastUpdated ? (
-        <div className='my-2 pl-4 pt-2 sm:pl-6 italic text-gray-500 border-t border-gray-200'>
-          Dernière mise à jour {formatRelative(lastUpdated, Date.now(), { locale: fr })}
-        </div>
-      ) : null}
-    </DeletePhotoCtx.Provider>
+        {!!lastUpdated ? (
+          <div className='my-2 pl-4 pt-2 sm:pl-6 italic text-gray-500 border-t border-gray-200'>
+            Dernière mise à jour {formatRelative(lastUpdated, Date.now(), { locale: fr })}
+          </div>
+        ) : null}
+      </DeletePhotoCtx.Provider>
+    </EditorCtx.Provider>
   )
 })
 
-const PhotoItemWrappedForTipTap = (props: {
+const PhotoNodeItem = (props: {
   node: {
     attrs: {
       [Attr in keyof PhotoItemProps]: PhotoItemProps[Attr] extends ThreadId
@@ -473,7 +492,7 @@ const PhotoItemWrappedForTipTap = (props: {
   }
 }
 
-const TipTapPhotoNode = Node.create({
+const PhotoNode = Node.create({
   name: 'photoNode',
 
   group: 'block',
@@ -504,7 +523,91 @@ const TipTapPhotoNode = Node.create({
   },
 
   addNodeView() {
-    return ReactNodeViewRenderer(PhotoItemWrappedForTipTap)
+    return ReactNodeViewRenderer(PhotoNodeItem)
+  },
+})
+
+const SeparatorNodeItem = (props: { node: {} }) => {
+  const { editorRef, threadId } = useEditorCtx()
+  const nodeRef = useRef<any>()
+
+  const handleAddTextClick = () => {
+    if (editorRef.current && nodeRef.current) {
+      const position = editorRef.current.view.posAtDOM(nodeRef.current, 0)
+      editorRef.current.chain().insertContentAt(position, '<p></p>').run()
+    }
+  }
+
+  return (
+    <NodeViewWrapper className='tdf-separator' ref={nodeRef}>
+      <div className='sm:-ml-6 px-4 sm:px-2 py-3 flex justify-start gap-4 bg-gray-50 border-y border-gray-300 divide-x divide-gray-200'>
+        <button
+          onClick={handleAddTextClick}
+          title='Retirer la photo'
+          className={`ml-4 text-indigo-600 hover:text-indigo-500 cursor-pointer inline-flex items-center gap-x-2`}>
+          <Bars3BottomLeftIcon className={`h-4 w-4`} />
+          Insérer du texte
+        </button>
+        <MediaSelector
+          onPhotoAdded={(photoId) => {
+            if (!editorRef.current || !nodeRef.current) return
+            const editor = editorRef.current
+            const position = editorRef.current.view.posAtDOM(nodeRef.current, 0)
+            editor
+              .chain()
+              .insertContentAt(position, {
+                type: 'photoNode',
+                attrs: {
+                  photoId,
+                  url: PhotoURL(photoId),
+                  description: 'Cliquer sur la photo pour ajouter une description',
+                  personsInPhoto: '[]', // This should be stringified JSON
+                  unrecognizedFacesInPhoto: 0,
+                  threadId,
+                },
+              })
+              .run()
+          }}>
+          {(open) => (
+            <button
+              onClick={() => open()}
+              title='Retirer la photo'
+              className={`pl-4  text-indigo-600 hover:text-indigo-500 cursor-pointer inline-flex items-center gap-x-2`}>
+              <PhotoIcon className={`h-5 w-5`} aria-hidden='true' />
+              Insérer une photo
+            </button>
+          )}
+        </MediaSelector>
+      </div>
+    </NodeViewWrapper>
+  )
+}
+
+const SeparatorNode = Node.create({
+  name: 'separatorNode',
+
+  group: 'block',
+
+  atom: true,
+
+  addAttributes(): Attributes | {} {
+    return {}
+  },
+
+  parseHTML() {
+    return [
+      {
+        tag: 'tdf-separator',
+      },
+    ]
+  },
+
+  renderHTML({ HTMLAttributes }) {
+    return ['tdf-separator', mergeAttributes(HTMLAttributes)]
+  },
+
+  addNodeView() {
+    return ReactNodeViewRenderer(SeparatorNodeItem)
   },
 })
 
@@ -563,22 +666,61 @@ function StatusIndicator({ status }: { status: AutosaveStatus }) {
 }
 
 /**
- * Insert a paragraph between two photos to help with edition (ex: inserting text between images)
+ * Insert separators to facilitate edition of content
  * @param editor Editor instance
  */
-function separatePhotoNodes(editor: Editor) {
+function addSeparatorBetweenNodes(editor: Editor) {
   const topContent = editor.view.state.doc.content
 
+  console.log('addSeparatorBetweenNodes', topContent)
   let currentSize = 0
   let childCount = topContent.childCount
-  for (let i = 0; i < childCount - 1; i++) {
-    if (i > 0 && topContent.child(i - 1).type.name === 'photoNode' && topContent.child(i).type.name === 'photoNode') {
-      editor.chain().insertContentAt(currentSize, `<p></p>`).run()
-      currentSize++
-      i++
-      childCount += 1
+  for (let i = 0; i < childCount; i++) {
+    // console.log({
+    //   i,
+    //   childCount,
+    //   prevChild: i > 0 ? topContent.child(i - 1).type.name : null,
+    //   currChild: topContent.child(i).type.name,
+    // })
+    const previousNode = (i > 0 && topContent.child(i - 1)) || undefined
+    const node = topContent.child(i)
+
+    // Remove two successive seps
+    if (previousNode && previousNode.type.name === 'separatorNode' && node.type.name === 'separatorNode') {
+      const range = { from: currentSize, to: currentSize + node.nodeSize }
+      // console.log('Found two successive separator nodes', range)
+      editor.commands.deleteRange(range)
+      return
     }
-    currentSize += topContent.child(i).nodeSize
+
+    // Remove when [para-sep]-para
+    if (i < childCount - 1 && previousNode && previousNode.type.name === 'paragraph' && node.type.name === 'separatorNode') {
+      const nextNode = topContent.child(i + 1)
+      if (nextNode && nextNode.type.name === 'paragraph') {
+        // Remove the separator
+        const range = { from: currentSize, to: currentSize + node.nodeSize }
+        // console.log('Found separator node between two paragraphs', range)
+        editor.commands.deleteRange(range)
+        return
+      }
+    }
+
+    // Add separators between photo-para, or para-photo
+    if (
+      previousNode &&
+      previousNode.type.name !== 'separatorNode' &&
+      node.type.name !== 'separatorNode' &&
+      (previousNode.type !== node.type || node.type.name === 'photoNode')
+    ) {
+      // console.log('Inserting separator', { previousNode: previousNode?.type.name, node: node.type.name })
+      editor.chain().insertContentAt(currentSize, `<tdf-separator></tdf-separator>`).run()
+
+      return // stop and wait for next run by editor.on('update')
+    }
+
+    // console.log('Doing nothing', { previousNode: previousNode?.type.name, node: node.type.name })
+
+    currentSize += node.nodeSize
   }
 }
 
@@ -594,8 +736,13 @@ function separatePhotoNodesInJSONContent(contentAsJSON: TipTapContentAsJSON): Ti
 
   let previousNode = null
   for (const node of contentAsJSON.content) {
-    if (node.type === 'photoNode' && previousNode && previousNode.type === 'photoNode') {
-      newContentAsJson.content.push({ type: 'paragraph', content: [] })
+    if (
+      previousNode &&
+      previousNode.type !== 'separatorNode' &&
+      node.type !== 'separatorNode' &&
+      (previousNode.type !== node.type || node.type === 'photoNode')
+    ) {
+      newContentAsJson.content.push({ type: 'separatorNode' })
     }
     newContentAsJson.content.push(node)
     previousNode = node
