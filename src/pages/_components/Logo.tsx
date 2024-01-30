@@ -6,5 +6,5 @@ interface LogoProps {
 }
 
 export const Logo = ({ style, className }: LogoProps) => {
-  return <img src='http://localhost:3000/images/logo-light-transparent-152x152.png' style={style || {}} className={className} />
+  return <img src='images/tdf-picto-black-transparent.png' style={style || {}} className={className} />
 }
