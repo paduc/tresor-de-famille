@@ -163,7 +163,13 @@ const PhotoItem = (props: PhotoItemProps) => {
       </div>
 
       <div className=''>
-        <p className='text-md text-gray-600 mb-1 whitespace-pre-wrap'>{description}</p>
+        <input
+          type='text'
+          className='text-md text-gray-600 my-3 whitespace-pre-wrap placeholder:italic border-none p-0 ring-0 focus:ring-0 w-full'
+          placeholder='Cliquer ici pour ajouter une légende à la photo'
+          defaultValue={description || ''}
+        />
+
         {descriptionOfPeople ? <p className='text-md text-gray-600 mb-1'>avec {descriptionOfPeople}</p> : null}
         {!(description || description?.length) && unrecognizedFacesInPhoto ? (
           <p className='text-md text-gray-600 mb-1'>
