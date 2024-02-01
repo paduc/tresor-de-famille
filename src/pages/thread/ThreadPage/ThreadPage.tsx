@@ -4,26 +4,18 @@ import debounce from 'lodash.debounce'
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react'
 import { UUID } from '../../../domain'
 import { withBrowserBundle } from '../../../libs/ssr/withBrowserBundle'
-import {
-  buttonIconStyles,
-  primaryButtonStyles,
-  secondaryButtonStyles,
-  secondaryCircularButtons,
-  smallButtonIconStyles,
-  smallButtonStyles,
-} from '../../_components/Button'
+import { secondaryCircularButtons } from '../../_components/Button'
 import { ProgressiveImg } from '../../_components/ProgressiveImg'
 import { AppLayout } from '../../_components/layout/AppLayout'
 
-import { Bars3BottomLeftIcon, DocumentTextIcon, PhotoIcon } from '@heroicons/react/20/solid'
-import { TrashIcon } from '@heroicons/react/24/outline'
+import { Bars3BottomLeftIcon, PhotoIcon } from '@heroicons/react/20/solid'
+import { ArrowsPointingOutIcon, TrashIcon } from '@heroicons/react/24/outline'
 import { Node } from '@tiptap/core'
 import {
   Attributes,
   Content,
   Editor,
   EditorContent,
-  FloatingMenu,
   JSONContent,
   NodeViewWrapper,
   ReactNodeViewRenderer,
@@ -42,8 +34,8 @@ import { PhotoURL } from '../../photoApi/PhotoURL'
 import { MediaSelector } from '../MediaSelector'
 import { ThreadUrl } from '../ThreadUrl'
 import { TipTapContentAsJSON, removeSeparatorNodes } from '../TipTapTypes'
-import { ThreadSharingButton } from './ThreadSharingButton'
 import { Comment, Comments } from './Comments'
+import { ThreadSharingButton } from './ThreadSharingButton'
 
 // @ts-ignore
 function classNames(...classes) {
@@ -144,19 +136,30 @@ const PhotoItem = (props: PhotoItemProps) => {
     <div className='relative grid grid-cols-1 w-full px-4 sm:px-0 py-2'>
       <div className='absolute top-4 left-6 sm:left-3'>
         <button
-          onClick={() => deletePhoto(props.photoId)}
+          onClick={() => {
+            if (confirm('Etes-vous sur de vouloir retirer cette photo de cette histoire ?')) {
+              deletePhoto(props.photoId)
+            }
+          }}
           title='Retirer la photo'
           className={`${secondaryCircularButtons} bg-opacity-60`}>
           <TrashIcon className={`h-5 w-5`} />
         </button>
       </div>
 
-      <div className='mb-2'>
-        <a href={photoPageUrl}>
-          <div className='max-w-full max-h-[50vh]'>
-            <ProgressiveImg src={url} className='max-w-full max-h-[50vh] border border-gray-300 shadow-sm' />
-          </div>
+      <div className='absolute top-16 left-6 sm:left-3'>
+        {/* I dont know why thise a>button is necessary but its the only way the styles would apply correctly... */}
+        <a href={PhotoURL(props.photoId)} title='Ouvrir la photo'>
+          <button title='Ouvrir la photo' className={`${secondaryCircularButtons} bg-opacity-60`}>
+            <ArrowsPointingOutIcon className={`h-5 w-5`} />
+          </button>
         </a>
+      </div>
+
+      <div className='mb-2'>
+        <div className='max-w-full max-h-[50vh]'>
+          <ProgressiveImg src={url} className='max-w-full max-h-[50vh] border border-gray-300 shadow-sm' />
+        </div>
       </div>
 
       <div className=''>
@@ -672,7 +675,7 @@ function StatusIndicator({ status }: { status: AutosaveStatus }) {
 function addSeparatorBetweenNodes(editor: Editor) {
   const topContent = editor.view.state.doc.content
 
-  console.log('addSeparatorBetweenNodes', topContent)
+  // console.log('addSeparatorBetweenNodes', topContent)
   let currentSize = 0
   let childCount = topContent.childCount
   for (let i = 0; i < childCount; i++) {
