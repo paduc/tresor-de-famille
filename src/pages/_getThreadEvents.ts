@@ -1,12 +1,13 @@
 import { getEventList } from '../dependencies/getEventList'
 import { ThreadId } from '../domain/ThreadId'
+import { UserSentMessageToChat } from '../events/deprecated/UserSentMessageToChat'
 import { UserInsertedPhotoInRichTextThread } from './thread/UserInsertedPhotoInRichTextThread'
 import { UserSetChatTitle } from './thread/UserSetChatTitle'
 import { UserUpdatedThreadAsRichText } from './thread/UserUpdatedThreadAsRichText'
 
 export type ThreadEvent =
   | UserSetChatTitle
-  // | UserSentMessageToChat
+  | UserSentMessageToChat
   // | UserUploadedPhotoToChat
   | UserUpdatedThreadAsRichText
   | UserInsertedPhotoInRichTextThread
@@ -14,11 +15,11 @@ export type ThreadEvent =
 export async function getThreadEvents(threadId: ThreadId): Promise<ThreadEvent[]> {
   const updateEvents = await getEventList<
     | UserSetChatTitle
-    // | UserSentMessageToChat
+    | UserSentMessageToChat
     // | UserUploadedPhotoToChat
     | UserUpdatedThreadAsRichText
     | UserInsertedPhotoInRichTextThread
-  >(['UserSetChatTitle', 'UserUpdatedThreadAsRichText', 'UserInsertedPhotoInRichTextThread'], {
+  >(['UserSetChatTitle', 'UserSentMessageToChat', 'UserUpdatedThreadAsRichText', 'UserInsertedPhotoInRichTextThread'], {
     threadId,
   })
 

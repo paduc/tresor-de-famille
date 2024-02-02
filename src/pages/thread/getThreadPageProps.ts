@@ -19,6 +19,7 @@ import { UserInsertedPhotoInRichTextThread } from './UserInsertedPhotoInRichText
 import { UserSetChatTitle } from './UserSetChatTitle'
 import { UserUpdatedThreadAsRichText } from './UserUpdatedThreadAsRichText'
 import { getThreadComments } from '../commentApi/getThreadComments'
+import { text } from 'express'
 
 export const getThreadPageProps = async ({
   threadId,
@@ -90,15 +91,20 @@ export const getThreadPageProps = async ({
   const contentAsJSON: TipTapContentAsJSON = Object.assign({}, DEFAULT_CONTENT)
 
   if (lastUpdateEvent) {
-    const {
-      contentAsJSON: { content },
-    } = lastUpdateEvent.payload
+    let content: TipTapContentAsJSON['content']
+
+    if (lastUpdateEvent.type === 'UserSentMessageToChat') {
+      const textContent = lastUpdateEvent.payload.message
+      content = [{ type: 'paragraph', content: [{ type: 'text', text: textContent }] }]
+    } else {
+      content = lastUpdateEvent.payload.contentAsJSON.content
+    }
 
     for (const contentNode of content) {
       if (contentNode.type !== 'photoNode') {
         // @ts-ignore
         if (contentNode.type === 'insertPhotoMarker') {
-          // some threads have insertPhotoMarker nodes...
+          // some old threads have insertPhotoMarker nodes...
           continue
         }
         contentAsJSON.content.push(contentNode)
