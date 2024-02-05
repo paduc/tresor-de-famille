@@ -31,11 +31,11 @@ pageRouter
     try {
       const { photoId } = zod.object({ photoId: zIsPhotoId }).parse(request.params)
 
-      const { threadId, profileId, photoListForFamilyId, updated } = z
+      const { threadId, profileId, photoListForFamilyId, edit } = z
         .object({
           threadId: zIsThreadId.optional(),
           profileId: zIsPersonId.optional(),
-          updated: z.string().optional(),
+          edit: z.string().optional(),
           photoListForFamilyId: zIsFamilyId.optional(),
         })
         .parse(request.query)
@@ -46,7 +46,7 @@ pageRouter
       })
 
       if (threadId) {
-        props.context = { type: 'thread', threadId, editable: !!updated }
+        props.context = { type: 'thread', threadId, editable: !!edit }
       }
 
       if (profileId) {

@@ -136,7 +136,7 @@ const PhotoItem = (props: PhotoItemProps) => {
   const [status, setStatus] = useState<AutosaveStatus>('idle')
   const descriptionOfPeople = personsInPhoto.join(', ')
 
-  const photoPageUrl = `${PhotoPageUrl(props.photoId)}?threadId=${props.threadId}&updated=1`
+  const photoPageUrl = `${PhotoPageUrl(props.photoId)}?threadId=${props.threadId}&edit=1`
 
   const saveNewCaption = (newCaption: string) => {
     if (latestCaption === newCaption) {
@@ -180,12 +180,15 @@ const PhotoItem = (props: PhotoItemProps) => {
       </div>
 
       <div className='absolute top-16 left-6 sm:left-3'>
-        {/* I dont know why thise a>button is necessary but its the only way the styles would apply correctly... */}
-        <a href={PhotoURL(props.photoId)} title='Ouvrir la photo'>
-          <button title='Ouvrir la photo' className={`${secondaryCircularButtons} bg-opacity-60`}>
-            <ArrowsPointingOutIcon className={`h-5 w-5`} />
-          </button>
-        </a>
+        {/* I dont know why an <a></a> does not work... */}
+        <button
+          onClick={() => {
+            location.href = photoPageUrl
+          }}
+          title='Ouvrir la photo'
+          className={`${secondaryCircularButtons} bg-opacity-60`}>
+          <ArrowsPointingOutIcon className={`h-5 w-5`} />
+        </button>
       </div>
 
       <div className='mb-2'>
