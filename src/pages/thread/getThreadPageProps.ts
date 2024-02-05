@@ -119,12 +119,12 @@ export const getThreadPageProps = async ({
 
       if (!photoInfo) continue
 
-      const { description, personsInPhoto, unrecognizedFacesInPhoto } = photoInfo
+      const { caption, personsInPhoto, unrecognizedFacesInPhoto } = photoInfo
 
       const newAttrs = {
         photoId,
         threadId,
-        description,
+        caption,
         personsInPhoto: encodeStringy(personsInPhoto),
         unrecognizedFacesInPhoto,
         url: getPhotoUrlFromId(photoId),
@@ -159,7 +159,7 @@ async function getPhotoInfo({
   userId: AppUserId
   threadId: ThreadId
 }): Promise<{
-  description: string
+  caption: string
   personsInPhoto: string[]
   unrecognizedFacesInPhoto: number
 } | null> {
@@ -179,7 +179,7 @@ async function getPhotoInfo({
   )
 
   return {
-    description: await getPhotoCaption({ photoId, threadId }),
+    caption: await getPhotoCaption({ photoId, threadId }),
     personsInPhoto,
     unrecognizedFacesInPhoto: unconfirmedFaceIds.size,
   }

@@ -128,7 +128,9 @@ export type PhotoItemProps = {
 }
 const PhotoItem = (props: PhotoItemProps) => {
   const deletePhoto = useDeletePhoto()
-  const { caption, url, personsInPhoto, unrecognizedFacesInPhoto, threadId } = props
+  const { caption, photoId, url, personsInPhoto, unrecognizedFacesInPhoto, threadId } = props
+
+  console.log('PhotoId', { caption })
 
   const [latestCaption, setLatestCaption] = useState<string | undefined>(caption)
   const [status, setStatus] = useState<AutosaveStatus>('idle')
@@ -145,7 +147,7 @@ const PhotoItem = (props: PhotoItemProps) => {
     fetch(ThreadUrl(threadId), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'clientsideCaptionUpdate', caption: newCaption }),
+      body: JSON.stringify({ action: 'clientsideCaptionUpdate', caption: newCaption, photoId }),
     }).then((res) => {
       if (!res.ok) {
         alert("La nouvelle légende n'a pas pu être sauvegardé")
@@ -198,7 +200,7 @@ const PhotoItem = (props: PhotoItemProps) => {
             minRows={1}
             className='flex-1 text-md text-gray-600 whitespace-pre-wrap placeholder:italic border-none p-0 ring-0 focus:ring-0'
             placeholder='Cliquer ici pour ajouter une légende à la photo'
-            defaultValue={caption || ''}
+            defaultValue={latestCaption || ''}
             onChange={(e) => {
               debouncedSaveNewCaption(e.target.value)
             }}
@@ -506,6 +508,8 @@ const PhotoNodeItem = (props: {
   }
 }) => {
   try {
+    console.log('photo node', { props })
+
     const parsedPersonsInPhoto: string[] = JSON.parse(decodeURIComponent(props.node.attrs.personsInPhoto))
 
     if (!Array.isArray(parsedPersonsInPhoto) || parsedPersonsInPhoto.some((nom) => typeof nom !== 'string')) {

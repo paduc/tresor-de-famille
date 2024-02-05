@@ -30,6 +30,7 @@ describe('getThreadPageProps', () => {
                 type: 'photoNode',
                 attrs: {
                   photoId,
+                  caption: '',
                 },
               },
             ],
@@ -57,7 +58,7 @@ describe('getThreadPageProps', () => {
             type: 'photoNode',
             attrs: {
               photoId,
-              description: 'Hello',
+              caption: 'Hello',
             },
           },
         ],
@@ -84,6 +85,7 @@ describe('getThreadPageProps', () => {
                 type: 'photoNode',
                 attrs: {
                   photoId,
+                  caption: '',
                 },
               },
             ],
@@ -122,7 +124,7 @@ describe('getThreadPageProps', () => {
             type: 'photoNode',
             attrs: {
               photoId,
-              description: 'Hello',
+              caption: 'Hello',
             },
           },
         ],
@@ -149,6 +151,7 @@ describe('getThreadPageProps', () => {
                 type: 'photoNode',
                 attrs: {
                   photoId,
+                  caption: '',
                 },
               },
             ],
@@ -178,7 +181,7 @@ describe('getThreadPageProps', () => {
             type: 'photoNode',
             attrs: {
               photoId,
-              description: 'Well',
+              caption: 'Well',
             },
           },
         ],

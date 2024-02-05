@@ -38,7 +38,7 @@ const zIsParagraphNode = z.object({
 
 const zIsPhotoNode = z.object({
   type: z.literal('photoNode'),
-  attrs: z.object({ photoId: zIsPhotoId }).and(z.record(z.any())),
+  attrs: z.object({ photoId: zIsPhotoId, caption: z.string() }).and(z.record(z.any())),
 })
 
 const zIsSeparatorNode = z.object({

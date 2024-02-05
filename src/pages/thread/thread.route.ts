@@ -4,6 +4,7 @@ import { addToHistory } from '../../dependencies/addToHistory'
 import { requireAuth } from '../../dependencies/authn'
 import { AppUserId } from '../../domain/AppUserId'
 import { FamilyId, zIsFamilyId } from '../../domain/FamilyId'
+import { zIsPhotoId } from '../../domain/PhotoId'
 import { ThreadId, zIsThreadId } from '../../domain/ThreadId'
 import { makeThreadId } from '../../libs/makeThreadId'
 import { responseAsHtml } from '../../libs/ssr/responseAsHtml'
@@ -18,12 +19,10 @@ import { ThreadPage } from './ThreadPage/ThreadPage'
 import { ThreadSharedWithFamilies } from './ThreadPage/ThreadSharedWithFamilies'
 import { ThreadUrl } from './ThreadUrl'
 import { PhotoNode, TipTapJSON, zIsTipTapContentAsJSON } from './TipTapTypes'
+import { UserSetCaptionOfPhotoInThread } from './UserSetCaptionOfPhotoInThread'
 import { UserSetChatTitle } from './UserSetChatTitle'
 import { UserUpdatedThreadAsRichText } from './UserUpdatedThreadAsRichText'
 import { getThreadContents, getThreadPageProps } from './getThreadPageProps'
-import { UserAddedCaptionToPhoto } from '../photo/UserAddedCaptionToPhoto'
-import { UserSetCaptionOfPhotoInThread } from './UserSetCaptionOfPhotoInThread'
-import { zIsPhotoId } from '../../domain/PhotoId'
 
 const fakeProfilePicUrl =
   'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80'
@@ -147,6 +146,7 @@ pageRouter
         )
         return response.redirect(ThreadUrl(threadId, true))
       } else if (action === 'clientsideCaptionUpdate') {
+        console.log('clientsideCaptionUpdate', request.body)
         const { caption, photoId } = z.object({ caption: z.string(), photoId: zIsPhotoId }).parse(request.body)
 
         await addToHistory(
