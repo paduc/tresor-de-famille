@@ -5,18 +5,16 @@ import { ADMIN_USERID, IS_SHARING_ENABLED } from '../../dependencies/env'
 import { LocationContext } from '../../pages/_components/LocationContext'
 import { Session, SessionContext } from '../../pages/_components/SessionContext'
 import { PersonSearchContext } from '../../pages/_components/usePersonSearch'
-import { getProfilePicUrlForUser } from '../../pages/_getProfilePicUrlForUser'
 import { withContext } from './withContext'
 
 import manifest from '../../assets/js/manifest.json'
 import { makeSearchKey } from '../../dependencies/search'
 import { FamilyId } from '../../domain/FamilyId'
+import { getPersonIdForUser } from '../../pages/_getPersonIdForUser'
+import { getProfilePicUrlForPerson } from '../../pages/_getProfilePicUrlForPerson'
 import { getUserFamilies } from '../../pages/_getUserFamilies'
 import { InvitationWithCodeUrl } from '../../pages/share/InvitationWithCodeUrl'
 import { FamilyColorCodes } from './FamilyColorCodes'
-import { getPersonForUser } from '../../pages/_getPersonForUser'
-import { getPersonIdForUser } from '../../pages/_getPersonIdForUser'
-import { getProfilePicUrlForPerson } from '../../pages/_getProfilePicUrlForPerson'
 
 const html = String.raw
 
@@ -42,6 +40,10 @@ export async function responseAsHtml(
   const session = await getSession(request)
 
   const { ALGOLIA_APPID } = process.env
+
+  response.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate')
+  response.setHeader('Pragma', 'no-cache')
+  response.setHeader('Expires', '0')
 
   response.send(
     html`
