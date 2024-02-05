@@ -127,6 +127,13 @@ const ReadonlyPhotoItem = (props: {
         <div className=''>
           <p className='text-md text-gray-600 mb-1 whitespace-pre-wrap'>{description}</p>
           {descriptionOfPeople ? <p className='text-md text-gray-600 mb-1'>avec {descriptionOfPeople}</p> : null}
+          {unrecognizedFacesInPhoto ? (
+            <p className='text-md text-gray-600 mb-1'>
+              <a href={photoPageUrl} className='font-medium text-indigo-600 hover:text-indigo-500'>
+                {unrecognizedFacesInPhoto === 1 ? `Annoter le visage` : `Annoter les ${unrecognizedFacesInPhoto} visages`}
+              </a>
+            </p>
+          ) : null}
         </div>
       </div>
     )

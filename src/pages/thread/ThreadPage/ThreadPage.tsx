@@ -211,10 +211,10 @@ const PhotoItem = (props: PhotoItemProps) => {
         </div>
 
         {descriptionOfPeople ? <p className='text-md text-gray-600 mb-1'>avec {descriptionOfPeople}</p> : null}
-        {!(caption || caption?.length) && unrecognizedFacesInPhoto ? (
+        {unrecognizedFacesInPhoto ? (
           <p className='text-md text-gray-600 mb-1'>
             <a href={photoPageUrl} className='font-medium text-indigo-600 hover:text-indigo-500'>
-              Annoter le(s) {unrecognizedFacesInPhoto} visage(s)
+              {unrecognizedFacesInPhoto === 1 ? `Annoter le visage` : `Annoter les ${unrecognizedFacesInPhoto} visages`}
             </a>
           </p>
         ) : null}
