@@ -21,6 +21,9 @@ import { PhotoNode, TipTapJSON, zIsTipTapContentAsJSON } from './TipTapTypes'
 import { UserSetChatTitle } from './UserSetChatTitle'
 import { UserUpdatedThreadAsRichText } from './UserUpdatedThreadAsRichText'
 import { getThreadContents, getThreadPageProps } from './getThreadPageProps'
+import { UserAddedCaptionToPhoto } from '../photo/UserAddedCaptionToPhoto'
+import { UserSetCaptionOfPhotoInThread } from './UserSetCaptionOfPhotoInThread'
+import { zIsPhotoId } from '../../domain/PhotoId'
 
 const fakeProfilePicUrl =
   'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80'
@@ -85,7 +88,7 @@ pageRouter
 
       const { action } = z
         .object({
-          action: z.enum(['clientsideTitleUpdate', 'clientsideUpdate', 'shareWithMultipleFamilies']),
+          action: z.enum(['clientsideTitleUpdate', 'clientsideUpdate', 'shareWithMultipleFamilies', 'clientsideCaptionUpdate']),
         })
         .parse(request.body)
 
@@ -140,6 +143,18 @@ pageRouter
             userId,
             title: title.trim(),
             familyId,
+          })
+        )
+        return response.redirect(ThreadUrl(threadId, true))
+      } else if (action === 'clientsideCaptionUpdate') {
+        const { caption, photoId } = z.object({ caption: z.string(), photoId: zIsPhotoId }).parse(request.body)
+
+        await addToHistory(
+          UserSetCaptionOfPhotoInThread({
+            caption,
+            photoId,
+            threadId,
+            userId,
           })
         )
         return response.redirect(ThreadUrl(threadId, true))

@@ -1,10 +1,10 @@
-import React, { useCallback, useState } from 'react'
-import TextareaAutosize from 'react-textarea-autosize'
+import React, { useState } from 'react'
 
 import { Dialog, Transition } from '@headlessui/react'
 import { ChevronLeftIcon, XMarkIcon } from '@heroicons/react/20/solid'
 import { EyeIcon, EyeSlashIcon, TrashIcon } from '@heroicons/react/24/outline'
 import { FaceId } from '../../../domain/FaceId'
+import { FamilyId } from '../../../domain/FamilyId'
 import { PersonId } from '../../../domain/PersonId'
 import { PhotoId } from '../../../domain/PhotoId'
 import { ThreadId } from '../../../domain/ThreadId'
@@ -16,13 +16,12 @@ import {
   secondaryRedButtonStyles,
   smallButtonStyles,
 } from '../../_components/Button'
-import { useLoggedInSession, useSession } from '../../_components/SessionContext'
+import { useLoggedInSession } from '../../_components/SessionContext'
 import { TDFModal } from '../../_components/TDFModal'
 import { usePersonSearch } from '../../_components/usePersonSearch'
 import { PersonPageURL } from '../../person/PersonPageURL'
 import { PhotoListPageUrl, PhotoListPageUrlWithFamily } from '../../photoList/PhotoListPageUrl'
 import { ThreadUrl } from '../../thread/ThreadUrl'
-import { FamilyId } from '../../../domain/FamilyId'
 
 type PhotoFace = {
   faceId: FaceId
@@ -45,7 +44,6 @@ export type NewPhotoPageProps = {
   photoId: PhotoId
   isPhotoAuthor: boolean
   familyId: FamilyId
-  caption?: string
   faces?: PhotoFace[]
   context?:
     | {
@@ -61,20 +59,11 @@ export type NewPhotoPageProps = {
 }
 
 export const NewPhotoPage = withBrowserBundle(
-  ({ context, caption, photoId, photoUrl, faces, familyId, isPhotoAuthor }: NewPhotoPageProps) => {
+  ({ context, photoId, photoUrl, faces, familyId, isPhotoAuthor }: NewPhotoPageProps) => {
     const [selectedFaceForMenu, setSelectedFaceForMenu] = useState<PhotoFace | null>(null)
     const [selectedFaceForPersonSelector, setSelectedFaceForPersonSelector] = useState<PhotoFace | null>(null)
 
-    const [hasCaptionChanged, setCaptionChanged] = useState<boolean>(false)
     const [areIgnoredFacesVisible, showIgnoredFaces] = useState<boolean>(false)
-
-    const handleCaptionChange = useCallback(
-      (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-        if (e.target.value !== caption) setCaptionChanged(true)
-        else setCaptionChanged(false)
-      },
-      [caption]
-    )
 
     const ignoredFaces = faces?.filter((face) => face.stage === 'ignored') || []
     const annotatedFaces = faces?.filter((face): face is PhotoFace & { stage: 'done' } => face.stage === 'done') || []
@@ -136,38 +125,7 @@ export const NewPhotoPage = withBrowserBundle(
             <img src={photoUrl} className='max-w-full max-h-[95svh]' />
           </div>
           <div className='bg-white bg-opacity-5 border-t border-gray-200/50'>
-            <div className='text-gray-200 px-3 py-4 pb-28 w-full sm:max-w-lg mx-auto divide divide-y divide-solid divide-gray-200/50'>
-              <div className='pb-1'>
-                <form method='POST' className='relative'>
-                  <input type='hidden' name='action' value='addCaption' />
-                  <div className='overflow-hidden pb-5'>
-                    <label htmlFor='caption' className='sr-only'>
-                      Ajouter une légende...
-                    </label>
-                    <TextareaAutosize
-                      name='caption'
-                      minRows={1}
-                      className='block w-full bg-none bg-transparent resize-none border-0 p-0 text-white focus:ring-0 focus:border-0 placeholder:text-gray-300 pb-3'
-                      placeholder='Ajouter une légende...'
-                      defaultValue={caption}
-                      onChange={handleCaptionChange}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' && !e.altKey && !e.ctrlKey) {
-                          e.preventDefault()
-                          // @ts-ignore
-                          e.target.form.submit()
-                        }
-                      }}
-                    />
-                  </div>
-                  <button
-                    className={`mt-3 ${primaryButtonStyles} ${smallButtonStyles} absolute bottom-0 right-0 ${
-                      hasCaptionChanged ? 'visible' : 'invisible'
-                    }`}>
-                    Sauvegarder
-                  </button>
-                </form>
-              </div>
+            <div className='text-gray-200 px-3 pb-28 w-full sm:max-w-lg mx-auto divide divide-y divide-solid divide-gray-200/50'>
               {faces ? (
                 <>
                   {faces.length ? (

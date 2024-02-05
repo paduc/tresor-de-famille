@@ -8,7 +8,6 @@ import { ThreadId, isThreadId } from '../../domain/ThreadId'
 import { getEpoch } from '../../libs/typeguards'
 import { getFacesInPhoto } from '../_getFacesInPhoto'
 import { getPersonByIdOrThrow } from '../_getPersonById'
-import { getPhotoCaption } from '../_getPhotoCaption'
 import { getThreadAuthor } from '../_getThreadAuthor'
 import { ThreadEvent, getThreadEvents } from '../_getThreadEvents'
 import { getThreadFamilies } from '../_getThreadFamilies'
@@ -19,7 +18,8 @@ import { UserInsertedPhotoInRichTextThread } from './UserInsertedPhotoInRichText
 import { UserSetChatTitle } from './UserSetChatTitle'
 import { UserUpdatedThreadAsRichText } from './UserUpdatedThreadAsRichText'
 import { getThreadComments } from '../commentApi/getThreadComments'
-import { text } from 'express'
+import { UserSetCaptionOfPhotoInThread } from './UserSetCaptionOfPhotoInThread'
+import { UserAddedCaptionToPhoto } from '../photo/UserAddedCaptionToPhoto'
 
 export const getThreadPageProps = async ({
   threadId,
@@ -115,7 +115,7 @@ export const getThreadPageProps = async ({
 
       if (!photoId) continue
 
-      const photoInfo = await retrievePhotoInfo({ photoId, userId })
+      const photoInfo = await getPhotoInfo({ photoId, userId, threadId })
 
       if (!photoInfo) continue
 
@@ -150,7 +150,15 @@ export const getThreadPageProps = async ({
   }
 }
 
-async function retrievePhotoInfo({ photoId, userId }: { photoId: PhotoId; userId: AppUserId }): Promise<{
+async function getPhotoInfo({
+  photoId,
+  userId,
+  threadId,
+}: {
+  photoId: PhotoId
+  userId: AppUserId
+  threadId: ThreadId
+}): Promise<{
   description: string
   personsInPhoto: string[]
   unrecognizedFacesInPhoto: number
@@ -171,10 +179,29 @@ async function retrievePhotoInfo({ photoId, userId }: { photoId: PhotoId; userId
   )
 
   return {
-    description: await getPhotoCaption({ photoId }),
+    description: await getPhotoCaption({ photoId, threadId }),
     personsInPhoto,
     unrecognizedFacesInPhoto: unconfirmedFaceIds.size,
   }
+}
+
+async function getPhotoCaption({ photoId, threadId }: { photoId: PhotoId; threadId: ThreadId }) {
+  const captionForThread = await getSingleEvent<UserSetCaptionOfPhotoInThread>('UserSetCaptionOfPhotoInThread', {
+    photoId,
+    threadId,
+  })
+
+  if (captionForThread) {
+    return captionForThread.payload.caption
+  }
+
+  const captionEvent = await getSingleEvent<UserAddedCaptionToPhoto>(['UserAddedCaptionToPhoto'], { photoId })
+
+  if (captionEvent) {
+    return captionEvent.payload.caption.body
+  }
+
+  return ''
 }
 
 function findLastIndex<T>(array: T[], callback: (item: T) => boolean): number {

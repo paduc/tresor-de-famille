@@ -2,6 +2,7 @@ import { formatRelative } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import debounce from 'lodash.debounce'
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react'
+import TextareaAutosize from 'react-textarea-autosize'
 import { UUID } from '../../../domain'
 import { withBrowserBundle } from '../../../libs/ssr/withBrowserBundle'
 import { secondaryCircularButtons } from '../../_components/Button'
@@ -120,17 +121,46 @@ export const ThreadPage = withBrowserBundle(
 export type PhotoItemProps = {
   photoId: PhotoId
   url: string
-  description?: string
+  caption?: string
   personsInPhoto: string[]
   unrecognizedFacesInPhoto: number
   threadId: ThreadId
 }
 const PhotoItem = (props: PhotoItemProps) => {
   const deletePhoto = useDeletePhoto()
-  const { description, url, personsInPhoto, unrecognizedFacesInPhoto } = props
+  const { caption, url, personsInPhoto, unrecognizedFacesInPhoto, threadId } = props
+
+  const [latestCaption, setLatestCaption] = useState<string | undefined>(caption)
+  const [status, setStatus] = useState<AutosaveStatus>('idle')
   const descriptionOfPeople = personsInPhoto.join(', ')
 
   const photoPageUrl = `${PhotoPageUrl(props.photoId)}?threadId=${props.threadId}&updated=1`
+
+  const saveNewCaption = (newCaption: string) => {
+    if (latestCaption === newCaption) {
+      return
+    }
+
+    setStatus('saving')
+    fetch(ThreadUrl(threadId), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'clientsideCaptionUpdate', caption: newCaption }),
+    }).then((res) => {
+      if (!res.ok) {
+        alert("La nouvelle légende n'a pas pu être sauvegardé")
+        setStatus('error')
+        return
+      }
+      setStatus('saved')
+      setLatestCaption(newCaption)
+      setTimeout(() => {
+        setStatus('idle')
+      }, 2000)
+    })
+  }
+
+  const debouncedSaveNewCaption = useCallback(debounce(saveNewCaption, 1500), [])
 
   return (
     <div className='relative grid grid-cols-1 w-full px-4 sm:px-0 py-2'>
@@ -162,16 +192,24 @@ const PhotoItem = (props: PhotoItemProps) => {
         </div>
       </div>
 
-      <div className=''>
-        <input
-          type='text'
-          className='text-md text-gray-600 my-3 whitespace-pre-wrap placeholder:italic border-none p-0 ring-0 focus:ring-0 w-full'
-          placeholder='Cliquer ici pour ajouter une légende à la photo'
-          defaultValue={description || ''}
-        />
+      <div className='w-full pr-10'>
+        <div className='inline-flex my-3 mr-10 items-center w-full'>
+          <TextareaAutosize
+            minRows={1}
+            className='flex-1 text-md text-gray-600 whitespace-pre-wrap placeholder:italic border-none p-0 ring-0 focus:ring-0'
+            placeholder='Cliquer ici pour ajouter une légende à la photo'
+            defaultValue={caption || ''}
+            onChange={(e) => {
+              debouncedSaveNewCaption(e.target.value)
+            }}
+          />
+          <div className='flex-0 h-6 w-8'>
+            <StatusIndicator status={status} />
+          </div>
+        </div>
 
         {descriptionOfPeople ? <p className='text-md text-gray-600 mb-1'>avec {descriptionOfPeople}</p> : null}
-        {!(description || description?.length) && unrecognizedFacesInPhoto ? (
+        {!(caption || caption?.length) && unrecognizedFacesInPhoto ? (
           <p className='text-md text-gray-600 mb-1'>
             <a href={photoPageUrl} className='font-medium text-indigo-600 hover:text-indigo-500'>
               Annoter le(s) {unrecognizedFacesInPhoto} visage(s)
@@ -476,7 +514,7 @@ const PhotoNodeItem = (props: {
 
     const remixedProps: PhotoItemProps = { ...props.node.attrs, personsInPhoto: parsedPersonsInPhoto }
 
-    const { threadId, photoId, url, description, personsInPhoto, unrecognizedFacesInPhoto } = remixedProps
+    const { threadId, photoId, url, caption: description, personsInPhoto, unrecognizedFacesInPhoto } = remixedProps
 
     return (
       <NodeViewWrapper className='tdf-photo'>
@@ -486,7 +524,7 @@ const PhotoNodeItem = (props: {
           photoId={photoId}
           unrecognizedFacesInPhoto={unrecognizedFacesInPhoto}
           url={url}
-          description={description}
+          caption={description}
           key={photoId}
         />
       </NodeViewWrapper>
@@ -513,7 +551,7 @@ const PhotoNode = Node.create({
       threadId: {},
       photoId: {},
       url: {},
-      description: {},
+      caption: {},
       personsInPhoto: {},
       unrecognizedFacesInPhoto: {},
     }

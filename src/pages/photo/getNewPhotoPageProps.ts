@@ -1,14 +1,11 @@
 import { getSingleEvent } from '../../dependencies/getSingleEvent'
 import { getPhotoUrlFromId } from '../../dependencies/photo-storage'
 import { AppUserId } from '../../domain/AppUserId'
-import { FamilyId } from '../../domain/FamilyId'
 import { PhotoId } from '../../domain/PhotoId'
 import { doesPhotoExist } from '../_doesPhotoExist'
 import { getFacesInPhoto } from '../_getFacesInPhoto'
 import { getPersonByIdOrThrow } from '../_getPersonById'
 import { getPhotoAuthor } from '../_getPhotoAuthor'
-import { getPhotoCaption } from '../_getPhotoCaption'
-import { getPhotoEvents } from '../_getPhotoEvents'
 import { getPhotoFamilyId } from '../_getPhotoFamily'
 
 import { NewPhotoPageProps } from './PhotoPage/NewPhotoPage'
@@ -62,8 +59,6 @@ export const getNewPhotoPageProps = async ({
     )
   }
 
-  const caption = await getPhotoCaption({ photoId })
-
   const familyId = await getPhotoFamilyId(photoId)
 
   const authorId = await getPhotoAuthor(photoId)
@@ -73,7 +68,6 @@ export const getNewPhotoPageProps = async ({
     photoId,
     familyId,
     isPhotoAuthor: authorId === userId,
-    caption,
     faces,
   }
 }
