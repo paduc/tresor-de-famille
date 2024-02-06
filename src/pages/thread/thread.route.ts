@@ -129,7 +129,7 @@ pageRouter
           )
           return response.status(200).send('ok')
         } catch (error) {
-          console.error('Impossible to save UserThread')
+          console.error('Impossible to save UserThread', error)
         }
 
         return response.status(500).send('Oops')
@@ -146,7 +146,6 @@ pageRouter
         )
         return response.redirect(ThreadUrl(threadId, true))
       } else if (action === 'clientsideCaptionUpdate') {
-        console.log('clientsideCaptionUpdate', request.body)
         const { caption, photoId } = z.object({ caption: z.string(), photoId: zIsPhotoId }).parse(request.body)
 
         await addToHistory(

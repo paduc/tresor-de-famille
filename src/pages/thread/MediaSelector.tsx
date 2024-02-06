@@ -1,5 +1,5 @@
 import axios, { AxiosError } from 'axios'
-import React, { memo, useCallback, useEffect, useState } from 'react'
+import React, { memo, useCallback, useEffect, useMemo, useState } from 'react'
 import { PhotoId } from '../../domain/PhotoId'
 import { TDFModal } from '../_components/TDFModal'
 import { MediaSelectorListURL } from '../photoApi/MediaSelectorListURL'
@@ -8,6 +8,7 @@ import { CheckIcon, FireIcon, HeartIcon, SparklesIcon, XCircleIcon, XMarkIcon } 
 import { getUuid } from '../../libs/getUuid'
 import { primaryButtonStyles, smallButtonStyles } from '../_components/Button'
 import { FamilyId } from '../../domain/FamilyId'
+import { UUID } from '../../domain'
 
 type MediaSelectorProps = {
   onPhotoAdded?: (photoId: PhotoId) => void
@@ -17,8 +18,8 @@ type FetchStatus = 'idle' | 'downloading' | 'error'
 export function MediaSelector({ onPhotoAdded, children }: MediaSelectorProps) {
   const [photos, setPhotos] = useState<PhotoId[]>([])
   const [isOpen, setOpen] = useState(false)
-
   const [status, setStatus] = useState<FetchStatus>('idle')
+  const uniqueKey = useMemo(() => getUuid(), [])
 
   // Fetch photos here
   useEffect(() => {
@@ -50,6 +51,7 @@ export function MediaSelector({ onPhotoAdded, children }: MediaSelectorProps) {
     <>
       {children(() => setOpen(true))}
       <MediaSelectorComponent
+        uniqueKey={uniqueKey}
         isOpen={isOpen}
         close={() => {
           setOpen(false)
@@ -79,8 +81,16 @@ type MediaSelectorComponentProps = {
   isOpen: boolean
   close: () => unknown
   status: FetchStatus
+  uniqueKey: UUID
 }
-export function MediaSelectorComponent({ isOpen, close, onPhotoAdded, photos, status }: MediaSelectorComponentProps) {
+export function MediaSelectorComponent({
+  isOpen,
+  close,
+  onPhotoAdded,
+  photos,
+  status,
+  uniqueKey,
+}: MediaSelectorComponentProps) {
   const [newPhotos, setNewPhotos] = useState<{ photoId: PhotoId; url: string }[]>([])
 
   return (
@@ -112,7 +122,7 @@ export function MediaSelectorComponent({ isOpen, close, onPhotoAdded, photos, st
         ) : null}
         <ul role='list' className='grid grid-cols-2 gap-x-4 gap-y-4 sm:grid-cols-3 sm:gap-x-6 lg:grid-cols-4 xl:gap-x-8 mt-3'>
           {[...newPhotos, ...photos].map(({ photoId, url }) => (
-            <li key={photoId} className='relative'>
+            <li key={`${uniqueKey}_${photoId}`} className='relative'>
               <div className='group aspect-h-7 aspect-w-10 block w-full overflow-hidden rounded-lg bg-gray-100 cursor-pointer'>
                 <img src={url} alt='' className='pointer-events-none object-cover group-hover:opacity-75' />
                 <a

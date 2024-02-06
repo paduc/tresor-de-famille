@@ -62,7 +62,7 @@ pageRouter.route('/importGedcom.html').post(
       const erroneousRels = relationships.filter((rel: { parent: any; child: any }) => !rel.parent || !rel.child)
 
       if (erroneousRels.length) {
-        console.log('Found erroneousRels', erroneousRels.length)
+        console.error('Found erroneousRels', erroneousRels.length)
         return response.status(400).send()
       }
 
@@ -99,7 +99,7 @@ pageRouter.route('/importGedcom.html').post(
         })
       )
     } catch (error) {
-      console.log('Erreur lors du traitement du fichier gedcom', error)
+      console.error('Erreur lors du traitement du fichier gedcom', error)
     } finally {
       await unlink(path)
       return response.redirect('/')
@@ -147,7 +147,7 @@ function parsePerson(personData: any) {
   if (nameData) {
     person.name = nameData.value.replace(/\//g, '')
   } else {
-    console.log(`ERROR: person ${person.gedcomId} does not have a name`)
+    console.error(`ERROR: person ${person.gedcomId} does not have a name`)
   }
 
   return person

@@ -130,8 +130,6 @@ const PhotoItem = (props: PhotoItemProps) => {
   const deletePhoto = useDeletePhoto()
   const { caption, photoId, url, personsInPhoto, unrecognizedFacesInPhoto, threadId } = props
 
-  console.log('PhotoId', { caption })
-
   const [latestCaption, setLatestCaption] = useState<string | undefined>(caption)
   const [status, setStatus] = useState<AutosaveStatus>('idle')
   const descriptionOfPeople = personsInPhoto.join(', ')
@@ -511,8 +509,6 @@ const PhotoNodeItem = (props: {
   }
 }) => {
   try {
-    console.log('photo node', { props })
-
     const parsedPersonsInPhoto: string[] = JSON.parse(decodeURIComponent(props.node.attrs.personsInPhoto))
 
     if (!Array.isArray(parsedPersonsInPhoto) || parsedPersonsInPhoto.some((nom) => typeof nom !== 'string')) {

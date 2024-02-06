@@ -1,5 +1,6 @@
 import multer from 'multer'
 import fs from 'node:fs'
+import path from 'node:path'
 import zod from 'zod'
 import { addToHistory } from '../../dependencies/addToHistory'
 import { requireAuth } from '../../dependencies/authn'

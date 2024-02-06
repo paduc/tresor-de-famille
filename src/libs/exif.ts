@@ -56,7 +56,7 @@ export function findEXIFinHEIC(data: ArrayBufferLike): EXIF | undefined {
 export function findEXIFinJPEG(data: ArrayBufferLike): EXIF | undefined {
   var dataView = new DataView(data)
   if (dataView.getUint8(0) != 0xff || dataView.getUint8(1) != 0xd8) {
-    if (debug) console.log('Not a valid JPEG')
+    if (debug) console.error('Not a valid JPEG')
     return // not a valid jpeg
   }
   var offset = 2,
@@ -64,15 +64,15 @@ export function findEXIFinJPEG(data: ArrayBufferLike): EXIF | undefined {
     marker
   while (offset < length) {
     if (dataView.getUint8(offset) != 0xff) {
-      if (debug) console.log('Not a valid marker at offset ' + offset + ', found: ' + dataView.getUint8(offset))
+      if (debug) console.error('Not a valid marker at offset ' + offset + ', found: ' + dataView.getUint8(offset))
       return // not a valid marker, something is wrong
     }
     marker = dataView.getUint8(offset + 1)
-    if (debug) console.log(marker)
+    if (debug) console.error(marker)
     // we could implement handling for other markers here,
     // but we're only looking for 0xFFE1 for EXIF data
     if (marker == 225) {
-      if (debug) console.log('Found 0xFFE1 marker')
+      if (debug) console.error('Found 0xFFE1 marker')
       return readEXIFData(dataView, offset + 4 + 6)
     } else {
       offset += 2 + dataView.getUint16(offset + 2)
@@ -411,7 +411,7 @@ function readTags(file, tiffStart, dirStart, strings, bigEnd) {
   for (i = 0; i < entries; i++) {
     entryOffset = dirStart + i * 12 + 2
     tag = strings[file.getUint16(entryOffset, !bigEnd)]
-    if (!tag && debug) console.log('Unknown tag: ' + file.getUint16(entryOffset, !bigEnd))
+    if (!tag && debug) console.error('Unknown tag: ' + file.getUint16(entryOffset, !bigEnd))
     tags[tag] = readTagValue(file, entryOffset, tiffStart, dirStart, bigEnd)
   }
   return tags
@@ -530,12 +530,12 @@ function readEXIFData(file, start) {
   } else if (file.getUint16(start) == 0x4d4d) {
     bigEnd = true
   } else {
-    if (debug) console.log('Not valid TIFF data! (no 0x4949 or 0x4D4D)')
+    if (debug) console.error('Not valid TIFF data! (no 0x4949 or 0x4D4D)')
     return false
   }
 
   if (file.getUint16(start + 2, !bigEnd) != 0x002a) {
-    if (debug) console.log('Not valid TIFF data! (no 0x002A)')
+    if (debug) console.error('Not valid TIFF data! (no 0x002A)')
     return false
   }
 
