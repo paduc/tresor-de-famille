@@ -46,7 +46,7 @@ function classNames(...classes) {
 export type ThreadPageProps = {
   title?: string
   contentAsJSON: TipTapContentAsJSON
-  lastUpdated: Epoch | undefined
+  lastUpdated: string | undefined // ISO string
   threadId: ThreadId
   isAuthor: boolean
   familyId: FamilyId
@@ -61,7 +61,7 @@ export const ThreadPage = withBrowserBundle(
   ({
     title,
     contentAsJSON: contentAsJSONFromServer,
-    lastUpdated,
+    lastUpdated: lastUpdatedAsString,
     threadId,
     familyId,
     sharedWithFamilyIds,
@@ -71,6 +71,8 @@ export const ThreadPage = withBrowserBundle(
     const richTextEditorRef = React.useRef<RichTextEditorRef>(null)
 
     let contentAsJSON = separatePhotoNodesInJSONContent(contentAsJSONFromServer)
+
+    const lastUpdated = lastUpdatedAsString ? new Date(lastUpdatedAsString) : undefined
 
     // if (isBrowserContext && localStorage.getItem(threadId)) {
     //   try {
@@ -280,12 +282,12 @@ type AutosaveStatus = 'idle' | 'saving' | 'saved' | 'error'
 const useAutosaveEditor = (
   editor: Editor | null,
   threadId: ThreadId,
-  initialLastUpdated: Epoch | undefined
-): { status: AutosaveStatus; lastUpdated: Epoch | undefined } => {
+  initialLastUpdated: Date | undefined
+): { status: AutosaveStatus; lastUpdated: Date | undefined } => {
   // console.log('useAutosaveEditor', editor)
   const [latestHTML, setLatestHTML] = useState<string | null>(null)
   const [status, setStatus] = useState<AutosaveStatus>('idle')
-  const [lastUpdated, setLastUpdated] = useState<Epoch | undefined>(initialLastUpdated)
+  const [lastUpdated, setLastUpdated] = useState<Date | undefined>(initialLastUpdated)
 
   const save = (json: TipTapContentAsJSON) => {
     const newJSON = removeSeparatorNodes(json)
@@ -309,7 +311,7 @@ const useAutosaveEditor = (
         return
       }
       setStatus('saved')
-      setLastUpdated(Date.now() as Epoch)
+      setLastUpdated(new Date())
       setTimeout(() => {
         setStatus('idle')
       }, 2000)
@@ -357,7 +359,7 @@ const useAutosaveEditor = (
 type RichTextEditorProps = {
   content: Content
   threadId: ThreadId
-  lastUpdated: Epoch | undefined
+  lastUpdated: Date | undefined
 }
 
 type RichTextEditorRef = {

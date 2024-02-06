@@ -68,7 +68,7 @@ export const getThreadPageProps = async ({
     return {
       threadId,
       contentAsJSON: DEFAULT_CONTENT,
-      lastUpdated: getEpoch(latestSetTitleEvent.occurredAt),
+      lastUpdated: latestSetTitleEvent.occurredAt.toISOString(),
       title,
       familyId,
       sharedWithFamilyIds,
@@ -140,7 +140,7 @@ export const getThreadPageProps = async ({
   return {
     threadId,
     contentAsJSON,
-    lastUpdated: getEpoch(threadEvents.at(-1)!.occurredAt),
+    lastUpdated: threadEvents.at(-1)!.occurredAt.toISOString(),
     title: latestTitleEvent?.payload.title || '',
     familyId,
     sharedWithFamilyIds,
