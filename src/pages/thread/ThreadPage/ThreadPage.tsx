@@ -5,7 +5,7 @@ import React, { createContext, useCallback, useContext, useEffect, useRef, useSt
 import TextareaAutosize from 'react-textarea-autosize'
 import { UUID } from '../../../domain'
 import { withBrowserBundle } from '../../../libs/ssr/withBrowserBundle'
-import { secondaryCircularButtons } from '../../_components/Button'
+import { linkStyles, secondaryCircularButtons } from '../../_components/Button'
 import { ProgressiveImg } from '../../_components/ProgressiveImg'
 import { AppLayout } from '../../_components/layout/AppLayout'
 
@@ -108,7 +108,11 @@ export const ThreadPage = withBrowserBundle(
               <RichTextEditor ref={richTextEditorRef} content={contentAsJSON} threadId={threadId} lastUpdated={lastUpdated} />
             </div>
           </div>
-
+          <div className='mt-2 ml-4 sm:ml-6'>
+            <a href={ThreadUrl(threadId, false)} className={`${linkStyles}`}>
+              J'ai terminé mes modifications
+            </a>
+          </div>
           <div className='mt-6'>
             <Comments comments={comments} threadId={threadId} />
           </div>
@@ -484,7 +488,7 @@ const RichTextEditor = fixedForwardRef<RichTextEditorRef, RichTextEditorProps>((
           </div>
         </div>
         {!!lastUpdated ? (
-          <div className='my-2 pl-4 pt-2 sm:pl-6 italic text-gray-500 border-t border-gray-200'>
+          <div className='my-2 pl-4 pt-2 sm:pl-6 italic text-gray-500 '>
             Dernière mise à jour {formatRelative(lastUpdated, Date.now(), { locale: fr })}
           </div>
         ) : null}
