@@ -24,7 +24,7 @@ const upload = multer({
 /**
  * This entry-point is for Client-side upload (see Multiupload.tsx)
  */
-pageRouter.route('/upload-photo').post(requireAuth(), upload.single('photo'), async (request, response) => {
+pageRouter.route('/upload-photo').post(requireAuth(), upload.single('photo'), async (request, response, next) => {
   try {
     const { familyId } = zod
       .object({
@@ -71,6 +71,6 @@ pageRouter.route('/upload-photo').post(requireAuth(), upload.single('photo'), as
     return response.status(200).json({ photoId })
   } catch (error) {
     console.error('Error in /upload-image route')
-    throw error
+    next(error)
   }
 })

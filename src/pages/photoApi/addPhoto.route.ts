@@ -25,7 +25,7 @@ const upload = multer({
  * The difference with upload-photo is that it returns to the previous page
  * It uses a form to upload and redirect
  */
-pageRouter.route('/add-photo.html').post(requireAuth(), upload.single('photo'), async (request, response) => {
+pageRouter.route('/add-photo.html').post(requireAuth(), upload.single('photo'), async (request, response, next) => {
   try {
     const { familyId } = zod
       .object({
@@ -77,6 +77,6 @@ pageRouter.route('/add-photo.html').post(requireAuth(), upload.single('photo'), 
     return response.redirect(`/photo/${photoId}/photo.html`)
   } catch (error) {
     console.error('Error in chat route')
-    throw error
+    next(error)
   }
 })

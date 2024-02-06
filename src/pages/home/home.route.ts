@@ -17,100 +17,108 @@ import { LandingPage } from '../landing/LandingPage'
 
 pageRouter
   .route('/')
-  .get(async (request, response) => {
-    if (!request.session.user) {
-      return responseAsHtml(request, response, LandingPage({}))
-    }
-
+  .get(async (request, response, next) => {
     try {
-      const userId = request.session.user!.id
-      const props = await getHomePageProps(userId)
+      if (!request.session.user) {
+        return responseAsHtml(request, response, LandingPage({}))
+      }
 
-      // if (request.session.isOnboarding && !props.isOnboarding && !(await hasUserCreatedAThread(userId))) {
-      //   return response.redirect('/thread.html')
-      // }
+      try {
+        const userId = request.session.user!.id
+        const props = await getHomePageProps(userId)
 
-      responseAsHtml(request, response, HomePage(props))
+        // if (request.session.isOnboarding && !props.isOnboarding && !(await hasUserCreatedAThread(userId))) {
+        //   return response.redirect('/thread.html')
+        // }
+
+        responseAsHtml(request, response, HomePage(props))
+      } catch (error) {
+        return response.send('Erreur de chargement de page home')
+      }
     } catch (error) {
-      return response.send('Erreur de chargement de page home')
+      next(error)
     }
   })
-  .post(requireAuth(), async (request, response) => {
-    const { action } = z
-      .object({
-        action: z.enum(['setUserPerson']),
-      })
-      .parse(request.body)
-
-    const userId = request.session.user!.id
-
-    if (action === 'setUserPerson') {
-      const { existingPersonId, newPersonWithName } = z
+  .post(requireAuth(), async (request, response, next) => {
+    try {
+      const { action } = z
         .object({
-          existingPersonId: zIsPersonId.optional(),
-          newPersonWithName: z.string().optional(),
+          action: z.enum(['setUserPerson']),
         })
         .parse(request.body)
 
-      if (!existingPersonId && !newPersonWithName) {
-        console.error('setUserPerson is missing an option', { existingPersonId, newPersonWithName })
-        return response.redirect('/')
-      }
+      const userId = request.session.user!.id
 
-      if (newPersonWithName) {
-        const personId = makePersonId()
-        await addToHistory(
-          UserNamedThemself({
-            userId,
-            personId,
-            name: newPersonWithName,
-            familyId: asFamilyId(userId),
+      if (action === 'setUserPerson') {
+        const { existingPersonId, newPersonWithName } = z
+          .object({
+            existingPersonId: zIsPersonId.optional(),
+            newPersonWithName: z.string().optional(),
           })
-        )
+          .parse(request.body)
 
-        request.session.user!.name = newPersonWithName
-
-        try {
-          await personsIndex.saveObject({
-            objectID: personId,
-            personId,
-            name: newPersonWithName,
-            familyId: asFamilyId(userId),
-            visible_by: [`family/${asFamilyId(userId)}`],
-          })
-        } catch (error) {
-          console.error('Could not add new user to algolia index', error)
-        }
-
-        request.session.isOnboarding = false
-        return response.redirect('/')
-      }
-
-      if (existingPersonId) {
-        const personFamilyId = await getOriginalPersonFamily(existingPersonId)
-
-        if (!personFamilyId) {
-          console.error('setUserPerson existingPersonId is unknown')
+        if (!existingPersonId && !newPersonWithName) {
+          console.error('setUserPerson is missing an option', { existingPersonId, newPersonWithName })
           return response.redirect('/')
         }
 
-        await addToHistory(
-          UserRecognizedThemselfAsPerson({
-            userId,
-            personId: existingPersonId,
-            familyId: personFamilyId,
-          })
-        )
+        if (newPersonWithName) {
+          const personId = makePersonId()
+          await addToHistory(
+            UserNamedThemself({
+              userId,
+              personId,
+              name: newPersonWithName,
+              familyId: asFamilyId(userId),
+            })
+          )
 
-        const personWithName = await getPersonById({ personId: existingPersonId })
-        const name = personWithName ? personWithName.name : ''
-        request.session.user!.name = name
+          request.session.user!.name = newPersonWithName
 
-        await addFamilyVisibilityToIndex({ personId: existingPersonId, familyId: personFamilyId })
+          try {
+            await personsIndex.saveObject({
+              objectID: personId,
+              personId,
+              name: newPersonWithName,
+              familyId: asFamilyId(userId),
+              visible_by: [`family/${asFamilyId(userId)}`],
+            })
+          } catch (error) {
+            console.error('Could not add new user to algolia index', error)
+          }
 
-        request.session.isOnboarding = false
+          request.session.isOnboarding = false
+          return response.redirect('/')
+        }
+
+        if (existingPersonId) {
+          const personFamilyId = await getOriginalPersonFamily(existingPersonId)
+
+          if (!personFamilyId) {
+            console.error('setUserPerson existingPersonId is unknown')
+            return response.redirect('/')
+          }
+
+          await addToHistory(
+            UserRecognizedThemselfAsPerson({
+              userId,
+              personId: existingPersonId,
+              familyId: personFamilyId,
+            })
+          )
+
+          const personWithName = await getPersonById({ personId: existingPersonId })
+          const name = personWithName ? personWithName.name : ''
+          request.session.user!.name = name
+
+          await addFamilyVisibilityToIndex({ personId: existingPersonId, familyId: personFamilyId })
+
+          request.session.isOnboarding = false
+        }
       }
-    }
 
-    return response.redirect('/')
+      return response.redirect('/')
+    } catch (error) {
+      next(error)
+    }
   })

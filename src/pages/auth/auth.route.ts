@@ -24,21 +24,25 @@ const REGISTRATION_CODES = REGISTRATION_CODE.split(',')
 
 pageRouter
   .route(['/login.html', '/register.html'])
-  .get(async (request, response) => {
-    const { redirectTo, code } = z
-      .object({
-        code: z.string().optional(),
-        redirectTo: z.string().optional(),
-      })
-      .parse(request.query)
+  .get(async (request, response, next) => {
+    try {
+      const { redirectTo, code } = z
+        .object({
+          code: z.string().optional(),
+          redirectTo: z.string().optional(),
+        })
+        .parse(request.query)
 
-    responseAsHtml(
-      request,
-      response,
-      ConnexionPage({ redirectTo, code, loginType: request.path === '/register.html' ? 'register' : 'login' })
-    )
+      responseAsHtml(
+        request,
+        response,
+        ConnexionPage({ redirectTo, code, loginType: request.path === '/register.html' ? 'register' : 'login' })
+      )
+    } catch (error) {
+      next(error)
+    }
   })
-  .post(async (request, response) => {
+  .post(async (request, response, next) => {
     try {
       const { loginType, email, password, redirectTo, code } = z
         .object({
@@ -106,16 +110,20 @@ pageRouter
     }
   })
 
-pageRouter.all('/logout', async (request, response) => {
-  if (request.session) {
-    request.session.destroy((error) => {
-      if (error) {
-        response.status(400).send('Impossible de se déconnecter')
-      } else {
-        response.redirect('/')
-      }
-    })
-  } else {
-    response.redirect('/')
+pageRouter.all('/logout', async (request, response, next) => {
+  try {
+    if (request.session) {
+      request.session.destroy((error) => {
+        if (error) {
+          response.status(400).send('Impossible de se déconnecter')
+        } else {
+          response.redirect('/')
+        }
+      })
+    } else {
+      response.redirect('/')
+    }
+  } catch (error) {
+    next(error)
   }
 })

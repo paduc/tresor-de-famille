@@ -20,7 +20,7 @@ import { UserUploadedPhotoToFamily } from './UserUploadedPhotoToFamily'
  * This route is called by the media selector component
  * It returns a list of all the photos the user has access to
  */
-pageRouter.route(MediaSelectorListURL()).get(requireAuth(), async (request, response) => {
+pageRouter.route(MediaSelectorListURL()).get(requireAuth(), async (request, response, next) => {
   try {
     const userId = request.session.user!.id
 
@@ -46,7 +46,7 @@ pageRouter.route(MediaSelectorListURL()).get(requireAuth(), async (request, resp
     return response.json({ photos: Array.from(sortedUniquePhotos) })
   } catch (error) {
     console.error('getListForMediaSelector', error)
-    response.status(500).send()
+    next(error)
   }
 })
 

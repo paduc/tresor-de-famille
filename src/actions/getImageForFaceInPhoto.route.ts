@@ -10,7 +10,7 @@ import { AWSDetectedFacesInPhoto } from '../pages/photo/recognizeFacesInChatPhot
 import { actionsRouter } from './actionsRouter'
 import { PhotoFaceURL } from './PhotoFaceURL'
 
-actionsRouter.route(PhotoFaceURL()).get(requireAuth(), async (request, response) => {
+actionsRouter.route(PhotoFaceURL()).get(requireAuth(), async (request, response, next) => {
   try {
     const { photoId, faceId } = zod.object({ photoId: zIsPhotoId, faceId: zIsFaceId }).parse(request.params)
 
@@ -100,5 +100,6 @@ actionsRouter.route(PhotoFaceURL()).get(requireAuth(), async (request, response)
   } catch (error) {
     console.error('getImageForFaceInPhoto', error)
     response.status(500).send()
+    next(error)
   }
 })

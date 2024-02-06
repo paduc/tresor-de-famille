@@ -9,7 +9,7 @@ import { makeCommentId } from '../../libs/makeCommentId'
 import { isThreadSharedWithUser } from '../_isThreadSharedWithUser'
 import { getThreadComments } from './getThreadComments'
 
-pageRouter.route(AddCommentApiURL).post(requireAuth(), async (request, response) => {
+pageRouter.route(AddCommentApiURL).post(requireAuth(), async (request, response, next) => {
   try {
     const { threadId, comment } = zod
       .object({

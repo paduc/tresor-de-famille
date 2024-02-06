@@ -14,7 +14,7 @@ const project = new Project({
   tsConfigFilePath: path.resolve(__dirname, '../../../tsconfig.json'),
 })
 
-factDiagramRouter.route('/factDiagram.html').get(async (request, response) => {
+factDiagramRouter.route('/factDiagram.html').get(async (request, response, next) => {
   const userId = request.session.user!.id
 
   if (!process.env.ADMIN_USERID || process.env.ADMIN_USERID !== userId) {

@@ -33,49 +33,57 @@ const upload = multer({
   limits: { fileSize: FILE_SIZE_LIMIT_MB * 1024 * 1024 /* MB */ },
 })
 
-pageRouter.route('/thread.html').get(requireAuth(), async (request, response) => {
-  const newThreadId = makeThreadId()
+pageRouter.route('/thread.html').get(requireAuth(), async (request, response, next) => {
+  try {
+    const newThreadId = makeThreadId()
 
-  response.redirect(ThreadUrl(newThreadId, true))
+    response.redirect(ThreadUrl(newThreadId, true))
+  } catch (error) {
+    next(error)
+  }
 })
 
 pageRouter
   .route(ThreadUrl())
-  .get(requireAuth(), async (request, response) => {
-    const { edit, threadId } = z.object({ edit: z.literal('edit').optional(), threadId: zIsThreadId }).parse(request.params)
-
-    const userId = request.session.user!.id
-    const isEditable = edit === 'edit'
-
+  .get(requireAuth(), async (request, response, next) => {
     try {
-      const props = await getThreadPageProps({ threadId, userId })
+      const { edit, threadId } = z.object({ edit: z.literal('edit').optional(), threadId: zIsThreadId }).parse(request.params)
 
-      if (isEditable) {
-        // If it is new or it's someone that has the right to edit
-        if (props.isNewThread || (await canEditThread({ threadId, userId }))) {
-          return responseAsHtml(request, response, ThreadPage(props))
+      const userId = request.session.user!.id
+      const isEditable = edit === 'edit'
+
+      try {
+        const props = await getThreadPageProps({ threadId, userId })
+
+        if (isEditable) {
+          // If it is new or it's someone that has the right to edit
+          if (props.isNewThread || (await canEditThread({ threadId, userId }))) {
+            return responseAsHtml(request, response, ThreadPage(props))
+          }
+
+          // remove the edit
+          return response.redirect(ThreadUrl(threadId))
         }
 
-        // remove the edit
-        return response.redirect(ThreadUrl(threadId))
-      }
+        // Add edit
+        if (props.isNewThread) {
+          return response.redirect(ThreadUrl(threadId, true))
+        }
 
-      // Add edit
-      if (props.isNewThread) {
-        return response.redirect(ThreadUrl(threadId, true))
-      }
+        // By default, return the readonly version
+        return responseAsHtml(request, response, ReadOnlyThreadPage(props))
+      } catch (error) {
+        if (error instanceof Error && error.message.startsWith('Unauthorized')) {
+          return response.status(403).send(error.message)
+        }
 
-      // By default, return the readonly version
-      return responseAsHtml(request, response, ReadOnlyThreadPage(props))
+        return response.status(500).send(`Il y a eu un problème lors du chargement de cette histoire.`)
+      }
     } catch (error) {
-      if (error instanceof Error && error.message.startsWith('Unauthorized')) {
-        return response.status(403).send(error.message)
-      }
-
-      return response.status(500).send(`Il y a eu un problème lors du chargement de cette histoire.`)
+      next(error)
     }
   })
-  .post(requireAuth(), upload.single('photo'), async (request, response) => {
+  .post(requireAuth(), upload.single('photo'), async (request, response, next) => {
     try {
       const userId = request.session.user!.id
       const { threadId } = z.object({ threadId: zIsThreadId }).parse(request.params)
@@ -212,12 +220,7 @@ pageRouter
       // TODO: try catch error and send it back as HTML (or redirect if OK)
       return response.redirect(ThreadUrl(threadId))
     } catch (error) {
-      console.error(error)
-      return response.status(500).send(
-        `Votre requête a provoqué une erreur.
-          Merci de faire attention la prochaine fois ! ;)
-          Plus sérieusement, l'administrateur a été prévenu et corrige dès que possible. Merci de votre patience.`
-      )
+      next(error)
     }
   })
 

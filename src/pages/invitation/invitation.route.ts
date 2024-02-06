@@ -23,7 +23,7 @@ const registerWithInvite = makeRegisterWithInvite({
 
 pageRouter
   .route('/invitation.html')
-  .get(async (request, response) => {
+  .get(async (request, response, next) => {
     try {
       const { code, familyId } = z
         .object({
@@ -36,72 +36,76 @@ pageRouter
 
       responseAsHtml(request, response, InvitationPage(props))
     } catch (error) {
-      console.error('Invitation foireuse', error)
-      throw error
+      console.error('Invitation ratée', error)
+      next(error)
     }
   })
-  .post(async (request, response) => {
-    const { action, familyId, code } = z
-      .object({
-        action: z.string(),
-        familyId: zIsFamilyId,
-        code: zIsFamilyShareCode,
-      })
-      .parse(request.body)
+  .post(async (request, response, next) => {
+    try {
+      const { action, familyId, code } = z
+        .object({
+          action: z.string(),
+          familyId: zIsFamilyId,
+          code: zIsFamilyShareCode,
+        })
+        .parse(request.body)
 
-    // Revalidate code
-    const invitation = await getSingleEvent<UserCreatedNewFamily>('UserCreatedNewFamily', { familyId, shareCode: code })
+      // Revalidate code
+      const invitation = await getSingleEvent<UserCreatedNewFamily>('UserCreatedNewFamily', { familyId, shareCode: code })
 
-    if (!invitation) {
-      throw new Error('Invitation incomplète ou erronée.')
-    }
+      if (!invitation) {
+        throw new Error('Invitation incomplète ou erronée.')
+      }
 
-    if (action === 'accept') {
-      const userId = request.session.user?.id
+      if (action === 'accept') {
+        const userId = request.session.user?.id
 
-      if (userId) {
-        const userFamilyIds = (await getUserFamilies(userId)).map((f) => f.familyId)
+        if (userId) {
+          const userFamilyIds = (await getUserFamilies(userId)).map((f) => f.familyId)
 
-        // Check if the user is already a member of this family
-        if (!userFamilyIds.includes(familyId)) {
-          await addToHistory(
-            UserAcceptedInvitation({
-              familyId,
-              userId,
-              shareCode: code,
+          // Check if the user is already a member of this family
+          if (!userFamilyIds.includes(familyId)) {
+            await addToHistory(
+              UserAcceptedInvitation({
+                familyId,
+                userId,
+                shareCode: code,
+              })
+            )
+          }
+        }
+      } else if (action === 'registerWithInvite') {
+        try {
+          const { email, password } = z
+            .object({
+              email: z.string().email(),
+              password: z.string().min(8),
+            })
+            .parse(request.body)
+
+          const userId = await registerWithInvite({ email, password, familyId, shareCode: code })
+
+          buildSession({ userId, request, isFirstConnection: true })
+        } catch (error) {
+          const props = await getInvitationPageProps(familyId, code)
+          const { email } = request.body
+          return responseAsHtml(
+            request,
+            response,
+            InvitationPage({
+              ...props,
+              email,
+              errors:
+                error instanceof ZodError
+                  ? parseZodErrors(error)
+                  : { other: error instanceof Error ? error.message : 'Erreur inconnue' },
             })
           )
         }
       }
-    } else if (action === 'registerWithInvite') {
-      try {
-        const { email, password } = z
-          .object({
-            email: z.string().email(),
-            password: z.string().min(8),
-          })
-          .parse(request.body)
 
-        const userId = await registerWithInvite({ email, password, familyId, shareCode: code })
-
-        buildSession({ userId, request, isFirstConnection: true })
-      } catch (error) {
-        const props = await getInvitationPageProps(familyId, code)
-        const { email } = request.body
-        return responseAsHtml(
-          request,
-          response,
-          InvitationPage({
-            ...props,
-            email,
-            errors:
-              error instanceof ZodError
-                ? parseZodErrors(error)
-                : { other: error instanceof Error ? error.message : 'Erreur inconnue' },
-          })
-        )
-      }
+      response.redirect('/')
+    } catch (error) {
+      next(error)
     }
-
-    response.redirect('/')
   })

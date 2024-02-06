@@ -7,7 +7,7 @@ import { doesPhotoExist } from '../_doesPhotoExist'
 import { pageRouter } from '../pageRouter'
 import { PhotoURL } from './PhotoURL'
 
-pageRouter.route(PhotoURL(':photoId')).get(requireAuth(), async (request, response) => {
+pageRouter.route(PhotoURL(':photoId')).get(requireAuth(), async (request, response, next) => {
   try {
     const { photoId } = zod.object({ photoId: zIsPhotoId }).parse(request.params)
 
@@ -23,6 +23,6 @@ pageRouter.route(PhotoURL(':photoId')).get(requireAuth(), async (request, respon
     })
   } catch (error) {
     console.error('getPhotoById', error)
-    response.status(500).send()
+    next(error)
   }
 })

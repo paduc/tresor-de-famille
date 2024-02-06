@@ -27,7 +27,7 @@ const fakeProfilePicUrl =
 
 pageRouter
   .route(PhotoPageUrl(':photoId'))
-  .get(requireAuth(), async (request, response) => {
+  .get(requireAuth(), async (request, response, next) => {
     try {
       const { photoId } = zod.object({ photoId: zIsPhotoId }).parse(request.params)
 
@@ -59,11 +59,10 @@ pageRouter
 
       responseAsHtml(request, response, NewPhotoPage(props))
     } catch (error) {
-      console.error('error', error)
-      response.sendStatus(500)
+      next(error)
     }
   })
-  .post(requireAuth(), async (request, response) => {
+  .post(requireAuth(), async (request, response, next) => {
     try {
       const userId = request.session.user!.id
 
@@ -182,7 +181,7 @@ pageRouter
       return response.redirect(`/photo/${photoId}/photo.html`)
     } catch (error) {
       console.error('Error in photo route', error)
-      return response.status(500).send("Boom, crash, bing. Quelque chose ne s'est pas bien passé.")
+      next(error)
     }
   })
 

@@ -7,7 +7,7 @@ import { doesPhotoExist } from '../_doesPhotoExist'
 import { UserDeletedPhoto } from './UserDeletedPhoto'
 import { PhotoListPageUrl } from '../photoList/PhotoListPageUrl'
 
-pageRouter.route('/delete-photo').post(requireAuth(), async (request, response) => {
+pageRouter.route('/delete-photo').post(requireAuth(), async (request, response, next) => {
   try {
     const { photoId } = zod.object({ photoId: zIsPhotoId }).parse(request.body)
     const userId = request.session.user!.id
@@ -30,6 +30,6 @@ pageRouter.route('/delete-photo').post(requireAuth(), async (request, response) 
     return response.redirect(PhotoListPageUrl)
   } catch (error) {
     console.error('Error in photo route')
-    return response.status(500).send('La suppression de la photo a échoué.')
+    next(error)
   }
 })

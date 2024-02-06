@@ -9,7 +9,7 @@ import { doesPhotoExist } from '../_doesPhotoExist'
 import { pageRouter } from '../pageRouter'
 import { ThumbnailURL } from './ThumbnailURL'
 
-pageRouter.route(ThumbnailURL(':photoId')).get(requireAuth(), async (request, response) => {
+pageRouter.route(ThumbnailURL(':photoId')).get(requireAuth(), async (request, response, next) => {
   try {
     const { photoId } = z.object({ photoId: zIsPhotoId }).parse(request.params)
 
@@ -26,6 +26,6 @@ pageRouter.route(ThumbnailURL(':photoId')).get(requireAuth(), async (request, re
     })
   } catch (error) {
     console.error('cannot load thumbnail', error)
-    response.status(500).send('cannot load thumbnail')
+    next(error)
   }
 })

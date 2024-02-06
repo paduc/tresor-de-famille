@@ -11,6 +11,7 @@ export const addToHistory = async ({ id, type, payload, occurredAt }: DomainEven
     ])
   } catch (error) {
     console.error('addToHistory failed', error)
+    throw error
   }
 }
 

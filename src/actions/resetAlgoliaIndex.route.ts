@@ -14,75 +14,79 @@ import { PersonAutoSharedWithPhotoFace } from '../pages/share/PersonAutoSharedWi
 import { PersonAutoSharedWithRelationship } from '../pages/share/PersonAutoSharedWithRelationship'
 import { actionsRouter } from './actionsRouter'
 
-actionsRouter.get('/resetAlgoliaIndex', requireAuth(), async (request, response) => {
-  // Reset the index (remove all objects)
-  await personsIndex.clearObjects()
-
-  // insert gedcom
+actionsRouter.get('/resetAlgoliaIndex', requireAuth(), async (request, response, next) => {
   try {
-    await indexGedcom()
-  } catch (error) {
-    console.error(error)
-    // @ts-ignore
-    response.send(error.message).status(400)
-  }
+    // Reset the index (remove all objects)
+    await personsIndex.clearObjects()
 
-  try {
-    await indexUserNamedThemself()
-  } catch (error) {
-    console.error(error)
-    // @ts-ignore
-    response.send(error.message).status(400)
-  }
-
-  try {
-    await indexUserNamedPersonInPhoto()
-  } catch (error) {
-    console.error(error)
-    // @ts-ignore
-    response.send(error.message).status(400)
-  }
-
-  try {
-    await indexPersonCreatedWithRelationship()
-  } catch (error) {
-    console.error(error)
-    // @ts-ignore
-    response.send(error.message).status(400)
-  }
-
-  try {
-    const nameChangesEvent = await getEventList<UserChangedPersonName>('UserChangedPersonName')
-
-    const uniqueNameChangeEventsPerPerson: Record<UUID, string> = nameChangesEvent.reduce((uniques, event) => {
-      // keep latest
-      return { ...uniques, [event.payload.personId]: event.payload.name }
-    }, {})
-
-    const nameChanges = Object.entries(uniqueNameChangeEventsPerPerson)
-    for (const [personId, name] of nameChanges) {
-      await changePersonNameInIndex({ personId: personId as PersonId, name })
+    // insert gedcom
+    try {
+      await indexGedcom()
+    } catch (error) {
+      console.error(error)
+      // @ts-ignore
+      response.send(error.message).status(400)
     }
+
+    try {
+      await indexUserNamedThemself()
+    } catch (error) {
+      console.error(error)
+      // @ts-ignore
+      response.send(error.message).status(400)
+    }
+
+    try {
+      await indexUserNamedPersonInPhoto()
+    } catch (error) {
+      console.error(error)
+      // @ts-ignore
+      response.send(error.message).status(400)
+    }
+
+    try {
+      await indexPersonCreatedWithRelationship()
+    } catch (error) {
+      console.error(error)
+      // @ts-ignore
+      response.send(error.message).status(400)
+    }
+
+    try {
+      const nameChangesEvent = await getEventList<UserChangedPersonName>('UserChangedPersonName')
+
+      const uniqueNameChangeEventsPerPerson: Record<UUID, string> = nameChangesEvent.reduce((uniques, event) => {
+        // keep latest
+        return { ...uniques, [event.payload.personId]: event.payload.name }
+      }, {})
+
+      const nameChanges = Object.entries(uniqueNameChangeEventsPerPerson)
+      for (const [personId, name] of nameChanges) {
+        await changePersonNameInIndex({ personId: personId as PersonId, name })
+      }
+    } catch (error) {
+      console.error('resetAlgoliaIndex failed to update a name')
+    }
+
+    const personShareEvents = await getEventList<
+      PersonAutoShareWithFamilyCreation | PersonAutoSharedWithPhotoFace | PersonAutoSharedWithRelationship
+    >(['PersonAutoShareWithFamilyCreation', 'PersonAutoSharedWithPhotoFace', 'PersonAutoSharedWithRelationship'])
+
+    const personsDone = new Set<PersonId>()
+    for (const event of personShareEvents) {
+      const { personId } = event.payload
+
+      if (personsDone.has(personId)) continue
+
+      await addFamilyVisibilityToIndex({ personId, familyId: event.payload.familyId })
+
+      personsDone.add(personId)
+    }
+
+    response.send('Everything is OK: algolia persons index has been rebuilt')
   } catch (error) {
-    console.error('resetAlgoliaIndex failed to update a name')
+    next(error)
   }
-
-  const personShareEvents = await getEventList<
-    PersonAutoShareWithFamilyCreation | PersonAutoSharedWithPhotoFace | PersonAutoSharedWithRelationship
-  >(['PersonAutoShareWithFamilyCreation', 'PersonAutoSharedWithPhotoFace', 'PersonAutoSharedWithRelationship'])
-
-  const personsDone = new Set<PersonId>()
-  for (const event of personShareEvents) {
-    const { personId } = event.payload
-
-    if (personsDone.has(personId)) continue
-
-    await addFamilyVisibilityToIndex({ personId, familyId: event.payload.familyId })
-
-    personsDone.add(personId)
-  }
-
-  response.send('Everything is OK: algolia persons index has been rebuilt')
 })
 
 async function indexUserNamedThemself() {

@@ -25,84 +25,88 @@ pageRouter.route('/importGedcom.html').post(
   }),
   requireAuth(),
   upload.single('file-upload'),
-  async (request, response) => {
-    const { file } = request
-
-    if (!file) {
-      response.redirect('/')
-      return
-    }
-
-    const { originalname, mimetype, path, size } = file
-
+  async (request, response, next) => {
     try {
-      const fileContents = await readFile(path, 'utf8')
-      const rawContents = parseGedcom(fileContents).children
+      const { file } = request
 
-      const persons = rawContents.filter((item: any) => item.type === 'INDI').map(parsePerson)
-
-      const relationships: RelationShip[] = rawContents
-        .filter((item: any) => item.type === 'FAM')
-        .map(parseFamily)
-        .reduce((allRelationships: any[], familyRelationships: any[]) => [...allRelationships, ...familyRelationships], [])
-
-      // We need to give an id to each person
-      const personId: Record<string, string> = {}
-      persons.forEach((person: any) => {
-        person.id = uuid() // TODO: make this a deterministic hash (of his name, DOB, ...)
-        personId[person.gedcomId] = person.id
-      })
-
-      // replace gedcomId by uniqueId in relationships
-      relationships.forEach((relationship) => {
-        relationship.parent = personId[relationship.parent]
-        relationship.child = personId[relationship.child]
-      })
-
-      const erroneousRels = relationships.filter((rel: { parent: any; child: any }) => !rel.parent || !rel.child)
-
-      if (erroneousRels.length) {
-        console.error('Found erroneousRels', erroneousRels.length)
-        return response.status(400).send()
+      if (!file) {
+        response.redirect('/')
+        return
       }
 
-      const uniqueness = new Set()
-      const userId = request.session.user!.id
+      const { path } = file
 
-      const uniqueRelationships = []
-      for (const relationship of relationships) {
-        const value = relationship.parent + relationship.child
-        if (!uniqueness.has(value)) {
-          uniqueRelationships.push(relationship)
-          uniqueness.add(value)
-        }
-      }
+      try {
+        const fileContents = await readFile(path, 'utf8')
+        const rawContents = parseGedcom(fileContents).children
 
-      await addToHistory(
-        GedcomImported({
-          rawGedcom: fileContents,
-          relationships: uniqueRelationships.map(({ parent, child }) => ({
-            parentId: parent,
-            childId: child,
-          })),
-          persons: persons.map(({ id, name, bornOn, bornIn, passedOn, passedIn, sex }: any) => ({
-            id,
-            name,
-            bornOn,
-            bornIn,
-            passedOn,
-            passedIn,
-            sex,
-          })),
-          userId,
-          familyId: request.session.user!.id as string as FamilyId,
+        const persons = rawContents.filter((item: any) => item.type === 'INDI').map(parsePerson)
+
+        const relationships: RelationShip[] = rawContents
+          .filter((item: any) => item.type === 'FAM')
+          .map(parseFamily)
+          .reduce((allRelationships: any[], familyRelationships: any[]) => [...allRelationships, ...familyRelationships], [])
+
+        // We need to give an id to each person
+        const personId: Record<string, string> = {}
+        persons.forEach((person: any) => {
+          person.id = uuid() // TODO: make this a deterministic hash (of his name, DOB, ...)
+          personId[person.gedcomId] = person.id
         })
-      )
+
+        // replace gedcomId by uniqueId in relationships
+        relationships.forEach((relationship) => {
+          relationship.parent = personId[relationship.parent]
+          relationship.child = personId[relationship.child]
+        })
+
+        const erroneousRels = relationships.filter((rel: { parent: any; child: any }) => !rel.parent || !rel.child)
+
+        if (erroneousRels.length) {
+          console.error('Found erroneousRels', erroneousRels.length)
+          return response.status(400).send()
+        }
+
+        const uniqueness = new Set()
+        const userId = request.session.user!.id
+
+        const uniqueRelationships = []
+        for (const relationship of relationships) {
+          const value = relationship.parent + relationship.child
+          if (!uniqueness.has(value)) {
+            uniqueRelationships.push(relationship)
+            uniqueness.add(value)
+          }
+        }
+
+        await addToHistory(
+          GedcomImported({
+            rawGedcom: fileContents,
+            relationships: uniqueRelationships.map(({ parent, child }) => ({
+              parentId: parent,
+              childId: child,
+            })),
+            persons: persons.map(({ id, name, bornOn, bornIn, passedOn, passedIn, sex }: any) => ({
+              id,
+              name,
+              bornOn,
+              bornIn,
+              passedOn,
+              passedIn,
+              sex,
+            })),
+            userId,
+            familyId: request.session.user!.id as string as FamilyId,
+          })
+        )
+      } catch (error) {
+        console.error('Erreur lors du traitement du fichier gedcom', error)
+      } finally {
+        await unlink(path)
+        return response.redirect('/')
+      }
     } catch (error) {
-      console.error('Erreur lors du traitement du fichier gedcom', error)
-    } finally {
-      await unlink(path)
-      return response.redirect('/')
+      next(error)
     }
   }
 )

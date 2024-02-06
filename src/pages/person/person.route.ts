@@ -15,7 +15,7 @@ import { getPersonPageProps } from './getPersonPageProps'
 
 pageRouter
   .route(PersonPageURL())
-  .get(requireAuth(), async (request, response) => {
+  .get(requireAuth(), async (request, response, next) => {
     try {
       const { personId } = z.object({ personId: zIsPersonId }).parse(request.params)
       const userId = request.session.user!.id
@@ -28,7 +28,7 @@ pageRouter
       return response.status(500).send("Le chargement du profile n'a pas fonctionné.")
     }
   })
-  .post(requireAuth(), async (request, response) => {
+  .post(requireAuth(), async (request, response, next) => {
     try {
       const { action } = z
         .object({

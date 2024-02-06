@@ -2,7 +2,6 @@ import * as Sentry from '@sentry/node'
 import express, { Express, NextFunction, Request, Response } from 'express'
 import session from 'express-session'
 import path from 'node:path'
-require('express-async-errors')
 
 import { actionsRouter } from './actions'
 import { createHistoryTable } from './dependencies/addToHistory'
@@ -61,8 +60,6 @@ app.use(express.static(path.join(__dirname, 'assets')))
 
 // Error catcher to return proper codes to the caller (browser)
 app.use((err: Error, _: Request, res: Response, next: NextFunction) => {
-  // console.error('server.ts error catcher', err)
-
   if (err instanceof MulterError) {
     switch (err.code) {
       case 'LIMIT_FILE_SIZE':
@@ -85,8 +82,9 @@ if (SENTRY_DSN) {
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   // The error id is attached to `res.sentry` to be returned
   // and optionally displayed to the user for support.
+
   // @ts-ignore
-  res.status(500).send(`Oops! Une erreur s'est produite. L'administrateur a été prévenu. (code: ${res.sentry})`)
+  res.status(500).send(`Oops! Une erreur s'est produite. L'administrateur a été prévenu. (code: ${res.sentry || 500})`)
 })
 
 app.listen(PORT, async (): Promise<void> => {
