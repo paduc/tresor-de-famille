@@ -45,7 +45,8 @@ export function findEXIFinHEIC(data: ArrayBufferLike): EXIF | undefined {
       var prefixSize = 4 + dataView.getUint32(exifLocation)
       exifOffset = exifLocation + prefixSize
 
-      return readEXIFData(dataView, exifOffset)
+      const { MakerNote, UserComment, ...exifData } = readEXIFData(dataView, exifOffset)
+      return exifData
     }
   }
 
@@ -73,7 +74,9 @@ export function findEXIFinJPEG(data: ArrayBufferLike): EXIF | undefined {
     // but we're only looking for 0xFFE1 for EXIF data
     if (marker == 225) {
       if (debug) console.error('Found 0xFFE1 marker')
-      return readEXIFData(dataView, offset + 4 + 6)
+      // remove MarkerNote
+      const { MakerNote, UserComment, ...exifData } = readEXIFData(dataView, offset + 4 + 6)
+      return exifData
     } else {
       offset += 2 + dataView.getUint16(offset + 2)
     }
@@ -106,7 +109,7 @@ const ExifTags = {
   0x9102: 'CompressedBitsPerPixel', // Compressed bits per pixel
 
   // user information
-  // 0x927c: 'MakerNote', // Any desired information written by the manufacturer
+  0x927c: 'MakerNote', // Any desired information written by the manufacturer
   0x9286: 'UserComment', // Comments by user
 
   // related file
