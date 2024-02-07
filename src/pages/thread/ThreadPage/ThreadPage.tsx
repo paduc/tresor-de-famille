@@ -70,23 +70,27 @@ export const ThreadPage = withBrowserBundle(
   }: ThreadPageProps) => {
     const richTextEditorRef = React.useRef<RichTextEditorRef>(null)
 
-    let contentAsJSON = separatePhotoNodesInJSONContent(contentAsJSONFromServer)
+    // let contentAsJSONBeforePreparation = contentAsJSONFromServer
 
     const lastUpdated = lastUpdatedAsString ? new Date(lastUpdatedAsString) : undefined
 
     // if (isBrowserContext && localStorage.getItem(threadId)) {
     //   try {
-    //     const { timestamp, contentAsJSON: contentAsJSONFromLocalStorage } = JSON.parse(localStorage.getItem(threadId)!)
-    //     // console.log({ lastUpdated, timestamp })
+    //     const { localDatetime, contentAsJSON: contentAsJSONFromLocalStorage } = JSON.parse(localStorage.getItem(threadId)!)
+    //     // console.log({ lastUpdated, localDatetime })
 
-    //     if (!lastUpdated || timestamp > lastUpdated) {
+    //     // maybe validate localDatetime with z.string().datetime()
+
+    //     if (localDatetime && (!lastUpdated || new Date(localDatetime) > lastUpdated)) {
     //       // console.log('Using version in localStorage')
-    //       contentAsJSON = contentAsJSONFromLocalStorage
+    //       contentAsJSONBeforePreparation = contentAsJSONFromLocalStorage
     //     }
     //   } catch (error) {
     //     console.error('Failed to parse contents of localStorage')
     //   }
     // }
+
+    const contentAsJSON = separatePhotoNodesInJSONContent(contentAsJSONFromServer)
 
     if (contentAsJSON.content.length === 0) {
       // @ts-ignore
