@@ -22,46 +22,50 @@ type DetectFacesInPhotosUsingAWSArgs = {
   photoId: PhotoId
 }
 export async function detectFacesInPhotoUsingAWS({ file, photoId }: DetectFacesInPhotosUsingAWSArgs) {
-  const { path: originalPath } = file
-  const compressedFilePath = originalPath + '-compressed.jpeg'
-  await sharp(originalPath).jpeg({ quality: 30 }).toFile(compressedFilePath)
+  try {
+    const { path: originalPath } = file
+    const compressedFilePath = originalPath + '-compressed.jpeg'
+    await sharp(originalPath).jpeg({ quality: 30 }).toFile(compressedFilePath)
 
-  const awsDetectedFaces = await getAWSDetectedFacesInPhoto({
-    photoContents: fs.readFileSync(compressedFilePath),
-    collectionId: getAwsRekognitionCollectionId(),
-  })
-
-  const ownerUserId = await getOwnerUserIdForPhotoId(photoId)
-  if (!ownerUserId) {
-    console.error('detectFacesInPhotoUsingAWS for a photoId without owner')
-    return
-  }
-
-  const faces: AWSDetectedFacesInPhoto['payload']['faces'] = []
-
-  function findFaceInPhotoWithSameAwsFaceId(awsFaceId: string) {
-    const faceWithSameAwsFaceId = faces.find((face) => face.awsFaceId === awsFaceId)
-
-    return faceWithSameAwsFaceId?.faceId
-  }
-
-  for (const awsFace of awsDetectedFaces) {
-    const faceId =
-      findFaceInPhotoWithSameAwsFaceId(awsFace.awsFaceId) ||
-      (await getFaceIdForAWSFaceIdInOtherPhotos(awsFace.awsFaceId, ownerUserId)) ||
-      makeFaceId()
-
-    faces.push({
-      ...awsFace,
-      faceId,
+    const awsDetectedFaces = await getAWSDetectedFacesInPhoto({
+      photoContents: fs.readFileSync(compressedFilePath),
+      collectionId: getAwsRekognitionCollectionId(),
     })
+
+    const ownerUserId = await getOwnerUserIdForPhotoId(photoId)
+    if (!ownerUserId) {
+      console.error('detectFacesInPhotoUsingAWS for a photoId without owner')
+      return
+    }
+
+    const faces: AWSDetectedFacesInPhoto['payload']['faces'] = []
+
+    function findFaceInPhotoWithSameAwsFaceId(awsFaceId: string) {
+      const faceWithSameAwsFaceId = faces.find((face) => face.awsFaceId === awsFaceId)
+
+      return faceWithSameAwsFaceId?.faceId
+    }
+
+    for (const awsFace of awsDetectedFaces) {
+      const faceId =
+        findFaceInPhotoWithSameAwsFaceId(awsFace.awsFaceId) ||
+        (await getFaceIdForAWSFaceIdInOtherPhotos(awsFace.awsFaceId, ownerUserId)) ||
+        makeFaceId()
+
+      faces.push({
+        ...awsFace,
+        faceId,
+      })
+    }
+    await addToHistory(
+      AWSDetectedFacesInPhoto({
+        photoId,
+        faces,
+      })
+    )
+  } catch (error) {
+    console.error('detectFacesInPhotoUsingAWS failed', error)
   }
-  await addToHistory(
-    AWSDetectedFacesInPhoto({
-      photoId,
-      faces,
-    })
-  )
 }
 
 async function getFaceIdForAWSFaceIdInOtherPhotos(awsFaceId: string, userId: AppUserId): Promise<FaceId | undefined> {

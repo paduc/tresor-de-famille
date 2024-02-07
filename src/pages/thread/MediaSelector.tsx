@@ -174,7 +174,7 @@ function UploadNewPhotos({ onPhotoUploaded }: UploadNewPhotosProps) {
           id='photo'
           className='hidden'
           onChange={handleFiles}
-          accept='image/heic, image/png, image/jpeg, image/jpg'
+          accept='image/png, image/jpeg, image/jpg'
         />
       </div>
 
