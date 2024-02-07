@@ -39,23 +39,14 @@ export function ThreadList({
     }
 
     if (contents.length) {
-      return contents.substring(0, 80)
+      if (contents.length < 120) {
+        return contents
+      }
+
+      return `${contents.substring(0, 120)}...`
     }
 
     return 'Sans titre'
-  }
-
-  function getContents({ title, contents }: { title: string | undefined; contents: string }): string {
-    let contentsFormatted = contents
-    if ((!title || !title.length) && contents.length) {
-      contentsFormatted = contentsFormatted.substring(80)
-    }
-
-    if (contentsFormatted.length > 120) {
-      return `${contentsFormatted.substring(0, 120)}...`
-    }
-
-    return contentsFormatted
   }
 
   return (
@@ -86,9 +77,6 @@ export function ThreadList({
                 ))}
               </p>
               <p className='text-base text-gray-900 max-w-xl'>{getTitle(thread)}</p>
-              {getContents(thread).length ? (
-                <p className='text-xs text-gray-500 mt-1 mb-2 max-w-xl'>{getContents(thread)}</p>
-              ) : null}
               {thread.thumbnails.length ? (
                 <div className='mt-2 mb-2'>
                   {/** Mobile version */}
