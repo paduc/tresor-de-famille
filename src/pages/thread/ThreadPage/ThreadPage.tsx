@@ -609,13 +609,13 @@ const SeparatorNodeItem = (props: { node: {} }) => {
           Insérer du texte
         </button>
         <MediaSelector
-          onPhotoAdded={(photoId) => {
+          onMediaSelected={(photoIds) => {
             if (!editorRef.current || !nodeRef.current) return
             const editor = editorRef.current
-            const position = editorRef.current.view.posAtDOM(nodeRef.current, 0)
-            editor
-              .chain()
-              .insertContentAt(position, {
+            let position = editorRef.current.view.posAtDOM(nodeRef.current, 0)
+            const editorChain = editor.chain()
+            for (const photoId of photoIds) {
+              editorChain.insertContentAt(position++, {
                 type: 'photoNode',
                 attrs: {
                   photoId,
@@ -626,7 +626,8 @@ const SeparatorNodeItem = (props: { node: {} }) => {
                   threadId,
                 },
               })
-              .run()
+            }
+            editorChain.run()
           }}>
           {(open) => (
             <button

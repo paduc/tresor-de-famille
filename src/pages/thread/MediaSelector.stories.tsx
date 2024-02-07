@@ -10,7 +10,7 @@ const fakeProfilePicUrl =
 export const Basique = () => (
   <MediaSelectorComponent
     isOpen={true}
-    onPhotoAdded={(photoId) => alert(`Click on ${photoId}`)}
+    onMediaSelectedInComponent={(photoId) => alert(`Click on ${photoId}`)}
     close={() => alert('close')}
     status='idle'
     photos={[
@@ -36,7 +36,7 @@ export const Basique = () => (
 export const ChargementEnCours = () => (
   <MediaSelectorComponent
     isOpen={true}
-    onPhotoAdded={(photoId) => alert(`Click on ${photoId}`)}
+    onMediaSelectedInComponent={(photoId) => alert(`Click on ${photoId}`)}
     close={() => alert('close')}
     status='downloading'
     photos={[]}
@@ -46,7 +46,7 @@ export const ChargementEnCours = () => (
 export const Erreur = () => (
   <MediaSelectorComponent
     isOpen={true}
-    onPhotoAdded={(photoId) => alert(`Click on ${photoId}`)}
+    onMediaSelectedInComponent={(photoId) => alert(`Click on ${photoId}`)}
     close={() => alert('close')}
     status='error'
     photos={[]}

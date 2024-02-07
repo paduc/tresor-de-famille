@@ -1,21 +1,20 @@
+import { CheckIcon, FireIcon, SparklesIcon, XCircleIcon } from '@heroicons/react/20/solid'
 import axios, { AxiosError } from 'axios'
 import React, { memo, useCallback, useEffect, useMemo, useState } from 'react'
+import { UUID } from '../../domain'
 import { PhotoId } from '../../domain/PhotoId'
+import { getUuid } from '../../libs/getUuid'
+import { primaryButtonStyles, smallButtonStyles } from '../_components/Button'
 import { TDFModal } from '../_components/TDFModal'
 import { MediaSelectorListURL } from '../photoApi/MediaSelectorListURL'
 import { ThumbnailURL } from '../photoApi/ThumbnailURL'
-import { CheckIcon, FireIcon, HeartIcon, SparklesIcon, XCircleIcon, XMarkIcon } from '@heroicons/react/20/solid'
-import { getUuid } from '../../libs/getUuid'
-import { primaryButtonStyles, smallButtonStyles } from '../_components/Button'
-import { FamilyId } from '../../domain/FamilyId'
-import { UUID } from '../../domain'
 
 type MediaSelectorProps = {
-  onPhotoAdded?: (photoId: PhotoId) => void
+  onMediaSelected?: (photoIds: PhotoId[]) => void
   children: (open: (args?: any) => any) => JSX.Element
 }
 type FetchStatus = 'idle' | 'downloading' | 'error'
-export function MediaSelector({ onPhotoAdded, children }: MediaSelectorProps) {
+export function MediaSelector({ onMediaSelected, children }: MediaSelectorProps) {
   const [photos, setPhotos] = useState<PhotoId[]>([])
   const [isOpen, setOpen] = useState(false)
   const [status, setStatus] = useState<FetchStatus>('idle')
@@ -61,9 +60,9 @@ export function MediaSelector({ onPhotoAdded, children }: MediaSelectorProps) {
         }}
         photos={photos.map((photoId) => ({ photoId, url: ThumbnailURL(photoId) }))}
         status={status}
-        onPhotoAdded={(photoId) => {
-          if (onPhotoAdded) {
-            onPhotoAdded(photoId)
+        onMediaSelectedInComponent={(photoIds) => {
+          if (onMediaSelected) {
+            onMediaSelected(photoIds)
           }
           setOpen(false)
         }}
@@ -76,7 +75,7 @@ export function MediaSelector({ onPhotoAdded, children }: MediaSelectorProps) {
  * Use separate pure component to make it easier to test with Storybook
  */
 type MediaSelectorComponentProps = {
-  onPhotoAdded?: (photoId: PhotoId) => void
+  onMediaSelectedInComponent?: (photoIds: PhotoId[]) => void
   photos: { photoId: PhotoId; url: string }[]
   isOpen: boolean
   close: () => unknown
@@ -86,7 +85,7 @@ type MediaSelectorComponentProps = {
 export function MediaSelectorComponent({
   isOpen,
   close,
-  onPhotoAdded,
+  onMediaSelectedInComponent,
   photos,
   status,
   uniqueKey,
@@ -102,8 +101,9 @@ export function MediaSelectorComponent({
         setNewPhotos([])
       }}>
       <UploadNewPhotos
-        onPhotoUploaded={(photoId) => {
-          setNewPhotos((state) => [{ photoId, url: ThumbnailURL(photoId) }, ...state])
+        onPhotosUploaded={(photoIds) => {
+          if (onMediaSelectedInComponent) onMediaSelectedInComponent(photoIds)
+          // setNewPhotos((state) => [{ photoId, url: ThumbnailURL(photoId) }, ...state])
         }}
       />
       <div>Choisir une photo de mon trésor</div>
@@ -120,14 +120,14 @@ export function MediaSelectorComponent({
             Chargement...
           </div>
         ) : null}
-        <ul role='list' className='grid grid-cols-2 gap-x-4 gap-y-4 sm:grid-cols-3 sm:gap-x-6 lg:grid-cols-4 xl:gap-x-8 mt-3'>
+        <ul role='list' className='grid grid-cols-2 gap-x-4 gap-y-4 sm:grid-cols-3 sm:gap-x-2 mt-3'>
           {[...newPhotos, ...photos].map(({ photoId, url }) => (
             <li key={`${uniqueKey}_${photoId}`} className='relative'>
               <div className='group aspect-h-7 aspect-w-10 block w-full overflow-hidden rounded-lg bg-gray-100 cursor-pointer'>
                 <img src={url} alt='' className='pointer-events-none object-cover group-hover:opacity-75' />
                 <a
                   onClick={() => {
-                    if (onPhotoAdded) onPhotoAdded(photoId)
+                    if (onMediaSelectedInComponent) onMediaSelectedInComponent([photoId])
                   }}
                   className='absolute inset-0 focus:outline-none'>
                   <span className='sr-only'>Insérer cette photo</span>
@@ -142,17 +142,18 @@ export function MediaSelectorComponent({
 }
 
 type UploadNewPhotosProps = {
-  onPhotoUploaded?: (photoId: PhotoId) => unknown
+  onPhotosUploaded?: (photoIds: PhotoId[]) => unknown
 }
 
-function UploadNewPhotos({ onPhotoUploaded }: UploadNewPhotosProps) {
-  const [photosToUpload, setPhotosToUploaed] = useState<{ file: File; id: string }[]>([])
+function UploadNewPhotos({ onPhotosUploaded }: UploadNewPhotosProps) {
+  const [photosToUpload, setPhotosToUploaed] = useState<{ file: File; uploadId: UUID }[]>([])
+  const [photosUploaded, setPhotosUploaded] = useState<{ photoId: PhotoId; uploadId: UUID }[]>([])
 
   const handleFiles: React.ChangeEventHandler<HTMLInputElement> = useCallback(
     (event) => {
       if (event.target.files === null) return
 
-      const newPhotos = Array.from(event.target.files).map((file) => ({ file, id: getUuid() }))
+      const newPhotos = Array.from(event.target.files).map((file) => ({ file, uploadId: getUuid() }))
 
       setPhotosToUploaed((state) => {
         return [...newPhotos, ...state]
@@ -160,6 +161,24 @@ function UploadNewPhotos({ onPhotoUploaded }: UploadNewPhotosProps) {
     },
     [photosToUpload]
   )
+
+  const handlePhotoUploaded = (args: { photoId: PhotoId; uploadId: UUID }) => {
+    setPhotosUploaded((state) => [...state, args])
+  }
+
+  useEffect(() => {
+    if (photosToUpload.length === 0) return
+
+    const uploadedPhotoUploadIds = photosUploaded.map((p) => p.uploadId)
+    if (onPhotosUploaded && photosToUpload.every((photo) => uploadedPhotoUploadIds.includes(photo.uploadId))) {
+      // Do it like this to insure they are in the same order as they were uploaded
+      const photoIdsInOrderOfUpload = photosToUpload.map(
+        (photoToUpload) => photosUploaded.find((p) => p.uploadId === photoToUpload.uploadId)!.photoId
+      )
+
+      onPhotosUploaded(photoIdsInOrderOfUpload)
+    }
+  }, [photosToUpload, photosUploaded])
 
   return (
     <div className='mb-3'>
@@ -180,8 +199,14 @@ function UploadNewPhotos({ onPhotoUploaded }: UploadNewPhotosProps) {
 
       {photosToUpload.length ? (
         <ul className='pt-2'>
-          {photosToUpload.map(({ file, id }) => (
-            <SingleUpdate file={file} key={`photo_uploading_${id}`} mock={false} onPhotoAdded={onPhotoUploaded} />
+          {photosToUpload.map(({ file, uploadId: id }) => (
+            <SingleUpdate
+              file={file}
+              uploadId={id}
+              key={`photo_uploading_${id}`}
+              mock={false}
+              onPhotoUploaded={handlePhotoUploaded}
+            />
           ))}
         </ul>
       ) : null}
@@ -191,11 +216,12 @@ function UploadNewPhotos({ onPhotoUploaded }: UploadNewPhotosProps) {
 
 type SingleUploadProps = {
   file: File
+  uploadId: UUID
   mock?: boolean
-  onPhotoAdded?: (photoId: PhotoId) => unknown
+  onPhotoUploaded?: (args: { photoId: PhotoId; uploadId: UUID }) => unknown
 }
 
-const SingleUpdate = memo(({ file, mock, onPhotoAdded }: SingleUploadProps) => {
+const SingleUpdate = memo(({ file, uploadId, mock, onPhotoUploaded }: SingleUploadProps) => {
   const [progress, setProgress] = useState(0)
   const [errorCode, setError] = useState<{ code: number; text: string } | null>(null)
   const [photo, setPhoto] = useState<string | null>(null)
@@ -237,10 +263,10 @@ const SingleUpdate = memo(({ file, mock, onPhotoAdded }: SingleUploadProps) => {
           console.error('Axios res.status', res.status)
         } else {
           const { photoId } = res.data
-          if (onPhotoAdded && photoId) {
-            onPhotoAdded(photoId)
+          if (onPhotoUploaded && photoId) {
+            onPhotoUploaded({ photoId: photoId as PhotoId, uploadId })
           }
-          setTimeout(() => setVisible(false), 1000)
+          // setTimeout(() => setVisible(false), 1000)
         }
       } catch (error) {
         console.error('Axios failed', error)
