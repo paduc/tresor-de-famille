@@ -16,7 +16,7 @@ import { ThreadSharingButton } from './ThreadSharingButton'
 export type ReadOnlyThreadPageProps = {
   title?: string
   contentAsJSON: TipTapContentAsJSON
-  lastUpdated: Epoch | undefined
+  lastUpdated: string | undefined // ISO string
   threadId: ThreadId
   isAuthor: boolean
   sharedWithFamilyIds?: FamilyId[]
@@ -102,13 +102,13 @@ const ReadonlyPhotoItem = (props: {
 
     const personsInPhoto: string[] = z.array(z.string()).parse(JSON.parse(decodeURIComponent(attrs.personsInPhoto)))
 
-    const { threadId, photoId, unrecognizedFacesInPhoto, url, description } = z
+    const { threadId, photoId, unrecognizedFacesInPhoto, url, caption } = z
       .object({
         threadId: zIsThreadId,
         photoId: zIsPhotoId,
         unrecognizedFacesInPhoto: z.number(),
         url: z.string(),
-        description: z.string().optional(),
+        caption: z.string().optional(),
       })
       .parse(attrs)
 
@@ -125,7 +125,7 @@ const ReadonlyPhotoItem = (props: {
         </div>
 
         <div className=''>
-          <p className='text-md text-gray-600 mb-1 whitespace-pre-wrap'>{description}</p>
+          <p className='text-md text-gray-600 mb-1 whitespace-pre-wrap'>{caption}</p>
           {descriptionOfPeople ? <p className='text-md text-gray-600 mb-1'>avec {descriptionOfPeople}</p> : null}
           {unrecognizedFacesInPhoto ? (
             <p className='text-md text-gray-600 mb-1'>
