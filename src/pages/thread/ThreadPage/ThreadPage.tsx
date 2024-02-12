@@ -788,9 +788,9 @@ const useAutosaveEditor = (
 
   useEffect(() => {
     // console.log('autosave useEffect 1')
+    if (!editor) return
 
     const insideSave = () => {
-      if (!editor) return
       const newHTML = editor.getHTML()
       // console.log('editor on update', latestHTML, newHTML)
       if (newHTML && latestHTML !== newHTML) {
@@ -807,15 +807,6 @@ const useAutosaveEditor = (
     return () => {
       // console.log('autosave removing editor onupdate')
       editor?.off('update', insideSave)
-    }
-  }, [editor, latestHTML])
-
-  useEffect(() => {
-    // console.log('autosave useEffect 2')
-    if (editor) {
-      const newHTML = editor.getHTML()
-      // console.log('autosave setting latest html', latestHTML, newHTML)
-      setLatestHTML(newHTML)
     }
   }, [editor, latestHTML])
 
