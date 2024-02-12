@@ -68,8 +68,6 @@ export const ThreadPage = withBrowserBundle(
     isAuthor,
     comments,
   }: ThreadPageProps) => {
-    const richTextEditorRef = React.useRef<RichTextEditorRef>(null)
-
     // let contentAsJSONBeforePreparation = contentAsJSONFromServer
 
     const lastUpdated = lastUpdatedAsString ? new Date(lastUpdatedAsString) : undefined
@@ -111,7 +109,7 @@ export const ThreadPage = withBrowserBundle(
           <div className='divide-y divide-gray-200 overflow-hidden sm:rounded-lg bg-white shadow'>
             {title ? <Title title={title} threadId={threadId} /> : null}
             <div className=''>
-              <RichTextEditor ref={richTextEditorRef} content={contentAsJSON} threadId={threadId} lastUpdated={lastUpdated} />
+              <RichTextEditor content={contentAsJSON} threadId={threadId} lastUpdated={lastUpdated} />
             </div>
           </div>
           <div className='mt-2 ml-4 sm:ml-6'>
@@ -366,10 +364,6 @@ type RichTextEditorProps = {
   lastUpdated: Date | undefined
 }
 
-type RichTextEditorRef = {
-  getContents: () => JSONContent
-}
-
 const DeletePhotoCtx = createContext<((photoId: PhotoId) => unknown) | null>(null)
 
 const useDeletePhoto = () => {
@@ -392,7 +386,7 @@ const useEditorCtx = () => {
   return editorRef
 }
 
-const RichTextEditor = fixedForwardRef<RichTextEditorRef, RichTextEditorProps>((props, ref) => {
+const RichTextEditor = (props: RichTextEditorProps) => {
   const { content, threadId } = props
   const editor = useEditor({
     extensions: [
@@ -462,12 +456,6 @@ const RichTextEditor = fixedForwardRef<RichTextEditorRef, RichTextEditorProps>((
   }, [editor])
 
   const editorRef: React.MutableRefObject<Editor | null> = React.useRef(null)
-
-  React.useImperativeHandle(ref, () => ({
-    getContents: () => {
-      return editorRef.current!.getJSON()
-    },
-  }))
 
   const handleDeletePhoto = useCallback(
     (photoId: PhotoId) => {
@@ -552,7 +540,7 @@ const RichTextEditor = fixedForwardRef<RichTextEditorRef, RichTextEditorProps>((
       </DeletePhotoCtx.Provider>
     </EditorCtx.Provider>
   )
-})
+}
 
 const PhotoNodeItem = (props: {
   node: {
