@@ -419,12 +419,48 @@ const RichTextEditor = fixedForwardRef<RichTextEditorRef, RichTextEditorProps>((
 
   const [mediaSelectorDOMNode, setMediaSelectorDOMNode] = useState<HTMLElement | undefined>(undefined)
 
+  const handleAddPhotos = useCallback(
+    (photoIds: PhotoId[]) => {
+      console.log('onMediaSelected global')
+      if (!editorRef.current || !mediaSelectorDOMNode) return
+      const editor = editorRef.current
+      let position = editorRef.current.view.posAtDOM(mediaSelectorDOMNode, 0)
+      const editorChain = editor.chain()
+      for (const photoId of photoIds) {
+        editorChain.insertContentAt(position, {
+          type: 'photoNode',
+          attrs: {
+            photoId,
+            url: PhotoURL(photoId),
+            description: 'Cliquer sur la photo pour ajouter une description',
+            personsInPhoto: '[]', // This should be stringified JSON
+            unrecognizedFacesInPhoto: 0,
+            threadId,
+          },
+        })
+      }
+      editorChain.run()
+    },
+    [mediaSelectorDOMNode]
+  )
+
   // Make sure the content always ends with a paragraph
   useEffect(() => {
-    editor?.on('update', (e) => {
+    // console.log('useEffect', editor)
+    if (!editor) return
+
+    const handleUpdate = () => {
+      // console.log('handleUpdate in useEffet')
       addSeparatorBetweenNodes(editor)
-    })
+    }
+
+    editor.on('update', handleUpdate)
+
+    return () => {
+      editor.off('update', handleUpdate)
+    }
   }, [editor])
+
   const editorRef: React.MutableRefObject<Editor | null> = React.useRef(null)
 
   React.useImperativeHandle(ref, () => ({
@@ -510,27 +546,7 @@ const RichTextEditor = fixedForwardRef<RichTextEditorRef, RichTextEditorProps>((
             close={() => {
               setMediaSelectorDOMNode(undefined)
             }}
-            onMediaSelected={(photoIds) => {
-              console.log('onMediaSelected global')
-              if (!editorRef.current || !mediaSelectorDOMNode) return
-              const editor = editorRef.current
-              let position = editorRef.current.view.posAtDOM(mediaSelectorDOMNode, 0)
-              const editorChain = editor.chain()
-              for (const photoId of photoIds) {
-                editorChain.insertContentAt(position++, {
-                  type: 'photoNode',
-                  attrs: {
-                    photoId,
-                    url: PhotoURL(photoId),
-                    description: 'Cliquer sur la photo pour ajouter une description',
-                    personsInPhoto: '[]', // This should be stringified JSON
-                    unrecognizedFacesInPhoto: 0,
-                    threadId,
-                  },
-                })
-              }
-              editorChain.run()
-            }}
+            onMediaSelected={handleAddPhotos}
           />
         </GlobalMediaSelectorContext.Provider>
       </DeletePhotoCtx.Provider>
