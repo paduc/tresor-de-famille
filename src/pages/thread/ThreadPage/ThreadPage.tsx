@@ -421,7 +421,7 @@ const RichTextEditor = (props: RichTextEditorProps) => {
       let position = editorRef.current.view.posAtDOM(mediaSelectorDOMNode, 0)
       const editorChain = editor.chain()
       for (const photoId of photoIds) {
-        editorChain.insertContentAt(position, {
+        editorChain.insertContentAt(position++, {
           type: 'photoNode',
           attrs: {
             photoId,
