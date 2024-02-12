@@ -17,9 +17,7 @@ import {
   Content,
   Editor,
   EditorContent,
-  JSONContent,
   NodeViewWrapper,
-  NodeViewWrapperProps,
   ReactNodeViewRenderer,
   findChildren,
   mergeAttributes,
@@ -29,19 +27,15 @@ import StarterKit from '@tiptap/starter-kit'
 import { FamilyId } from '../../../domain/FamilyId'
 import { PhotoId } from '../../../domain/PhotoId'
 import { ThreadId } from '../../../domain/ThreadId'
-import { fixedForwardRef } from '../../../libs/fixedForwardRef'
 import { PhotoPageUrl } from '../../photo/PhotoPageUrl'
 import { PhotoURL } from '../../photoApi/PhotoURL'
-import { GlobalMediaSelector, GlobalMediaSelectorContext, MediaSelector, useGlobalMediaSelector } from '../MediaSelector'
+import { GlobalMediaSelector, GlobalMediaSelectorContext, useGlobalMediaSelector } from '../MediaSelector'
 import { ThreadUrl } from '../ThreadUrl'
 import { TipTapContentAsJSON, removeSeparatorNodes } from '../TipTapTypes'
 import { Comment, Comments } from './Comments'
 import { ThreadSharingButton } from './ThreadSharingButton'
 
-// @ts-ignore
-function classNames(...classes) {
-  return classes.filter(Boolean).join(' ')
-}
+const isBrowserContext = typeof window !== 'undefined'
 
 export type ThreadPageProps = {
   title?: string
@@ -54,9 +48,6 @@ export type ThreadPageProps = {
   isNewThread: boolean
   comments: Comment[]
 }
-
-const isBrowserContext = typeof window !== 'undefined'
-
 export const ThreadPage = withBrowserBundle(
   ({
     title,
@@ -126,266 +117,11 @@ export const ThreadPage = withBrowserBundle(
   }
 )
 
-export type PhotoItemProps = {
-  photoId: PhotoId
-  url: string
-  caption?: string
-  personsInPhoto: string[]
-  unrecognizedFacesInPhoto: number
-  threadId: ThreadId
-}
-const PhotoItem = (props: PhotoItemProps) => {
-  const deletePhoto = useDeletePhoto()
-  const { caption, photoId, url, personsInPhoto, unrecognizedFacesInPhoto, threadId } = props
-
-  const [latestCaption, setLatestCaption] = useState<string | undefined>(caption)
-  const [status, setStatus] = useState<AutosaveStatus>('idle')
-  const descriptionOfPeople = personsInPhoto.join(', ')
-
-  const photoPageUrl = `${PhotoPageUrl(props.photoId)}?threadId=${props.threadId}&edit=1`
-
-  const saveNewCaption = (newCaption: string) => {
-    if (latestCaption === newCaption) {
-      return
-    }
-
-    setStatus('saving')
-    fetch(ThreadUrl(threadId), {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'clientsideCaptionUpdate', caption: newCaption, photoId }),
-    }).then((res) => {
-      if (!res.ok) {
-        alert("La nouvelle légende n'a pas pu être sauvegardé")
-        setStatus('error')
-        return
-      }
-      setStatus('saved')
-      setLatestCaption(newCaption)
-      setTimeout(() => {
-        setStatus('idle')
-      }, 2000)
-    })
-  }
-
-  const debouncedSaveNewCaption = useCallback(debounce(saveNewCaption, 1500), [])
-
-  return (
-    <div className='relative grid grid-cols-1 w-full px-4 sm:px-0 py-2'>
-      <div className='absolute top-4 left-6 sm:left-3'>
-        <button
-          onClick={() => {
-            if (confirm('Etes-vous sur de vouloir retirer cette photo de cette histoire ?')) {
-              deletePhoto(props.photoId)
-            }
-          }}
-          title='Retirer la photo'
-          className={`${secondaryCircularButtons} bg-opacity-60`}>
-          <TrashIcon className={`h-5 w-5`} />
-        </button>
-      </div>
-
-      <div className='absolute top-16 left-6 sm:left-3'>
-        {/* I dont know why an <a></a> does not work... */}
-        <button
-          onClick={() => {
-            location.href = photoPageUrl
-          }}
-          title='Ouvrir la photo'
-          className={`${secondaryCircularButtons} bg-opacity-60`}>
-          <ArrowsPointingOutIcon className={`h-5 w-5`} />
-        </button>
-      </div>
-
-      <div className='mb-2'>
-        <div className='max-w-full max-h-[50vh]'>
-          <ProgressiveImg src={url} className='max-w-full max-h-[50vh] border border-gray-300 shadow-sm' />
-        </div>
-      </div>
-
-      <div className='w-full pr-10'>
-        <div className='inline-flex my-3 mr-10 items-center w-full'>
-          <TextareaAutosize
-            minRows={1}
-            className='flex-1 text-md text-gray-600 whitespace-pre-wrap placeholder:italic border-none p-0 ring-0 focus:ring-0'
-            placeholder='Cliquer ici pour ajouter une légende à la photo'
-            defaultValue={latestCaption || ''}
-            onChange={(e) => {
-              debouncedSaveNewCaption(e.target.value)
-            }}
-          />
-          <div className='flex-0 h-6 w-8'>
-            <StatusIndicator status={status} />
-          </div>
-        </div>
-
-        {descriptionOfPeople ? <p className='text-md text-gray-600 mb-1'>avec {descriptionOfPeople}</p> : null}
-        {unrecognizedFacesInPhoto ? (
-          <p className='text-md text-gray-600 mb-1'>
-            <a href={photoPageUrl} className='font-medium text-indigo-600 hover:text-indigo-500'>
-              {unrecognizedFacesInPhoto === 1 ? `Annoter le visage` : `Annoter les ${unrecognizedFacesInPhoto} visages`}
-            </a>
-          </p>
-        ) : null}
-      </div>
-    </div>
-  )
-}
-
-const Title = ({ title, threadId }: { title: string | undefined; threadId: ThreadId }) => {
-  const [latestTitle, setLatestTitle] = useState<string | undefined>(title)
-  const [status, setStatus] = useState<AutosaveStatus>('idle')
-
-  const save = (newTitle: string) => {
-    setStatus('saving')
-    fetch(ThreadUrl(threadId), {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'clientsideTitleUpdate', title: newTitle }),
-    }).then((res) => {
-      if (!res.ok) {
-        alert("Le titre n'a pas pu être sauvegardé")
-        setStatus('error')
-        return
-      }
-      setStatus('saved')
-      setLatestTitle(newTitle)
-      setTimeout(() => {
-        setStatus('idle')
-      }, 2000)
-    })
-  }
-
-  const debouncedSave = useCallback(debounce(save, 1500), [])
-
-  return (
-    <div className='relative w-full max-w-2xl'>
-      <div className='absolute top-5 right-2'>
-        <StatusIndicator status={status} />
-      </div>
-      <input
-        type='text'
-        name='title'
-        className='w-full px-4 py-5 sm:px-6 text-gray-800 text-xl border-none'
-        placeholder='Titre (optionnel)'
-        onChange={(e) => {
-          const newTitle = e.target.value
-          if (newTitle !== latestTitle) {
-            debouncedSave(newTitle)
-          }
-        }}
-        defaultValue={title}
-      />
-    </div>
-  )
-}
-
-type AutosaveStatus = 'idle' | 'saving' | 'saved' | 'error'
-const useAutosaveEditor = (
-  editor: Editor | null,
-  threadId: ThreadId,
-  initialLastUpdated: Date | undefined
-): { status: AutosaveStatus; lastUpdated: Date | undefined } => {
-  // console.log('useAutosaveEditor', editor)
-  const [latestHTML, setLatestHTML] = useState<string | null>(null)
-  const [status, setStatus] = useState<AutosaveStatus>('idle')
-  const [lastUpdated, setLastUpdated] = useState<Date | undefined>(initialLastUpdated)
-
-  const save = (json: TipTapContentAsJSON) => {
-    const newJSON = removeSeparatorNodes(json)
-    setStatus('saving')
-    // setTimeout(() => {
-    //   setStatus('saved')
-    //   setLatestHTML(newJSON)
-    //   setLastUpdated(Date.now() as Epoch)
-    //   setTimeout(() => {
-    //     setStatus('idle')
-    //   }, 2000)
-    // }, 2000)
-    localStorage.setItem(threadId, JSON.stringify({ timestamp: Date.now(), contentAsJSON: newJSON }))
-    fetch(ThreadUrl(threadId), {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'clientsideUpdate', contentAsJSON: newJSON }),
-    }).then((res) => {
-      if (!res.ok) {
-        setStatus('error')
-        return
-      }
-      setStatus('saved')
-      setLastUpdated(new Date())
-      setTimeout(() => {
-        setStatus('idle')
-      }, 2000)
-    })
-  }
-
-  const debouncedSave = useCallback(debounce(save, 1500), [])
-
-  useEffect(() => {
-    // console.log('autosave useEffect 1')
-
-    const insideSave = () => {
-      if (!editor) return
-      const newHTML = editor.getHTML()
-      // console.log('editor on update', latestHTML, newHTML)
-      if (newHTML && latestHTML !== newHTML) {
-        setLatestHTML(newHTML)
-        debouncedSave(editor.getJSON() as TipTapContentAsJSON)
-      }
-    }
-
-    if (editor) {
-      // console.log('autosave adding editor onupdate')
-      editor.on('update', insideSave)
-    }
-
-    return () => {
-      // console.log('autosave removing editor onupdate')
-      editor?.off('update', insideSave)
-    }
-  }, [editor, latestHTML])
-
-  useEffect(() => {
-    // console.log('autosave useEffect 2')
-    if (editor) {
-      const newHTML = editor.getHTML()
-      // console.log('autosave setting latest html', latestHTML, newHTML)
-      setLatestHTML(newHTML)
-    }
-  }, [editor, latestHTML])
-
-  return { status, lastUpdated }
-}
-
 type RichTextEditorProps = {
   content: Content
   threadId: ThreadId
   lastUpdated: Date | undefined
 }
-
-const DeletePhotoCtx = createContext<((photoId: PhotoId) => unknown) | null>(null)
-
-const useDeletePhoto = () => {
-  const deletePhoto = useContext(DeletePhotoCtx)
-  if (deletePhoto === null) {
-    throw new Error('This hook should only be used in a proper Provider')
-  }
-
-  return deletePhoto
-}
-
-const EditorCtx = createContext<{ editorRef: React.MutableRefObject<Editor | null>; threadId: ThreadId } | null>(null)
-
-const useEditorCtx = () => {
-  const editorRef = useContext(EditorCtx)
-  if (editorRef === null) {
-    throw new Error('This hook should only be used in a proper Provider')
-  }
-
-  return editorRef
-}
-
 const RichTextEditor = (props: RichTextEditorProps) => {
   const { content, threadId } = props
   const editor = useEditor({
@@ -415,7 +151,7 @@ const RichTextEditor = (props: RichTextEditorProps) => {
 
   const handleAddPhotos = useCallback(
     (photoIds: PhotoId[]) => {
-      console.log('onMediaSelected global')
+      // console.log('onMediaSelected global')
       if (!editorRef.current || !mediaSelectorDOMNode) return
       const editor = editorRef.current
       let position = editorRef.current.view.posAtDOM(mediaSelectorDOMNode, 0)
@@ -542,6 +278,17 @@ const RichTextEditor = (props: RichTextEditorProps) => {
   )
 }
 
+const EditorCtx = createContext<{ editorRef: React.MutableRefObject<Editor | null>; threadId: ThreadId } | null>(null)
+
+const useEditorCtx = () => {
+  const editorRef = useContext(EditorCtx)
+  if (editorRef === null) {
+    throw new Error('This hook should only be used in a proper Provider')
+  }
+
+  return editorRef
+}
+
 const PhotoNodeItem = (props: {
   node: {
     attrs: {
@@ -626,6 +373,123 @@ const PhotoNode = Node.create({
   },
 })
 
+export type PhotoItemProps = {
+  photoId: PhotoId
+  url: string
+  caption?: string
+  personsInPhoto: string[]
+  unrecognizedFacesInPhoto: number
+  threadId: ThreadId
+}
+const PhotoItem = (props: PhotoItemProps) => {
+  const deletePhoto = useDeletePhoto()
+  const { caption, photoId, url, personsInPhoto, unrecognizedFacesInPhoto, threadId } = props
+
+  const [latestCaption, setLatestCaption] = useState<string | undefined>(caption)
+  const [status, setStatus] = useState<AutosaveStatus>('idle')
+  const descriptionOfPeople = personsInPhoto.join(', ')
+
+  const photoPageUrl = `${PhotoPageUrl(props.photoId)}?threadId=${props.threadId}&edit=1`
+
+  const saveNewCaption = (newCaption: string) => {
+    if (latestCaption === newCaption) {
+      return
+    }
+
+    setStatus('saving')
+    fetch(ThreadUrl(threadId), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'clientsideCaptionUpdate', caption: newCaption, photoId }),
+    }).then((res) => {
+      if (!res.ok) {
+        alert("La nouvelle légende n'a pas pu être sauvegardé")
+        setStatus('error')
+        return
+      }
+      setStatus('saved')
+      setLatestCaption(newCaption)
+      setTimeout(() => {
+        setStatus('idle')
+      }, 2000)
+    })
+  }
+
+  const debouncedSaveNewCaption = useCallback(debounce(saveNewCaption, 1500), [])
+
+  return (
+    <div className='relative grid grid-cols-1 w-full px-4 sm:px-0 py-2'>
+      <div className='absolute top-4 left-6 sm:left-3'>
+        <button
+          onClick={() => {
+            if (confirm('Etes-vous sur de vouloir retirer cette photo de cette histoire ?')) {
+              deletePhoto(props.photoId)
+            }
+          }}
+          title='Retirer la photo'
+          className={`${secondaryCircularButtons} bg-opacity-60`}>
+          <TrashIcon className={`h-5 w-5`} />
+        </button>
+      </div>
+
+      <div className='absolute top-16 left-6 sm:left-3'>
+        {/* I dont know why an <a></a> does not work... */}
+        <button
+          onClick={() => {
+            location.href = photoPageUrl
+          }}
+          title='Ouvrir la photo'
+          className={`${secondaryCircularButtons} bg-opacity-60`}>
+          <ArrowsPointingOutIcon className={`h-5 w-5`} />
+        </button>
+      </div>
+
+      <div className='mb-2'>
+        <div className='max-w-full max-h-[50vh]'>
+          <ProgressiveImg src={url} className='max-w-full max-h-[50vh] border border-gray-300 shadow-sm' />
+        </div>
+      </div>
+
+      <div className='w-full pr-10'>
+        <div className='inline-flex my-3 mr-10 items-center w-full'>
+          <TextareaAutosize
+            minRows={1}
+            className='flex-1 text-md text-gray-600 whitespace-pre-wrap placeholder:italic border-none p-0 ring-0 focus:ring-0'
+            placeholder='Cliquer ici pour ajouter une légende à la photo'
+            defaultValue={latestCaption || ''}
+            onChange={(e) => {
+              debouncedSaveNewCaption(e.target.value)
+            }}
+          />
+          <div className='flex-0 h-6 w-8'>
+            <StatusIndicator status={status} />
+          </div>
+        </div>
+
+        {descriptionOfPeople ? <p className='text-md text-gray-600 mb-1'>avec {descriptionOfPeople}</p> : null}
+        {unrecognizedFacesInPhoto ? (
+          <p className='text-md text-gray-600 mb-1'>
+            <a href={photoPageUrl} className='font-medium text-indigo-600 hover:text-indigo-500'>
+              {unrecognizedFacesInPhoto === 1 ? `Annoter le visage` : `Annoter les ${unrecognizedFacesInPhoto} visages`}
+            </a>
+          </p>
+        ) : null}
+      </div>
+    </div>
+  )
+}
+
+const DeletePhotoCtx = createContext<((photoId: PhotoId) => unknown) | null>(null)
+
+const useDeletePhoto = () => {
+  const deletePhoto = useContext(DeletePhotoCtx)
+  if (deletePhoto === null) {
+    throw new Error('This hook should only be used in a proper Provider')
+  }
+
+  return deletePhoto
+}
+
 const SeparatorNodeItem = (props: { node: {} }) => {
   const { editorRef } = useEditorCtx()
   const { setMediaSelectorCursorDOMNode } = useGlobalMediaSelector()
@@ -691,6 +555,54 @@ const SeparatorNode = Node.create({
     return ReactNodeViewRenderer(SeparatorNodeItem)
   },
 })
+
+const Title = ({ title, threadId }: { title: string | undefined; threadId: ThreadId }) => {
+  const [latestTitle, setLatestTitle] = useState<string | undefined>(title)
+  const [status, setStatus] = useState<AutosaveStatus>('idle')
+
+  const save = (newTitle: string) => {
+    setStatus('saving')
+    fetch(ThreadUrl(threadId), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'clientsideTitleUpdate', title: newTitle }),
+    }).then((res) => {
+      if (!res.ok) {
+        alert("Le titre n'a pas pu être sauvegardé")
+        setStatus('error')
+        return
+      }
+      setStatus('saved')
+      setLatestTitle(newTitle)
+      setTimeout(() => {
+        setStatus('idle')
+      }, 2000)
+    })
+  }
+
+  const debouncedSave = useCallback(debounce(save, 1500), [])
+
+  return (
+    <div className='relative w-full max-w-2xl'>
+      <div className='absolute top-5 right-2'>
+        <StatusIndicator status={status} />
+      </div>
+      <input
+        type='text'
+        name='title'
+        className='w-full px-4 py-5 sm:px-6 text-gray-800 text-xl border-none'
+        placeholder='Titre (optionnel)'
+        onChange={(e) => {
+          const newTitle = e.target.value
+          if (newTitle !== latestTitle) {
+            debouncedSave(newTitle)
+          }
+        }}
+        defaultValue={title}
+      />
+    </div>
+  )
+}
 
 function StatusIndicator({ status }: { status: AutosaveStatus }) {
   return (
@@ -830,4 +742,82 @@ function separatePhotoNodesInJSONContent(contentAsJSON: TipTapContentAsJSON): Ti
   }
 
   return newContentAsJson
+}
+
+type AutosaveStatus = 'idle' | 'saving' | 'saved' | 'error'
+const useAutosaveEditor = (
+  editor: Editor | null,
+  threadId: ThreadId,
+  initialLastUpdated: Date | undefined
+): { status: AutosaveStatus; lastUpdated: Date | undefined } => {
+  // console.log('useAutosaveEditor', editor)
+  const [latestHTML, setLatestHTML] = useState<string | null>(null)
+  const [status, setStatus] = useState<AutosaveStatus>('idle')
+  const [lastUpdated, setLastUpdated] = useState<Date | undefined>(initialLastUpdated)
+
+  const save = (json: TipTapContentAsJSON) => {
+    const newJSON = removeSeparatorNodes(json)
+    setStatus('saving')
+    // setTimeout(() => {
+    //   setStatus('saved')
+    //   setLatestHTML(newJSON)
+    //   setLastUpdated(Date.now() as Epoch)
+    //   setTimeout(() => {
+    //     setStatus('idle')
+    //   }, 2000)
+    // }, 2000)
+    localStorage.setItem(threadId, JSON.stringify({ timestamp: Date.now(), contentAsJSON: newJSON }))
+    fetch(ThreadUrl(threadId), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'clientsideUpdate', contentAsJSON: newJSON }),
+    }).then((res) => {
+      if (!res.ok) {
+        setStatus('error')
+        return
+      }
+      setStatus('saved')
+      setLastUpdated(new Date())
+      setTimeout(() => {
+        setStatus('idle')
+      }, 2000)
+    })
+  }
+
+  const debouncedSave = useCallback(debounce(save, 1500), [])
+
+  useEffect(() => {
+    // console.log('autosave useEffect 1')
+
+    const insideSave = () => {
+      if (!editor) return
+      const newHTML = editor.getHTML()
+      // console.log('editor on update', latestHTML, newHTML)
+      if (newHTML && latestHTML !== newHTML) {
+        setLatestHTML(newHTML)
+        debouncedSave(editor.getJSON() as TipTapContentAsJSON)
+      }
+    }
+
+    if (editor) {
+      // console.log('autosave adding editor onupdate')
+      editor.on('update', insideSave)
+    }
+
+    return () => {
+      // console.log('autosave removing editor onupdate')
+      editor?.off('update', insideSave)
+    }
+  }, [editor, latestHTML])
+
+  useEffect(() => {
+    // console.log('autosave useEffect 2')
+    if (editor) {
+      const newHTML = editor.getHTML()
+      // console.log('autosave setting latest html', latestHTML, newHTML)
+      setLatestHTML(newHTML)
+    }
+  }, [editor, latestHTML])
+
+  return { status, lastUpdated }
 }
