@@ -36,6 +36,15 @@ export const ReadOnlyThreadPage = withBrowserBundle(
           <div className='w-full mb-3 px-2'>
             <ThreadSharingButton isAuthor={isAuthor} familyId={familyId} sharedWithFamilyIds={sharedWithFamilyIds} />
           </div>
+          {isAuthor ? (
+            <div className='w-full mb-3 px-2'>
+              <div className='w-full inline-flex items-center place-content-start'>
+                <a href={ThreadUrl(threadId, true)} className={`${secondaryButtonStyles}`}>
+                  Modifier l'anecdote
+                </a>
+              </div>
+            </div>
+          ) : null}
           <div className='divide-y divide-gray-200 overflow-hidden sm:rounded-lg bg-white shadow'>
             {title ? <div className='relative w-full max-w-2xl px-4 py-5 sm:px-6 text-gray-800 text-xl'>{title}</div> : null}
             <div className='sm:ml-6 max-w-2xl relative'>
@@ -70,15 +79,15 @@ export const ReadOnlyThreadPage = withBrowserBundle(
               })}
             </div>
           </div>
-          <div className='w-full mt-3 px-2'>
-            {isAuthor ? (
+          {isAuthor ? (
+            <div className='w-full mt-3 px-2'>
               <div className='w-full inline-flex items-center place-content-start'>
                 <a href={ThreadUrl(threadId, true)} className={`${secondaryButtonStyles}`}>
                   Modifier l'anecdote
                 </a>
               </div>
-            ) : null}
-          </div>
+            </div>
+          ) : null}
 
           <div className='mt-6'>
             <Comments comments={comments} threadId={threadId} />
