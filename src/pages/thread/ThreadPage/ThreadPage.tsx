@@ -19,6 +19,7 @@ import {
   EditorContent,
   JSONContent,
   NodeViewWrapper,
+  NodeViewWrapperProps,
   ReactNodeViewRenderer,
   findChildren,
   mergeAttributes,
@@ -29,10 +30,9 @@ import { FamilyId } from '../../../domain/FamilyId'
 import { PhotoId } from '../../../domain/PhotoId'
 import { ThreadId } from '../../../domain/ThreadId'
 import { fixedForwardRef } from '../../../libs/fixedForwardRef'
-import { Epoch } from '../../../libs/typeguards'
 import { PhotoPageUrl } from '../../photo/PhotoPageUrl'
 import { PhotoURL } from '../../photoApi/PhotoURL'
-import { MediaSelector } from '../MediaSelector'
+import { GlobalMediaSelector, GlobalMediaSelectorContext, MediaSelector, useGlobalMediaSelector } from '../MediaSelector'
 import { ThreadUrl } from '../ThreadUrl'
 import { TipTapContentAsJSON, removeSeparatorNodes } from '../TipTapTypes'
 import { Comment, Comments } from './Comments'
@@ -393,6 +393,7 @@ const useEditorCtx = () => {
 }
 
 const RichTextEditor = fixedForwardRef<RichTextEditorRef, RichTextEditorProps>((props, ref) => {
+  const { content, threadId } = props
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -405,7 +406,7 @@ const RichTextEditor = fixedForwardRef<RichTextEditorRef, RichTextEditorProps>((
       PhotoNode,
       SeparatorNode,
     ],
-    content: props.content,
+    content,
     autofocus: null,
     editorProps: {
       attributes: {
@@ -414,7 +415,9 @@ const RichTextEditor = fixedForwardRef<RichTextEditorRef, RichTextEditorProps>((
     },
   })
 
-  const { status, lastUpdated } = useAutosaveEditor(editor, props.threadId, props.lastUpdated)
+  const { status, lastUpdated } = useAutosaveEditor(editor, threadId, props.lastUpdated)
+
+  const [mediaSelectorDOMNode, setMediaSelectorDOMNode] = useState<HTMLElement | undefined>(undefined)
 
   // Make sure the content always ends with a paragraph
   useEffect(() => {
@@ -458,9 +461,13 @@ const RichTextEditor = fixedForwardRef<RichTextEditorRef, RichTextEditorProps>((
   return (
     <EditorCtx.Provider value={{ editorRef, threadId: props.threadId }}>
       <DeletePhotoCtx.Provider value={handleDeletePhoto}>
-        <div className='sm:ml-6 max-w-2xl relative'>
-          <EditorContent editor={editor} />
-          {/* <FloatingMenu editor={editor} tippyOptions={{ duration: 100 }}>
+        <GlobalMediaSelectorContext.Provider
+          value={(selectorDOMNode: HTMLElement | undefined) => {
+            setMediaSelectorDOMNode(selectorDOMNode)
+          }}>
+          <div className='sm:ml-6 max-w-2xl relative'>
+            <EditorContent editor={editor} />
+            {/* <FloatingMenu editor={editor} tippyOptions={{ duration: 100 }}>
             <MediaSelector
               onPhotoAdded={(photoId) => {
                 editor
@@ -489,15 +496,43 @@ const RichTextEditor = fixedForwardRef<RichTextEditorRef, RichTextEditorProps>((
               )}
             </MediaSelector>
           </FloatingMenu> */}
-          <div className='absolute top-4 right-2'>
-            <StatusIndicator status={status} />
+            <div className='absolute top-4 right-2'>
+              <StatusIndicator status={status} />
+            </div>
           </div>
-        </div>
-        {!!lastUpdated ? (
-          <div className='my-2 pl-4 pt-2 sm:pl-6 italic text-gray-500 '>
-            Dernière mise à jour {formatRelative(lastUpdated, Date.now(), { locale: fr })}
-          </div>
-        ) : null}
+          {!!lastUpdated ? (
+            <div className='my-2 pl-4 pt-2 sm:pl-6 italic text-gray-500 '>
+              Dernière mise à jour {formatRelative(lastUpdated, Date.now(), { locale: fr })}
+            </div>
+          ) : null}
+          <GlobalMediaSelector
+            isOpen={!!mediaSelectorDOMNode}
+            close={() => {
+              setMediaSelectorDOMNode(undefined)
+            }}
+            onMediaSelected={(photoIds) => {
+              console.log('onMediaSelected global')
+              if (!editorRef.current || !mediaSelectorDOMNode) return
+              const editor = editorRef.current
+              let position = editorRef.current.view.posAtDOM(mediaSelectorDOMNode, 0)
+              const editorChain = editor.chain()
+              for (const photoId of photoIds) {
+                editorChain.insertContentAt(position++, {
+                  type: 'photoNode',
+                  attrs: {
+                    photoId,
+                    url: PhotoURL(photoId),
+                    description: 'Cliquer sur la photo pour ajouter une description',
+                    personsInPhoto: '[]', // This should be stringified JSON
+                    unrecognizedFacesInPhoto: 0,
+                    threadId,
+                  },
+                })
+              }
+              editorChain.run()
+            }}
+          />
+        </GlobalMediaSelectorContext.Provider>
       </DeletePhotoCtx.Provider>
     </EditorCtx.Provider>
   )
@@ -588,8 +623,9 @@ const PhotoNode = Node.create({
 })
 
 const SeparatorNodeItem = (props: { node: {} }) => {
-  const { editorRef, threadId } = useEditorCtx()
-  const nodeRef = useRef<any>()
+  const { editorRef } = useEditorCtx()
+  const { setMediaSelectorCursorDOMNode } = useGlobalMediaSelector()
+  const nodeRef = useRef<HTMLElement>()
 
   const handleAddTextClick = () => {
     if (editorRef.current && nodeRef.current) {
@@ -608,37 +644,17 @@ const SeparatorNodeItem = (props: { node: {} }) => {
           <Bars3BottomLeftIcon className={`h-4 w-4`} />
           Insérer du texte
         </button>
-        <MediaSelector
-          onMediaSelected={(photoIds) => {
-            if (!editorRef.current || !nodeRef.current) return
-            const editor = editorRef.current
-            let position = editorRef.current.view.posAtDOM(nodeRef.current, 0)
-            const editorChain = editor.chain()
-            for (const photoId of photoIds) {
-              editorChain.insertContentAt(position++, {
-                type: 'photoNode',
-                attrs: {
-                  photoId,
-                  url: PhotoURL(photoId),
-                  description: 'Cliquer sur la photo pour ajouter une description',
-                  personsInPhoto: '[]', // This should be stringified JSON
-                  unrecognizedFacesInPhoto: 0,
-                  threadId,
-                },
-              })
+        <button
+          onClick={() => {
+            if (nodeRef.current) {
+              setMediaSelectorCursorDOMNode(nodeRef.current)
             }
-            editorChain.run()
-          }}>
-          {(open) => (
-            <button
-              onClick={() => open()}
-              title='Retirer la photo'
-              className={`pl-4  text-indigo-600 hover:text-indigo-500 cursor-pointer inline-flex items-center gap-x-2`}>
-              <PhotoIcon className={`h-5 w-5`} aria-hidden='true' />
-              Insérer une photo
-            </button>
-          )}
-        </MediaSelector>
+          }}
+          title='Insérer des photos'
+          className={`pl-4  text-indigo-600 hover:text-indigo-500 cursor-pointer inline-flex items-center gap-x-2`}>
+          <PhotoIcon className={`h-5 w-5`} aria-hidden='true' />
+          Insérer des photos
+        </button>
       </div>
     </NodeViewWrapper>
   )

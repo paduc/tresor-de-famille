@@ -1,6 +1,6 @@
 import { CheckIcon, FireIcon, SparklesIcon, XCircleIcon } from '@heroicons/react/20/solid'
 import axios, { AxiosError } from 'axios'
-import React, { memo, useCallback, useEffect, useMemo, useState } from 'react'
+import React, { memo, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { UUID } from '../../domain'
 import { PhotoId } from '../../domain/PhotoId'
 import { getUuid } from '../../libs/getUuid'
@@ -68,6 +68,73 @@ export function MediaSelector({ onMediaSelected, children }: MediaSelectorProps)
         }}
       />
     </>
+  )
+}
+
+export const GlobalMediaSelectorContext = React.createContext<((selectorDOMNode: HTMLElement | undefined) => unknown) | null>(
+  null
+)
+
+export function useGlobalMediaSelector() {
+  const setMediaSelectorCursorDOMNode = useContext(GlobalMediaSelectorContext)
+
+  if (setMediaSelectorCursorDOMNode === null) {
+    throw new Error('useGlobalMediaSelector')
+  }
+
+  return { setMediaSelectorCursorDOMNode }
+}
+
+type GlobalMediaSelectorProps = {
+  onMediaSelected?: (photoIds: PhotoId[]) => void
+  isOpen: boolean
+  close: () => void
+}
+export function GlobalMediaSelector({ onMediaSelected, isOpen, close }: GlobalMediaSelectorProps) {
+  const [photos, setPhotos] = useState<PhotoId[]>([])
+  const [status, setStatus] = useState<FetchStatus>('idle')
+  const uniqueKey = useMemo(() => getUuid(), [])
+
+  // Fetch photos here
+  useEffect(() => {
+    async function getPhotos() {
+      try {
+        setStatus('downloading')
+        const res = await axios.get<{ photos: PhotoId[] }>(MediaSelectorListURL(), {
+          headers: {
+            Accept: 'application/json',
+          },
+        })
+
+        if (res.status === 200) {
+          setPhotos(res.data.photos)
+          setStatus('idle')
+          return
+        }
+
+        setStatus('error')
+      } catch (error) {
+        setStatus('error')
+      }
+    }
+
+    getPhotos()
+  }, [isOpen])
+
+  return (
+    <MediaSelectorComponent
+      uniqueKey={uniqueKey}
+      isOpen={isOpen}
+      close={close}
+      photos={photos.map((photoId) => ({ photoId, url: ThumbnailURL(photoId) }))}
+      status={status}
+      onMediaSelectedInComponent={(photoIds) => {
+        if (onMediaSelected) {
+          onMediaSelected(photoIds)
+        }
+        close()
+      }}
+    />
   )
 }
 
@@ -170,6 +237,7 @@ function UploadNewPhotos({ onPhotosUploaded }: UploadNewPhotosProps) {
     if (photosToUpload.length === 0) return
 
     const uploadedPhotoUploadIds = photosUploaded.map((p) => p.uploadId)
+
     if (onPhotosUploaded && photosToUpload.every((photo) => uploadedPhotoUploadIds.includes(photo.uploadId))) {
       // Do it like this to insure they are in the same order as they were uploaded
       const photoIdsInOrderOfUpload = photosToUpload.map(
