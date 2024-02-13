@@ -11,10 +11,11 @@ export const isPhotoAccessibleToUser = async ({
   photoId: PhotoId
   userId: AppUserId
 }): Promise<boolean> => {
-  const userFamilyIds = (await getUserFamilies(userId)).map((f) => f.familyId)
-
   const photoEvents = await getPhotoEvents(photoId)
 
+  if (!photoEvents.length) return false
+
+  const userFamilyIds = (await getUserFamilies(userId)).map((f) => f.familyId)
   for (const photoEvent of photoEvents) {
     switch (photoEvent.type) {
       case 'OnboardingUserUploadedPhotoOfFamily':
