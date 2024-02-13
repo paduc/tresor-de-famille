@@ -32,7 +32,7 @@ export const getThreadListPageProps = async (userId: AppUserId): Promise<ThreadL
   type Thread = ThreadListPageProps['threads'][number]
   const threads: Thread[] = []
 
-  const uniqueThreads = new Map<ThreadId, Set<FamilyId>>()
+  const uniqueThreadsWithFamilies = new Map<ThreadId, Set<FamilyId>>()
 
   for (const userFamilyId of userFamilyIds) {
     if (userFamilyId === asFamilyId(userId)) {
@@ -49,10 +49,10 @@ export const getThreadListPageProps = async (userId: AppUserId): Promise<ThreadL
 
       for (const event of threadEvents) {
         const threadId = event.payload.threadId
-        if (!uniqueThreads.has(threadId)) {
-          uniqueThreads.set(threadId, new Set())
+        if (!uniqueThreadsWithFamilies.has(threadId)) {
+          uniqueThreadsWithFamilies.set(threadId, new Set())
         }
-        uniqueThreads.get(threadId)!.add(userFamilyId)
+        uniqueThreadsWithFamilies.get(threadId)!.add(userFamilyId)
       }
 
       continue
@@ -75,14 +75,14 @@ export const getThreadListPageProps = async (userId: AppUserId): Promise<ThreadL
       }
 
       const threadId = event.payload.threadId
-      if (!uniqueThreads.has(threadId)) {
-        uniqueThreads.set(threadId, new Set())
+      if (!uniqueThreadsWithFamilies.has(threadId)) {
+        uniqueThreadsWithFamilies.set(threadId, new Set())
       }
-      uniqueThreads.get(threadId)!.add(userFamilyId)
+      uniqueThreadsWithFamilies.get(threadId)!.add(userFamilyId)
     }
   }
 
-  for (const threadId of uniqueThreads.keys()) {
+  for (const threadId of uniqueThreadsWithFamilies.keys()) {
     const threadEvents = await getEventList<ThreadEvent | ThreadSharedWithFamilies>(
       [
         'UserSentMessageToChat',
@@ -119,7 +119,7 @@ export const getThreadListPageProps = async (userId: AppUserId): Promise<ThreadL
       authors,
       contents: await getContents(threadContentEvents),
       lastUpdatedOn,
-      familyIds: Array.from(uniqueThreads.get(threadId)!.values()),
+      familyIds: Array.from(uniqueThreadsWithFamilies.get(threadId)!.values()),
       thumbnails: getThumbnails(threadContentEvents),
       commentCount: threadComments.length,
     })

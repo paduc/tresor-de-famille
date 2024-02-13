@@ -11,6 +11,9 @@ import { AppLayout } from '../_components/layout/AppLayout'
 import { ThumbnailURL } from '../photoApi/ThumbnailURL'
 import { PhotoPageUrl } from '../photo/PhotoPageUrl'
 import { useState } from 'react'
+import { FamilyId } from '../../domain/FamilyId'
+import { ThreadId } from '../../domain/ThreadId'
+import { ThreadList } from '../_components/ThreadList'
 
 // @ts-ignore
 function classNames(...classes) {
@@ -29,81 +32,94 @@ export type PersonPageProps = {
     photoId: PhotoId
     url: string
   }[]
+  threadsTheyAppearIn: {
+    threadId: ThreadId
+    title: string | undefined
+    lastUpdatedOn: number
+    authors: {
+      name: string
+    }[]
+    contents: string
+    thumbnails: string[]
+    familyIds: FamilyId[]
+    commentCount: number
+  }[]
 }
 
 const INITIAL_PHOTO_COUNT = 6
 const PHOTO_COUNT_STEP = 6
 
-export const PersonPage = withBrowserBundle(({ person, photos, alternateProfilePics }: PersonPageProps) => {
-  const [isProfilePicOpen, openProfilePic] = React.useState<boolean>(false)
-  const closeProfilePic = React.useCallback(() => openProfilePic(false), [])
-  const [photosToDisplayCount, setPhotosToDisplayCount] = useState<number>(INITIAL_PHOTO_COUNT)
+export const PersonPage = withBrowserBundle(
+  ({ person, photos, alternateProfilePics, threadsTheyAppearIn }: PersonPageProps) => {
+    const [isProfilePicOpen, openProfilePic] = React.useState<boolean>(false)
+    const closeProfilePic = React.useCallback(() => openProfilePic(false), [])
+    const [photosToDisplayCount, setPhotosToDisplayCount] = useState<number>(INITIAL_PHOTO_COUNT)
 
-  const [isNameChangerOpen, openNameChanger] = React.useState<boolean>(false)
-  const closeNameChanger = React.useCallback(() => openNameChanger(false), [])
+    const [isNameChangerOpen, openNameChanger] = React.useState<boolean>(false)
+    const closeNameChanger = React.useCallback(() => openNameChanger(false), [])
 
-  return (
-    <AppLayout>
-      <div className='my-5 bg-white p-6'>
-        <div className='md:flex md:items-center md:justify-between md:space-x-5'>
-          <div className='flex items-start space-x-5'>
-            <div className='flex-shrink-0'>
-              <div className='relative'>
-                {person.profilePicUrl ? (
-                  <div className='flex flex-col items-center'>
-                    <img
-                      className='h-36 w-36 flex-none rounded-full bg-gray-50 shadow-md border border-gray-200'
-                      src={person.profilePicUrl}
-                      alt={`Photo de ${person.name}`}
-                    />
-                    {alternateProfilePics.length > 1 ? (
-                      <button
-                        type='button'
-                        onClick={() => openProfilePic(true)}
-                        className={`mt-2 inline-flex items-center cursor-pointer text-indigo-600 hover:text-indigo-500 text-md`}>
-                        <CameraIcon className={`h-6 w-6 mr-1`} />
-                        Changer
-                      </button>
-                    ) : null}
-                  </div>
-                ) : (
-                  <span className={`inline-flex h-36 w-36 items-center justify-center rounded-full bg-gray-500`}>
-                    <span className='text-5xl font-medium leading-none text-white'>{getInitials(person.name)}</span>
-                  </span>
-                )}
+    return (
+      <AppLayout>
+        <div className='my-5 bg-white p-6'>
+          <div className='md:flex md:items-center md:justify-between md:space-x-5'>
+            <div className='flex items-start space-x-5'>
+              <div className='flex-shrink-0'>
+                <div className='relative'>
+                  {person.profilePicUrl ? (
+                    <div className='flex flex-col items-center'>
+                      <img
+                        className='h-36 w-36 flex-none rounded-full bg-gray-50 shadow-md border border-gray-200'
+                        src={person.profilePicUrl}
+                        alt={`Photo de ${person.name}`}
+                      />
+                      {alternateProfilePics.length > 1 ? (
+                        <button
+                          type='button'
+                          onClick={() => openProfilePic(true)}
+                          className={`mt-2 inline-flex items-center cursor-pointer text-indigo-600 hover:text-indigo-500 text-md`}>
+                          <CameraIcon className={`h-6 w-6 mr-1`} />
+                          Changer
+                        </button>
+                      ) : null}
+                    </div>
+                  ) : (
+                    <span className={`inline-flex h-36 w-36 items-center justify-center rounded-full bg-gray-500`}>
+                      <span className='text-5xl font-medium leading-none text-white'>{getInitials(person.name)}</span>
+                    </span>
+                  )}
+                </div>
               </div>
-            </div>
-            {/*
+              {/*
           Use vertical padding to simulate center alignment when both lines of text are one line,
           but preserve the same layout if the text wraps without making the image jump around.
         */}
-            <div className='pt-1.5'>
-              <h1 className='text-2xl font-bold text-gray-900'>
-                {person.name}{' '}
-                <button className='align-middle mb-1' onClick={() => openNameChanger(true)}>
-                  <PencilSquareIcon className='text-gray-500 hover:text-gray-700 h-6 w-6 ml-2' />
-                </button>
-              </h1>
-              {/* <p className='text-sm font-medium text-gray-500'>
+              <div className='pt-1.5'>
+                <h1 className='text-2xl font-bold text-gray-900'>
+                  {person.name}{' '}
+                  <button className='align-middle mb-1' onClick={() => openNameChanger(true)}>
+                    <PencilSquareIcon className='text-gray-500 hover:text-gray-700 h-6 w-6 ml-2' />
+                  </button>
+                </h1>
+                {/* <p className='text-sm font-medium text-gray-500'>
                 Applied for{' '}
                 <a href='#' className='text-gray-900'>
                   Front End Developer
                 </a>{' '}
                 on <time dateTime='2020-08-25'>August 25, 2020</time>
               </p> */}
+              </div>
             </div>
-          </div>
-          <div className='mt-6 flex flex-col-reverse justify-stretch space-y-4 space-y-reverse sm:flex-row-reverse sm:justify-end sm:space-x-3 sm:space-y-0 sm:space-x-reverse md:mt-0 md:flex-row md:space-x-3'>
-            {/* <button
+            <div className='mt-6 flex flex-col-reverse justify-stretch space-y-4 space-y-reverse sm:flex-row-reverse sm:justify-end sm:space-x-3 sm:space-y-0 sm:space-x-reverse md:mt-0 md:flex-row md:space-x-3'>
+              {/* <button
               type='button'
               className='inline-flex items-center justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600'>
               Voir son arbre
             </button> */}
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* {userFamilies.length > 1 ? (
+        {/* {userFamilies.length > 1 ? (
         <div className='my-5 bg-white p-6'>
           Ce profil fait partie de {person.familyName}.
           {sharedWithFamilies.length > 0 ? (
@@ -128,11 +144,11 @@ export const PersonPage = withBrowserBundle(({ person, photos, alternateProfileP
         </div>
       ) : null} */}
 
-      {photos.length > 0 ? (
-        <div className='bg-white p-6'>
-          <h3 className='text-lg font-medium leading-6 text-gray-900'>Photos où {person.name} apparaît</h3>
+        {photos.length > 0 ? (
+          <div className='bg-white p-6'>
+            <h3 className='text-lg font-medium leading-6 text-gray-900'>Photos où {person.name} apparaît</h3>
 
-          {/*<InlinePhotoUploadBtn
+            {/*<InlinePhotoUploadBtn
           formAction='/add-photo.html'
           hiddenFields={{ familyId: person.familyId }}
           formKey={`uploadFamily${person.familyId}`}>
@@ -141,59 +157,68 @@ export const PersonPage = withBrowserBundle(({ person, photos, alternateProfileP
           </span>
     </InlinePhotoUploadBtn>*/}
 
-          <ul
-            role='list'
-            className='grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 sm:gap-x-6 lg:grid-cols-4 lg:max-w-4xl mt-3'>
-            {photos.slice(0, photosToDisplayCount).map((photo) => (
-              <li key={photo.photoId} className='relative'>
-                <div className='group aspect-h-7 aspect-w-10 block w-full overflow-hidden rounded-lg bg-gray-100 focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 focus-within:ring-offset-gray-100'>
-                  <img src={photo.url} alt='' className='pointer-events-none object-cover group-hover:opacity-75' />
-                  <a
-                    href={`${PhotoPageUrl(photo.photoId)}?profileId=${person.personId}`}
-                    className='absolute inset-0 focus:outline-none'>
-                    <span className='sr-only'>Voir la photo</span>
-                  </a>
-                </div>
-              </li>
-            ))}
-          </ul>
-          {photos.length > photosToDisplayCount ? (
-            <div className='mt-3'>
-              <button
-                className={`${secondaryButtonStyles}`}
-                onClick={() => {
-                  setPhotosToDisplayCount((count) => count + Math.min(PHOTO_COUNT_STEP, photos.length - count))
-                }}>
-                Afficher plus de photos
-              </button>
-            </div>
-          ) : (
-            <div className='mt-3'>
-              <button
-                className={`${secondaryButtonStyles}`}
-                onClick={() => {
-                  setPhotosToDisplayCount(INITIAL_PHOTO_COUNT)
-                }}>
-                Afficher moins
-              </button>
-            </div>
-          )}
-        </div>
-      ) : null}
+            <ul
+              role='list'
+              className='grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 sm:gap-x-6 lg:grid-cols-4 lg:max-w-4xl mt-3'>
+              {photos.slice(0, photosToDisplayCount).map((photo) => (
+                <li key={photo.photoId} className='relative'>
+                  <div className='group aspect-h-7 aspect-w-10 block w-full overflow-hidden rounded-lg bg-gray-100 focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 focus-within:ring-offset-gray-100'>
+                    <img src={photo.url} alt='' className='pointer-events-none object-cover group-hover:opacity-75' />
+                    <a
+                      href={`${PhotoPageUrl(photo.photoId)}?profileId=${person.personId}`}
+                      className='absolute inset-0 focus:outline-none'>
+                      <span className='sr-only'>Voir la photo</span>
+                    </a>
+                  </div>
+                </li>
+              ))}
+            </ul>
+            {photos.length > photosToDisplayCount ? (
+              <div className='mt-3'>
+                <button
+                  className={`${secondaryButtonStyles}`}
+                  onClick={() => {
+                    setPhotosToDisplayCount((count) => count + Math.min(PHOTO_COUNT_STEP, photos.length - count))
+                  }}>
+                  Afficher plus de photos
+                </button>
+              </div>
+            ) : (
+              <div className='mt-3'>
+                <button
+                  className={`${secondaryButtonStyles}`}
+                  onClick={() => {
+                    setPhotosToDisplayCount(INITIAL_PHOTO_COUNT)
+                  }}>
+                  Afficher moins
+                </button>
+              </div>
+            )}
+          </div>
+        ) : null}
 
-      <ProfilePictureSelector
-        isOpen={isProfilePicOpen}
-        close={closeProfilePic}
-        personId={person.personId}
-        faceList={alternateProfilePics}
-        name={person.name}
-        currentFaceUrl={person.profilePicUrl}
-      />
+        {threadsTheyAppearIn.length > 0 ? (
+          <div className='bg-white py-6 px-2 mt-4'>
+            <h3 className='text-lg font-medium leading-6 ml-4 text-gray-900'>Histoires et anecdotes avec {person.name}</h3>
 
-      <NameChanger isOpen={isNameChangerOpen} close={closeNameChanger} personId={person.personId} name={person.name} />
-    </AppLayout>
-  )
-})
+            <ThreadList threads={threadsTheyAppearIn} />
+          </div>
+        ) : null}
+
+        <ProfilePictureSelector
+          isOpen={isProfilePicOpen}
+          close={closeProfilePic}
+          personId={person.personId}
+          faceList={alternateProfilePics}
+          name={person.name}
+          currentFaceUrl={person.profilePicUrl}
+        />
+
+        <NameChanger isOpen={isNameChangerOpen} close={closeNameChanger} personId={person.personId} name={person.name} />
+      </AppLayout>
+    )
+  }
+)
 
 function getInitials(name: string): string {
   // Split the name into words using whitespace or hyphen as separators

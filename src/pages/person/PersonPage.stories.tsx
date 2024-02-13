@@ -10,6 +10,8 @@ import { FamilyId } from '../../domain/FamilyId'
 import { makeAppUserId } from '../../libs/makeUserId'
 import { PersonSearchContext } from '../_components/usePersonSearch'
 import { makeFamilyId } from '../../libs/makeFamilyId'
+import { asFamilyId } from '../../libs/typeguards'
+import { makeThreadId } from '../../libs/makeThreadId'
 const fakePersonSearch = async (query: string) => {
   return {
     hits: [
@@ -139,6 +141,73 @@ export const AvecDesPhotos = () => (
       {
         photoId: makePhotoId(),
         url: 'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=3024&h=4032&q=80',
+      },
+    ]}
+    threadsTheyAppearIn={[
+      {
+        threadId: makeThreadId(),
+        authors: [
+          {
+            name: 'Philip McMuffin',
+            // profilePicUrl: fakeProfilePicUrl,
+          },
+        ],
+
+        familyIds: ['a' as FamilyId],
+        thumbnails: [],
+        title: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
+        contents: '',
+        lastUpdatedOn: Date.now(),
+        commentCount: 0,
+      },
+      {
+        threadId: makeThreadId(),
+        authors: [
+          {
+            name: 'Philip McMuffin',
+            // profilePicUrl: fakeProfilePicUrl,
+          },
+        ],
+        familyIds: ['a' as FamilyId],
+        thumbnails: [
+          'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80',
+          'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80',
+          'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80',
+          'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80',
+          'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80',
+          'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80',
+          'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80',
+        ],
+        title: undefined,
+        contents:
+          'Et diam cursus quis sed purus nam. Scelerisque amet elit non sit ut tincidunt condimentum. Nisl ultrices eu venenatis diam.',
+        lastUpdatedOn: Date.now(),
+        commentCount: 1,
+      },
+      {
+        threadId: makeThreadId(),
+        authors: [
+          {
+            name: 'Philip McMuffin',
+            // profilePicUrl: fakeProfilePicUrl,
+          },
+          {
+            name: 'Philip McMuffin',
+            // profilePicUrl: fakeProfilePicUrl,
+          },
+          {
+            name: 'Philip McMuffin',
+            // profilePicUrl: fakeProfilePicUrl,
+          },
+        ],
+        familyIds: [asFamilyId('a'), familyABCId, familyABCId, familyABCId, familyABCId, familyABCId],
+        thumbnails: [
+          'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80',
+        ],
+        title: undefined,
+        contents: 'Tincidunt nunc ipsum tempor purus vitae id. Morbi in vestibulum nec varius.',
+        lastUpdatedOn: Date.now(),
+        commentCount: 12,
       },
     ]}
   />
