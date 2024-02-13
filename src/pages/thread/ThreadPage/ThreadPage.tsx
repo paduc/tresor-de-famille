@@ -169,7 +169,10 @@ const RichTextEditor = (props: RichTextEditorProps) => {
           },
         })
       }
-      editorChain.run()
+      // See https://github.com/ueberdosis/tiptap/issues/3764
+      setTimeout(() => {
+        editorChain.run()
+      })
     },
     [mediaSelectorDOMNode]
   )
