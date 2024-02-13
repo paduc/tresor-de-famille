@@ -126,7 +126,7 @@ const ReadonlyPhotoItem = (props: {
     const photoPageUrl = `/photo/${photoId}/photo.html?threadId=${threadId}`
 
     return (
-      <div className='grid grid-cols-1 w-full px-4 sm:px-0 py-2'>
+      <div className='grid grid-cols-1 w-full px-4 sm:px-0 py-2' id={photoId}>
         <div className='mb-2'>
           <a href={photoPageUrl}>
             <img src={`${url}?threadId=${threadId}`} className='max-w-full max-h-[50vh] border border-gray-300 shadow-sm' />

@@ -7,6 +7,8 @@ import { PersonSearchContext } from '../../_components/usePersonSearch'
 import { NewPhotoPage } from './NewPhotoPage'
 import { makePhotoId } from '../../../libs/makePhotoId'
 import { makePersonId } from '../../../libs/makePersonId'
+import { makeThreadId } from '../../../libs/makeThreadId'
+import { makeFamilyId } from '../../../libs/makeFamilyId'
 
 const fakePersonSearch = async (query: string) => {
   return {
@@ -142,5 +144,31 @@ export const PhotoWithContext = () => (
     caption='Ceci est une légende'
     context={{ type: 'profile', profileId: makePersonId() }}
     isPhotoAuthor={true}
+    threadsContainingPhoto={[
+      {
+        threadId: makeThreadId(),
+        familyId: makeFamilyId(),
+        title: 'Ceci est un test',
+        author: {
+          name: 'Pedrito Valasquez',
+        },
+      },
+      {
+        threadId: makeThreadId(),
+        familyId: makeFamilyId(),
+        title: 'Ceci est un test. Ceci est un test. Ceci est un test',
+        author: {
+          name: 'Pedrito Valasquez',
+        },
+      },
+      {
+        threadId: makeThreadId(),
+        familyId: makeFamilyId(),
+        title: 'Ceci est un test',
+        author: {
+          name: 'Pedrito Valasquez',
+        },
+      },
+    ]}
   />
 )

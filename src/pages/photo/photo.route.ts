@@ -15,6 +15,7 @@ import { makePersonId } from '../../libs/makePersonId'
 import { responseAsHtml } from '../../libs/ssr/responseAsHtml'
 import { getPhotoFamilyId } from '../_getPhotoFamily'
 import { isPersonSharedWithFamily } from '../_isPersonSharedWithFamily'
+import { isPhotoAccessibleToUser } from '../_isPhotoAccessibleToUser'
 import { pageRouter } from '../pageRouter'
 import { PersonAutoSharedWithPhotoFace } from '../share/PersonAutoSharedWithPhotoFace'
 import { NewPhotoPage } from './PhotoPage/NewPhotoPage'
@@ -30,6 +31,11 @@ pageRouter
   .get(requireAuth(), async (request, response, next) => {
     try {
       const { photoId } = zod.object({ photoId: zIsPhotoId }).parse(request.params)
+      const userId = request.session.user!.id
+
+      if (!(await isPhotoAccessibleToUser({ photoId, userId }))) {
+        throw new Error("Vous n'avez pas accès à cette photo")
+      }
 
       const { threadId, profileId, photoListForFamilyId, edit } = z
         .object({
@@ -42,7 +48,7 @@ pageRouter
 
       const props = await getNewPhotoPageProps({
         photoId,
-        userId: request.session.user!.id,
+        userId: userId,
       })
 
       if (threadId) {

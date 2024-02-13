@@ -56,10 +56,17 @@ export type NewPhotoPageProps = {
         type: 'familyPhotoList'
         familyId: FamilyId
       }
+  threadsContainingPhoto: {
+    title: string
+    threadId: ThreadId
+    author: {
+      name: string
+    }
+  }[]
 }
 
 export const NewPhotoPage = withBrowserBundle(
-  ({ context, photoId, photoUrl, faces, familyId, isPhotoAuthor }: NewPhotoPageProps) => {
+  ({ context, photoId, photoUrl, faces, familyId, isPhotoAuthor, threadsContainingPhoto }: NewPhotoPageProps) => {
     const [selectedFaceForMenu, setSelectedFaceForMenu] = useState<PhotoFace | null>(null)
     const [selectedFaceForPersonSelector, setSelectedFaceForPersonSelector] = useState<PhotoFace | null>(null)
 
@@ -189,6 +196,23 @@ export const NewPhotoPage = withBrowserBundle(
               ) : (
                 <div className='py-5 italic'>En attente de la détection de visage (penser a recharger la page).</div>
               )}
+              {threadsContainingPhoto && threadsContainingPhoto.length ? (
+                <div className='px-1 py-6'>
+                  <div className='text-gray-300'>Cette photo est présente dans: </div>
+                  <ul className='text-white'>
+                    {threadsContainingPhoto.map((thread) => (
+                      <li
+                        className='py-2 px-4 -mx-4 hover:bg-white/10 rounded-none sm:rounded-lg'
+                        key={`thread_${thread.threadId}_contains_photo`}>
+                        <a href={`${ThreadUrl(thread.threadId)}#${photoId}`}>
+                          <div>{thread.title}</div>
+                          <div className='italic'>par {thread.author.name}</div>
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
               {isPhotoAuthor ? (
                 <form
                   method='POST'
