@@ -210,5 +210,22 @@ export const AvecDesPhotos = () => (
         commentCount: 12,
       },
     ]}
+    threadsTheyWrote={[
+      {
+        threadId: makeThreadId(),
+        authors: [
+          {
+            name: 'John Doe',
+            // profilePicUrl: fakeProfilePicUrl,
+          },
+        ],
+        familyIds: ['a' as FamilyId],
+        thumbnails: [],
+        title: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
+        contents: '',
+        lastUpdatedOn: Date.now(),
+        commentCount: 0,
+      },
+    ]}
   />
 )

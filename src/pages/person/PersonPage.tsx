@@ -44,13 +44,25 @@ export type PersonPageProps = {
     familyIds: FamilyId[]
     commentCount: number
   }[]
+  threadsTheyWrote: {
+    threadId: ThreadId
+    title: string | undefined
+    lastUpdatedOn: number
+    authors: {
+      name: string
+    }[]
+    contents: string
+    thumbnails: string[]
+    familyIds: FamilyId[]
+    commentCount: number
+  }[]
 }
 
 const INITIAL_PHOTO_COUNT = 6
 const PHOTO_COUNT_STEP = 6
 
 export const PersonPage = withBrowserBundle(
-  ({ person, photos, alternateProfilePics, threadsTheyAppearIn }: PersonPageProps) => {
+  ({ person, photos, alternateProfilePics, threadsTheyAppearIn, threadsTheyWrote }: PersonPageProps) => {
     const [isProfilePicOpen, openProfilePic] = React.useState<boolean>(false)
     const closeProfilePic = React.useCallback(() => openProfilePic(false), [])
     const [photosToDisplayCount, setPhotosToDisplayCount] = useState<number>(INITIAL_PHOTO_COUNT)
@@ -201,7 +213,17 @@ export const PersonPage = withBrowserBundle(
           <div className='bg-white py-6 px-2 mt-4'>
             <h3 className='text-lg font-medium leading-6 ml-4 text-gray-900'>Histoires et anecdotes avec {person.name}</h3>
 
-            <ThreadList threads={threadsTheyAppearIn} />
+            <ThreadList threads={threadsTheyAppearIn} foldAtCount={3} />
+          </div>
+        ) : null}
+
+        {threadsTheyWrote.length > 0 ? (
+          <div className='bg-white py-6 px-2 mt-4'>
+            <h3 className='text-lg font-medium leading-6 ml-4 text-gray-900'>
+              Histoires et anecdotes écrites par {person.name}
+            </h3>
+
+            <ThreadList threads={threadsTheyWrote} foldAtCount={3} />
           </div>
         ) : null}
 

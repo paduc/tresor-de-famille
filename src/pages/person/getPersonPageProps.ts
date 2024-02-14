@@ -28,6 +28,7 @@ import { ParagraphNode, PhotoNode } from '../thread/TipTapTypes'
 import { ThreadSharedWithFamilies } from '../thread/ThreadPage/ThreadSharedWithFamilies'
 import { ThumbnailURL } from '../photoApi/ThumbnailURL'
 import { getThreadComments } from '../commentApi/getThreadComments'
+import { getUsersForPersonId } from '../_getUsersForPersonId'
 
 export const getPersonPageProps = async ({
   personId,
@@ -45,19 +46,27 @@ export const getPersonPageProps = async ({
     person: { personId, name, profilePicUrl },
     photos,
     alternateProfilePics,
-    threadsTheyAppearIn: await getThreadsPersonAppearsIn({ personId, userId, photosOfPerson: photos.map((p) => p.photoId) }),
+    threadsTheyAppearIn: await getThreadsPersonAppearsIn({ userId, photosOfPerson: photos.map((p) => p.photoId) }),
+    threadsTheyWrote: await getThreadsThePersonWrote({ userId, personId }),
   }
 }
 
-async function getThreadsPersonAppearsIn({
-  personId,
-  userId,
-  photosOfPerson,
-}: {
-  personId: PersonId
-  userId: AppUserId
-  photosOfPerson: PhotoId[]
-}) {
+async function getThreadsThePersonWrote({ userId, personId }: { userId: AppUserId; personId: PersonId }) {
+  const usersForPerson = await getUsersForPersonId({ personId })
+
+  const uniqueThreads = new Set<ThreadId>()
+  for (const userId of usersForPerson) {
+    const userThreads = await getEventList<UserUpdatedThreadAsRichText>('UserUpdatedThreadAsRichText', { userId })
+
+    for (const userThread of userThreads) {
+      uniqueThreads.add(userThread.payload.threadId)
+    }
+  }
+
+  return getThreadsWithInfo({ threadIds: Array.from(uniqueThreads), userId })
+}
+
+async function getThreadsPersonAppearsIn({ userId, photosOfPerson }: { userId: AppUserId; photosOfPerson: PhotoId[] }) {
   // Get unique threads for each photo of person
   const uniqueThreads = new Set<ThreadId>()
   for (const photoId of photosOfPerson) {
@@ -84,9 +93,13 @@ async function getThreadsPersonAppearsIn({
     }
   }
 
+  return getThreadsWithInfo({ threadIds: Array.from(uniqueThreads), userId })
+}
+
+async function getThreadsWithInfo({ threadIds, userId }: { threadIds: ThreadId[]; userId: AppUserId }) {
   // Filter the unique thread to keep only the ones accessible to user
   const userAccessibleThreads = new Set<ThreadId>()
-  for (const threadId of uniqueThreads) {
+  for (const threadId of threadIds) {
     if (await isThreadSharedWithUser({ threadId, userId })) {
       userAccessibleThreads.add(threadId)
     }
@@ -106,7 +119,6 @@ async function getThreadsPersonAppearsIn({
     })
   }
 
-  // mix with getThreadListPageProps to retrieve all pertinent data
   return threads
 }
 
