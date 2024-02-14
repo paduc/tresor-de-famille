@@ -183,7 +183,7 @@ export const PersonPage = withBrowserBundle(
                   Afficher plus de photos
                 </button>
               </div>
-            ) : (
+            ) : photos.length === photosToDisplayCount ? (
               <div className='mt-3'>
                 <button
                   className={`${secondaryButtonStyles}`}
@@ -193,7 +193,7 @@ export const PersonPage = withBrowserBundle(
                   Afficher moins
                 </button>
               </div>
-            )}
+            ) : null}
           </div>
         ) : null}
 
