@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 
 import { Dialog, Transition } from '@headlessui/react'
-import { ChevronLeftIcon, XMarkIcon } from '@heroicons/react/20/solid'
+import { ChevronLeftIcon, MapPinIcon, XMarkIcon } from '@heroicons/react/20/solid'
 import { EyeIcon, EyeSlashIcon, TrashIcon } from '@heroicons/react/24/outline'
 import { FaceId } from '../../../domain/FaceId'
 import { FamilyId } from '../../../domain/FamilyId'
@@ -63,10 +63,16 @@ export type NewPhotoPageProps = {
       name: string
     }
   }[]
+  location:
+    | {
+        lat: number
+        long: number
+      }
+    | undefined
 }
 
 export const NewPhotoPage = withBrowserBundle(
-  ({ context, photoId, photoUrl, faces, familyId, isPhotoAuthor, threadsContainingPhoto }: NewPhotoPageProps) => {
+  ({ context, photoId, photoUrl, faces, familyId, isPhotoAuthor, threadsContainingPhoto, location }: NewPhotoPageProps) => {
     const [selectedFaceForMenu, setSelectedFaceForMenu] = useState<PhotoFace | null>(null)
     const [selectedFaceForPersonSelector, setSelectedFaceForPersonSelector] = useState<PhotoFace | null>(null)
 
@@ -133,6 +139,17 @@ export const NewPhotoPage = withBrowserBundle(
           </div>
           <div className='bg-white bg-opacity-5 border-t border-gray-200/50'>
             <div className='text-gray-200 px-3 pb-28 w-full sm:max-w-lg mx-auto divide divide-y divide-solid divide-gray-200/50'>
+              {location ? (
+                <div className='py-3'>
+                  <a
+                    className='text-gray-300 inline-flex justify-start items-center'
+                    target='_blank'
+                    href={`https://www.openstreetmap.org/?mlat=${location.lat}&mlon=${location.long}`}>
+                    <MapPinIcon className='h-5 w-5 mr-1' />
+                    Lieu
+                  </a>
+                </div>
+              ) : null}
               {faces ? (
                 <>
                   {faces.length ? (

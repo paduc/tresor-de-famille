@@ -172,3 +172,18 @@ export const PhotoWithContext = () => (
     ]}
   />
 )
+
+export const PhotoWithLocation = () => (
+  <NewPhotoPage
+    faces={[]}
+    photoId={makePhotoId()}
+    photoUrl={fakePhoto({ width: 1000, height: 1000 })}
+    context={{ type: 'profile', profileId: makePersonId() }}
+    isPhotoAuthor={true}
+    threadsContainingPhoto={[]}
+    location={{
+      lat: 49.46800006494457,
+      long: 17.11514008755796,
+    }}
+  />
+)

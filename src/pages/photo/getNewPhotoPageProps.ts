@@ -4,6 +4,7 @@ import { getPhotoUrlFromId } from '../../dependencies/photo-storage'
 import { AppUserId } from '../../domain/AppUserId'
 import { PhotoId } from '../../domain/PhotoId'
 import { ThreadId } from '../../domain/ThreadId'
+import { getGPSDecCoordsFromExif } from '../../libs/getGPSDecCoordsFromExif'
 import { doesPhotoExist } from '../_doesPhotoExist'
 import { getFacesInPhoto } from '../_getFacesInPhoto'
 import { getPersonByIdOrThrow } from '../_getPersonById'
@@ -12,8 +13,11 @@ import { getPhotoAuthor } from '../_getPhotoAuthor'
 import { getPhotoFamilyId } from '../_getPhotoFamily'
 import { getThreadAuthor } from '../_getThreadAuthor'
 import { isThreadSharedWithUser } from '../_isThreadSharedWithUser'
+import { UserUploadedPhoto } from '../photoApi/UserUploadedPhoto'
+import { UserUploadedPhotoToFamily } from '../photoApi/UserUploadedPhotoToFamily'
 import { ParagraphNode, PhotoNode } from '../thread/TipTapTypes'
 import { UserUpdatedThreadAsRichText } from '../thread/UserUpdatedThreadAsRichText'
+import { UserUploadedPhotoToChat } from '../thread/uploadPhotoToChat/UserUploadedPhotoToChat'
 
 import { NewPhotoPageProps } from './PhotoPage/NewPhotoPage'
 import { UserAddedCaptionToPhoto } from './UserAddedCaptionToPhoto'
@@ -76,7 +80,23 @@ export const getNewPhotoPageProps = async ({
     isPhotoAuthor: authorId === userId,
     faces,
     threadsContainingPhoto: await getThreadsWithPhoto({ photoId, userId }),
+    location: await getPhotoLocation({ photoId }),
   }
+}
+
+async function getPhotoLocation({ photoId }: { photoId: PhotoId }): Promise<{ lat: number; long: number } | undefined> {
+  const photoUploadEvent = await getSingleEvent<UserUploadedPhoto | UserUploadedPhotoToFamily>(
+    ['UserUploadedPhoto', 'UserUploadedPhotoToFamily'],
+    { photoId }
+  )
+
+  if (!photoUploadEvent) return
+
+  const { exif } = photoUploadEvent.payload
+
+  if (!exif) return
+
+  return getGPSDecCoordsFromExif(exif)
 }
 
 async function getThreadsWithPhoto({
