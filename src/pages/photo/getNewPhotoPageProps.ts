@@ -4,6 +4,7 @@ import { getPhotoUrlFromId } from '../../dependencies/photo-storage'
 import { AppUserId } from '../../domain/AppUserId'
 import { PhotoId } from '../../domain/PhotoId'
 import { ThreadId } from '../../domain/ThreadId'
+import { EXIF } from '../../libs/exif'
 import { getGPSDecCoordsFromExif } from '../../libs/getGPSDecCoordsFromExif'
 import { doesPhotoExist } from '../_doesPhotoExist'
 import { getFacesInPhoto } from '../_getFacesInPhoto'
@@ -73,6 +74,7 @@ export const getNewPhotoPageProps = async ({
 
   const authorId = await getPhotoAuthor(photoId)
 
+  const locationAndTime = await getPhotoLocationAndTime({ photoId })
   return {
     photoUrl: getPhotoUrlFromId(photoId),
     photoId,
@@ -80,11 +82,16 @@ export const getNewPhotoPageProps = async ({
     isPhotoAuthor: authorId === userId,
     faces,
     threadsContainingPhoto: await getThreadsWithPhoto({ photoId, userId }),
-    location: await getPhotoLocation({ photoId }),
+    location: locationAndTime?.location,
+    datetime: locationAndTime?.datetime,
   }
 }
 
-async function getPhotoLocation({ photoId }: { photoId: PhotoId }): Promise<{ lat: number; long: number } | undefined> {
+async function getPhotoLocationAndTime({
+  photoId,
+}: {
+  photoId: PhotoId
+}): Promise<{ location: { lat: number; long: number } | undefined; datetime: string | undefined } | undefined> {
   const photoUploadEvent = await getSingleEvent<UserUploadedPhoto | UserUploadedPhotoToFamily>(
     ['UserUploadedPhoto', 'UserUploadedPhotoToFamily'],
     { photoId }
@@ -96,7 +103,29 @@ async function getPhotoLocation({ photoId }: { photoId: PhotoId }): Promise<{ la
 
   if (!exif) return
 
-  return getGPSDecCoordsFromExif(exif)
+  const location = getGPSDecCoordsFromExif(exif)
+
+  const datetime = getDateTimeFromExif(exif)
+
+  return { location, datetime }
+}
+
+function getDateTimeFromExif(exif: EXIF): string | undefined {
+  const dateString = exif.DateTime || exif.DateTimeOriginal
+
+  if (!dateString || typeof dateString !== 'string') return
+
+  // The format of DateTime in EXIF is "YYYY:MM:DD HH:MM:SS"
+  // To be acceptable for a Date, we need to replace the first two ":" with "-"
+  const formattedDateString = dateString.replace(':', '-').replace(':', '-')
+
+  // Check if valid date string
+  const date = new Date(formattedDateString)
+  if (isNaN(date.getTime())) {
+    return
+  }
+
+  return date.toISOString()
 }
 
 async function getThreadsWithPhoto({

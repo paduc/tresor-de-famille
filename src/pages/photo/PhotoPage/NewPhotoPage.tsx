@@ -69,10 +69,21 @@ export type NewPhotoPageProps = {
         long: number
       }
     | undefined
+  datetime: string | undefined
 }
 
 export const NewPhotoPage = withBrowserBundle(
-  ({ context, photoId, photoUrl, faces, familyId, isPhotoAuthor, threadsContainingPhoto, location }: NewPhotoPageProps) => {
+  ({
+    context,
+    photoId,
+    photoUrl,
+    faces,
+    familyId,
+    isPhotoAuthor,
+    threadsContainingPhoto,
+    location,
+    datetime,
+  }: NewPhotoPageProps) => {
     const [selectedFaceForMenu, setSelectedFaceForMenu] = useState<PhotoFace | null>(null)
     const [selectedFaceForPersonSelector, setSelectedFaceForPersonSelector] = useState<PhotoFace | null>(null)
 
@@ -139,15 +150,22 @@ export const NewPhotoPage = withBrowserBundle(
           </div>
           <div className='bg-white bg-opacity-5 border-t border-gray-200/50'>
             <div className='text-gray-200 px-3 pb-28 w-full sm:max-w-lg mx-auto divide divide-y divide-solid divide-gray-200/50'>
-              {location ? (
-                <div className='py-3'>
-                  <a
-                    className='text-gray-300 inline-flex justify-start items-center'
-                    target='_blank'
-                    href={`https://www.openstreetmap.org/?mlat=${location.lat}&mlon=${location.long}`}>
-                    <MapPinIcon className='h-5 w-5 mr-1' />
-                    Lieu
-                  </a>
+              {location || datetime ? (
+                <div className='py-3 inline-flex justify-start items-center gap-x-3'>
+                  {datetime ? (
+                    <time dateTime={datetime}>
+                      Le {new Intl.DateTimeFormat('fr', { dateStyle: 'long', timeStyle: 'medium' }).format(new Date(datetime))}
+                    </time>
+                  ) : null}
+                  {location ? (
+                    <a
+                      className='text-gray-300 inline-flex justify-start items-center'
+                      target='_blank'
+                      href={`https://www.openstreetmap.org/?mlat=${location.lat}&mlon=${location.long}`}>
+                      <MapPinIcon className='h-5 w-5 mr-1' />
+                      Lieu
+                    </a>
+                  ) : null}
                 </div>
               ) : null}
               {faces ? (

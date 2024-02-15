@@ -187,3 +187,30 @@ export const PhotoWithLocation = () => (
     }}
   />
 )
+
+export const PhotoWithDatetime = () => (
+  <NewPhotoPage
+    faces={[]}
+    photoId={makePhotoId()}
+    photoUrl={fakePhoto({ width: 1000, height: 1000 })}
+    context={{ type: 'profile', profileId: makePersonId() }}
+    isPhotoAuthor={true}
+    threadsContainingPhoto={[]}
+    datetime='2009-05-22T11:20:47.000Z'
+  />
+)
+export const PhotoWithLocationAndDatetime = () => (
+  <NewPhotoPage
+    faces={[]}
+    photoId={makePhotoId()}
+    photoUrl={fakePhoto({ width: 1000, height: 1000 })}
+    context={{ type: 'profile', profileId: makePersonId() }}
+    isPhotoAuthor={true}
+    threadsContainingPhoto={[]}
+    datetime='2009-05-22T11:20:47.000Z'
+    location={{
+      lat: 49.46800006494457,
+      long: 17.11514008755796,
+    }}
+  />
+)
