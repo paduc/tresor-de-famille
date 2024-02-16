@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 
 import { Dialog, Transition } from '@headlessui/react'
-import { ChevronLeftIcon, MapPinIcon, XMarkIcon } from '@heroicons/react/20/solid'
+import { CalendarIcon, ChevronLeftIcon, MapPinIcon, XMarkIcon } from '@heroicons/react/20/solid'
 import { EyeIcon, EyeSlashIcon, TrashIcon } from '@heroicons/react/24/outline'
 import { FaceId } from '../../../domain/FaceId'
 import { FamilyId } from '../../../domain/FamilyId'
@@ -152,9 +152,10 @@ export const NewPhotoPage = withBrowserBundle(
           <div className='bg-white bg-opacity-5 border-t border-gray-200/50'>
             <div className='text-gray-200 px-3 pb-28 w-full sm:max-w-lg mx-auto divide divide-y divide-solid divide-gray-200/50'>
               {location || datetime ? (
-                <div className='py-3'>
+                <div className='py-3 flex flex-col gap-y-1'>
                   {datetime ? (
-                    <div>
+                    <div className='inline-flex justify-start items-center'>
+                      <CalendarIcon className='h-5 w-5 mr-1' />
                       <time dateTime={datetime}>
                         Le{' '}
                         {new Intl.DateTimeFormat('fr', { dateStyle: 'long', timeStyle: 'medium' }).format(new Date(datetime))}
