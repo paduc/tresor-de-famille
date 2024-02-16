@@ -14,6 +14,11 @@ import { detectFacesInPhotoUsingAWS } from '../photo/recognizeFacesInChatPhoto/d
 import { asFamilyId } from '../../libs/typeguards'
 
 import { getExif } from './getExif'
+import { PhotoId } from '../../domain/PhotoId'
+import { EXIF } from '../../libs/exif'
+import { getGPSDecCoordsFromExif } from '../../libs/getGPSDecCoordsFromExif'
+import { geocodeService } from '../../dependencies/mapbox'
+import { PhotoGPSReverseGeocodedUsingMapbox } from './PhotoGPSReverseGeocodedUsingMapbox'
 
 const FILE_SIZE_LIMIT_MB = 20
 const upload = multer({
@@ -66,6 +71,7 @@ pageRouter.route('/upload-photo').post(requireAuth(), upload.single('photo'), as
     }
 
     // Fire and forget
+    getPhotoLocationUsingMapbox({ exif, photoId })
     detectFacesInPhotoUsingAWS({ file, photoId })
 
     return response.status(200).json({ photoId })
@@ -74,3 +80,27 @@ pageRouter.route('/upload-photo').post(requireAuth(), upload.single('photo'), as
     next(error)
   }
 })
+
+async function getPhotoLocationUsingMapbox({ exif, photoId }: { exif: EXIF | undefined; photoId: PhotoId }) {
+  if (!exif) return
+
+  const GPSCoords = getGPSDecCoordsFromExif(exif)
+  if (!GPSCoords) return
+
+  try {
+    const { lat, long } = GPSCoords
+    const geocoding = await geocodeService.reverseGeocode({ query: [long, lat] }).send()
+
+    if (geocoding.body.features.length) {
+      await addToHistory(
+        PhotoGPSReverseGeocodedUsingMapbox({
+          photoId,
+          geocode: geocoding.body,
+          geocodeApiVersion: '5',
+        })
+      )
+    }
+  } catch (error) {
+    console.error('getPhotoLocationUsingMapbox', error)
+  }
+}
