@@ -148,7 +148,7 @@ async function getThreadsWithPhoto({
     [`%${photoId}%`]
   )
 
-  const results = []
+  const results: NewPhotoPageProps['threadsContainingPhoto'] = []
 
   const uniqueThreads = new Set<ThreadId>()
   for (const row of rows) {
