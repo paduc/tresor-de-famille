@@ -4,7 +4,7 @@ import { FamilyId } from '../../domain/FamilyId'
 import { PhotoId } from '../../domain/PhotoId'
 import { EXIF } from '../../libs/exif'
 
-export type PhotoLocation =
+export type FileStorageLocation =
   | {
       type: 'S3'
       bucket: string
@@ -17,7 +17,7 @@ export type UserUploadedPhotoToFamily = DomainEvent<
   'UserUploadedPhotoToFamily',
   {
     photoId: PhotoId
-    location: PhotoLocation
+    location: FileStorageLocation
     userId: AppUserId
     familyId: FamilyId
     exif?: EXIF
