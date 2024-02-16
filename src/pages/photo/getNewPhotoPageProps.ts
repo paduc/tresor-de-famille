@@ -1,5 +1,6 @@
 import { postgres } from '../../dependencies/database'
 import { getSingleEvent } from '../../dependencies/getSingleEvent'
+import { geocodeService } from '../../dependencies/mapbox'
 import { getPhotoUrlFromId } from '../../dependencies/photo-storage'
 import { AppUserId } from '../../domain/AppUserId'
 import { PhotoId } from '../../domain/PhotoId'
@@ -18,7 +19,6 @@ import { UserUploadedPhoto } from '../photoApi/UserUploadedPhoto'
 import { UserUploadedPhotoToFamily } from '../photoApi/UserUploadedPhotoToFamily'
 import { ParagraphNode, PhotoNode } from '../thread/TipTapTypes'
 import { UserUpdatedThreadAsRichText } from '../thread/UserUpdatedThreadAsRichText'
-import { UserUploadedPhotoToChat } from '../thread/uploadPhotoToChat/UserUploadedPhotoToChat'
 
 import { NewPhotoPageProps } from './PhotoPage/NewPhotoPage'
 import { UserAddedCaptionToPhoto } from './UserAddedCaptionToPhoto'
@@ -91,7 +91,7 @@ async function getPhotoLocationAndTime({
   photoId,
 }: {
   photoId: PhotoId
-}): Promise<{ location: { lat: number; long: number } | undefined; datetime: string | undefined } | undefined> {
+}): Promise<{ location: { lat: number; long: number; name: string } | undefined; datetime: string | undefined } | undefined> {
   const photoUploadEvent = await getSingleEvent<UserUploadedPhoto | UserUploadedPhotoToFamily>(
     ['UserUploadedPhoto', 'UserUploadedPhotoToFamily'],
     { photoId }
@@ -103,11 +103,19 @@ async function getPhotoLocationAndTime({
 
   if (!exif) return
 
-  const location = getGPSDecCoordsFromExif(exif)
+  const GPSCoords = getGPSDecCoordsFromExif(exif)
+  let name: string = ''
+  if (GPSCoords) {
+    const { lat, long } = GPSCoords
+    const geocoding = await geocodeService.reverseGeocode({ query: [long, lat] }).send()
+    if (geocoding.body.features.length) {
+      name = geocoding.body.features[0].place_name
+    }
+  }
 
   const datetime = getDateTimeFromExif(exif)
 
-  return { location, datetime }
+  return { location: GPSCoords && { ...GPSCoords, name }, datetime }
 }
 
 function getDateTimeFromExif(exif: EXIF): string | undefined {
