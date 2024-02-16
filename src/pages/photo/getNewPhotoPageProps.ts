@@ -1,6 +1,5 @@
 import { postgres } from '../../dependencies/database'
 import { getSingleEvent } from '../../dependencies/getSingleEvent'
-import { geocodeService } from '../../dependencies/mapbox'
 import { getPhotoUrlFromId } from '../../dependencies/photo-storage'
 import { AppUserId } from '../../domain/AppUserId'
 import { PhotoId } from '../../domain/PhotoId'
@@ -15,6 +14,7 @@ import { getPhotoAuthor } from '../_getPhotoAuthor'
 import { getPhotoFamilyId } from '../_getPhotoFamily'
 import { getThreadAuthor } from '../_getThreadAuthor'
 import { isThreadSharedWithUser } from '../_isThreadSharedWithUser'
+import { PhotoGPSReverseGeocodedUsingMapbox } from '../photoApi/PhotoGPSReverseGeocodedUsingMapbox'
 import { UserUploadedPhoto } from '../photoApi/UserUploadedPhoto'
 import { UserUploadedPhotoToFamily } from '../photoApi/UserUploadedPhotoToFamily'
 import { ParagraphNode, PhotoNode } from '../thread/TipTapTypes'
@@ -74,7 +74,7 @@ export const getNewPhotoPageProps = async ({
 
   const authorId = await getPhotoAuthor(photoId)
 
-  const locationAndTime = await getPhotoLocationAndTime({ photoId })
+  const GPSCoordsAndTime = await getPhotoGPSCoordsAndTime({ photoId })
   return {
     photoUrl: getPhotoUrlFromId(photoId),
     photoId,
@@ -82,16 +82,17 @@ export const getNewPhotoPageProps = async ({
     isPhotoAuthor: authorId === userId,
     faces,
     threadsContainingPhoto: await getThreadsWithPhoto({ photoId, userId }),
-    location: locationAndTime?.location,
-    datetime: locationAndTime?.datetime,
+    locationName: await getLocationName({ photoId }),
+    GPSCoords: GPSCoordsAndTime?.GPSCoords,
+    datetime: GPSCoordsAndTime?.datetime,
   }
 }
 
-async function getPhotoLocationAndTime({
+async function getPhotoGPSCoordsAndTime({
   photoId,
 }: {
   photoId: PhotoId
-}): Promise<{ location: { lat: number; long: number; name: string } | undefined; datetime: string | undefined } | undefined> {
+}): Promise<{ GPSCoords: { lat: number; long: number } | undefined; datetime: string | undefined } | undefined> {
   const photoUploadEvent = await getSingleEvent<UserUploadedPhoto | UserUploadedPhotoToFamily>(
     ['UserUploadedPhoto', 'UserUploadedPhotoToFamily'],
     { photoId }
@@ -104,18 +105,20 @@ async function getPhotoLocationAndTime({
   if (!exif) return
 
   const GPSCoords = getGPSDecCoordsFromExif(exif)
-  let name: string = ''
-  if (GPSCoords) {
-    const { lat, long } = GPSCoords
-    const geocoding = await geocodeService.reverseGeocode({ query: [long, lat] }).send()
-    if (geocoding.body.features.length) {
-      name = geocoding.body.features[0].place_name
-    }
-  }
 
   const datetime = getDateTimeFromExif(exif)
 
-  return { location: GPSCoords && { ...GPSCoords, name }, datetime }
+  return { GPSCoords, datetime }
+}
+
+async function getLocationName({ photoId }: { photoId: PhotoId }): Promise<string | undefined> {
+  const reverseGeocode = await getSingleEvent<PhotoGPSReverseGeocodedUsingMapbox>('PhotoGPSReverseGeocodedUsingMapbox', {
+    photoId,
+  })
+
+  if (reverseGeocode) {
+    return reverseGeocode.payload.geocode.features[0].place_name
+  }
 }
 
 function getDateTimeFromExif(exif: EXIF): string | undefined {

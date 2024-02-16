@@ -8,6 +8,7 @@ import { makePhotoId } from '../../libs/makePhotoId'
 import { makeThreadId } from '../../libs/makeThreadId'
 import { makeAppUserId } from '../../libs/makeUserId'
 import { asFamilyId } from '../../libs/typeguards'
+import { PhotoGPSReverseGeocodedUsingMapbox } from '../photoApi/PhotoGPSReverseGeocodedUsingMapbox'
 import { UserUploadedPhoto } from '../photoApi/UserUploadedPhoto'
 import { ThreadSharedWithFamilies } from '../thread/ThreadPage/ThreadSharedWithFamilies'
 import { UserUpdatedThreadAsRichText } from '../thread/UserUpdatedThreadAsRichText'
@@ -199,6 +200,47 @@ describe('getNewPhotoPageProps', () => {
           name: 'John Doe',
         },
       })
+    })
+  })
+
+  describe('when a photo has a location thanks to PhotoGPSReverseGeocodedUsingMapbox', () => {
+    const userId = makeAppUserId()
+
+    const targetPhotoId = makePhotoId()
+    beforeAll(async () => {
+      await resetDatabase()
+
+      await addToHistory(
+        UserRegisteredWithEmailAndPassword({
+          userId,
+          email: '',
+          passwordHash: '',
+        })
+      )
+
+      await addToHistory(
+        UserUploadedPhoto({
+          userId,
+          photoId: targetPhotoId,
+          location: {} as UserUploadedPhoto['payload']['location'],
+        })
+      )
+
+      await addToHistory(
+        PhotoGPSReverseGeocodedUsingMapbox({
+          photoId: targetPhotoId,
+          geocodeApiVersion: '5',
+          geocode: {
+            features: [{ place_name: 'Maison de mère-grand, Fin fond de la forêt, Pays enchanté' }],
+          } as PhotoGPSReverseGeocodedUsingMapbox['payload']['geocode'],
+        })
+      )
+    })
+
+    it('should return that location', async () => {
+      const res = await getNewPhotoPageProps({ photoId: targetPhotoId, userId })
+
+      expect(res.locationName).toEqual('Maison de mère-grand, Fin fond de la forêt, Pays enchanté')
     })
   })
 })
