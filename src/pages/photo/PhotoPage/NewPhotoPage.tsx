@@ -1,8 +1,8 @@
 import React, { useState } from 'react'
 
-import { Dialog, Transition } from '@headlessui/react'
+import { Dialog, RadioGroup, Transition } from '@headlessui/react'
 import { CalendarIcon, ChevronLeftIcon, MapPinIcon, XMarkIcon } from '@heroicons/react/20/solid'
-import { EyeIcon, EyeSlashIcon, TrashIcon } from '@heroicons/react/24/outline'
+import { EyeIcon, EyeSlashIcon, InformationCircleIcon, PencilSquareIcon, TrashIcon } from '@heroicons/react/24/outline'
 
 import { exhaustiveGuard } from '../../../libs/exhaustiveGuard'
 import { FaceId } from '../../../domain/FaceId'
@@ -12,6 +12,7 @@ import { PhotoId } from '../../../domain/PhotoId'
 import { ThreadId } from '../../../domain/ThreadId'
 import { withBrowserBundle } from '../../../libs/ssr/withBrowserBundle'
 import {
+  linkStyles,
   linkStylesDarkMode,
   primaryButtonStyles,
   secondaryButtonStyles,
@@ -24,6 +25,7 @@ import { usePersonSearch } from '../../_components/usePersonSearch'
 import { PersonPageURL } from '../../person/PersonPageURL'
 import { PhotoListPageUrl, PhotoListPageUrlWithFamily } from '../../photoList/PhotoListPageUrl'
 import { ThreadUrl } from '../../thread/ThreadUrl'
+import classNames from 'classnames'
 
 type PhotoFace = {
   faceId: FaceId
@@ -65,13 +67,17 @@ export type NewPhotoPageProps = {
       name: string
     }
   }[]
-  GPSCoords:
+  location: {
+    isRelevant: boolean // User may chose to hide location as non-relevant (default: true)
+    GPSCoords: // Extracted from the photo EXIF
     | {
-        lat: number
-        long: number
-      }
-    | undefined
-  locationName: string | undefined
+          lat: number
+          long: number
+        }
+      | undefined
+    userProvidedName: string | undefined
+    mapboxPlaceName: string | undefined // GPSCoords => Mapbox API => Place name
+  }
   datetime: string | undefined
 }
 
@@ -84,8 +90,7 @@ export const NewPhotoPage = withBrowserBundle(
     familyId,
     isPhotoAuthor,
     threadsContainingPhoto,
-    locationName,
-    GPSCoords,
+    location,
     datetime,
   }: NewPhotoPageProps) => {
     const [selectedFaceForMenu, setSelectedFaceForMenu] = useState<PhotoFace | null>(null)
@@ -115,7 +120,7 @@ export const NewPhotoPage = withBrowserBundle(
 
     return (
       <div className='relative'>
-        <ContextualMenu
+        <FaceContextualMenu
           selectedFace={selectedFaceForMenu}
           close={() => {
             setSelectedFaceForMenu(null)
@@ -157,22 +162,7 @@ export const NewPhotoPage = withBrowserBundle(
                     </time>
                   </div>
                 ) : null}
-                {GPSCoords ? (
-                  <div>
-                    <a
-                      className='text-gray-300 inline-flex justify-start items-center'
-                      target='_blank'
-                      href={`https://www.openstreetmap.org/?mlat=${GPSCoords.lat}&mlon=${GPSCoords.long}`}>
-                      <MapPinIcon className='h-5 w-5 mr-1' />
-                      {locationName || 'Lieu'}
-                    </a>
-                  </div>
-                ) : locationName ? (
-                  <div className='text-gray-300 inline-flex justify-start items-center'>
-                    <MapPinIcon className='h-5 w-5 mr-1' />
-                    {locationName}
-                  </div>
-                ) : null}
+                <PhotoLocation location={location} photoId={photoId} />
               </div>
               {faces ? (
                 <>
@@ -295,6 +285,251 @@ export const NewPhotoPage = withBrowserBundle(
   }
 )
 
+const PhotoLocation = ({ location, photoId }: { photoId: PhotoId; location: NewPhotoPageProps['location'] }) => {
+  const { GPSCoords, isRelevant, mapboxPlaceName, userProvidedName } = location
+  const [isModalOpen, setModalOpen] = useState(false)
+  const [gpsOption, setGPSOption] = useState<'exif' | 'manual' | 'none'>('exif')
+  const [isRelevantChecked, setRelevance] = useState(isRelevant)
+
+  const Wrapper = ({ children }) => {
+    if (GPSCoords) {
+      return (
+        <a
+          className='text-gray-300 hover:text-gray-200'
+          target='_blank'
+          href={`https://www.openstreetmap.org/?mlat=${GPSCoords.lat}&mlon=${GPSCoords.long}`}>
+          {children}
+        </a>
+      )
+    }
+
+    return <div className='text-gray-300'>{children}</div>
+  }
+
+  const hasLocationName = Boolean(userProvidedName || mapboxPlaceName)
+
+  return (
+    <>
+      <div className='inline-flex justify-start items-center gap-4'>
+        <Wrapper>
+          <div className='inline-flex justify-start items-center gap-1'>
+            <MapPinIcon className='h-5 w-5 mr-1' />
+            <div>{userProvidedName || mapboxPlaceName || 'Lieu de la photo'}</div>
+          </div>
+        </Wrapper>
+        {/* <button onClick={() => setModalOpen(true)} className=' hover:text-gray-200'>
+          <PencilSquareIcon className='h-5 w-5' />
+        </button> */}
+      </div>
+      <TDFModal title='Lieu de la photo' close={() => setModalOpen(false)} isOpen={isModalOpen}>
+        <form>
+          <input type='hidden' name='photoId' value={photoId} />
+          <div className='flex flex-col gap-y-4 divide-y divide-gray-200'>
+            <div className='inline-flex '>
+              <div className='relative flex items-start'>
+                <div className='flex h-6 items-center'>
+                  <input
+                    id='isRelevant'
+                    aria-describedby='isRelevant-description'
+                    name='isRelevant'
+                    type='checkbox'
+                    checked={!isRelevantChecked}
+                    className='h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-600'
+                    onChange={(e) => {
+                      setRelevance((state) => !state)
+                    }}
+                  />
+                </div>
+                <div className='ml-3'>
+                  <label htmlFor='isRelevant' className='text-sm font-medium leading-6 text-red-700'>
+                    Retirer la localisation
+                  </label>
+                  <p id='isRelevant-description' className='text-gray-500 text-sm'>
+                    Un lieu n'est pas pertinent pour cette photo
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className={`${isRelevantChecked ? 'visible' : 'invisible'} sm:col-span-3 space-y-2 pt-4`}>
+              <label htmlFor='locationName' className='block text-sm font-medium leading-6 text-gray-900'>
+                Nom du lieu à afficher
+              </label>
+              <input
+                type='text'
+                name='locationName'
+                defaultValue={userProvidedName || mapboxPlaceName || ''}
+                placeholder='ex: La maison familiale du Soleil'
+                className='block w-full rounded-md border-0 py-1.5 text-sm text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6'
+              />
+              {!userProvidedName && mapboxPlaceName ? (
+                <p id='isRelevant-description' className='text-gray-500 text-sm inline-flex'>
+                  <InformationCircleIcon className='h-5 w-5 mr-1' /> Ce nom de lieu a été obtenu a partir des coordonnées GPS.
+                </p>
+              ) : null}
+            </div>
+            <div className={`${isRelevantChecked ? 'visible' : 'invisible'} sm:col-span-3 space-y-2 pt-4`}>
+              <label htmlFor='gpsCoords' className='block text-sm font-medium leading-6 text-gray-900'>
+                Coordonnées géographiques
+              </label>
+              <RadioGroup value={gpsOption} name='gpsOption' onChange={setGPSOption}>
+                <RadioGroup.Label className='sr-only'>Coordonnées GPS</RadioGroup.Label>
+                <div className='space-y-2'>
+                  {GPSCoords ? (
+                    <RadioGroup.Option
+                      value={'exif'}
+                      className={({ active }) =>
+                        classNames(
+                          active ? 'border-indigo-600 ring-2 ring-indigo-600' : 'border-gray-300',
+                          'relative block cursor-pointer rounded-lg border bg-white px-2 py-4 shadow-sm focus:outline-none sm:flex sm:justify-between'
+                        )
+                      }>
+                      {({ active, checked }) => (
+                        <>
+                          <span className='flex items-center'>
+                            <span
+                              className={classNames(
+                                checked ? 'bg-indigo-600 border-transparent' : 'bg-white border-gray-300',
+                                'h-4 w-4 rounded-full border flex items-center justify-center flex-none mr-2'
+                              )}
+                              aria-hidden='true'>
+                              <span className='rounded-full bg-white w-1.5 h-1.5' />
+                            </span>
+                            <span className='flex flex-col text-sm'>
+                              <RadioGroup.Label as='span' className='font-medium text-gray-900'>
+                                Coordonnées GPS issues des metadonnées de la photo (
+                                <a
+                                  className='text-gray-600'
+                                  target='_blank'
+                                  href={`https://www.openstreetmap.org/?mlat=${GPSCoords.lat}&mlon=${GPSCoords.long}`}>
+                                  voir plan
+                                </a>
+                                ).
+                              </RadioGroup.Label>
+                              <RadioGroup.Description as='span' className='text-gray-500'>
+                                <span className='block sm:inline'>
+                                  <span className='text-gray-600'>
+                                    {GPSCoords.lat},{GPSCoords.long}
+                                  </span>
+                                </span>
+                              </RadioGroup.Description>
+                            </span>
+                          </span>
+                          <span
+                            className={classNames(
+                              active ? 'border' : 'border-2',
+                              checked ? 'border-indigo-600' : 'border-transparent',
+                              'pointer-events-none absolute -inset-px rounded-lg'
+                            )}
+                            aria-hidden='true'
+                          />
+                        </>
+                      )}
+                    </RadioGroup.Option>
+                  ) : null}
+                  <RadioGroup.Option
+                    value={'manual'}
+                    className={({ active }) =>
+                      classNames(
+                        active ? 'border-indigo-600 ring-2 ring-indigo-600' : 'border-gray-300',
+                        'relative block cursor-pointer rounded-lg border bg-white px-2 py-4 shadow-sm focus:outline-none sm:flex sm:justify-between'
+                      )
+                    }>
+                    {({ active, checked }) => (
+                      <>
+                        <span className='flex items-center'>
+                          <span
+                            className={classNames(
+                              checked ? 'bg-indigo-600 border-transparent' : 'bg-white border-gray-300',
+                              'h-4 w-4 rounded-full border flex items-center justify-center flex-none mr-2'
+                            )}
+                            aria-hidden='true'>
+                            <span className='rounded-full bg-white w-1.5 h-1.5' />
+                          </span>
+                          <span className='flex flex-col text-sm gap-y-1'>
+                            <RadioGroup.Label as='span' className='font-medium text-gray-900'>
+                              Saisir une localisation
+                            </RadioGroup.Label>
+                            <RadioGroup.Description as='span' className='text-gray-500'>
+                              <span className='block sm:inline'>
+                                <input
+                                  type='text'
+                                  name='gpsCoords'
+                                  id='gpsCoords'
+                                  placeholder='latitude,longitude'
+                                  className='block w-full rounded-md border-0 py-1.5 text-sm text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6'
+                                />
+                              </span>
+                            </RadioGroup.Description>
+                          </span>
+                        </span>
+                        <span
+                          className={classNames(
+                            active ? 'border' : 'border-2',
+                            checked ? 'border-indigo-600' : 'border-transparent',
+                            'pointer-events-none absolute -inset-px rounded-lg'
+                          )}
+                          aria-hidden='true'
+                        />
+                      </>
+                    )}
+                  </RadioGroup.Option>
+                  <RadioGroup.Option
+                    value={'none'}
+                    className={({ active }) =>
+                      classNames(
+                        active ? 'border-indigo-600 ring-2 ring-indigo-600' : 'border-gray-300',
+                        'relative block cursor-pointer rounded-lg border bg-white px-2 py-4 shadow-sm focus:outline-none sm:flex sm:justify-between'
+                      )
+                    }>
+                    {({ active, checked }) => (
+                      <>
+                        <span className='flex items-center'>
+                          <span
+                            className={classNames(
+                              checked ? 'bg-indigo-600 border-transparent' : 'bg-white border-gray-300',
+                              'h-4 w-4 rounded-full border flex items-center justify-center flex-none mr-2'
+                            )}
+                            aria-hidden='true'>
+                            <span className='rounded-full bg-white w-1.5 h-1.5' />
+                          </span>
+                          <span className='flex flex-col text-sm gap-y-1'>
+                            <RadioGroup.Label as='span' className='font-medium text-gray-900'>
+                              Aucune localisation
+                            </RadioGroup.Label>
+                          </span>
+                        </span>
+                        <span
+                          className={classNames(
+                            active ? 'border' : 'border-2',
+                            checked ? 'border-indigo-600' : 'border-transparent',
+                            'pointer-events-none absolute -inset-px rounded-lg'
+                          )}
+                          aria-hidden='true'
+                        />
+                      </>
+                    )}
+                  </RadioGroup.Option>
+                </div>
+              </RadioGroup>
+            </div>
+          </div>
+          <div className='space-x-2 mt-6'>
+            <button className={`${primaryButtonStyles}`}>Valider</button>
+            <button
+              className={`${linkStyles}`}
+              onClick={(e) => {
+                e.preventDefault()
+                setModalOpen(false)
+              }}>
+              Annuler
+            </button>
+          </div>
+        </form>
+      </TDFModal>
+    </>
+  )
+}
+
 type PhotoBadgeProps = {
   photoId: PhotoId
   faceId: FaceId
@@ -387,14 +622,14 @@ function SelectPersonForFacePanel({ close, selectedFace, photoId, familyId }: Se
   )
 }
 
-type ContextualMenuProps = {
+type FaceContextualMenuProps = {
   // isOpen: boolean
   close: () => unknown
   selectedFace: PhotoFace | null
   photoId: PhotoId
   gotoPersonSelector: (selectedFace: PhotoFace) => unknown
 }
-function ContextualMenu({ close, selectedFace, photoId, gotoPersonSelector }: ContextualMenuProps) {
+function FaceContextualMenu({ close, selectedFace, photoId, gotoPersonSelector }: FaceContextualMenuProps) {
   return (
     <TDFModal isOpen={!!selectedFace} close={close}>
       <div className='mt-8'>

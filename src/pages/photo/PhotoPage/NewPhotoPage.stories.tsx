@@ -182,8 +182,16 @@ export const PhotoWithLocation = () => (
     isPhotoAuthor={true}
     threadsContainingPhoto={[]}
     location={{
-      lat: 49.46800006494457,
-      long: 17.11514008755796,
+      isRelevant: true,
+      GPSCoords: {
+        lat: 49.46800006494457,
+        long: 17.11514008755796,
+      },
+      // GPSCoords: undefined,
+      // userProvidedName: 'La Vaux',
+      userProvidedName: '',
+      mapboxPlaceName: 'Lavaux 24, 4980 Trois-Ponts, Belgique',
+      // mapboxPlaceName: '',
     }}
   />
 )
@@ -197,20 +205,5 @@ export const PhotoWithDatetime = () => (
     isPhotoAuthor={true}
     threadsContainingPhoto={[]}
     datetime='2009-05-22T11:20:47.000Z'
-  />
-)
-export const PhotoWithLocationAndDatetime = () => (
-  <NewPhotoPage
-    faces={[]}
-    photoId={makePhotoId()}
-    photoUrl={fakePhoto({ width: 1000, height: 1000 })}
-    context={{ type: 'profile', profileId: makePersonId() }}
-    isPhotoAuthor={true}
-    threadsContainingPhoto={[]}
-    datetime='2009-05-22T11:20:47.000Z'
-    location={{
-      lat: 49.46800006494457,
-      long: 17.11514008755796,
-    }}
   />
 )
