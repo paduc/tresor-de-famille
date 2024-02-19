@@ -32,6 +32,16 @@ pageRouter
         })
         .parse(request.query)
 
+      const userId = request.session.user?.id
+      if (userId) {
+        const userFamilyIds = (await getUserFamilies(userId)).map((f) => f.familyId)
+
+        // Check if the user is already a member of this family
+        if (userFamilyIds.includes(familyId)) {
+          return response.redirect('/')
+        }
+      }
+
       const props = await getInvitationPageProps(familyId, code)
 
       responseAsHtml(request, response, InvitationPage(props))
