@@ -1,7 +1,7 @@
 import { formatRelative } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import debounce from 'lodash.debounce'
-import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react'
+import React, { createContext, useCallback, useContext, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import TextareaAutosize from 'react-textarea-autosize'
 import { UUID } from '../../../domain'
 import { withBrowserBundle } from '../../../libs/ssr/withBrowserBundle'
@@ -31,9 +31,10 @@ import { PhotoPageUrl } from '../../photo/PhotoPageUrl'
 import { PhotoURL } from '../../photoApi/PhotoURL'
 import { GlobalMediaSelector, GlobalMediaSelectorContext, useGlobalMediaSelector } from '../MediaSelector'
 import { ThreadUrl } from '../ThreadUrl'
-import { TipTapContentAsJSON, removeSeparatorNodes } from '../TipTapTypes'
+import { TipTapContentAsJSON, TipTapJSON, removeSeparatorNodes } from '../TipTapTypes'
 import { Comment, Comments } from './Comments'
 import { ThreadSharingButton } from './ThreadSharingButton'
+import { ClientOnly } from '../../_components/ClientOnly'
 
 const isBrowserContext = typeof window !== 'undefined'
 
@@ -100,7 +101,9 @@ export const ThreadPage = withBrowserBundle(
           <div className='divide-y divide-gray-200 overflow-hidden sm:rounded-lg bg-white shadow'>
             {title ? <Title title={title} threadId={threadId} /> : null}
             <div className=''>
-              <RichTextEditor content={contentAsJSON} threadId={threadId} lastUpdated={lastUpdated} />
+              <ClientOnly>
+                <RichTextEditor content={contentAsJSON} threadId={threadId} lastUpdated={lastUpdated} />
+              </ClientOnly>
             </div>
           </div>
           <div className='mt-2 ml-4 sm:ml-6'>
@@ -216,6 +219,18 @@ const RichTextEditor = (props: RichTextEditorProps) => {
     },
     [editor]
   )
+
+  useLayoutEffect(() => {
+    const photoElementId = window.location.hash.replace('#', '')
+    if (photoElementId) {
+      setTimeout(() => {
+        const photoElement = document.getElementById(photoElementId)
+        if (photoElement) {
+          photoElement.scrollIntoView()
+        }
+      }, 100)
+    }
+  }, [])
 
   if (!editor) return null
 
@@ -421,7 +436,7 @@ const PhotoItem = (props: PhotoItemProps) => {
   const debouncedSaveNewCaption = useCallback(debounce(saveNewCaption, 1500), [])
 
   return (
-    <div className='relative grid grid-cols-1 w-full px-4 sm:px-0 py-2'>
+    <div id={photoId} className='relative grid grid-cols-1 w-full px-4 sm:px-0 py-2'>
       <div className='absolute top-4 left-6 sm:left-3'>
         <button
           onClick={() => {
@@ -730,7 +745,7 @@ function separatePhotoNodesInJSONContent(contentAsJSON: TipTapContentAsJSON): Ti
     content: [],
   }
 
-  let previousNode = null
+  let previousNode: TipTapJSON | null = null
   for (const node of contentAsJSON.content) {
     if (
       previousNode &&

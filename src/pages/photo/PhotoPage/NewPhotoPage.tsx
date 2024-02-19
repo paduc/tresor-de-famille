@@ -3,6 +3,8 @@ import React, { useState } from 'react'
 import { Dialog, Transition } from '@headlessui/react'
 import { CalendarIcon, ChevronLeftIcon, MapPinIcon, XMarkIcon } from '@heroicons/react/20/solid'
 import { EyeIcon, EyeSlashIcon, TrashIcon } from '@heroicons/react/24/outline'
+
+import { exhaustiveGuard } from '../../../libs/exhaustiveGuard'
 import { FaceId } from '../../../domain/FaceId'
 import { FamilyId } from '../../../domain/FamilyId'
 import { PersonId } from '../../../domain/PersonId'
@@ -95,6 +97,22 @@ export const NewPhotoPage = withBrowserBundle(
     const annotatedFaces = faces?.filter((face): face is PhotoFace & { stage: 'done' } => face.stage === 'done') || []
     const pendingFaces = faces?.filter((face) => face.stage === 'awaiting-name') || []
 
+    function makeBackURL(context: NewPhotoPageProps['context']) {
+      if (!context) return PhotoListPageUrl
+
+      const contextType = context.type
+      switch (contextType) {
+        case 'thread':
+          return ThreadUrl(context.threadId, context.editable, photoId)
+        case 'profile':
+          return PersonPageURL(context.profileId)
+        case 'familyPhotoList':
+          return PhotoListPageUrlWithFamily(context.familyId)
+        default:
+          exhaustiveGuard(contextType)
+      }
+    }
+
     return (
       <div className='relative'>
         <ContextualMenu
@@ -117,33 +135,11 @@ export const NewPhotoPage = withBrowserBundle(
           familyId={familyId}
         />
         <div className='bg-black absolute overflow-y-scroll overflow-x-hidden top-0 bottom-0 left-0 right-0 w-[100vw] h-[100vh]'>
-          <a
-            href={`${
-              context
-                ? context.type === 'thread'
-                  ? ThreadUrl(context.threadId, context.editable)
-                  : context.type === 'profile'
-                  ? PersonPageURL(context.profileId)
-                  : context.type === 'familyPhotoList'
-                  ? PhotoListPageUrlWithFamily(context.familyId)
-                  : PhotoListPageUrl
-                : PhotoListPageUrl
-            }`}
-            className='absolute top-2 right-2 text-gray-300'>
+          <a href={`${makeBackURL(context)}`} className='absolute top-2 right-2 text-gray-300'>
             <XMarkIcon className='cursor-pointer h-8 w-8' />
           </a>
           {context ? (
-            <a
-              href={`${
-                context.type === 'thread'
-                  ? ThreadUrl(context.threadId, context.editable)
-                  : context.type === 'profile'
-                  ? PersonPageURL(context.profileId)
-                  : context.type === 'familyPhotoList'
-                  ? PhotoListPageUrlWithFamily(context.familyId)
-                  : PhotoListPageUrl
-              }`}
-              className='absolute top-1 left-1 text-gray-300'>
+            <a href={`${makeBackURL(context)}`} className='absolute top-1 left-1 text-gray-300'>
               <ChevronLeftIcon className='cursor-pointer h-10 w-10' />
             </a>
           ) : null}
