@@ -1,11 +1,20 @@
 import { getSingleEvent } from '../../dependencies/getSingleEvent'
+import { AppUserId } from '../../domain/AppUserId'
 import { FamilyId } from '../../domain/FamilyId'
 import { FamilyShareCode } from '../../domain/FamilyShareCode'
 import { getPersonForUser } from '../_getPersonForUser'
 import { UserCreatedNewFamily } from '../share/UserCreatedNewFamily'
 import { InvitationPageProps } from './InvitationPage'
 
-export const getInvitationPageProps = async (familyId: FamilyId, code: FamilyShareCode): Promise<InvitationPageProps> => {
+export const getInvitationPageProps = async ({
+  familyId,
+  code,
+  invitedBy,
+}: {
+  familyId: FamilyId
+  code: FamilyShareCode
+  invitedBy: AppUserId | undefined
+}): Promise<InvitationPageProps> => {
   const invitation = await getSingleEvent<UserCreatedNewFamily>('UserCreatedNewFamily', { familyId, shareCode: code })
 
   if (!invitation) {
@@ -14,14 +23,25 @@ export const getInvitationPageProps = async (familyId: FamilyId, code: FamilySha
 
   const { familyName: name, about, userId } = invitation.payload
 
-  let inviterName = "Quelqu'un"
+  let creatorName = "Quelqu'un"
   try {
     const person = await getPersonForUser({ userId })
 
     if (person) {
-      inviterName = person?.name
+      creatorName = person?.name
     }
   } catch (error) {}
+
+  let inviterName = ''
+  if (invitedBy) {
+    try {
+      const person = await getPersonForUser({ userId: invitedBy })
+
+      if (person) {
+        inviterName = person?.name
+      }
+    } catch (error) {}
+  }
 
   return {
     error: false,
@@ -31,6 +51,7 @@ export const getInvitationPageProps = async (familyId: FamilyId, code: FamilySha
       about,
     },
     inviterName,
+    creatorName,
     code,
   }
 }

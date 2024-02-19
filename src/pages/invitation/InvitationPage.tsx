@@ -27,7 +27,8 @@ export type InvitationPageProps =
             name: string
             about: string
           }
-          inviterName: string
+          creatorName: string
+          inviterName: string // might be an empty string
           code: FamilyShareCode
         }
       | { error: true }
@@ -48,7 +49,7 @@ export const InvitationPage = withBrowserBundle((props: InvitationPageProps) => 
     )
   }
 
-  const { family, inviterName, code, errors } = props
+  const { family, inviterName, creatorName, code, errors } = props
 
   if (!session.isLoggedIn) {
     return (
@@ -65,7 +66,11 @@ export const InvitationPage = withBrowserBundle((props: InvitationPageProps) => 
           <div className='mt-8 sm:mx-auto sm:w-full sm:max-w-md'>
             <div className='bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10'>
               <div className='border-b pb-4 border-gray-300'>
-                <div className='mb-3'>{inviterName} vous invite à rejoindre:</div>
+                {Boolean(inviterName) ? (
+                  <div className='mb-3'>{inviterName} vous invite à rejoindre:</div>
+                ) : (
+                  <div className='mb-3'>Vous êtes invité a rejoindre cette famille, créée par {creatorName}:</div>
+                )}
                 <h3 className='text-base font-semibold leading-6 text-gray-900'>{family.name}</h3>
                 <div className='mt-1 max-w-xl text-sm text-gray-500'>
                   <p>{family.about}</p>

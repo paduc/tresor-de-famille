@@ -15,6 +15,7 @@ import { UserCreatedNewFamily } from '../share/UserCreatedNewFamily'
 import { InvitationPage } from './InvitationPage'
 import { UserAcceptedInvitation } from './UserAcceptedInvitation'
 import { getInvitationPageProps } from './getInvitationPageProps'
+import { zIsAppUserId } from '../../domain/AppUserId'
 
 const registerWithInvite = makeRegisterWithInvite({
   addToHistory: addToHistory,
@@ -25,10 +26,11 @@ pageRouter
   .route('/invitation.html')
   .get(async (request, response, next) => {
     try {
-      const { code, familyId } = z
+      const { code, familyId, invitedBy } = z
         .object({
           code: zIsFamilyShareCode,
           familyId: zIsFamilyId,
+          invitedBy: zIsAppUserId.optional(),
         })
         .parse(request.query)
 
@@ -42,7 +44,7 @@ pageRouter
         }
       }
 
-      const props = await getInvitationPageProps(familyId, code)
+      const props = await getInvitationPageProps({ familyId, code, invitedBy })
 
       responseAsHtml(request, response, InvitationPage(props))
     } catch (error) {

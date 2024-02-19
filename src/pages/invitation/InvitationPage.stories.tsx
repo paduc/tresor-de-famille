@@ -73,6 +73,26 @@ export const UtilisateurConnecté = () => (
   </SessionContext.Provider>
 )
 
+export const UtilisateurDéconnectéInvitationAnonyme = () => (
+  <SessionContext.Provider
+    value={{
+      isLoggedIn: false,
+      isSharingEnabled: true,
+    }}>
+    <InvitationPage
+      error={false}
+      family={{
+        familyId: makeFamilyId(),
+        name: 'Les Duduchs',
+        about: 'La famille Duchateau François avec les enfants, petits-enfants et pièces rajoutées',
+      }}
+      code={'a' as FamilyShareCode}
+      creatorName='Pierrot La lune'
+      inviterName=''
+    />
+  </SessionContext.Provider>
+)
+
 export const UtilisateurDéconnecté = () => (
   <SessionContext.Provider
     value={{
@@ -88,6 +108,7 @@ export const UtilisateurDéconnecté = () => (
       }}
       code={'a' as FamilyShareCode}
       inviterName='Pierrot La lune'
+      creatorName='John Doe'
     />
   </SessionContext.Provider>
 )

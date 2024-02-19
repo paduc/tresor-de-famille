@@ -32,7 +32,7 @@ export const getSharePageProps = async (userId: AppUserId): Promise<SharePagePro
         familyId,
         name: familyName,
         about,
-        shareUrl: InvitationWithCodeUrl(familyId, shareCode),
+        shareUrl: InvitationWithCodeUrl({ familyId, code: shareCode, invitedBy: userId }),
         isUserSpace: (familyId as string) === (userId as string),
         users: usersByFamilyId.get(familyId)!,
       }
@@ -41,7 +41,7 @@ export const getSharePageProps = async (userId: AppUserId): Promise<SharePagePro
 }
 
 async function getUsersInFamily(familyId: FamilyId) {
-  const userInFamily = []
+  const userInFamily: { userId: AppUserId; partialEmail: string; name: string }[] = []
 
   const usersInFamilyEvent = await getEventList<UserCreatedNewFamily | UserAcceptedInvitation | UserRegisteredWithInvitation>(
     ['UserCreatedNewFamily', 'UserAcceptedInvitation', 'UserRegisteredWithInvitation'],

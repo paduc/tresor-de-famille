@@ -146,7 +146,7 @@ async function getSession(request: Request): Promise<Session> {
         about,
         isUserSpace: (familyId as string) === (user.id as string),
         color: FamilyColorCodes[index % FamilyColorCodes.length],
-        shareUrl: InvitationWithCodeUrl(familyId, shareCode),
+        shareUrl: InvitationWithCodeUrl({ familyId, code: shareCode, invitedBy: userId }),
       })),
       hasFamiliesOtherThanDefault,
       hasCreatedFamilies: userFamilies.some((family) => family.isCreator),
