@@ -34,7 +34,7 @@ const fakePersonSearch = async (query: string) => {
 }
 
 export default {
-  title: 'Nouvelle Page Photo',
+  title: 'Photo',
   component: NewPhotoPage,
   parameters: { layout: 'fullscreen' },
   decorators: [

@@ -178,6 +178,22 @@ pageRouter
               faceId,
             })
           )
+        } else if (action === 'ignoreAllOtherFaces') {
+          const { faceId } = z
+            .object({
+              faceId: zIsFaceId.or(z.array(zIsFaceId)),
+            })
+            .parse(request.body)
+          const faceIds = Array.isArray(faceId) ? faceId : [faceId]
+          for (const faceId of faceIds) {
+            await addToHistory(
+              FaceIgnoredInPhoto({
+                ignoredBy: userId,
+                photoId,
+                faceId,
+              })
+            )
+          }
         }
       }
 

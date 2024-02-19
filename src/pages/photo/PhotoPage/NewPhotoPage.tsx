@@ -216,6 +216,22 @@ export const NewPhotoPage = withBrowserBundle(
                             ))
                           : null}
                       </ul>
+                      {pendingFaces.length ? (
+                        <div>
+                          <form method='POST'>
+                            <input type='hidden' name='action' value='ignoreAllOtherFaces' />
+                            {pendingFaces.map(({ faceId }) => (
+                              <input key={`ignore_${faceId}`} type='hidden' name='faceId' value={faceId} />
+                            ))}
+                            <button
+                              className={`${linkStylesDarkMode} text-red-500 hover:text-red-600 mt-4`}
+                              onClick={() => showIgnoredFaces(false)}>
+                              <EyeSlashIcon className='h-6 w-6 mr-1' />
+                              Ignorer tous les {annotatedFaces.length ? 'autres' : ''} visages
+                            </button>
+                          </form>
+                        </div>
+                      ) : null}
                       {ignoredFaces.length ? (
                         <>
                           {areIgnoredFacesVisible ? (
@@ -237,7 +253,7 @@ export const NewPhotoPage = withBrowserBundle(
               ) : (
                 <div className='py-5 italic'>En attente de la détection de visage (penser a recharger la page).</div>
               )}
-              {threadsContainingPhoto && threadsContainingPhoto.length ? (
+              {threadsContainingPhoto?.length ? (
                 <div className='px-1 py-6'>
                   <div className='text-gray-300'>Cette photo est présente dans: </div>
                   <ul className='text-white'>
