@@ -19,7 +19,10 @@ pageRouter.route(PhotoURL(':photoId')).get(requireAuth(), async (request, respon
 
     // Await is necessary here to avoid memory leaks
     await pipeline(downloadPhoto(photoId), response, async (err) => {
-      if (err) console.error('error on image serving', err)
+      if (err) {
+        console.error(`error on image serving photoId=${photoId}`, err)
+        next(err)
+      }
     })
   } catch (error) {
     console.error('getPhotoById', error)

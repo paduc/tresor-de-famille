@@ -22,7 +22,10 @@ pageRouter.route(ThumbnailURL(':photoId')).get(requireAuth(), async (request, re
 
     // Keep the await to avoid memory leaks
     await pipeline(downloadPhoto(photoId), sharp().resize(300, 300, { fit: 'cover' }).rotate(), response, async (err) => {
-      if (err) console.error('error on thumbnail pipeline', err)
+      if (err) {
+        console.error(`error on thumbnail pipeline photoId=${photoId}`, err)
+        next(err)
+      }
     })
   } catch (error) {
     console.error('cannot load thumbnail', error)
