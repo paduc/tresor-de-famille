@@ -23,21 +23,12 @@ export const createHistoryTable = async () => {
 
 export const createIndexesOnHistoryTable = async () => {
   await postgres.query('CREATE INDEX IF NOT EXISTS events_by_type ON history (type)')
-  await postgres.query(
-    "CREATE INDEX IF NOT EXISTS events_by_userid ON history USING GIN ((payload -> 'userId') jsonb_path_ops);"
-  )
-  await postgres.query(
-    "CREATE INDEX IF NOT EXISTS events_by_familyid ON history USING GIN ((payload -> 'familyId') jsonb_path_ops);"
-  )
-  await postgres.query(
-    "CREATE INDEX IF NOT EXISTS events_by_photoid ON history USING GIN ((payload -> 'photoId') jsonb_path_ops);"
-  )
-  await postgres.query(
-    "CREATE INDEX IF NOT EXISTS events_by_threadid ON history USING GIN ((payload -> 'threadId') jsonb_path_ops);"
-  )
-  await postgres.query(
-    "CREATE INDEX IF NOT EXISTS events_by_personid ON history USING GIN ((payload -> 'personId') jsonb_path_ops);"
-  )
+  await postgres.query('CREATE INDEX IF NOT EXISTS events_by_desc_date ON history ("occurredAt" DESC NULLS FIRST)')
+  await postgres.query("CREATE INDEX IF NOT EXISTS events_by_userid ON history ((payload ->> 'userId'));")
+  await postgres.query("CREATE INDEX IF NOT EXISTS events_by_familyid ON history ((payload ->> 'familyId'));")
+  await postgres.query("CREATE INDEX IF NOT EXISTS events_by_photoid ON history ((payload ->> 'photoId'));")
+  await postgres.query("CREATE INDEX IF NOT EXISTS events_by_threadid ON history ((payload ->> 'threadId'));")
+  await postgres.query("CREATE INDEX IF NOT EXISTS events_by_personid ON history ((payload ->> 'personId'));")
 }
 
 function removeNullChar(payload: JSONType): JSONType {
