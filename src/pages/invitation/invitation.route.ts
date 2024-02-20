@@ -99,7 +99,7 @@ pageRouter
 
           buildSession({ userId, request, isFirstConnection: true })
         } catch (error) {
-          const props = await getInvitationPageProps(familyId, code)
+          const props = await getInvitationPageProps({ familyId, code, invitedBy: undefined })
           const { email } = request.body
           return responseAsHtml(
             request,

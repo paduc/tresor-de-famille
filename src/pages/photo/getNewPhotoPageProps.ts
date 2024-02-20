@@ -82,8 +82,12 @@ export const getNewPhotoPageProps = async ({
     isPhotoAuthor: authorId === userId,
     faces,
     threadsContainingPhoto: await getThreadsWithPhoto({ photoId, userId }),
-    locationName: await getLocationName({ photoId }),
-    GPSCoords: GPSCoordsAndTime?.GPSCoords,
+    location: {
+      isRelevant: true,
+      GPSCoords: GPSCoordsAndTime?.GPSCoords,
+      mapboxPlaceName: await getMapboxPlaceName({ photoId }),
+      userProvidedName: '',
+    },
     datetime: GPSCoordsAndTime?.datetime,
   }
 }
@@ -111,7 +115,7 @@ async function getPhotoGPSCoordsAndTime({
   return { GPSCoords, datetime }
 }
 
-async function getLocationName({ photoId }: { photoId: PhotoId }): Promise<string | undefined> {
+async function getMapboxPlaceName({ photoId }: { photoId: PhotoId }): Promise<string | undefined> {
   const reverseGeocode = await getSingleEvent<PhotoGPSReverseGeocodedUsingMapbox>('PhotoGPSReverseGeocodedUsingMapbox', {
     photoId,
   })

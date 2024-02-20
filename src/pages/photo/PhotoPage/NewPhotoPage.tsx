@@ -291,7 +291,7 @@ const PhotoLocation = ({ location, photoId }: { photoId: PhotoId; location: NewP
   const [gpsOption, setGPSOption] = useState<'exif' | 'manual' | 'none'>('exif')
   const [isRelevantChecked, setRelevance] = useState(isRelevant)
 
-  const Wrapper = ({ children }) => {
+  const Wrapper = ({ children }: { children: JSX.Element }) => {
     if (GPSCoords) {
       return (
         <a
@@ -325,31 +325,6 @@ const PhotoLocation = ({ location, photoId }: { photoId: PhotoId; location: NewP
         <form>
           <input type='hidden' name='photoId' value={photoId} />
           <div className='flex flex-col gap-y-4 divide-y divide-gray-200'>
-            <div className='inline-flex '>
-              <div className='relative flex items-start'>
-                <div className='flex h-6 items-center'>
-                  <input
-                    id='isRelevant'
-                    aria-describedby='isRelevant-description'
-                    name='isRelevant'
-                    type='checkbox'
-                    checked={!isRelevantChecked}
-                    className='h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-600'
-                    onChange={(e) => {
-                      setRelevance((state) => !state)
-                    }}
-                  />
-                </div>
-                <div className='ml-3'>
-                  <label htmlFor='isRelevant' className='text-sm font-medium leading-6 text-red-700'>
-                    Retirer la localisation
-                  </label>
-                  <p id='isRelevant-description' className='text-gray-500 text-sm'>
-                    Un lieu n'est pas pertinent pour cette photo
-                  </p>
-                </div>
-              </div>
-            </div>
             <div className={`${isRelevantChecked ? 'visible' : 'invisible'} sm:col-span-3 space-y-2 pt-4`}>
               <label htmlFor='locationName' className='block text-sm font-medium leading-6 text-gray-900'>
                 Nom du lieu à afficher
@@ -511,6 +486,31 @@ const PhotoLocation = ({ location, photoId }: { photoId: PhotoId; location: NewP
                   </RadioGroup.Option>
                 </div>
               </RadioGroup>
+            </div>
+            <div className='inline-flex pt-4'>
+              <div className='relative flex items-start'>
+                <div className='flex h-6 items-center'>
+                  <input
+                    id='isRelevant'
+                    aria-describedby='isRelevant-description'
+                    name='isRelevant'
+                    type='checkbox'
+                    checked={!isRelevantChecked}
+                    className='h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-600'
+                    onChange={(e) => {
+                      setRelevance((state) => !state)
+                    }}
+                  />
+                </div>
+                <div className='ml-3'>
+                  <label htmlFor='isRelevant' className='text-sm font-medium leading-6 text-red-700'>
+                    Retirer la localisation
+                  </label>
+                  <p id='isRelevant-description' className='text-gray-500 text-sm'>
+                    Un lieu n'est pas pertinent pour cette photo
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
           <div className='space-x-2 mt-6'>

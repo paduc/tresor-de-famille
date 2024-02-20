@@ -67,7 +67,7 @@ pageRouter
             about,
             isUserSpace: (familyId as string) === (userId as string),
             color: FamilyColorCodes[index % FamilyColorCodes.length],
-            shareUrl: InvitationWithCodeUrl(familyId, shareCode),
+            shareUrl: InvitationWithCodeUrl({ familyId, code: shareCode, invitedBy: request.session.user?.id }),
           })
         )
 

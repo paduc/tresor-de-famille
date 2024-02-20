@@ -10,12 +10,14 @@ export const InvitationWithCodeUrl = ({
 }: {
   familyId: FamilyId
   code: FamilyShareCode
-  invitedBy: AppUserId
+  invitedBy?: AppUserId
 }) => {
   const shareUrl = new URL(BASE_URL + '/invitation.html')
   shareUrl.searchParams.append('familyId', familyId)
   shareUrl.searchParams.append('code', code)
-  shareUrl.searchParams.append('invitedBy', invitedBy)
+  if (invitedBy) {
+    shareUrl.searchParams.append('invitedBy', invitedBy)
+  }
 
   return shareUrl.toString()
 }

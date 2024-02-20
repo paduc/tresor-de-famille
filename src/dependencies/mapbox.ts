@@ -1,5 +1,6 @@
 // @ts-ignore
 import createNodeClient from '@mapbox/mapbox-sdk/lib/node/node-client'
+// @ts-ignore
 import Geocoding from '@mapbox/mapbox-sdk/services/geocoding'
 
 const { MAPBOX_TOKEN } = process.env
