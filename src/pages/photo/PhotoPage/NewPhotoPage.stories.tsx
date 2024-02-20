@@ -182,16 +182,21 @@ export const PhotoWithLocation = () => (
     isPhotoAuthor={true}
     threadsContainingPhoto={[]}
     location={{
-      isRelevant: true,
+      isIrrelevant: true,
       GPSCoords: {
-        lat: 49.46800006494457,
-        long: 17.11514008755796,
+        exif: {
+          lat: 49.46800006494457,
+          long: 17.11514008755796,
+        },
+        userOption: 'exif',
       },
-      // GPSCoords: undefined,
-      // userProvidedName: 'La Vaux',
-      userProvidedName: '',
-      mapboxPlaceName: 'Lavaux 24, 4980 Trois-Ponts, Belgique',
-      // mapboxPlaceName: '',
+      name: {
+        userProvided: '',
+        mapbox: {
+          exif: 'Lavaux 24, 4980 Trois-Ponts, Belgique',
+        },
+        userOption: 'mapboxFromExif',
+      },
     }}
   />
 )

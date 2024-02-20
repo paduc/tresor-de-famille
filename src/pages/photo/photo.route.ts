@@ -22,6 +22,7 @@ import { NewPhotoPage } from './PhotoPage/NewPhotoPage'
 import { PhotoPageUrl } from './PhotoPageUrl'
 import { UserAddedCaptionToPhoto } from './UserAddedCaptionToPhoto'
 import { getNewPhotoPageProps } from './getNewPhotoPageProps'
+import { UserSetPhotoLocation } from './UserSetPhotoLocation'
 
 const fakeProfilePicUrl =
   'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80'
@@ -48,7 +49,7 @@ pageRouter
 
       const props = await getNewPhotoPageProps({
         photoId,
-        userId: userId,
+        userId,
       })
 
       if (threadId) {
@@ -191,6 +192,35 @@ pageRouter
                 ignoredBy: userId,
                 photoId,
                 faceId,
+              })
+            )
+          }
+        } else if (action === 'setLocation') {
+          const { gpsOption, nameOption, locationName, isIrrelevant } = z
+            .object({
+              gpsOption: z.union([z.literal('exif'), z.literal('none')]),
+              nameOption: z.union([z.literal('user'), z.literal('mapboxFromExif')]),
+              locationName: z.string(),
+              isIrrelevant: z.literal('on').optional(),
+            })
+            .parse(request.body)
+
+          if (isIrrelevant) {
+            await addToHistory(
+              UserSetPhotoLocation({
+                photoId,
+                userId,
+                isIrrelevant: true,
+              })
+            )
+          } else {
+            await addToHistory(
+              UserSetPhotoLocation({
+                photoId,
+                userId,
+                isIrrelevant: false,
+                gpsOption,
+                name: nameOption === 'user' ? { option: 'user', locationName } : { option: 'mapboxFromExif' },
               })
             )
           }

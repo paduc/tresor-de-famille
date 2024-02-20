@@ -1,4 +1,5 @@
 import { postgres } from '../../dependencies/database'
+import { getEventList } from '../../dependencies/getEventList'
 import { getSingleEvent } from '../../dependencies/getSingleEvent'
 import { getPhotoUrlFromId } from '../../dependencies/photo-storage'
 import { AppUserId } from '../../domain/AppUserId'
@@ -22,6 +23,7 @@ import { UserUpdatedThreadAsRichText } from '../thread/UserUpdatedThreadAsRichTe
 
 import { NewPhotoPageProps } from './PhotoPage/NewPhotoPage'
 import { UserAddedCaptionToPhoto } from './UserAddedCaptionToPhoto'
+import { UserSetPhotoLocation } from './UserSetPhotoLocation'
 import { AWSDetectedFacesInPhoto } from './recognizeFacesInChatPhoto/AWSDetectedFacesInPhoto'
 
 type PhotoFace = Exclude<NewPhotoPageProps['faces'], undefined>[number]
@@ -74,7 +76,7 @@ export const getNewPhotoPageProps = async ({
 
   const authorId = await getPhotoAuthor(photoId)
 
-  const GPSCoordsAndTime = await getPhotoGPSCoordsAndTime({ photoId })
+  const EXIFGPSCoordsAndTime = await getEXIFGPSCoordsAndTime({ photoId })
   return {
     photoUrl: getPhotoUrlFromId(photoId),
     photoId,
@@ -82,17 +84,118 @@ export const getNewPhotoPageProps = async ({
     isPhotoAuthor: authorId === userId,
     faces,
     threadsContainingPhoto: await getThreadsWithPhoto({ photoId, userId }),
-    location: {
-      isRelevant: true,
-      GPSCoords: GPSCoordsAndTime?.GPSCoords,
-      mapboxPlaceName: await getMapboxPlaceName({ photoId }),
-      userProvidedName: '',
-    },
-    datetime: GPSCoordsAndTime?.datetime,
+    location: await getPhotoLocation({ photoId, EXIFGPSCoords: EXIFGPSCoordsAndTime?.GPSCoords }),
+    datetime: EXIFGPSCoordsAndTime?.datetime,
   }
 }
 
-async function getPhotoGPSCoordsAndTime({
+async function getPhotoLocation({
+  photoId,
+  EXIFGPSCoords,
+}: {
+  photoId: PhotoId
+  EXIFGPSCoords:
+    | {
+        lat: number
+        long: number
+      }
+    | undefined
+}): Promise<NewPhotoPageProps['location']> {
+  // A reverse chronological list of events (first in array = last to be emitted)
+  const photoLocationEvents = (await getEventList<UserSetPhotoLocation>('UserSetPhotoLocation', { photoId })).sort(
+    (a, b) => b.occurredAt.getTime() - a.occurredAt.getTime()
+  )
+
+  const mapboxNameFromExif = await getMapboxPlaceName({ photoId })
+
+  if (!photoLocationEvents.length) {
+    return {
+      isIrrelevant: false,
+      GPSCoords: {
+        exif: EXIFGPSCoords,
+        userOption: EXIFGPSCoords ? 'exif' : 'none',
+      },
+      name: {
+        userProvided: '',
+        mapbox: {
+          exif: mapboxNameFromExif,
+        },
+        userOption: 'mapboxFromExif',
+      },
+    }
+  }
+
+  const { payload } = photoLocationEvents.at(0)!
+  if (!payload.isIrrelevant) {
+    return {
+      isIrrelevant: false,
+      GPSCoords: {
+        exif: EXIFGPSCoords,
+        userOption: payload.gpsOption,
+      },
+      name: {
+        userProvided: payload.name.option === 'user' ? payload.name.locationName : '',
+        mapbox: {
+          exif: mapboxNameFromExif,
+        },
+        userOption: payload.name.option,
+      },
+    }
+  }
+
+  // isIrrelevant === true
+  return {
+    isIrrelevant: true,
+    GPSCoords: {
+      exif: EXIFGPSCoords,
+      userOption: getLatestUserProvidedGPSOption(photoLocationEvents) || 'none',
+    },
+    name: {
+      userProvided: getLatestUserProvidedLocationName(photoLocationEvents),
+      mapbox: {
+        exif: mapboxNameFromExif,
+      },
+      userOption: getLatestUserProvidedNameOption(photoLocationEvents) || 'none',
+    },
+  }
+}
+
+function getLatestUserProvidedNameOption(events: UserSetPhotoLocation[]) {
+  if (!events.length) return
+
+  for (const event of events) {
+    const { payload } = event
+    if (payload.isIrrelevant) continue
+
+    return payload.name.option
+  }
+}
+
+function getLatestUserProvidedGPSOption(events: UserSetPhotoLocation[]) {
+  if (!events.length) return
+
+  for (const event of events) {
+    const { payload } = event
+    if (payload.isIrrelevant) continue
+
+    return payload.gpsOption
+  }
+}
+
+function getLatestUserProvidedLocationName(events: UserSetPhotoLocation[]) {
+  if (!events.length) return
+
+  for (const event of events) {
+    const { payload } = event
+
+    if (payload.isIrrelevant) continue
+    if (payload.name.option !== 'user') continue
+
+    return payload.name.locationName
+  }
+}
+
+async function getEXIFGPSCoordsAndTime({
   photoId,
 }: {
   photoId: PhotoId

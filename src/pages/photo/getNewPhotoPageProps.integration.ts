@@ -12,6 +12,7 @@ import { PhotoGPSReverseGeocodedUsingMapbox } from '../photoApi/PhotoGPSReverseG
 import { UserUploadedPhoto } from '../photoApi/UserUploadedPhoto'
 import { ThreadSharedWithFamilies } from '../thread/ThreadPage/ThreadSharedWithFamilies'
 import { UserUpdatedThreadAsRichText } from '../thread/UserUpdatedThreadAsRichText'
+import { UserSetPhotoLocation } from './UserSetPhotoLocation'
 import { getNewPhotoPageProps } from './getNewPhotoPageProps'
 
 describe('getNewPhotoPageProps', () => {
@@ -239,8 +240,220 @@ describe('getNewPhotoPageProps', () => {
 
     it('should return that location', async () => {
       const res = await getNewPhotoPageProps({ photoId: targetPhotoId, userId })
+      expect(res.location).toMatchObject({
+        isIrrelevant: false,
+        GPSCoords: {
+          exif: undefined,
+          userOption: 'none',
+        },
+        name: {
+          userProvided: '',
+          mapbox: {
+            exif: 'Maison de mère-grand, Fin fond de la forêt, Pays enchanté',
+          },
+          userOption: 'mapboxFromExif',
+        },
+      })
+    })
+  })
 
-      expect(res.locationName).toEqual('Maison de mère-grand, Fin fond de la forêt, Pays enchanté')
+  describe('when a photo has a location thanks to UserSetPhotoLocation', () => {
+    const userId = makeAppUserId()
+
+    const targetPhotoId = makePhotoId()
+    beforeAll(async () => {
+      await resetDatabase()
+
+      await addToHistory(
+        UserRegisteredWithEmailAndPassword({
+          userId,
+          email: '',
+          passwordHash: '',
+        })
+      )
+
+      await addToHistory(
+        UserUploadedPhoto({
+          userId,
+          photoId: targetPhotoId,
+          location: {} as UserUploadedPhoto['payload']['location'],
+        })
+      )
+
+      await addToHistory(
+        UserSetPhotoLocation({
+          photoId: targetPhotoId,
+          userId,
+          isIrrelevant: false,
+          gpsOption: 'none',
+          name: {
+            option: 'user',
+            locationName: 'My house, in the middle of the street',
+          },
+        })
+      )
+    })
+
+    it('should return that location', async () => {
+      const res = await getNewPhotoPageProps({ photoId: targetPhotoId, userId })
+      expect(res.location).toMatchObject({
+        isIrrelevant: false,
+        GPSCoords: {
+          exif: undefined,
+          userOption: 'none',
+        },
+        name: {
+          userProvided: 'My house, in the middle of the street',
+          mapbox: {
+            exif: undefined,
+          },
+          userOption: 'user',
+        },
+      })
+    })
+  })
+
+  describe('when a photo has a UserSetPhotoLocation that sets the location as irrelevant', () => {
+    const userId = makeAppUserId()
+
+    const targetPhotoId = makePhotoId()
+    beforeAll(async () => {
+      await resetDatabase()
+
+      await addToHistory(
+        UserRegisteredWithEmailAndPassword({
+          userId,
+          email: '',
+          passwordHash: '',
+        })
+      )
+
+      await addToHistory(
+        UserUploadedPhoto({
+          userId,
+          photoId: targetPhotoId,
+          location: {} as UserUploadedPhoto['payload']['location'],
+        })
+      )
+
+      await addToHistory(
+        UserSetPhotoLocation({
+          photoId: targetPhotoId,
+          userId,
+          isIrrelevant: true,
+        })
+      )
+    })
+
+    it('should return that location', async () => {
+      const res = await getNewPhotoPageProps({ photoId: targetPhotoId, userId })
+      expect(res.location).toMatchObject({
+        isIrrelevant: true,
+        GPSCoords: {
+          exif: undefined,
+          userOption: 'none',
+        },
+        name: {
+          userProvided: undefined,
+          mapbox: {
+            exif: undefined,
+          },
+          userOption: 'none',
+        },
+      })
+    })
+  })
+
+  describe.only('when a photo has a multiple location events', () => {
+    const userId = makeAppUserId()
+
+    const targetPhotoId = makePhotoId()
+    beforeAll(async () => {
+      await resetDatabase()
+
+      await addToHistory(
+        UserRegisteredWithEmailAndPassword({
+          userId,
+          email: '',
+          passwordHash: '',
+        })
+      )
+
+      await addToHistory(
+        UserUploadedPhoto({
+          userId,
+          photoId: targetPhotoId,
+          location: {} as UserUploadedPhoto['payload']['location'],
+          exif: {
+            GPSLongitude: [1, 32, 22.5],
+            GPSLongitudeRef: 'W', // N W E S
+            GPSLatitude: [46, 14, 37.34],
+            GPSLatitudeRef: 'N',
+          },
+        })
+      )
+
+      await addToHistory(
+        PhotoGPSReverseGeocodedUsingMapbox({
+          photoId: targetPhotoId,
+          geocodeApiVersion: '5',
+          geocode: {
+            features: [{ place_name: 'Maison de mère-grand, Fin fond de la forêt, Pays enchanté' }],
+          } as PhotoGPSReverseGeocodedUsingMapbox['payload']['geocode'],
+        })
+      )
+
+      await addToHistory(
+        UserSetPhotoLocation({
+          photoId: targetPhotoId,
+          userId,
+          isIrrelevant: false,
+          gpsOption: 'exif',
+          name: {
+            option: 'user',
+            locationName: 'My house',
+          },
+        })
+      )
+
+      await addToHistory(
+        UserSetPhotoLocation({
+          photoId: targetPhotoId,
+          userId,
+          isIrrelevant: false,
+          gpsOption: 'none',
+          name: {
+            option: 'user',
+            locationName: 'My house, in the middle of the street',
+          },
+        })
+      )
+
+      await addToHistory(
+        UserSetPhotoLocation({
+          photoId: targetPhotoId,
+          userId,
+          isIrrelevant: true,
+        })
+      )
+    })
+
+    it('should return a combination of the latest info', async () => {
+      const res = await getNewPhotoPageProps({ photoId: targetPhotoId, userId })
+      expect(res.location).toMatchObject({
+        isIrrelevant: true,
+        GPSCoords: {
+          exif: { lat: 46.24370555555556, long: -1.5395833333333333 },
+          userOption: 'none',
+        },
+        name: {
+          userProvided: 'My house, in the middle of the street',
+          mapbox: {
+            exif: 'Maison de mère-grand, Fin fond de la forêt, Pays enchanté',
+          },
+          userOption: 'user',
+        },
+      })
     })
   })
 })

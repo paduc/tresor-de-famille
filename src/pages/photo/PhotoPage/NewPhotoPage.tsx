@@ -1,8 +1,15 @@
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
 
 import { Dialog, RadioGroup, Transition } from '@headlessui/react'
 import { CalendarIcon, ChevronLeftIcon, MapPinIcon, XMarkIcon } from '@heroicons/react/20/solid'
-import { EyeIcon, EyeSlashIcon, InformationCircleIcon, PencilSquareIcon, TrashIcon } from '@heroicons/react/24/outline'
+import {
+  ArrowTopRightOnSquareIcon,
+  EyeIcon,
+  EyeSlashIcon,
+  InformationCircleIcon,
+  PencilSquareIcon,
+  TrashIcon,
+} from '@heroicons/react/24/outline'
 
 import { exhaustiveGuard } from '../../../libs/exhaustiveGuard'
 import { FaceId } from '../../../domain/FaceId'
@@ -68,15 +75,23 @@ export type NewPhotoPageProps = {
     }
   }[]
   location: {
-    isRelevant: boolean // User may chose to hide location as non-relevant (default: true)
-    GPSCoords: // Extracted from the photo EXIF
-    | {
-          lat: number
-          long: number
-        }
-      | undefined
-    userProvidedName: string | undefined
-    mapboxPlaceName: string | undefined // GPSCoords => Mapbox API => Place name
+    isIrrelevant: boolean
+    GPSCoords: {
+      exif:
+        | {
+            lat: number
+            long: number
+          }
+        | undefined
+      userOption: 'exif' | 'none'
+    }
+    name: {
+      userProvided: string | undefined
+      mapbox: {
+        exif: string | undefined
+      }
+      userOption: 'user' | 'mapboxFromExif' | 'none'
+    }
   }
   datetime: string | undefined
 }
@@ -285,73 +300,167 @@ export const NewPhotoPage = withBrowserBundle(
   }
 )
 
-const PhotoLocation = ({ location, photoId }: { photoId: PhotoId; location: NewPhotoPageProps['location'] }) => {
-  const { GPSCoords, isRelevant, mapboxPlaceName, userProvidedName } = location
-  const [isModalOpen, setModalOpen] = useState(false)
-  const [gpsOption, setGPSOption] = useState<'exif' | 'manual' | 'none'>('exif')
-  const [isRelevantChecked, setRelevance] = useState(isRelevant)
+const SHOW_EDIT_LOCATION = true
 
+const PhotoLocation = ({ location, photoId }: { photoId: PhotoId; location: NewPhotoPageProps['location'] }) => {
+  const { GPSCoords, name } = location
+  const [isModalOpen, setModalOpen] = useState(false)
+
+  const [gpsOption, setGPSOption] = useState<NewPhotoPageProps['location']['GPSCoords']['userOption']>(
+    location.GPSCoords.userOption
+  )
+  const [isIrrelevant, setIrrelevance] = useState(location.isIrrelevant)
+
+  const exifGPS = GPSCoords.exif
   const Wrapper = ({ children }: { children: JSX.Element }) => {
-    if (GPSCoords) {
-      return (
-        <a
-          className='text-gray-300 hover:text-gray-200'
-          target='_blank'
-          href={`https://www.openstreetmap.org/?mlat=${GPSCoords.lat}&mlon=${GPSCoords.long}`}>
-          {children}
-        </a>
-      )
+    switch (GPSCoords.userOption) {
+      case 'exif': {
+        if (exifGPS) {
+          return (
+            <a
+              className='text-gray-300 hover:text-gray-200'
+              target='_blank'
+              href={`https://www.openstreetmap.org/?mlat=${exifGPS.lat}&mlon=${exifGPS.long}`}>
+              {children}
+            </a>
+          )
+        }
+      }
     }
 
     return <div className='text-gray-300'>{children}</div>
   }
 
-  const hasLocationName = Boolean(userProvidedName || mapboxPlaceName)
+  const locationName = useMemo(() => {
+    switch (name.userOption) {
+      case 'user': {
+        if (name.userProvided) {
+          return name.userProvided
+        }
+      }
+      case 'mapboxFromExif': {
+        if (name.mapbox.exif) {
+          return name.mapbox.exif
+        }
+      }
+    }
+    return ''
+  }, [location.name.userOption])
+
+  const [locationNameFieldValue, setLocationNameFieldValue] = useState(locationName)
+
+  const nameOption: NewPhotoPageProps['location']['name']['userOption'] =
+    location.name.mapbox.exif && locationNameFieldValue === location.name.mapbox.exif ? 'mapboxFromExif' : 'user'
 
   return (
     <>
       <div className='inline-flex justify-start items-center gap-4'>
-        <Wrapper>
-          <div className='inline-flex justify-start items-center gap-1'>
-            <MapPinIcon className='h-5 w-5 mr-1' />
-            <div>{userProvidedName || mapboxPlaceName || 'Lieu de la photo'}</div>
-          </div>
-        </Wrapper>
-        {/* <button onClick={() => setModalOpen(true)} className=' hover:text-gray-200'>
-          <PencilSquareIcon className='h-5 w-5' />
-        </button> */}
+        {isIrrelevant ? (
+          <button onClick={() => setModalOpen(true)} className=' hover:text-gray-200 italic cursor-pointer'>
+            Ajouter un lieu
+          </button>
+        ) : (
+          <>
+            <Wrapper>
+              <div className='inline-flex justify-start items-center gap-1'>
+                <MapPinIcon className='h-5 w-5 mr-1' />
+                <div>{locationName || 'Lieu de la photo'}</div>
+              </div>
+            </Wrapper>
+            {SHOW_EDIT_LOCATION ? (
+              <button onClick={() => setModalOpen(true)} className=' hover:text-gray-200'>
+                <PencilSquareIcon className='h-5 w-5' />
+              </button>
+            ) : null}
+          </>
+        )}
       </div>
       <TDFModal title='Lieu de la photo' close={() => setModalOpen(false)} isOpen={isModalOpen}>
-        <form>
+        <form method='POST'>
+          <input type='hidden' name='action' value='setLocation' />
           <input type='hidden' name='photoId' value={photoId} />
+          <input type='hidden' name='nameOption' value={nameOption} />
           <div className='flex flex-col gap-y-4 divide-y divide-gray-200'>
-            <div className={`${isRelevantChecked ? 'visible' : 'invisible'} sm:col-span-3 space-y-2 pt-4`}>
+            <div className={`${isIrrelevant ? 'invisible' : 'visible'} sm:col-span-3 space-y-2 pt-4`}>
               <label htmlFor='locationName' className='block text-sm font-medium leading-6 text-gray-900'>
                 Nom du lieu à afficher
               </label>
               <input
                 type='text'
                 name='locationName'
-                defaultValue={userProvidedName || mapboxPlaceName || ''}
-                placeholder='ex: La maison familiale du Soleil'
+                value={locationNameFieldValue}
+                onChange={(e) => setLocationNameFieldValue(e.target.value)}
+                placeholder={location.name.mapbox.exif || 'ex: La maison familiale du Soleil'}
                 className='block w-full rounded-md border-0 py-1.5 text-sm text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6'
               />
-              {!userProvidedName && mapboxPlaceName ? (
+              {nameOption === 'mapboxFromExif' ? (
                 <p id='isRelevant-description' className='text-gray-500 text-sm inline-flex'>
                   <InformationCircleIcon className='h-5 w-5 mr-1' /> Ce nom de lieu a été obtenu a partir des coordonnées GPS.
                 </p>
               ) : null}
             </div>
-            <div className={`${isRelevantChecked ? 'visible' : 'invisible'} sm:col-span-3 space-y-2 pt-4`}>
-              <label htmlFor='gpsCoords' className='block text-sm font-medium leading-6 text-gray-900'>
-                Coordonnées géographiques
-              </label>
-              <RadioGroup value={gpsOption} name='gpsOption' onChange={setGPSOption}>
-                <RadioGroup.Label className='sr-only'>Coordonnées GPS</RadioGroup.Label>
-                <div className='space-y-2'>
-                  {GPSCoords ? (
+            <div className={`${isIrrelevant ? 'invisible' : 'visible'} sm:col-span-3 space-y-2 pt-4`}>
+              <details>
+                <summary className='block text-sm font-medium leading-6 text-gray-900 cursor-pointer'>
+                  Coordonnées géographiques
+                </summary>
+
+                <RadioGroup value={gpsOption} className='mt-2' name='gpsOption' onChange={setGPSOption}>
+                  <RadioGroup.Label className='sr-only'>Coordonnées GPS</RadioGroup.Label>
+                  <div className='space-y-2'>
+                    {exifGPS ? (
+                      <RadioGroup.Option
+                        value={'exif'}
+                        className={({ active }) =>
+                          classNames(
+                            active ? 'border-indigo-600 ring-2 ring-indigo-600' : 'border-gray-300',
+                            'relative block cursor-pointer rounded-lg border bg-white px-2 py-4 shadow-sm focus:outline-none sm:flex sm:justify-between'
+                          )
+                        }>
+                        {({ active, checked }) => (
+                          <>
+                            <span className='flex items-center'>
+                              <span
+                                className={classNames(
+                                  checked ? 'bg-indigo-600 border-transparent' : 'bg-white border-gray-300',
+                                  'h-4 w-4 rounded-full border flex items-center justify-center flex-none mr-2'
+                                )}
+                                aria-hidden='true'>
+                                <span className='rounded-full bg-white w-1.5 h-1.5' />
+                              </span>
+                              <span className='flex flex-col text-sm'>
+                                <RadioGroup.Label as='span' className='font-medium text-gray-900'>
+                                  Utiliser les metadonnées de la photo (GPS de l'appareil)
+                                </RadioGroup.Label>
+                                <RadioGroup.Description as='span' className='text-gray-500'>
+                                  <span className='block sm:inline'>
+                                    <span className='text-gray-600'>
+                                      <a
+                                        className='text-gray-600 hover:text-gray-800 inline-flex items-center'
+                                        target='_blank'
+                                        href={`https://www.openstreetmap.org/?mlat=${exifGPS.lat}&mlon=${exifGPS.long}`}>
+                                        voir le lieu sur un plan
+                                        <ArrowTopRightOnSquareIcon className='h-4 w-4 ml-1' />
+                                      </a>
+                                    </span>
+                                  </span>
+                                </RadioGroup.Description>
+                              </span>
+                            </span>
+                            <span
+                              className={classNames(
+                                active ? 'border' : 'border-2',
+                                checked ? 'border-indigo-600' : 'border-transparent',
+                                'pointer-events-none absolute -inset-px rounded-lg'
+                              )}
+                              aria-hidden='true'
+                            />
+                          </>
+                        )}
+                      </RadioGroup.Option>
+                    ) : null}
                     <RadioGroup.Option
-                      value={'exif'}
+                      value={'none'}
                       className={({ active }) =>
                         classNames(
                           active ? 'border-indigo-600 ring-2 ring-indigo-600' : 'border-gray-300',
@@ -369,24 +478,10 @@ const PhotoLocation = ({ location, photoId }: { photoId: PhotoId; location: NewP
                               aria-hidden='true'>
                               <span className='rounded-full bg-white w-1.5 h-1.5' />
                             </span>
-                            <span className='flex flex-col text-sm'>
+                            <span className='flex flex-col text-sm gap-y-1'>
                               <RadioGroup.Label as='span' className='font-medium text-gray-900'>
-                                Coordonnées GPS issues des metadonnées de la photo (
-                                <a
-                                  className='text-gray-600'
-                                  target='_blank'
-                                  href={`https://www.openstreetmap.org/?mlat=${GPSCoords.lat}&mlon=${GPSCoords.long}`}>
-                                  voir plan
-                                </a>
-                                ).
+                                Aucune localisation géographique
                               </RadioGroup.Label>
-                              <RadioGroup.Description as='span' className='text-gray-500'>
-                                <span className='block sm:inline'>
-                                  <span className='text-gray-600'>
-                                    {GPSCoords.lat},{GPSCoords.long}
-                                  </span>
-                                </span>
-                              </RadioGroup.Description>
                             </span>
                           </span>
                           <span
@@ -400,113 +495,30 @@ const PhotoLocation = ({ location, photoId }: { photoId: PhotoId; location: NewP
                         </>
                       )}
                     </RadioGroup.Option>
-                  ) : null}
-                  <RadioGroup.Option
-                    value={'manual'}
-                    className={({ active }) =>
-                      classNames(
-                        active ? 'border-indigo-600 ring-2 ring-indigo-600' : 'border-gray-300',
-                        'relative block cursor-pointer rounded-lg border bg-white px-2 py-4 shadow-sm focus:outline-none sm:flex sm:justify-between'
-                      )
-                    }>
-                    {({ active, checked }) => (
-                      <>
-                        <span className='flex items-center'>
-                          <span
-                            className={classNames(
-                              checked ? 'bg-indigo-600 border-transparent' : 'bg-white border-gray-300',
-                              'h-4 w-4 rounded-full border flex items-center justify-center flex-none mr-2'
-                            )}
-                            aria-hidden='true'>
-                            <span className='rounded-full bg-white w-1.5 h-1.5' />
-                          </span>
-                          <span className='flex flex-col text-sm gap-y-1'>
-                            <RadioGroup.Label as='span' className='font-medium text-gray-900'>
-                              Saisir une localisation
-                            </RadioGroup.Label>
-                            <RadioGroup.Description as='span' className='text-gray-500'>
-                              <span className='block sm:inline'>
-                                <input
-                                  type='text'
-                                  name='gpsCoords'
-                                  id='gpsCoords'
-                                  placeholder='latitude,longitude'
-                                  className='block w-full rounded-md border-0 py-1.5 text-sm text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6'
-                                />
-                              </span>
-                            </RadioGroup.Description>
-                          </span>
-                        </span>
-                        <span
-                          className={classNames(
-                            active ? 'border' : 'border-2',
-                            checked ? 'border-indigo-600' : 'border-transparent',
-                            'pointer-events-none absolute -inset-px rounded-lg'
-                          )}
-                          aria-hidden='true'
-                        />
-                      </>
-                    )}
-                  </RadioGroup.Option>
-                  <RadioGroup.Option
-                    value={'none'}
-                    className={({ active }) =>
-                      classNames(
-                        active ? 'border-indigo-600 ring-2 ring-indigo-600' : 'border-gray-300',
-                        'relative block cursor-pointer rounded-lg border bg-white px-2 py-4 shadow-sm focus:outline-none sm:flex sm:justify-between'
-                      )
-                    }>
-                    {({ active, checked }) => (
-                      <>
-                        <span className='flex items-center'>
-                          <span
-                            className={classNames(
-                              checked ? 'bg-indigo-600 border-transparent' : 'bg-white border-gray-300',
-                              'h-4 w-4 rounded-full border flex items-center justify-center flex-none mr-2'
-                            )}
-                            aria-hidden='true'>
-                            <span className='rounded-full bg-white w-1.5 h-1.5' />
-                          </span>
-                          <span className='flex flex-col text-sm gap-y-1'>
-                            <RadioGroup.Label as='span' className='font-medium text-gray-900'>
-                              Aucune localisation
-                            </RadioGroup.Label>
-                          </span>
-                        </span>
-                        <span
-                          className={classNames(
-                            active ? 'border' : 'border-2',
-                            checked ? 'border-indigo-600' : 'border-transparent',
-                            'pointer-events-none absolute -inset-px rounded-lg'
-                          )}
-                          aria-hidden='true'
-                        />
-                      </>
-                    )}
-                  </RadioGroup.Option>
-                </div>
-              </RadioGroup>
+                  </div>
+                </RadioGroup>
+              </details>
             </div>
             <div className='inline-flex pt-4'>
               <div className='relative flex items-start'>
                 <div className='flex h-6 items-center'>
                   <input
-                    id='isRelevant'
-                    aria-describedby='isRelevant-description'
-                    name='isRelevant'
+                    id='isIrrelevant'
+                    aria-describedby='isIrrelevant-description'
+                    name='isIrrelevant'
                     type='checkbox'
-                    checked={!isRelevantChecked}
+                    checked={isIrrelevant}
                     className='h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-600'
                     onChange={(e) => {
-                      setRelevance((state) => !state)
+                      setIrrelevance((state) => !state)
                     }}
                   />
                 </div>
                 <div className='ml-3'>
-                  <label htmlFor='isRelevant' className='text-sm font-medium leading-6 text-red-700'>
-                    Retirer la localisation
+                  <label htmlFor='isIrrelevant' className='text-sm font-medium leading-6 text-red-700'>
+                    Masquer le lieu
                   </label>
-                  <p id='isRelevant-description' className='text-gray-500 text-sm'>
+                  <p id='isIrrelevant-description' className='text-gray-500 text-sm'>
                     Un lieu n'est pas pertinent pour cette photo
                   </p>
                 </div>
