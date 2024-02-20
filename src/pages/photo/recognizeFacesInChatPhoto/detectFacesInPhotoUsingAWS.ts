@@ -24,11 +24,11 @@ type DetectFacesInPhotosUsingAWSArgs = {
 export async function detectFacesInPhotoUsingAWS({ file, photoId }: DetectFacesInPhotosUsingAWSArgs) {
   try {
     const { path: originalPath } = file
-    const compressedFilePath = originalPath + '-compressed.jpeg'
-    await sharp(originalPath).jpeg({ quality: 30 }).toFile(compressedFilePath)
+    // const compressedFilePath = originalPath + '-compressed.jpeg'
+    // await sharp(originalPath).jpeg({ quality: 30 }).toFile(compressedFilePath)
 
     const awsDetectedFaces = await getAWSDetectedFacesInPhoto({
-      photoContents: fs.readFileSync(compressedFilePath),
+      photoContents: fs.readFileSync(originalPath),
       collectionId: getAwsRekognitionCollectionId(),
     })
 
