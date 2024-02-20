@@ -3,17 +3,13 @@ import express, { Express, NextFunction, Request, Response } from 'express'
 import session from 'express-session'
 import path from 'node:path'
 
+import { MulterError } from 'multer'
 import { actionsRouter } from './actions'
-import { createHistoryTable } from './dependencies/addToHistory'
+import { createHistoryTable, createIndexesOnHistoryTable } from './dependencies/addToHistory'
 import { SENTRY_DSN, SESSION_SECRET } from './dependencies/env'
 import { sessionStore } from './dependencies/session'
 import { factViewerRouter } from './facts/viewer/factViewer.route'
 import { pageRouter } from './pages'
-import { MulterError } from 'multer'
-import { threadCloneMigration } from './threadCloneMigration'
-import { photoCloneMigration } from './photoCloneMigration'
-import { personCloneMigration } from './personCloneMigration'
-import { deleteThreadclonesMigration } from './deleteThreadClonesMigration'
 
 const PORT: number = parseInt(process.env.PORT ?? '3000')
 
@@ -89,6 +85,7 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
 
 app.listen(PORT, async (): Promise<void> => {
   await createHistoryTable()
+  await createIndexesOnHistoryTable()
   // await threadCloneMigration()
   // await photoCloneMigration()
   // await personCloneMigration()
