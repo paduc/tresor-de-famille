@@ -15,5 +15,4 @@
   "typescript.updateImportsOnFileMove.enabled": "always",
   "git.autofetch": false,
   "eslint.packageManager": "yarn",
-  "jest.jestCommandLine": "jest"
 }

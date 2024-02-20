@@ -6,7 +6,7 @@
     {
       "label": "Test - Run test on this file",
       "type": "shell",
-      "command": "if [[ ${file} == *\".spec.ts\" ]]; then yarn test:watch -- ${file} ; else if [[ ${file} == *\".integration.ts\" ]]; then yarn test:watch -- ${file} ; fi ; fi",
+      "command": "if [[ ${file} == *\".spec.ts\" ]]; then yarn test -- ${file} ; else if [[ ${file} == *\".integration.ts\" ]]; then yarn test -- ${file} ; fi ; fi",
       "problemMatcher": []
     }
   ]

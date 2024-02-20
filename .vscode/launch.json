@@ -40,33 +40,6 @@
         // Ignore all dependencies (optional)
         "${workspaceFolder}/node_modules/**",
     ],
-},
-    {
-      "type": "node",
-      "request": "launch",
-      "name": "Test Spec File (debug)",
-      "runtimeExecutable": "node",
-      "program": "${workspaceRoot}/node_modules/jest/bin/jest.js",
-      "args": [
-        "--collectCoverage=false",
-        "--colors",
-        "--config",
-        "${workspaceRoot}/jest.config.js",
-        "--runInBand",
-        "--runTestsByPath",
-        "${relativeFile}",
-        "--testPathPattern=${fileDirname}",
-        "--testTimeout=10000000",
-        "--watch"
-
-      ],
-      "outputCapture": "std",
-      "internalConsoleOptions": "openOnSessionStart",
-      "envFile": "${workspaceRoot}/.env",
-      "skipFiles": [
-        "${workspaceRoot}/../../node_modules/**/*",
-        "<node_internals>/**/*"
-      ],
-    }
+}
     ]
 }
