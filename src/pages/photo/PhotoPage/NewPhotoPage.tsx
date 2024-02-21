@@ -93,7 +93,11 @@ export type NewPhotoPageProps = {
       userOption: 'user' | 'mapboxFromExif' | 'none'
     }
   }
-  datetime: string | undefined
+  datetime: {
+    userOption: 'user' | 'exif' | 'none'
+    userProvided: string | undefined
+    exifDatetime: string | undefined // from Date.getISO...
+  }
 }
 
 export const NewPhotoPage = withBrowserBundle(
@@ -169,14 +173,7 @@ export const NewPhotoPage = withBrowserBundle(
           <div className='bg-white bg-opacity-5 border-t border-gray-200/50'>
             <div className='text-gray-200 px-3 pb-28 w-full sm:max-w-lg mx-auto divide divide-y divide-solid divide-gray-200/50'>
               <div className='py-3 flex flex-col gap-y-1'>
-                {datetime ? (
-                  <div className='inline-flex justify-start items-center'>
-                    <CalendarIcon className='h-5 w-5 mr-1' />
-                    <time dateTime={datetime}>
-                      Le {new Intl.DateTimeFormat('fr', { dateStyle: 'long', timeStyle: 'medium' }).format(new Date(datetime))}
-                    </time>
-                  </div>
-                ) : null}
+                <PhotoDate datetime={datetime} photoId={photoId} />
                 <PhotoLocation location={location} photoId={photoId} />
               </div>
               {faces ? (
@@ -301,6 +298,7 @@ export const NewPhotoPage = withBrowserBundle(
 )
 
 const SHOW_EDIT_LOCATION = true
+const SHOW_EDIT_TIME = true
 
 const PhotoLocation = ({ location, photoId }: { photoId: PhotoId; location: NewPhotoPageProps['location'] }) => {
   const { GPSCoords, name } = location
@@ -520,6 +518,134 @@ const PhotoLocation = ({ location, photoId }: { photoId: PhotoId; location: NewP
                   </label>
                   <p id='isIrrelevant-description' className='text-gray-500 text-sm'>
                     Un lieu n'est pas pertinent pour cette photo
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className='space-x-2 mt-6'>
+            <button className={`${primaryButtonStyles}`}>Valider</button>
+            <button
+              className={`${linkStyles}`}
+              onClick={(e) => {
+                e.preventDefault()
+                setModalOpen(false)
+              }}>
+              Annuler
+            </button>
+          </div>
+        </form>
+      </TDFModal>
+    </>
+  )
+}
+
+const PhotoDate = ({ datetime, photoId }: { photoId: PhotoId; datetime: NewPhotoPageProps['datetime'] }) => {
+  const { userOption, userProvided, exifDatetime } = datetime
+  const exifDateAsText =
+    exifDatetime && new Intl.DateTimeFormat('fr', { dateStyle: 'long', timeStyle: 'medium' }).format(new Date(exifDatetime))
+
+  const [isModalOpen, setModalOpen] = useState(false)
+  const [dateAsText, setDateAsText] = useState(
+    userOption === 'user' ? userProvided : userOption === 'exif' ? exifDateAsText : ''
+  )
+  const [isIrrelevant, setIrrelevance] = useState(userOption === 'none')
+
+  const dateOption = useMemo(() => {
+    if (isIrrelevant) {
+      return 'none'
+    }
+
+    if (exifDateAsText && dateAsText === exifDateAsText) {
+      return 'exif'
+    }
+
+    if (!dateAsText) {
+      if (exifDateAsText) {
+        return 'exif'
+      }
+
+      return 'none'
+    }
+
+    return 'user'
+  }, [isIrrelevant, dateAsText, exifDateAsText])
+
+  return (
+    <>
+      <div className='inline-flex justify-start items-center gap-4'>
+        {dateOption === 'none' ? (
+          <button onClick={() => setModalOpen(true)} className=' hover:text-gray-200 italic cursor-pointer'>
+            Ajouter une date
+          </button>
+        ) : (
+          <>
+            <div className='inline-flex justify-start items-center gap-1'>
+              <CalendarIcon className='h-5 w-5 mr-1' />
+              {dateOption === 'exif' && exifDatetime ? <>Le {exifDateAsText}</> : null}
+              {dateOption === 'user' && userProvided ? <>{userProvided}</> : null}
+            </div>
+            {SHOW_EDIT_TIME ? (
+              <button onClick={() => setModalOpen(true)} className=' hover:text-gray-200'>
+                <PencilSquareIcon className='h-5 w-5' />
+              </button>
+            ) : null}
+          </>
+        )}
+      </div>
+      <TDFModal title='Date de la photo' close={() => setModalOpen(false)} isOpen={isModalOpen}>
+        <form method='POST'>
+          <input type='hidden' name='action' value='setDate' />
+          <input type='hidden' name='photoId' value={photoId} />
+          <input type='hidden' name='dateOption' value={dateOption} />
+          <div className='flex flex-col gap-y-4 divide-y divide-gray-200'>
+            <div className={`${isIrrelevant ? 'invisible' : 'visible'} sm:col-span-3 space-y-2 pt-4`}>
+              <label htmlFor='dateAsText' className='block text-sm font-medium leading-6 text-gray-900'>
+                Date à afficher
+              </label>
+              <input
+                type='text'
+                name='dateAsText'
+                value={dateAsText}
+                onChange={(e) => setDateAsText(e.target.value)}
+                placeholder={exifDateAsText || 'ex: 21/03/2024 ou Avril 1986'}
+                className='block w-full rounded-md border-0 py-1.5 text-sm text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6'
+              />
+              {dateAsText === exifDateAsText && dateAsText ? (
+                <p id='dateAsText-description' className='text-gray-500 text-sm inline-flex'>
+                  <InformationCircleIcon className='h-5 w-5 mr-1' />
+                  Cette date provient des métadonnées de la photo.
+                </p>
+              ) : null}
+              {exifDateAsText && dateAsText === '' ? (
+                <p id='dateAsText-description' className='text-gray-500 text-sm inline-flex'>
+                  <InformationCircleIcon className='h-5 w-5 mr-1' />
+                  La date issue des métadonnées de la photo sera utilisée.
+                </p>
+              ) : null}
+            </div>
+
+            <div className='inline-flex pt-4'>
+              <div className='relative flex items-start'>
+                <div className='flex h-6 items-center'>
+                  <input
+                    id='isIrrelevant'
+                    aria-describedby='isIrrelevant-description'
+                    name='isIrrelevant'
+                    type='checkbox'
+                    checked={isIrrelevant}
+                    className='h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-600'
+                    onChange={(e) => {
+                      setIrrelevance((state) => !state)
+                    }}
+                  />
+                </div>
+                <div className='ml-3'>
+                  <label htmlFor='isIrrelevant' className='text-sm font-medium leading-6 text-red-700'>
+                    Masquer la date
+                  </label>
+                  <p id='isIrrelevant-description' className='text-gray-500 text-sm'>
+                    Il n'y a pas de date pertinente pour cette photo.
                   </p>
                 </div>
               </div>

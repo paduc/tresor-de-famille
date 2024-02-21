@@ -12,6 +12,7 @@ import { PhotoGPSReverseGeocodedUsingMapbox } from '../photoApi/PhotoGPSReverseG
 import { UserUploadedPhoto } from '../photoApi/UserUploadedPhoto'
 import { ThreadSharedWithFamilies } from '../thread/ThreadPage/ThreadSharedWithFamilies'
 import { UserUpdatedThreadAsRichText } from '../thread/UserUpdatedThreadAsRichText'
+import { UserSetPhotoDate } from './UserSetPhotoDate'
 import { UserSetPhotoLocation } from './UserSetPhotoLocation'
 import { getNewPhotoPageProps } from './getNewPhotoPageProps'
 
@@ -364,7 +365,7 @@ describe('getNewPhotoPageProps', () => {
     })
   })
 
-  describe.only('when a photo has a multiple location events', () => {
+  describe('when a photo has a multiple location events', () => {
     const userId = makeAppUserId()
 
     const targetPhotoId = makePhotoId()
@@ -453,6 +454,157 @@ describe('getNewPhotoPageProps', () => {
           },
           userOption: 'user',
         },
+      })
+    })
+  })
+
+  describe('when a photo has a datetime in EXIF', () => {
+    const userId = makeAppUserId()
+
+    const targetPhotoId = makePhotoId()
+    beforeAll(async () => {
+      await resetDatabase()
+
+      await addToHistory(
+        UserRegisteredWithEmailAndPassword({
+          userId,
+          email: '',
+          passwordHash: '',
+        })
+      )
+
+      await addToHistory(
+        UserUploadedPhoto({
+          userId,
+          photoId: targetPhotoId,
+          location: {} as UserUploadedPhoto['payload']['location'],
+          exif: {
+            DateTimeOriginal: '2022:04:20 19:25:41',
+          },
+        })
+      )
+    })
+
+    it('should return that datetime', async () => {
+      const res = await getNewPhotoPageProps({ photoId: targetPhotoId, userId })
+      expect(res.datetime).toMatchObject({
+        userOption: 'exif',
+        userProvided: undefined,
+        exifDatetime: '2022-04-20T17:25:41.000Z',
+      })
+    })
+  })
+
+  describe('when a photo has a datetime provided by the user', () => {
+    const userId = makeAppUserId()
+
+    const targetPhotoId = makePhotoId()
+    beforeAll(async () => {
+      await resetDatabase()
+
+      await addToHistory(
+        UserRegisteredWithEmailAndPassword({
+          userId,
+          email: '',
+          passwordHash: '',
+        })
+      )
+
+      await addToHistory(
+        UserUploadedPhoto({
+          userId,
+          photoId: targetPhotoId,
+          location: {} as UserUploadedPhoto['payload']['location'],
+          exif: {
+            DateTimeOriginal: '2022:04:20 19:25:41',
+          },
+        })
+      )
+
+      await addToHistory(UserSetPhotoDate({ userId, photoId: targetPhotoId, dateOption: 'user', dateAsText: 'Avril 1986' }))
+    })
+
+    it('should return that datetime', async () => {
+      const res = await getNewPhotoPageProps({ photoId: targetPhotoId, userId })
+      expect(res.datetime).toMatchObject({
+        userOption: 'user',
+        userProvided: 'Avril 1986',
+        exifDatetime: '2022-04-20T17:25:41.000Z',
+      })
+    })
+  })
+
+  describe('when a photo has a datetime disabled by user', () => {
+    const userId = makeAppUserId()
+
+    const targetPhotoId = makePhotoId()
+    beforeAll(async () => {
+      await resetDatabase()
+
+      await addToHistory(
+        UserRegisteredWithEmailAndPassword({
+          userId,
+          email: '',
+          passwordHash: '',
+        })
+      )
+
+      await addToHistory(
+        UserUploadedPhoto({
+          userId,
+          photoId: targetPhotoId,
+          location: {} as UserUploadedPhoto['payload']['location'],
+          exif: {
+            DateTimeOriginal: '2022:04:20 19:25:41',
+          },
+        })
+      )
+
+      await addToHistory(UserSetPhotoDate({ userId, photoId: targetPhotoId, dateOption: 'user', dateAsText: 'Avril 1986' }))
+
+      await addToHistory(UserSetPhotoDate({ userId, photoId: targetPhotoId, dateOption: 'none' }))
+    })
+
+    it('should return that datetime', async () => {
+      const res = await getNewPhotoPageProps({ photoId: targetPhotoId, userId })
+      expect(res.datetime).toMatchObject({
+        userOption: 'none',
+        userProvided: 'Avril 1986',
+        exifDatetime: '2022-04-20T17:25:41.000Z',
+      })
+    })
+  })
+  describe('when a photo has no datetime ', () => {
+    const userId = makeAppUserId()
+
+    const targetPhotoId = makePhotoId()
+    beforeAll(async () => {
+      await resetDatabase()
+
+      await addToHistory(
+        UserRegisteredWithEmailAndPassword({
+          userId,
+          email: '',
+          passwordHash: '',
+        })
+      )
+
+      await addToHistory(
+        UserUploadedPhoto({
+          userId,
+          photoId: targetPhotoId,
+          location: {} as UserUploadedPhoto['payload']['location'],
+          exif: undefined,
+        })
+      )
+    })
+
+    it('should return no datetime', async () => {
+      const res = await getNewPhotoPageProps({ photoId: targetPhotoId, userId })
+      expect(res.datetime).toMatchObject({
+        userOption: 'none',
+        userProvided: undefined,
+        exifDatetime: undefined,
       })
     })
   })

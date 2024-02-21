@@ -209,6 +209,23 @@ export const PhotoWithDatetime = () => (
     context={{ type: 'profile', profileId: makePersonId() }}
     isPhotoAuthor={true}
     threadsContainingPhoto={[]}
-    datetime='2009-05-22T11:20:47.000Z'
+    location={{
+      isIrrelevant: true,
+      GPSCoords: {
+        exif: {
+          lat: 49.46800006494457,
+          long: 17.11514008755796,
+        },
+        userOption: 'exif',
+      },
+      name: {
+        userProvided: '',
+        mapbox: {
+          exif: 'Lavaux 24, 4980 Trois-Ponts, Belgique',
+        },
+        userOption: 'mapboxFromExif',
+      },
+    }}
+    datetime={{ exifDatetime: '2009-05-22T11:20:47.000Z', userOption: 'exif', userProvided: 'Avril 1986' }}
   />
 )

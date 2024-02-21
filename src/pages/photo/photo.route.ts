@@ -23,6 +23,7 @@ import { PhotoPageUrl } from './PhotoPageUrl'
 import { UserAddedCaptionToPhoto } from './UserAddedCaptionToPhoto'
 import { getNewPhotoPageProps } from './getNewPhotoPageProps'
 import { UserSetPhotoLocation } from './UserSetPhotoLocation'
+import { UserSetPhotoDate } from './UserSetPhotoDate'
 
 const fakeProfilePicUrl =
   'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80'
@@ -221,6 +222,40 @@ pageRouter
                 isIrrelevant: false,
                 gpsOption,
                 name: nameOption === 'user' ? { option: 'user', locationName } : { option: 'mapboxFromExif' },
+              })
+            )
+          }
+        } else if (action === 'setDate') {
+          const { dateOption, dateAsText, isIrrelevant } = z
+            .object({
+              dateOption: z.union([z.literal('exif'), z.literal('user'), z.literal('none')]),
+              dateAsText: z.string(),
+              isIrrelevant: z.literal('on').optional(),
+            })
+            .parse(request.body)
+          if (isIrrelevant) {
+            await addToHistory(
+              UserSetPhotoDate({
+                photoId,
+                userId,
+                dateOption: 'none',
+              })
+            )
+          } else if (dateOption === 'user' && dateAsText) {
+            await addToHistory(
+              UserSetPhotoDate({
+                photoId,
+                userId,
+                dateOption,
+                dateAsText,
+              })
+            )
+          } else {
+            await addToHistory(
+              UserSetPhotoDate({
+                photoId,
+                userId,
+                dateOption: dateOption === 'user' ? 'none' : dateOption,
               })
             )
           }

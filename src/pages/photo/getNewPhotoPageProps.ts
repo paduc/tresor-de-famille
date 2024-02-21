@@ -23,6 +23,7 @@ import { UserUpdatedThreadAsRichText } from '../thread/UserUpdatedThreadAsRichTe
 
 import { NewPhotoPageProps } from './PhotoPage/NewPhotoPage'
 import { UserAddedCaptionToPhoto } from './UserAddedCaptionToPhoto'
+import { UserSetPhotoDate } from './UserSetPhotoDate'
 import { UserSetPhotoLocation } from './UserSetPhotoLocation'
 import { AWSDetectedFacesInPhoto } from './recognizeFacesInChatPhoto/AWSDetectedFacesInPhoto'
 
@@ -85,7 +86,39 @@ export const getNewPhotoPageProps = async ({
     faces,
     threadsContainingPhoto: await getThreadsWithPhoto({ photoId, userId }),
     location: await getPhotoLocation({ photoId, EXIFGPSCoords: EXIFGPSCoordsAndTime?.GPSCoords }),
-    datetime: EXIFGPSCoordsAndTime?.datetime,
+    datetime: await getPhotoDatetime({ photoId, EXIFDatetime: EXIFGPSCoordsAndTime?.datetime }),
+  }
+}
+
+async function getPhotoDatetime({
+  photoId,
+  EXIFDatetime,
+}: {
+  photoId: PhotoId
+  EXIFDatetime: string | undefined
+}): Promise<NewPhotoPageProps['datetime']> {
+  // A reverse chronological list of events (first in array = last to be emitted)
+  const dateEvents = (await getEventList<UserSetPhotoDate>('UserSetPhotoDate', { photoId })).sort(
+    (a, b) => b.occurredAt.getTime() - a.occurredAt.getTime()
+  )
+
+  const firstEvent = dateEvents.at(0)
+
+  return {
+    userOption: firstEvent?.payload.dateOption || (!!EXIFDatetime && 'exif') || 'none',
+    userProvided: getLatestUserProvidedDateAsText(dateEvents),
+    exifDatetime: EXIFDatetime,
+  }
+}
+
+function getLatestUserProvidedDateAsText(events: UserSetPhotoDate[]) {
+  if (!events.length) return
+
+  for (const event of events) {
+    const { payload } = event
+    if (payload.dateOption !== 'user') continue
+
+    return payload.dateAsText
   }
 }
 
@@ -229,11 +262,11 @@ async function getMapboxPlaceName({ photoId }: { photoId: PhotoId }): Promise<st
 }
 
 function getDateTimeFromExif(exif: EXIF): string | undefined {
-  const dateString = exif.DateTime || exif.DateTimeOriginal
+  const dateString = exif.DateTimeOriginal
 
   if (!dateString || typeof dateString !== 'string') return
 
-  // The format of DateTime in EXIF is "YYYY:MM:DD HH:MM:SS"
+  // The format of DateTimeOriginal in EXIF is "YYYY:MM:DD hh:mm:ss"
   // To be acceptable for a Date, we need to replace the first two ":" with "-"
   const formattedDateString = dateString.replace(':', '-').replace(':', '-')
 
