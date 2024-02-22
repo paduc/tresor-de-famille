@@ -199,7 +199,7 @@ pageRouter
         } else if (action === 'setLocation') {
           const { gpsOption, nameOption, locationName, isIrrelevant } = z
             .object({
-              gpsOption: z.union([z.literal('exif'), z.literal('none')]),
+              gpsOption: z.union([z.literal('exif'), z.literal('none')]).optional(),
               nameOption: z.union([z.literal('user'), z.literal('mapboxFromExif')]),
               locationName: z.string(),
               isIrrelevant: z.literal('on').optional(),
@@ -220,7 +220,7 @@ pageRouter
                 photoId,
                 userId,
                 isIrrelevant: false,
-                gpsOption,
+                gpsOption: gpsOption || 'none',
                 name: nameOption === 'user' ? { option: 'user', locationName } : { option: 'mapboxFromExif' },
               })
             )

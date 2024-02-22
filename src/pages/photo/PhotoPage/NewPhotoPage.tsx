@@ -353,7 +353,7 @@ const PhotoLocation = ({ location, photoId }: { photoId: PhotoId; location: NewP
   return (
     <>
       <div className='inline-flex justify-start items-center gap-4'>
-        {isIrrelevant ? (
+        {isIrrelevant || (!exifGPS && !locationName) ? (
           <button onClick={() => setModalOpen(true)} className=' hover:text-gray-200 italic cursor-pointer'>
             Ajouter un lieu
           </button>
@@ -397,18 +397,69 @@ const PhotoLocation = ({ location, photoId }: { photoId: PhotoId; location: NewP
                 </p>
               ) : null}
             </div>
-            <div className={`${isIrrelevant ? 'invisible' : 'visible'} sm:col-span-3 space-y-2 pt-4`}>
-              <details>
-                <summary className='block text-sm font-medium leading-6 text-gray-900 cursor-pointer'>
-                  Coordonnées géographiques
-                </summary>
+            {exifGPS ? (
+              <div className={`${isIrrelevant ? 'invisible' : 'visible'} sm:col-span-3 space-y-2 pt-4`}>
+                <details>
+                  <summary className='block text-sm font-medium leading-6 text-gray-900 cursor-pointer'>
+                    Coordonnées géographiques
+                  </summary>
 
-                <RadioGroup value={gpsOption} className='mt-2' name='gpsOption' onChange={setGPSOption}>
-                  <RadioGroup.Label className='sr-only'>Coordonnées GPS</RadioGroup.Label>
-                  <div className='space-y-2'>
-                    {exifGPS ? (
+                  <RadioGroup value={gpsOption} className='mt-2' name='gpsOption' onChange={setGPSOption}>
+                    <RadioGroup.Label className='sr-only'>Coordonnées GPS</RadioGroup.Label>
+                    <div className='space-y-2'>
+                      {exifGPS ? (
+                        <RadioGroup.Option
+                          value={'exif'}
+                          className={({ active }) =>
+                            classNames(
+                              active ? 'border-indigo-600 ring-2 ring-indigo-600' : 'border-gray-300',
+                              'relative block cursor-pointer rounded-lg border bg-white px-2 py-4 shadow-sm focus:outline-none sm:flex sm:justify-between'
+                            )
+                          }>
+                          {({ active, checked }) => (
+                            <>
+                              <span className='flex items-center'>
+                                <span
+                                  className={classNames(
+                                    checked ? 'bg-indigo-600 border-transparent' : 'bg-white border-gray-300',
+                                    'h-4 w-4 rounded-full border flex items-center justify-center flex-none mr-2'
+                                  )}
+                                  aria-hidden='true'>
+                                  <span className='rounded-full bg-white w-1.5 h-1.5' />
+                                </span>
+                                <span className='flex flex-col text-sm'>
+                                  <RadioGroup.Label as='span' className='font-medium text-gray-900'>
+                                    Utiliser les metadonnées de la photo (GPS de l'appareil)
+                                  </RadioGroup.Label>
+                                  <RadioGroup.Description as='span' className='text-gray-500'>
+                                    <span className='block sm:inline'>
+                                      <span className='text-gray-600'>
+                                        <a
+                                          className='text-gray-600 hover:text-gray-800 inline-flex items-center'
+                                          target='_blank'
+                                          href={`https://www.openstreetmap.org/?mlat=${exifGPS.lat}&mlon=${exifGPS.long}`}>
+                                          voir le lieu sur un plan
+                                          <ArrowTopRightOnSquareIcon className='h-4 w-4 ml-1' />
+                                        </a>
+                                      </span>
+                                    </span>
+                                  </RadioGroup.Description>
+                                </span>
+                              </span>
+                              <span
+                                className={classNames(
+                                  active ? 'border' : 'border-2',
+                                  checked ? 'border-indigo-600' : 'border-transparent',
+                                  'pointer-events-none absolute -inset-px rounded-lg'
+                                )}
+                                aria-hidden='true'
+                              />
+                            </>
+                          )}
+                        </RadioGroup.Option>
+                      ) : null}
                       <RadioGroup.Option
-                        value={'exif'}
+                        value={'none'}
                         className={({ active }) =>
                           classNames(
                             active ? 'border-indigo-600 ring-2 ring-indigo-600' : 'border-gray-300',
@@ -426,23 +477,10 @@ const PhotoLocation = ({ location, photoId }: { photoId: PhotoId; location: NewP
                                 aria-hidden='true'>
                                 <span className='rounded-full bg-white w-1.5 h-1.5' />
                               </span>
-                              <span className='flex flex-col text-sm'>
+                              <span className='flex flex-col text-sm gap-y-1'>
                                 <RadioGroup.Label as='span' className='font-medium text-gray-900'>
-                                  Utiliser les metadonnées de la photo (GPS de l'appareil)
+                                  Aucune localisation géographique
                                 </RadioGroup.Label>
-                                <RadioGroup.Description as='span' className='text-gray-500'>
-                                  <span className='block sm:inline'>
-                                    <span className='text-gray-600'>
-                                      <a
-                                        className='text-gray-600 hover:text-gray-800 inline-flex items-center'
-                                        target='_blank'
-                                        href={`https://www.openstreetmap.org/?mlat=${exifGPS.lat}&mlon=${exifGPS.long}`}>
-                                        voir le lieu sur un plan
-                                        <ArrowTopRightOnSquareIcon className='h-4 w-4 ml-1' />
-                                      </a>
-                                    </span>
-                                  </span>
-                                </RadioGroup.Description>
                               </span>
                             </span>
                             <span
@@ -456,47 +494,11 @@ const PhotoLocation = ({ location, photoId }: { photoId: PhotoId; location: NewP
                           </>
                         )}
                       </RadioGroup.Option>
-                    ) : null}
-                    <RadioGroup.Option
-                      value={'none'}
-                      className={({ active }) =>
-                        classNames(
-                          active ? 'border-indigo-600 ring-2 ring-indigo-600' : 'border-gray-300',
-                          'relative block cursor-pointer rounded-lg border bg-white px-2 py-4 shadow-sm focus:outline-none sm:flex sm:justify-between'
-                        )
-                      }>
-                      {({ active, checked }) => (
-                        <>
-                          <span className='flex items-center'>
-                            <span
-                              className={classNames(
-                                checked ? 'bg-indigo-600 border-transparent' : 'bg-white border-gray-300',
-                                'h-4 w-4 rounded-full border flex items-center justify-center flex-none mr-2'
-                              )}
-                              aria-hidden='true'>
-                              <span className='rounded-full bg-white w-1.5 h-1.5' />
-                            </span>
-                            <span className='flex flex-col text-sm gap-y-1'>
-                              <RadioGroup.Label as='span' className='font-medium text-gray-900'>
-                                Aucune localisation géographique
-                              </RadioGroup.Label>
-                            </span>
-                          </span>
-                          <span
-                            className={classNames(
-                              active ? 'border' : 'border-2',
-                              checked ? 'border-indigo-600' : 'border-transparent',
-                              'pointer-events-none absolute -inset-px rounded-lg'
-                            )}
-                            aria-hidden='true'
-                          />
-                        </>
-                      )}
-                    </RadioGroup.Option>
-                  </div>
-                </RadioGroup>
-              </details>
-            </div>
+                    </div>
+                  </RadioGroup>
+                </details>
+              </div>
+            ) : null}
             <div className='inline-flex pt-4'>
               <div className='relative flex items-start'>
                 <div className='flex h-6 items-center'>
