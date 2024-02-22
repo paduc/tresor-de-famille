@@ -125,6 +125,22 @@ const ReadonlyPhotoItem = (props: {
 
     const photoPageUrl = `/photo/${photoId}/photo.html?threadId=${threadId}`
 
+    let annotatePrompt = ''
+    if (unrecognizedFacesInPhoto) {
+      if (unrecognizedFacesInPhoto === 1) {
+        if (personsInPhoto.length > 1) {
+          annotatePrompt = 'Annoter le dernier visage'
+        } else if (personsInPhoto.length === 1) {
+          annotatePrompt = "Annoter l'autre visage"
+        } else {
+          annotatePrompt = 'Annoter le visage'
+        }
+      } else {
+        // More than one unrecognized
+        annotatePrompt = `Annoter les ${unrecognizedFacesInPhoto}${personsInPhoto.length ? ' autres' : ''} visages`
+      }
+    }
+
     return (
       <div className='grid grid-cols-1 w-full px-4 sm:px-0 py-2' id={photoId}>
         <div className='mb-2'>
@@ -132,14 +148,13 @@ const ReadonlyPhotoItem = (props: {
             <img src={`${url}?threadId=${threadId}`} className='max-w-full max-h-[50vh] border border-gray-300 shadow-sm' />
           </a>
         </div>
-
         <div className=''>
-          <p className='text-md text-gray-600 mb-1 whitespace-pre-wrap'>{caption}</p>
+          {caption ? <p className='text-md text-gray-600 mb-1 whitespace-pre-wrap'>{caption}</p> : null}
           {descriptionOfPeople ? <p className='text-md text-gray-600 mb-1'>avec {descriptionOfPeople}</p> : null}
           {unrecognizedFacesInPhoto ? (
             <p className='text-md text-gray-600 mb-1'>
               <a href={photoPageUrl} className='font-medium text-indigo-600 hover:text-indigo-500'>
-                {unrecognizedFacesInPhoto === 1 ? `Annoter le visage` : `Annoter les ${unrecognizedFacesInPhoto} visages`}
+                {annotatePrompt}
               </a>
             </p>
           ) : null}
