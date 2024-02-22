@@ -39,39 +39,32 @@ export const getNewPhotoPageProps = async ({
   const photoExists = await doesPhotoExist({ photoId })
   if (!photoExists) throw new Error('Photo does not exist')
 
-  let faces: NewPhotoPageProps['faces'] = undefined
-  const awsFacesDetectedEvent = await getSingleEvent<AWSDetectedFacesInPhoto>('AWSDetectedFacesInPhoto', {
-    photoId,
-  })
+  const faces: NewPhotoPageProps['faces'] = await Promise.all(
+    (
+      await getFacesInPhoto({ photoId, userId })
+    ).map(async (face): Promise<PhotoFace> => {
+      const { faceId } = face
 
-  if (awsFacesDetectedEvent) {
-    faces = await Promise.all(
-      (
-        await getFacesInPhoto({ photoId, userId })
-      ).map(async (face): Promise<PhotoFace> => {
-        const { faceId } = face
-
-        if (face.isIgnored) {
-          return {
-            faceId,
-            stage: 'ignored',
-          }
+      if (face.isIgnored) {
+        return {
+          faceId,
+          stage: 'ignored',
         }
+      }
 
-        if (face.personId) {
-          const person = await getPersonByIdOrThrow({ personId: face.personId })
-          return {
-            faceId,
-            stage: 'done',
-            personId: face.personId,
-            name: person.name,
-          }
+      if (face.personId) {
+        const person = await getPersonByIdOrThrow({ personId: face.personId })
+        return {
+          faceId,
+          stage: 'done',
+          personId: face.personId,
+          name: person.name,
         }
+      }
 
-        return { faceId, stage: 'awaiting-name' }
-      })
-    )
-  }
+      return { faceId, stage: 'awaiting-name' }
+    })
+  )
 
   const familyId = await getPhotoFamilyId(photoId)
 

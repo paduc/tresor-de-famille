@@ -21,7 +21,11 @@ export async function getFacesInPhoto({
     photoId,
   })
 
-  const awsDetectedFaces = awsFacesDetectedEvent?.payload.faces || []
+  if (!awsFacesDetectedEvent) return []
+
+  const awsDetectedFaces = awsFacesDetectedEvent.payload.faces
+
+  awsDetectedFaces.sort((a, b) => (a.position.Left || 0) - (b.position.Left || 0))
 
   const detectedFaceIds = new Set(awsDetectedFaces.map((awsFace) => awsFace.faceId))
 

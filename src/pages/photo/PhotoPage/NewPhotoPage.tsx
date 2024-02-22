@@ -120,6 +120,11 @@ export const NewPhotoPage = withBrowserBundle(
     const ignoredFaces = faces?.filter((face) => face.stage === 'ignored') || []
     const annotatedFaces = faces?.filter((face): face is PhotoFace & { stage: 'done' } => face.stage === 'done') || []
     const pendingFaces = faces?.filter((face) => face.stage === 'awaiting-name') || []
+    const nonIgnoredFaces =
+      faces?.filter(
+        (face): face is PhotoFace & { stage: 'awaiting-name' | 'done' } =>
+          face.stage === 'awaiting-name' || face.stage === 'done'
+      ) || []
 
     function makeBackURL(context: NewPhotoPageProps['context']) {
       if (!context) return PhotoListPageUrl
@@ -181,42 +186,41 @@ export const NewPhotoPage = withBrowserBundle(
                   {faces.length ? (
                     <div className='py-3'>
                       <ul className='flex flex-wrap gap-2 pt-3'>
-                        {annotatedFaces.map((face) => (
+                        {faces.map((face) => (
                           <li key={`photoface${face.faceId}`} className='text-gray-300 mr-2 mb-2'>
                             <div
                               onClick={() => setSelectedFaceForMenu(face)}
-                              className='flex flex-col items-center cursor-pointer'>
-                              <PhotoBadge faceId={face.faceId} photoId={photoId} className={``} altText={face.name || ''} />
-                              <div className='mt-1 max-w-[80px] truncate'>{face.name}</div>
-                            </div>
-                          </li>
-                        ))}
-                        {pendingFaces.map((face) => (
-                          <li
-                            key={`photoface${face.faceId}`}
-                            className='text-gray-500 mr-2 mb-2 flex flex-col items-center relative'
-                            onClick={() => setSelectedFaceForMenu(face)}>
-                            <PhotoBadge faceId={face.faceId} photoId={photoId} className={'cursor-pointer'} />
-                            <div className='absolute top-11 right-0 h-4 w-4 rounded-full bg-blue-600 -ring-2 ring-1  ring-white'>
-                              <div className='text-white text-xs text-center'>?</div>
-                            </div>
-                          </li>
-                        ))}
-                        {areIgnoredFacesVisible
-                          ? ignoredFaces.map((face) => (
-                              <li
-                                key={`photoface${face.faceId}`}
-                                className='text-gray-500 mr-2 mb-2 flex flex-col items-center relative'
-                                onClick={() => setSelectedFaceForMenu(face)}>
-                                <PhotoBadge faceId={face.faceId} photoId={photoId} className={`grayscale cursor-pointer`} />
-                                <div className='absolute top-11 right-0 h-4 w-4 rounded-full bg-red-600 -ring-2 ring-1 ring-white'>
-                                  <div className='text-white text-center'>
-                                    <XMarkIcon className='h-[3.5] w-[3.5]' />
+                              className='flex flex-col items-center cursor-pointer relative'>
+                              {face.stage === 'awaiting-name' ? (
+                                <>
+                                  <PhotoBadge faceId={face.faceId} photoId={photoId} className={'cursor-pointer'} />
+                                  <div className='absolute top-11 right-0 h-4 w-4 rounded-full bg-blue-600 -ring-2 ring-1  ring-white'>
+                                    <div className='text-white text-xs text-center'>?</div>
                                   </div>
-                                </div>
-                              </li>
-                            ))
-                          : null}
+                                </>
+                              ) : face.stage === 'done' ? (
+                                <>
+                                  <PhotoBadge
+                                    faceId={face.faceId}
+                                    photoId={photoId}
+                                    className={``}
+                                    altText={face.stage === 'done' ? face.name : ''}
+                                  />
+                                  <div className='mt-1 max-w-[80px] truncate'>{face.name}</div>
+                                </>
+                              ) : areIgnoredFacesVisible ? (
+                                <>
+                                  <PhotoBadge faceId={face.faceId} photoId={photoId} className={`grayscale cursor-pointer`} />
+                                  <div className='absolute top-11 right-0 h-4 w-4 rounded-full bg-red-600 -ring-2 ring-1 ring-white'>
+                                    <div className='text-white text-center'>
+                                      <XMarkIcon className='h-[3.5] w-[3.5]' />
+                                    </div>
+                                  </div>
+                                </>
+                              ) : null}
+                            </div>
+                          </li>
+                        ))}
                       </ul>
                       {pendingFaces.length ? (
                         <div>
@@ -229,7 +233,9 @@ export const NewPhotoPage = withBrowserBundle(
                               className={`${linkStylesDarkMode} text-red-500 hover:text-red-600 mt-4`}
                               onClick={() => showIgnoredFaces(false)}>
                               <EyeSlashIcon className='h-6 w-6 mr-1' />
-                              Ignorer tous les {annotatedFaces.length ? 'autres' : ''} visages
+                              {pendingFaces.length === 1
+                                ? `Ignorer le ${annotatedFaces.length ? 'dernier ' : ''} visage`
+                                : `Ignorer tous les ${annotatedFaces.length ? 'autres' : ''} visages`}
                             </button>
                           </form>
                         </div>

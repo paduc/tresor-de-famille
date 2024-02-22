@@ -1,7 +1,10 @@
 import { resetDatabase } from '../../dependencies/__test__/resetDatabase'
 import { addToHistory } from '../../dependencies/addToHistory'
 import { UserRegisteredWithEmailAndPassword } from '../../events/UserRegisteredWithEmailAndPassword'
+import { FaceIgnoredInPhoto } from '../../events/onboarding/FaceIgnoredInPhoto'
+import { UserNamedPersonInPhoto } from '../../events/onboarding/UserNamedPersonInPhoto'
 import { UserNamedThemself } from '../../events/onboarding/UserNamedThemself'
+import { makeFaceId } from '../../libs/makeFaceId'
 import { makeFamilyId } from '../../libs/makeFamilyId'
 import { makePersonId } from '../../libs/makePersonId'
 import { makePhotoId } from '../../libs/makePhotoId'
@@ -15,9 +18,10 @@ import { UserUpdatedThreadAsRichText } from '../thread/UserUpdatedThreadAsRichTe
 import { UserSetPhotoDate } from './UserSetPhotoDate'
 import { UserSetPhotoLocation } from './UserSetPhotoLocation'
 import { getNewPhotoPageProps } from './getNewPhotoPageProps'
+import { AWSDetectedFacesInPhoto } from './recognizeFacesInChatPhoto/AWSDetectedFacesInPhoto'
 
 describe('getNewPhotoPageProps', () => {
-  describe('when a thread contains the photo', () => {
+  describe('when the photo is present in a thread', () => {
     const userId = makeAppUserId()
 
     const targetPhotoId = makePhotoId()
@@ -118,7 +122,7 @@ describe('getNewPhotoPageProps', () => {
     })
   })
 
-  describe('when a thread that contains the photo has been updated multiple times', () => {
+  describe('when the photo is contained in a thread that has been updated multiple times', () => {
     const userId = makeAppUserId()
 
     const targetPhotoId = makePhotoId()
@@ -202,6 +206,96 @@ describe('getNewPhotoPageProps', () => {
           name: 'John Doe',
         },
       })
+    })
+  })
+
+  describe('when the photo has multiple faces, it should return them ordered left to right', () => {
+    const userId = makeAppUserId()
+
+    // 1-3 from left to right
+    const faceId1 = makeFaceId()
+    const faceId2 = makeFaceId()
+    const faceId3 = makeFaceId()
+
+    const targetPhotoId = makePhotoId()
+    beforeAll(async () => {
+      await resetDatabase()
+
+      await addToHistory(
+        UserRegisteredWithEmailAndPassword({
+          userId,
+          email: '',
+          passwordHash: '',
+        })
+      )
+
+      await addToHistory(
+        UserUploadedPhoto({
+          userId,
+          photoId: targetPhotoId,
+          location: {} as UserUploadedPhoto['payload']['location'],
+        })
+      )
+
+      await addToHistory(
+        AWSDetectedFacesInPhoto({
+          photoId: targetPhotoId,
+          faces: [
+            {
+              faceId: faceId3,
+              awsFaceId: '',
+              position: {
+                Left: 30,
+              },
+              confidence: 100,
+            },
+            {
+              faceId: faceId1,
+              awsFaceId: '',
+              position: {
+                Left: 10,
+              },
+              confidence: 100,
+            },
+            {
+              faceId: faceId2,
+              awsFaceId: '',
+              position: {
+                Left: 20,
+              },
+              confidence: 100,
+            },
+          ],
+        })
+      )
+
+      await addToHistory(
+        FaceIgnoredInPhoto({
+          photoId: targetPhotoId,
+          ignoredBy: userId,
+          faceId: faceId2,
+        })
+      )
+
+      await addToHistory(
+        UserNamedPersonInPhoto({
+          photoId: targetPhotoId,
+          userId,
+          faceId: faceId3,
+          familyId: makeFamilyId(),
+          name: 'Pierre',
+          personId: makePersonId(),
+        })
+      )
+    })
+
+    it('should return the faces from left to right', async () => {
+      const res = await getNewPhotoPageProps({ photoId: targetPhotoId, userId })
+
+      expect(res.faces).toHaveLength(3)
+      expect(res.faces![0]).toMatchObject({ faceId: faceId1 })
+      expect(res.faces![1]).toMatchObject({ faceId: faceId2 })
+      expect(res.faces![2]).toMatchObject({ faceId: faceId3 })
     })
   })
 
