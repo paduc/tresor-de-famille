@@ -4,22 +4,22 @@ import { AppUserId } from '../../domain/AppUserId'
 import { FamilyId } from '../../domain/FamilyId'
 import { PersonId } from '../../domain/PersonId'
 import { PhotoId } from '../../domain/PhotoId'
-import { ThreadId, isThreadId } from '../../domain/ThreadId'
-import { getEpoch } from '../../libs/typeguards'
+import { ThreadId } from '../../domain/ThreadId'
 import { getFacesInPhoto } from '../_getFacesInPhoto'
 import { getPersonByIdOrThrow } from '../_getPersonById'
+import { getPhotoLocation } from '../_getPhotoLocation'
 import { getThreadAuthor } from '../_getThreadAuthor'
 import { ThreadEvent, getThreadEvents } from '../_getThreadEvents'
 import { getThreadFamilies } from '../_getThreadFamilies'
 import { getUserFamilies } from '../_getUserFamilies'
+import { getThreadComments } from '../commentApi/getThreadComments'
+import { UserAddedCaptionToPhoto } from '../photo/UserAddedCaptionToPhoto'
 import { ThreadPageProps } from './ThreadPage/ThreadPage'
 import { TipTapContentAsJSON, encodeStringy } from './TipTapTypes'
 import { UserInsertedPhotoInRichTextThread } from './UserInsertedPhotoInRichTextThread'
+import { UserSetCaptionOfPhotoInThread } from './UserSetCaptionOfPhotoInThread'
 import { UserSetChatTitle } from './UserSetChatTitle'
 import { UserUpdatedThreadAsRichText } from './UserUpdatedThreadAsRichText'
-import { getThreadComments } from '../commentApi/getThreadComments'
-import { UserSetCaptionOfPhotoInThread } from './UserSetCaptionOfPhotoInThread'
-import { UserAddedCaptionToPhoto } from '../photo/UserAddedCaptionToPhoto'
 
 export const getThreadPageProps = async ({
   threadId,
@@ -119,7 +119,7 @@ export const getThreadPageProps = async ({
 
       if (!photoInfo) continue
 
-      const { caption, personsInPhoto, unrecognizedFacesInPhoto } = photoInfo
+      const { caption, personsInPhoto, unrecognizedFacesInPhoto, locationName } = photoInfo
 
       const newAttrs = {
         photoId,
@@ -128,6 +128,7 @@ export const getThreadPageProps = async ({
         personsInPhoto: encodeStringy(personsInPhoto),
         unrecognizedFacesInPhoto,
         url: getPhotoUrlFromId(photoId),
+        locationName,
       }
 
       contentAsJSON.content.push({
@@ -162,6 +163,7 @@ async function getPhotoInfo({
   caption: string
   personsInPhoto: string[]
   unrecognizedFacesInPhoto: number
+  locationName: string | undefined
 } | null> {
   const facesInPhoto = await getFacesInPhoto({ photoId, userId })
 
@@ -182,7 +184,18 @@ async function getPhotoInfo({
     caption: await getPhotoCaption({ photoId, threadId }),
     personsInPhoto,
     unrecognizedFacesInPhoto: unconfirmedFaceIds.size,
+    locationName: await getPhotoLocationName({ photoId }),
   }
+}
+
+async function getPhotoLocationName({ photoId }: { photoId: PhotoId }) {
+  const photoLocation = await getPhotoLocation({ photoId })
+
+  if (!photoLocation) return
+  const { name } = photoLocation
+
+  if (name.userOption === 'user') return name.userProvided
+  if (name.userOption === 'mapboxFromExif') return name.mapbox.exif
 }
 
 async function getPhotoCaption({ photoId, threadId }: { photoId: PhotoId; threadId: ThreadId }) {

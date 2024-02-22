@@ -111,13 +111,14 @@ const ReadonlyPhotoItem = (props: {
 
     const personsInPhoto: string[] = z.array(z.string()).parse(JSON.parse(decodeURIComponent(attrs.personsInPhoto)))
 
-    const { threadId, photoId, unrecognizedFacesInPhoto, url, caption } = z
+    const { threadId, photoId, unrecognizedFacesInPhoto, url, caption, locationName } = z
       .object({
         threadId: zIsThreadId,
         photoId: zIsPhotoId,
         unrecognizedFacesInPhoto: z.number(),
         url: z.string(),
         caption: z.string().optional(),
+        locationName: z.string().optional(),
       })
       .parse(attrs)
 
@@ -150,6 +151,7 @@ const ReadonlyPhotoItem = (props: {
         </div>
         <div className=''>
           {caption ? <p className='text-md text-gray-600 mb-1 whitespace-pre-wrap'>{caption}</p> : null}
+          {locationName ? <p className='text-md text-gray-600 mb-1 whitespace-pre-wrap'>{locationName}</p> : null}
           {descriptionOfPeople ? <p className='text-md text-gray-600 mb-1'>avec {descriptionOfPeople}</p> : null}
           {unrecognizedFacesInPhoto ? (
             <p className='text-md text-gray-600 mb-1'>
