@@ -186,41 +186,47 @@ export const NewPhotoPage = withBrowserBundle(
                   {faces.length ? (
                     <div className='py-3'>
                       <ul className='flex flex-wrap gap-2 pt-3'>
-                        {faces.map((face) => (
-                          <li key={`photoface${face.faceId}`} className='text-gray-300 mr-2 mb-2'>
-                            <div
-                              onClick={() => setSelectedFaceForMenu(face)}
-                              className='flex flex-col items-center cursor-pointer relative'>
-                              {face.stage === 'awaiting-name' ? (
-                                <>
-                                  <PhotoBadge faceId={face.faceId} photoId={photoId} className={'cursor-pointer'} />
-                                  <div className='absolute top-11 right-0 h-4 w-4 rounded-full bg-blue-600 -ring-2 ring-1  ring-white'>
-                                    <div className='text-white text-xs text-center'>?</div>
-                                  </div>
-                                </>
-                              ) : face.stage === 'done' ? (
-                                <>
-                                  <PhotoBadge
-                                    faceId={face.faceId}
-                                    photoId={photoId}
-                                    className={``}
-                                    altText={face.stage === 'done' ? face.name : ''}
-                                  />
-                                  <div className='mt-1 max-w-[80px] truncate'>{face.name}</div>
-                                </>
-                              ) : areIgnoredFacesVisible ? (
-                                <>
-                                  <PhotoBadge faceId={face.faceId} photoId={photoId} className={`grayscale cursor-pointer`} />
-                                  <div className='absolute top-11 right-0 h-4 w-4 rounded-full bg-red-600 -ring-2 ring-1 ring-white'>
-                                    <div className='text-white text-center'>
-                                      <XMarkIcon className='h-[3.5] w-[3.5]' />
+                        {faces.map((face) => {
+                          if (face.stage === 'ignored' && !areIgnoredFacesVisible) {
+                            return null
+                          }
+
+                          return (
+                            <li key={`photoface${face.faceId}`} className='text-gray-300 mr-2 mb-2'>
+                              <div
+                                onClick={() => setSelectedFaceForMenu(face)}
+                                className='flex flex-col items-center cursor-pointer relative'>
+                                {face.stage === 'awaiting-name' ? (
+                                  <>
+                                    <PhotoBadge faceId={face.faceId} photoId={photoId} className={'cursor-pointer'} />
+                                    <div className='absolute top-11 right-0 h-4 w-4 rounded-full bg-blue-600 -ring-2 ring-1  ring-white'>
+                                      <div className='text-white text-xs text-center'>?</div>
                                     </div>
-                                  </div>
-                                </>
-                              ) : null}
-                            </div>
-                          </li>
-                        ))}
+                                  </>
+                                ) : face.stage === 'done' ? (
+                                  <>
+                                    <PhotoBadge
+                                      faceId={face.faceId}
+                                      photoId={photoId}
+                                      className={``}
+                                      altText={face.stage === 'done' ? face.name : ''}
+                                    />
+                                    <div className='mt-1 max-w-[80px] truncate'>{face.name}</div>
+                                  </>
+                                ) : (
+                                  <>
+                                    <PhotoBadge faceId={face.faceId} photoId={photoId} className={`grayscale cursor-pointer`} />
+                                    <div className='absolute top-11 right-0 h-4 w-4 rounded-full bg-red-600 -ring-2 ring-1 ring-white'>
+                                      <div className='text-white text-center'>
+                                        <XMarkIcon className='h-[3.5] w-[3.5]' />
+                                      </div>
+                                    </div>
+                                  </>
+                                )}
+                              </div>
+                            </li>
+                          )
+                        })}
                       </ul>
                       {pendingFaces.length ? (
                         <div>
