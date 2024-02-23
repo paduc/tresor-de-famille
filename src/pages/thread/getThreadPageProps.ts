@@ -7,6 +7,7 @@ import { PhotoId } from '../../domain/PhotoId'
 import { ThreadId } from '../../domain/ThreadId'
 import { getFacesInPhoto } from '../_getFacesInPhoto'
 import { getPersonByIdOrThrow } from '../_getPersonById'
+import { getPersonForUser } from '../_getPersonForUser'
 import { getPhotoDatetime } from '../_getPhotoDatetime'
 import { getPhotoLocation } from '../_getPhotoLocation'
 import { getThreadAuthor } from '../_getThreadAuthor'
@@ -39,6 +40,7 @@ export const getThreadPageProps = async ({
       contentAsJSON: DEFAULT_CONTENT,
       lastUpdated: undefined,
       title: '',
+      authorName: (await getPersonForUser({ userId }))?.name,
       familyId: userId as string as FamilyId,
       sharedWithFamilyIds: [],
       isAuthor: true,
@@ -74,6 +76,7 @@ export const getThreadPageProps = async ({
       familyId,
       sharedWithFamilyIds,
       isAuthor,
+      authorName: threadAuthorId && (await getPersonForUser({ userId: threadAuthorId }))?.name,
       isNewThread: false,
       comments,
     }
@@ -148,6 +151,7 @@ export const getThreadPageProps = async ({
     familyId,
     sharedWithFamilyIds,
     isAuthor,
+    authorName: threadAuthorId && (await getPersonForUser({ userId: threadAuthorId }))?.name,
     isNewThread: false,
     comments,
   }

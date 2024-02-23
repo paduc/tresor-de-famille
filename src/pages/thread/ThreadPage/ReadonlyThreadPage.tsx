@@ -19,6 +19,7 @@ export type ReadOnlyThreadPageProps = {
   lastUpdated: string | undefined // ISO string
   threadId: ThreadId
   isAuthor: boolean
+  authorName: string | undefined
   sharedWithFamilyIds?: FamilyId[]
   familyId: FamilyId
   comments: Comment[]
@@ -29,11 +30,20 @@ function hasMark(mark: TextMark['type'], marks: TextMark[] | undefined, classStr
 }
 
 export const ReadOnlyThreadPage = withBrowserBundle(
-  ({ contentAsJSON, title, familyId, threadId, isAuthor, sharedWithFamilyIds, comments }: ReadOnlyThreadPageProps) => {
+  ({
+    contentAsJSON,
+    title,
+    familyId,
+    threadId,
+    isAuthor,
+    sharedWithFamilyIds,
+    comments,
+    authorName,
+  }: ReadOnlyThreadPageProps) => {
     return (
       <AppLayout>
         <div className='w-full sm:ml-6 max-w-2xl pt-3 pb-40'>
-          <div className='w-full mb-3 px-2'>
+          <div className='w-full mb-3 px-4 sm:px-2'>
             <ThreadSharingButton isAuthor={isAuthor} familyId={familyId} sharedWithFamilyIds={sharedWithFamilyIds} />
           </div>
           {isAuthor ? (
@@ -44,7 +54,11 @@ export const ReadOnlyThreadPage = withBrowserBundle(
                 </a>
               </div>
             </div>
-          ) : null}
+          ) : (
+            <div className='mb-2 px-4 sm:px-2 text-gray-500 '>
+              par <span className='italic'>{authorName}</span>
+            </div>
+          )}
           <div className='divide-y divide-gray-200 overflow-hidden sm:rounded-lg bg-white shadow'>
             {title ? <div className='relative w-full max-w-2xl px-4 py-5 sm:px-6 text-gray-800 text-xl'>{title}</div> : null}
             <div className='sm:ml-6 max-w-2xl relative'>

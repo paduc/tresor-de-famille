@@ -44,6 +44,7 @@ export type ThreadPageProps = {
   lastUpdated: string | undefined // ISO string
   threadId: ThreadId
   isAuthor: boolean
+  authorName: string | undefined
   familyId: FamilyId
   sharedWithFamilyIds?: FamilyId[]
   isNewThread: boolean

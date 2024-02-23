@@ -1,7 +1,9 @@
 import { resetDatabase } from '../../dependencies/__test__/resetDatabase'
 import { addToHistory } from '../../dependencies/addToHistory'
+import { UserNamedThemself } from '../../events/onboarding/UserNamedThemself'
 import { getUuid } from '../../libs/getUuid'
 import { makeFamilyId } from '../../libs/makeFamilyId'
+import { makePersonId } from '../../libs/makePersonId'
 import { makePhotoId } from '../../libs/makePhotoId'
 import { makeThreadId } from '../../libs/makeThreadId'
 import { makeAppUserId } from '../../libs/makeUserId'
@@ -396,6 +398,36 @@ describe('getThreadPageProps', () => {
           },
         ],
       })
+    })
+  })
+
+  describe('when the thread has an author', () => {
+    const threadId = makeThreadId()
+    const userId = makeAppUserId()
+    const personId = makePersonId()
+    const familyId = makeFamilyId()
+    beforeAll(async () => {
+      await resetDatabase()
+
+      await addToHistory(UserNamedThemself({ userId, name: 'Toto', personId, familyId }))
+
+      await addToHistory(
+        UserUpdatedThreadAsRichText({
+          userId,
+          threadId,
+          familyId: makeFamilyId(),
+          contentAsJSON: {
+            type: 'doc',
+            content: [],
+          },
+        })
+      )
+    })
+
+    it('should add the authorName', async () => {
+      const res = await getThreadPageProps({ threadId, userId })
+
+      expect(res.authorName).toEqual('Toto')
     })
   })
 })

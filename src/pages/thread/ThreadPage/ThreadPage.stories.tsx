@@ -335,7 +335,8 @@ export const LectureSeuleAvecCommentaires = () => (
     <ReadOnlyThreadPage
       threadId={makeThreadId()}
       familyId={'b' as FamilyId}
-      isAuthor={true}
+      isAuthor={false}
+      authorName='Pierrot la lune'
       lastUpdated={t0 as Epoch}
       title='Ceci est le titre'
       contentAsJSON={{
