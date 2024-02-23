@@ -436,62 +436,66 @@ const PhotoItem = (props: PhotoItemProps) => {
   const debouncedSaveNewCaption = useCallback(debounce(saveNewCaption, 1500), [])
 
   return (
-    <div id={photoId} className='relative grid grid-cols-1 w-full px-4 sm:px-0 py-2'>
-      <div className='absolute top-4 left-6 sm:left-3'>
-        <button
-          onClick={() => {
-            if (confirm('Etes-vous sur de vouloir retirer cette photo de cette histoire ?')) {
-              deletePhoto(props.photoId)
-            }
-          }}
-          title='Retirer la photo'
-          className={`${secondaryCircularButtons} bg-opacity-60`}>
-          <TrashIcon className={`h-5 w-5`} />
-        </button>
-      </div>
+    <div id={photoId} className='relative inline-flex w-full px-4 sm:px-0 py-2'>
+      <div className='flex-none flex-col w-12 border-r border-gray-200 mr-3 -ml-2'>
+        <div className='w-10 h-10 my-10'>
+          <button
+            onClick={() => {
+              if (confirm('Etes-vous sur de vouloir retirer cette photo de cette histoire ?')) {
+                deletePhoto(props.photoId)
+              }
+            }}
+            title='Retirer la photo'
+            className={`${secondaryCircularButtons} bg-opacity-60`}>
+            <TrashIcon className={`h-5 w-5`} />
+          </button>
+        </div>
 
-      <div className='absolute top-16 left-6 sm:left-3'>
-        {/* I dont know why an <a></a> does not work... */}
-        <button
-          onClick={() => {
-            location.href = photoPageUrl
-          }}
-          title='Ouvrir la photo'
-          className={`${secondaryCircularButtons} bg-opacity-60`}>
-          <ArrowsPointingOutIcon className={`h-5 w-5`} />
-        </button>
-      </div>
-
-      <div className='mb-2'>
-        <div className='max-w-full max-h-[50vh]'>
-          <ProgressiveImg src={url} className='max-w-full max-h-[50vh] border border-gray-300 shadow-sm' />
+        <div className='w-10 h-10 my-10'>
+          {/* I dont know why an <a></a> does not work... */}
+          <button
+            onClick={() => {
+              location.href = photoPageUrl
+            }}
+            title='Ouvrir la photo'
+            className={`${secondaryCircularButtons} bg-opacity-60`}>
+            <ArrowsPointingOutIcon className={`h-5 w-5`} />
+          </button>
         </div>
       </div>
 
-      <div className='w-full pr-10'>
-        <div className='inline-flex my-3 mr-10 items-center w-full'>
-          <TextareaAutosize
-            minRows={1}
-            className='flex-1 text-md text-gray-600 whitespace-pre-wrap placeholder:italic border-none p-0 ring-0 focus:ring-0'
-            placeholder='Cliquer ici pour ajouter une légende à la photo'
-            defaultValue={latestCaption || ''}
-            onChange={(e) => {
-              debouncedSaveNewCaption(e.target.value)
-            }}
-          />
-          <div className='flex-0 h-6 w-8'>
-            <StatusIndicator status={status} />
+      <div>
+        <div className='mb-2'>
+          <div className='max-w-full max-h-[50vh]'>
+            <ProgressiveImg src={url} className='max-w-full max-h-[50vh] border border-gray-300 shadow-sm' />
           </div>
         </div>
 
-        {descriptionOfPeople ? <p className='text-md text-gray-600 mb-1'>avec {descriptionOfPeople}</p> : null}
-        {unrecognizedFacesInPhoto ? (
-          <p className='text-md text-gray-600 mb-1'>
-            <a href={photoPageUrl} className='font-medium text-indigo-600 hover:text-indigo-500'>
-              {unrecognizedFacesInPhoto === 1 ? `Annoter le visage` : `Annoter les ${unrecognizedFacesInPhoto} visages`}
-            </a>
-          </p>
-        ) : null}
+        <div className='w-full pr-10'>
+          <div className='inline-flex my-3 mr-10 items-center w-full'>
+            <TextareaAutosize
+              minRows={1}
+              className='flex-1 text-md text-gray-600 whitespace-pre-wrap placeholder:italic border-none p-0 ring-0 focus:ring-0'
+              placeholder='Cliquer ici pour ajouter une légende à la photo'
+              defaultValue={latestCaption || ''}
+              onChange={(e) => {
+                debouncedSaveNewCaption(e.target.value)
+              }}
+            />
+            <div className='flex-0 h-6 w-8'>
+              <StatusIndicator status={status} />
+            </div>
+          </div>
+
+          {descriptionOfPeople ? <p className='text-md text-gray-600 mb-1'>avec {descriptionOfPeople}</p> : null}
+          {unrecognizedFacesInPhoto ? (
+            <p className='text-md text-gray-600 mb-1'>
+              <a href={photoPageUrl} className='font-medium text-indigo-600 hover:text-indigo-500'>
+                {unrecognizedFacesInPhoto === 1 ? `Annoter le visage` : `Annoter les ${unrecognizedFacesInPhoto} visages`}
+              </a>
+            </p>
+          ) : null}
+        </div>
       </div>
     </div>
   )
