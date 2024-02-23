@@ -98,6 +98,11 @@ export const ThreadPage = withBrowserBundle(
           <div className='w-full mb-3 px-2'>
             <ThreadSharingButton isAuthor={isAuthor} familyId={familyId} sharedWithFamilyIds={sharedWithFamilyIds} />
           </div>
+          <div className='mb-2 ml-4 sm:ml-6'>
+            <a href={ThreadUrl(threadId, false)} className={`${linkStyles}`}>
+              J'ai terminé mes modifications
+            </a>
+          </div>
           <div className='divide-y divide-gray-200 overflow-hidden sm:rounded-lg bg-white shadow'>
             {title ? <Title title={title} threadId={threadId} /> : null}
             <div className=''>
