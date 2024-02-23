@@ -111,7 +111,7 @@ const ReadonlyPhotoItem = (props: {
 
     const personsInPhoto: string[] = z.array(z.string()).parse(JSON.parse(decodeURIComponent(attrs.personsInPhoto)))
 
-    const { threadId, photoId, unrecognizedFacesInPhoto, url, caption, locationName } = z
+    const { threadId, photoId, unrecognizedFacesInPhoto, url, caption, locationName, datetime } = z
       .object({
         threadId: zIsThreadId,
         photoId: zIsPhotoId,
@@ -119,6 +119,11 @@ const ReadonlyPhotoItem = (props: {
         url: z.string(),
         caption: z.string().optional(),
         locationName: z.string().optional(),
+        datetime: z.object({
+          userOption: z.union([z.literal('none'), z.literal('user'), z.literal('exif')]),
+          userProvided: z.string().optional(),
+          exifDatetime: z.string().optional(),
+        }),
       })
       .parse(attrs)
 
@@ -142,6 +147,17 @@ const ReadonlyPhotoItem = (props: {
       }
     }
 
+    let dateAsText: string | undefined
+    if (datetime) {
+      if (datetime.userOption === 'exif' && datetime.exifDatetime) {
+        dateAsText = `${locationName ? 'le' : 'Le'} ${new Intl.DateTimeFormat('fr', { dateStyle: 'long' }).format(
+          new Date(datetime.exifDatetime)
+        )}`
+      } else if (datetime.userOption === 'user' && datetime.userProvided) {
+        dateAsText = datetime.userProvided
+      }
+    }
+
     return (
       <div className='grid grid-cols-1 w-full px-4 sm:px-0 py-2' id={photoId}>
         <div className='mb-2'>
@@ -151,7 +167,17 @@ const ReadonlyPhotoItem = (props: {
         </div>
         <div className=''>
           {caption ? <p className='text-md text-gray-600 mb-1 whitespace-pre-wrap'>{caption}</p> : null}
-          {locationName ? <p className='text-md text-gray-600 mb-1 whitespace-pre-wrap'>{locationName}</p> : null}
+          {locationName || dateAsText ? (
+            <p className='text-md text-gray-600 mb-1 whitespace-pre-wrap inline-flex gap-1'>
+              {locationName && (
+                <span>
+                  {locationName}
+                  {dateAsText ? ',' : ''}
+                </span>
+              )}
+              {dateAsText && <span>{dateAsText}</span>}
+            </p>
+          ) : null}
           {descriptionOfPeople ? <p className='text-md text-gray-600 mb-1'>avec {descriptionOfPeople}</p> : null}
           {unrecognizedFacesInPhoto ? (
             <p className='text-md text-gray-600 mb-1'>

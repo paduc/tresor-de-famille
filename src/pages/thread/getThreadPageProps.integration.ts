@@ -6,6 +6,7 @@ import { makePhotoId } from '../../libs/makePhotoId'
 import { makeThreadId } from '../../libs/makeThreadId'
 import { makeAppUserId } from '../../libs/makeUserId'
 import { UserAddedCaptionToPhoto } from '../photo/UserAddedCaptionToPhoto'
+import { UserSetPhotoDate } from '../photo/UserSetPhotoDate'
 import { UserSetPhotoLocation } from '../photo/UserSetPhotoLocation'
 import { PhotoGPSReverseGeocodedUsingMapbox } from '../photoApi/PhotoGPSReverseGeocodedUsingMapbox'
 import { UserUploadedPhoto } from '../photoApi/UserUploadedPhoto'
@@ -323,6 +324,74 @@ describe('getThreadPageProps', () => {
             attrs: {
               photoId,
               locationName: 'Maison de grand-père',
+            },
+          },
+        ],
+      })
+    })
+  })
+
+  describe('when a photo has a datetime thanks to UserSetPhotoDate', () => {
+    const threadId = makeThreadId()
+    const photoId = makePhotoId()
+    const userId = makeAppUserId()
+    beforeAll(async () => {
+      await resetDatabase()
+
+      await addToHistory(
+        UserUploadedPhoto({
+          userId,
+          photoId,
+          location: {} as UserUploadedPhoto['payload']['location'],
+          exif: undefined,
+        })
+      )
+
+      await addToHistory(
+        UserUpdatedThreadAsRichText({
+          userId,
+          threadId,
+          familyId: makeFamilyId(),
+          contentAsJSON: {
+            type: 'doc',
+            content: [
+              {
+                type: 'photoNode',
+                attrs: {
+                  photoId,
+                  caption: '',
+                },
+              },
+            ],
+          },
+        })
+      )
+
+      await addToHistory(
+        UserSetPhotoDate({
+          photoId,
+          userId,
+          dateAsText: 'Le jour de mon anniversaire',
+          dateOption: 'user',
+        })
+      )
+    })
+
+    it('should add the locationName to the photo attributes', async () => {
+      const res = await getThreadPageProps({ threadId, userId })
+
+      expect(res.contentAsJSON).toMatchObject({
+        type: 'doc',
+        content: [
+          {
+            type: 'photoNode',
+            attrs: {
+              photoId,
+              datetime: {
+                userOption: 'user',
+                userProvided: 'Le jour de mon anniversaire',
+                exifDatetime: undefined,
+              },
             },
           },
         ],

@@ -7,6 +7,7 @@ import { PhotoId } from '../../domain/PhotoId'
 import { ThreadId } from '../../domain/ThreadId'
 import { getFacesInPhoto } from '../_getFacesInPhoto'
 import { getPersonByIdOrThrow } from '../_getPersonById'
+import { getPhotoDatetime } from '../_getPhotoDatetime'
 import { getPhotoLocation } from '../_getPhotoLocation'
 import { getThreadAuthor } from '../_getThreadAuthor'
 import { ThreadEvent, getThreadEvents } from '../_getThreadEvents'
@@ -119,7 +120,7 @@ export const getThreadPageProps = async ({
 
       if (!photoInfo) continue
 
-      const { caption, personsInPhoto, unrecognizedFacesInPhoto, locationName } = photoInfo
+      const { caption, personsInPhoto, unrecognizedFacesInPhoto, locationName, datetime } = photoInfo
 
       const newAttrs = {
         photoId,
@@ -129,6 +130,7 @@ export const getThreadPageProps = async ({
         unrecognizedFacesInPhoto,
         url: getPhotoUrlFromId(photoId),
         locationName,
+        datetime,
       }
 
       contentAsJSON.content.push({
@@ -164,6 +166,7 @@ async function getPhotoInfo({
   personsInPhoto: string[]
   unrecognizedFacesInPhoto: number
   locationName: string | undefined
+  datetime: Awaited<ReturnType<typeof getPhotoDatetime>>
 } | null> {
   const facesInPhoto = await getFacesInPhoto({ photoId, userId })
 
@@ -185,8 +188,23 @@ async function getPhotoInfo({
     personsInPhoto,
     unrecognizedFacesInPhoto: unconfirmedFaceIds.size,
     locationName: await getPhotoLocationName({ photoId }),
+    datetime: await getPhotoDatetime({ photoId }),
   }
 }
+
+// async function getPhotoDateAsText({ photoId }: { photoId: PhotoId }) {
+//   const photoDate = await getPhotoDatetime({ photoId })
+
+//   console.log({ photoDate })
+
+//   if (!photoDate) return
+
+//   if (photoDate.userOption === 'none') return
+//   if (photoDate.userOption === 'user') return { photoDate.userProvided
+//   if (photoDate.userOption === 'exif'){
+//     return photoDate.exifDatetime
+//   }
+// }
 
 async function getPhotoLocationName({ photoId }: { photoId: PhotoId }) {
   const photoLocation = await getPhotoLocation({ photoId })
