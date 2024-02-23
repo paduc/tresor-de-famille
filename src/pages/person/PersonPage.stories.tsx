@@ -80,6 +80,7 @@ export const AvecDesPhotos = () => (
       personId: makePersonId(),
       name: 'John Doe',
       familyId: familyABCId,
+      birthDate: '29 Avril 1986',
       profilePicUrl:
         'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=150&h=150&q=80',
     }}

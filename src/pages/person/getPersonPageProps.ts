@@ -43,7 +43,7 @@ export const getPersonPageProps = async ({
   const { photos, alternateProfilePics } = await getPersonPhotos({ personId, userId })
 
   return {
-    person: { personId, name, profilePicUrl },
+    person: { personId, name, profilePicUrl, birthDate: undefined },
     photos,
     alternateProfilePics,
     threadsTheyAppearIn: await getThreadsPersonAppearsIn({ userId, photosOfPerson: photos.map((p) => p.photoId) }),

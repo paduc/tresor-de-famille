@@ -25,6 +25,7 @@ export type PersonPageProps = {
     personId: PersonId
     name: string
     profilePicUrl: string | null
+    birthDate: string | undefined
   }
   photos: { photoId: PhotoId; url: string }[]
   alternateProfilePics: {
@@ -70,6 +71,9 @@ export const PersonPage = withBrowserBundle(
     const [isNameChangerOpen, openNameChanger] = React.useState<boolean>(false)
     const closeNameChanger = React.useCallback(() => openNameChanger(false), [])
 
+    const [isBirthdayChangerOpen, openBirthdayChanger] = React.useState<boolean>(false)
+    const closeBirthdayChanger = React.useCallback(() => openBirthdayChanger(false), [])
+
     return (
       <AppLayout>
         <div className='my-5 bg-white p-6'>
@@ -112,13 +116,14 @@ export const PersonPage = withBrowserBundle(
                     <PencilSquareIcon className='text-gray-500 hover:text-gray-700 h-6 w-6 ml-2' />
                   </button>
                 </h1>
-                {/* <p className='text-sm font-medium text-gray-500'>
-                Applied for{' '}
-                <a href='#' className='text-gray-900'>
-                  Front End Developer
-                </a>{' '}
-                on <time dateTime='2020-08-25'>August 25, 2020</time>
-              </p> */}
+                {person.birthDate ? (
+                  <p className='text-sm font-medium text-gray-500'>
+                    Naissance: <time dateTime={person.birthDate}>{person.birthDate}</time>{' '}
+                    <button className='align-middle mb-1' onClick={() => openBirthdayChanger(true)}>
+                      <PencilSquareIcon className='text-gray-500 hover:text-gray-700 h-4 w-4 ml-1' />
+                    </button>
+                  </p>
+                ) : null}
               </div>
             </div>
             <div className='mt-6 flex flex-col-reverse justify-stretch space-y-4 space-y-reverse sm:flex-row-reverse sm:justify-end sm:space-x-3 sm:space-y-0 sm:space-x-reverse md:mt-0 md:flex-row md:space-x-3'>
@@ -237,6 +242,12 @@ export const PersonPage = withBrowserBundle(
         />
 
         <NameChanger isOpen={isNameChangerOpen} close={closeNameChanger} personId={person.personId} name={person.name} />
+        <BirthdayChanger
+          isOpen={isBirthdayChangerOpen}
+          close={closeBirthdayChanger}
+          personId={person.personId}
+          birthday={person.birthDate}
+        />
       </AppLayout>
     )
   }
@@ -346,6 +357,62 @@ function NameChanger({ isOpen, close, name, personId }: NameChangerProps) {
             defaultValue={name}
             className='block w-full resize-none border-0 py-3 px-4 focus:ring-0 text-base'
             autoFocus
+            onKeyDown={(e) => {
+              switch (e.key) {
+                case 'Enter':
+                  onConfirm()
+                  break
+                case 'Escape':
+                  close()
+                  break
+              }
+            }}
+          />
+        </div>
+        <div className='flex items-start mt-5'>
+          <button type='submit' className={`${primaryButtonStyles} text-sm `}>
+            <CheckIcon className={`${buttonIconStyles}`} />
+            Valider
+          </button>
+          <a className={`${secondaryButtonStyles} text-sm ml-1`} onClick={() => close()}>
+            <XMarkIcon className={`${buttonIconStyles}`} />
+            Annuler
+          </a>
+        </div>
+      </form>
+    </TDFModal>
+  )
+}
+
+type BirthdayChangerProps = {
+  birthday: string | undefined
+  isOpen: boolean
+  close: () => void
+  personId: PersonId
+}
+function BirthdayChanger({ isOpen, close, birthday, personId }: BirthdayChangerProps) {
+  const formRef = React.useRef<HTMLFormElement>(null)
+  const [birthdayAsText, setBirthdayAsText] = useState(birthday || '')
+
+  const onConfirm = () => {
+    if (formRef.current !== null) {
+      formRef.current.submit()
+    }
+  }
+
+  return (
+    <TDFModal isOpen={isOpen} close={close} title='Changer la date de naissance'>
+      <form method='POST' ref={formRef} className='w-full'>
+        <input type='hidden' name='personId' value={personId} />
+        <input type='hidden' name='action' value='changeBirthday' />
+        <div className='w-full min-w-screen overflow-hidden shadow-sm border border-gray-200 focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500'>
+          <input
+            type='text'
+            name='birthdayAsText'
+            value={birthdayAsText}
+            className='block w-full resize-none border-0 py-3 px-4 focus:ring-0 text-base'
+            autoFocus
+            onChange={(e) => setBirthdayAsText(e.target.value)}
             onKeyDown={(e) => {
               switch (e.key) {
                 case 'Enter':
