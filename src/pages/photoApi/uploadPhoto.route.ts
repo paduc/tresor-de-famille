@@ -2,6 +2,7 @@ import multer from 'multer'
 import fs from 'node:fs'
 import path from 'node:path'
 import zod from 'zod'
+import { captureException } from '@sentry/node'
 import { addToHistory } from '../../dependencies/addToHistory'
 import { requireAuth } from '../../dependencies/authn'
 import { uploadPhoto } from '../../dependencies/photo-storage'
@@ -19,6 +20,7 @@ import { EXIF } from '../../libs/exif'
 import { getGPSDecCoordsFromExif } from '../../libs/getGPSDecCoordsFromExif'
 import { geocodeService } from '../../dependencies/mapbox'
 import { PhotoGPSReverseGeocodedUsingMapbox } from './PhotoGPSReverseGeocodedUsingMapbox'
+import { SENTRY_DSN } from '../../dependencies/env'
 
 const FILE_SIZE_LIMIT_MB = 20
 const upload = multer({
@@ -102,5 +104,8 @@ async function getPhotoLocationUsingMapbox({ exif, photoId }: { exif: EXIF | und
     }
   } catch (error) {
     console.error('getPhotoLocationUsingMapbox', error)
+    if (SENTRY_DSN) {
+      captureException(error)
+    }
   }
 }
