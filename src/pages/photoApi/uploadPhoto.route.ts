@@ -1,7 +1,7 @@
 import multer from 'multer'
 import fs from 'node:fs'
 import path from 'node:path'
-import zod from 'zod'
+import zod, { z } from 'zod'
 import { captureException } from '@sentry/node'
 import { addToHistory } from '../../dependencies/addToHistory'
 import { requireAuth } from '../../dependencies/authn'
@@ -91,7 +91,11 @@ async function getPhotoLocationUsingMapbox({ exif, photoId }: { exif: EXIF | und
 
   try {
     const { lat, long } = GPSCoords
-    const geocoding = await geocodeService.reverseGeocode({ query: [long, lat] }).send()
+
+    const latitude = z.number().min(-90).max(90).parse(lat)
+    const longitude = z.number().min(-180).max(180).parse(long)
+
+    const geocoding = await geocodeService.reverseGeocode({ query: [longitude, latitude] }).send()
 
     if (geocoding.body.features.length) {
       await addToHistory(
