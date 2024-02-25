@@ -107,7 +107,7 @@ async function getPhotoLocationUsingMapbox({ exif, photoId }: { exif: EXIF | und
       )
     }
   } catch (error) {
-    console.error('getPhotoLocationUsingMapbox', error)
+    console.error(`getPhotoLocationUsingMapbox ${photoId}`, error)
     if (SENTRY_DSN) {
       captureException(error)
     }
