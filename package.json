@@ -23,7 +23,7 @@
     "psql": "psql -h localhost -p 5434 -d tdf -U admin -W",
     "psql:test": "psql -h localhost -p 5435 -d tdf_test -U test -W",
     "psql:prod": "scalingo -a tresor-de-famille pgsql-console",
-    "devtools": "nodemon --config nodemon.devtools.json --inspect src/facts/diagram/diagramServer.ts"
+    "devtools":"tsx watch src/facts/diagram/diagramServer.ts"
   },
   "repository": {
     "type": "git",

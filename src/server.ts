@@ -49,7 +49,6 @@ app.use(
 app.use(pageRouter)
 app.use(actionsRouter)
 
-// app.use(factDiagramRouter)
 app.use(factViewerRouter)
 
 app.use(express.static(path.join(__dirname, 'assets')))

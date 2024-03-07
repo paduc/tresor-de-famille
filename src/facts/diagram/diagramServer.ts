@@ -1,6 +1,5 @@
 import express, { Express } from 'express'
 import { factDiagramRouter } from './factDiagram.route'
-require('express-async-errors')
 import path from 'node:path'
 
 const PORT: number = parseInt(process.env.PORT ?? '3001')
