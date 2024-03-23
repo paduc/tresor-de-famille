@@ -551,6 +551,17 @@ const SeparatorNodeItem = (props: { node: {} }) => {
           <PhotoIcon className={`h-5 w-5`} aria-hidden='true' />
           Insérer des photos
         </button>
+        <button
+          onClick={() => {
+            if (nodeRef.current) {
+              setMediaSelectorCursorDOMNode(nodeRef.current)
+            }
+          }}
+          title='Insérer des vidéos'
+          className={`pl-4  text-indigo-600 hover:text-indigo-500 cursor-pointer inline-flex items-center gap-x-2`}>
+          <PhotoIcon className={`h-5 w-5`} aria-hidden='true' />
+          Insérer des vidéos
+        </button>
       </div>
     </NodeViewWrapper>
   )

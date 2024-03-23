@@ -1,6 +1,13 @@
 import { CheckIcon, FireIcon, SparklesIcon, XCircleIcon } from '@heroicons/react/20/solid'
 import axios, { AxiosError } from 'axios'
 import React, { memo, useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import Uppy from '@uppy/core'
+import { Dashboard } from '@uppy/react'
+import Tus from '@uppy/tus'
+// @ts-ignore
+import UppyFrancais from '@uppy/locales/lib/fr_FR'
+import classNames from 'classnames'
+
 import { UUID } from '../../domain'
 import { PhotoId } from '../../domain/PhotoId'
 import { getUuid } from '../../libs/getUuid'
@@ -148,6 +155,7 @@ type MediaSelectorComponentProps = {
   close: () => unknown
   status: FetchStatus
   uniqueKey: UUID
+  selectVideo?: boolean
 }
 export function MediaSelectorComponent({
   isOpen,
@@ -156,54 +164,111 @@ export function MediaSelectorComponent({
   photos,
   status,
   uniqueKey,
+  selectVideo,
 }: MediaSelectorComponentProps) {
   const [newPhotos, setNewPhotos] = useState<{ photoId: PhotoId; url: string }[]>([])
+  const [currentTab, setCurrentTab] = useState(selectVideo ? 'media' : 'photos')
 
   return (
     <TDFModal
-      title={"Insérer des photos dans l'histoire"}
+      title={"Insérer dans l'histoire"}
       isOpen={isOpen}
       close={() => {
         close()
         setNewPhotos([])
       }}>
-      <UploadNewPhotos
-        onPhotosUploaded={(photoIds) => {
-          if (onMediaSelectedInComponent) onMediaSelectedInComponent(photoIds)
-          // setNewPhotos((state) => [{ photoId, url: ThumbnailURL(photoId) }, ...state])
-        }}
-      />
-      <div>Choisir une photo de mon trésor</div>
-      <div className='max-h-[50vh] overflow-y-scroll border-y border-gray-300 px-2'>
-        {status === 'error' ? (
-          <div className='inline-flex items-center'>
-            <XCircleIcon className='h-6 w-6 mr-1 text-red-600' />
-            Erreur de chargement
+      <div className='mb-3'>
+        <div className='sm:hidden'>
+          <label htmlFor='tabs' className='sr-only'>
+            Choissisez un onglet
+          </label>
+          {/* Use an "onChange" listener to redirect the user to the selected tab URL. */}
+          <select
+            id='tabs'
+            name='tabs'
+            className='block w-full rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'
+            defaultValue={'photos'}
+            onChange={(e) => {
+              setCurrentTab(e.target.value)
+            }}>
+            <option key={'photos'}>{'photos'}</option>
+            <option key={'media'}>{'vidéos'}</option>
+          </select>
+        </div>
+        <div className='hidden sm:block'>
+          <div className='border-b border-gray-200'>
+            <nav className='-mb-px flex' aria-label='Tabs'>
+              <button
+                value='photos'
+                onClick={(e) => setCurrentTab(e.currentTarget.value)}
+                className={classNames(
+                  currentTab === 'photos'
+                    ? 'border-indigo-500 text-indigo-600'
+                    : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700',
+                  'w-1/4 border-b-2 py-4 px-1 text-center text-sm font-medium'
+                )}
+                aria-current={currentTab === 'photos' ? 'page' : undefined}>
+                Photos
+              </button>
+              <button
+                value='media'
+                onClick={(e) => setCurrentTab(e.currentTarget.value)}
+                className={classNames(
+                  currentTab === 'media'
+                    ? 'border-indigo-500 text-indigo-600'
+                    : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700',
+                  'w-1/4 border-b-2 py-4 px-1 text-center text-sm font-medium'
+                )}
+                aria-current={currentTab === 'media' ? 'page' : undefined}>
+                Vidéos
+              </button>
+            </nav>
           </div>
-        ) : null}
-        {status === 'downloading' && !photos.length ? (
-          <div className='inline-flex items-center animate-pulse'>
-            <SparklesIcon className='h-6 w-6 mr-1 text-indigo-600' />
-            Chargement...
-          </div>
-        ) : null}
-        <ul role='list' className='grid grid-cols-2 gap-x-4 gap-y-4 sm:grid-cols-3 sm:gap-x-2 mt-3'>
-          {[...newPhotos, ...photos].map(({ photoId, url }) => (
-            <li key={`${uniqueKey}_${photoId}`} className='relative'>
-              <div className='group aspect-h-7 aspect-w-10 block w-full overflow-hidden rounded-lg bg-gray-100 cursor-pointer'>
-                <img src={url} alt='' className='pointer-events-none object-cover group-hover:opacity-75' />
-                <a
-                  onClick={() => {
-                    if (onMediaSelectedInComponent) onMediaSelectedInComponent([photoId])
-                  }}
-                  className='absolute inset-0 focus:outline-none'>
-                  <span className='sr-only'>Insérer cette photo</span>
-                </a>
-              </div>
-            </li>
-          ))}
-        </ul>
+        </div>
       </div>
+      {currentTab === 'photos' ? (
+        <div>
+          <UploadNewPhotos
+            onPhotosUploaded={(photoIds) => {
+              if (onMediaSelectedInComponent) onMediaSelectedInComponent(photoIds)
+              // setNewPhotos((state) => [{ photoId, url: ThumbnailURL(photoId) }, ...state])
+            }}
+          />
+          <div>Choisir une photo de mon trésor</div>
+          <div className='max-h-[50vh] overflow-y-scroll border-y border-gray-300 px-2'>
+            {status === 'error' ? (
+              <div className='inline-flex items-center'>
+                <XCircleIcon className='h-6 w-6 mr-1 text-red-600' />
+                Erreur de chargement
+              </div>
+            ) : null}
+            {status === 'downloading' && !photos.length ? (
+              <div className='inline-flex items-center animate-pulse'>
+                <SparklesIcon className='h-6 w-6 mr-1 text-indigo-600' />
+                Chargement...
+              </div>
+            ) : null}
+            <ul role='list' className='grid grid-cols-2 gap-x-4 gap-y-4 sm:grid-cols-3 sm:gap-x-2 mt-3'>
+              {[...newPhotos, ...photos].map(({ photoId, url }) => (
+                <li key={`${uniqueKey}_${photoId}`} className='relative'>
+                  <div className='group aspect-h-7 aspect-w-10 block w-full overflow-hidden rounded-lg bg-gray-100 cursor-pointer'>
+                    <img src={url} alt='' className='pointer-events-none object-cover group-hover:opacity-75' />
+                    <a
+                      onClick={() => {
+                        if (onMediaSelectedInComponent) onMediaSelectedInComponent([photoId])
+                      }}
+                      className='absolute inset-0 focus:outline-none'>
+                      <span className='sr-only'>Insérer cette photo</span>
+                    </a>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      ) : (
+        <UppyDashboard />
+      )}
     </TDFModal>
   )
 }
@@ -421,3 +486,44 @@ const SingleUpdate = memo(({ file, uploadId, mock, onPhotoUploaded }: SingleUplo
     </li>
   )
 })
+
+const UppyDashboard = () => {
+  const [uppy] = useState(() => {
+    return new Uppy({ locale: UppyFrancais }).use(Tus, {
+      endpoint: 'https://video.bunnycdn.com/tusupload',
+      async onBeforeRequest(req, file) {
+        if (!file.meta.VideoId) {
+          // onBeforeRequest is called multiple times, so we need to check if we already have the meta
+          const res = await axios.get(`/prepareMediaUpload?filename=${encodeURIComponent(file.name)}`, {
+            withCredentials: true,
+          })
+
+          const { AuthorizationSignature, AuthorizationExpire, LibraryId, VideoId } = res.data
+
+          file.meta = { ...file.meta, AuthorizationSignature, AuthorizationExpire, LibraryId, VideoId }
+        }
+
+        const { AuthorizationSignature, AuthorizationExpire, LibraryId, VideoId } = file.meta
+
+        req.setHeader('AuthorizationSignature', AuthorizationSignature as string)
+        req.setHeader('AuthorizationExpire', AuthorizationExpire as string)
+        req.setHeader('LibraryId', LibraryId as string)
+        req.setHeader('VideoId', VideoId as string)
+      },
+      onShouldRetry(err, retryAttempt, options, next) {
+        // @ts-ignore
+        if (err?.originalResponse?.getStatus() === 401) {
+          return true
+        }
+        return next(err)
+      },
+      async onAfterResponse(req, res) {
+        if (res.getStatus() === 401) {
+          console.log('Authorization expired, retrying')
+        }
+      },
+    })
+  })
+
+  return <Dashboard uppy={uppy} />
+}

@@ -17,7 +17,7 @@ export const MediaListPage = withBrowserBundle(({}: MediaListProps) => {
   return (
     <AppLayout>
       <div className='bg-white p-6'>
-        <h3 className='text-lg font-medium leading-6 text-gray-900'>vidéos et audios</h3>
+        <h3 className='text-lg font-medium leading-6 text-gray-900'>Vidéos et audios</h3>
       </div>
     </AppLayout>
   )
