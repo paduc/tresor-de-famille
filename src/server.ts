@@ -4,6 +4,8 @@ import session from 'express-session'
 import path from 'node:path'
 
 import { MulterError } from 'multer'
+
+import cors from 'cors'
 import { actionsRouter } from './actions'
 import { createHistoryTable, createIndexesOnHistoryTable } from './dependencies/addToHistory'
 import { SENTRY_DSN, SESSION_SECRET } from './dependencies/env'
@@ -23,6 +25,10 @@ if (SENTRY_DSN) {
   app.use(Sentry.Handlers.requestHandler())
 }
 
+if (process.env.NODE_ENV !== 'production') {
+  app.use(cors())
+}
+
 app.use(
   express.urlencoded({
     extended: false,
@@ -33,6 +39,11 @@ app.use(express.json({ limit: '10mb' }))
 
 app.get('/ping', (_: express.Request, response: express.Response): void => {
   response.send('pong')
+})
+
+app.post('/api/auth', (req: Request, res: Response) => {
+  console.log('auth', req.body)
+  res.send('ok')
 })
 
 app.use(
