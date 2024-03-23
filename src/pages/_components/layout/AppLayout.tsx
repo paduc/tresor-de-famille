@@ -31,6 +31,8 @@ import { PersonSearch } from './PersonSearch'
 import { LocationContext } from '../LocationContext'
 import { useLoggedInSession, useSession } from '../SessionContext'
 import { LoaderProvider } from './LoaderContext'
+import { VideoCameraIcon } from '@heroicons/react/20/solid'
+import { MediaListPageUrl } from '../../media/MediaListPageURL'
 
 // @ts-ignore
 function classNames(...classes) {
@@ -102,7 +104,7 @@ export function AppLayout({ children }: AppLayoutProps) {
       icon: PhotoIcon,
       condition: () => arePhotosEnabled,
     },
-    // { name: 'Videos', href: '/videos.html', icon: VideoCameraIcon },
+    { name: 'Videos & Audios', href: MediaListPageUrl, icon: VideoCameraIcon, condition: () => session.isAdmin },
     {
       name: 'Partage',
       href: '/share.html',
