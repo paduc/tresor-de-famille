@@ -29,6 +29,7 @@ import { ThreadSharedWithFamilies } from '../thread/ThreadPage/ThreadSharedWithF
 import { UserAddedCommentOnThread } from '../thread/UserAddedCommentOnThread'
 import { UserSetChatTitle } from '../thread/UserSetChatTitle'
 import { UserUpdatedThreadAsRichText } from '../thread/UserUpdatedThreadAsRichText'
+import { UserSetPersonBirthDate } from './UserSetPersonBirthDate'
 import { getPersonPageProps } from './getPersonPageProps'
 
 describe('getPersonPageProps', () => {
@@ -722,6 +723,34 @@ describe('getPersonPageProps', () => {
         commentCount: 0,
         lastUpdatedOn,
       })
+    })
+  })
+
+  describe('the person has a birthDate entered', () => {
+    const userId = 'userId' as AppUserId
+
+    const birthDate = '29 Avril 1986'
+    const targetPersonId = 'targetPersonId' as PersonId
+
+    beforeAll(async () => {
+      await resetDatabase()
+
+      await addToHistory(
+        UserNamedThemself({
+          userId,
+          name: 'Profile Person',
+          familyId: asFamilyId(userId),
+          personId: targetPersonId,
+        })
+      )
+
+      await addToHistory(UserSetPersonBirthDate({ personId: targetPersonId, userId, birthDate }))
+    })
+
+    it('should include this birthDate', async () => {
+      const res = await getPersonPageProps({ personId: targetPersonId, userId })
+
+      expect(res.person.birthDate).toEqual(birthDate)
     })
   })
 })
