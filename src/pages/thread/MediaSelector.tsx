@@ -508,6 +508,9 @@ const UppyDashboard = () => {
 
         const { AuthorizationSignature, AuthorizationExpire, LibraryId, VideoId } = file.meta
 
+        // Useful for upload-success event
+        // uppy.setMeta({ AuthorizationSignature, AuthorizationExpire, LibraryId, VideoId })
+
         req.setHeader('AuthorizationSignature', AuthorizationSignature as string)
         req.setHeader('AuthorizationExpire', AuthorizationExpire as string)
         req.setHeader('LibraryId', LibraryId as string)
@@ -528,9 +531,12 @@ const UppyDashboard = () => {
       },
     })
 
-    uppy.on('upload-success', (file, response) => {
-      console.log('Upload success', file?.meta, response.body)
-    })
+    uppy.setOptions({ restrictions: { allowedFileTypes: ['video/*', 'audio/*'] } })
+
+    // TODO: call the server to warn that the video is uploaded
+    // uppy.on('upload-success', (file, response) => {
+    //   console.log('Upload success', file?.meta, response.body)
+    // })
 
     return uppy
   })[0]
