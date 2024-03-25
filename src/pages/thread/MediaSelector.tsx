@@ -488,19 +488,22 @@ const SingleUpdate = memo(({ file, uploadId, mock, onPhotoUploaded }: SingleUplo
 })
 
 const UppyDashboard = () => {
-  const [uppy] = useState(() => {
-    return new Uppy({ locale: UppyFrancais }).use(Tus, {
+  const uppy = useState(() => {
+    const uppy = new Uppy({ locale: UppyFrancais }).use(Tus, {
       endpoint: 'https://video.bunnycdn.com/tusupload',
       async onBeforeRequest(req, file) {
+        // onBeforeRequest is called multiple times, so we need to check if we already have the meta
         if (!file.meta.VideoId) {
-          // onBeforeRequest is called multiple times, so we need to check if we already have the meta
-          const res = await axios.get(`/prepareMediaUpload?filename=${encodeURIComponent(file.name)}`, {
+          // To avoid double uploads of the same file
+          const sizeStampedFilename = `${file.size} - ${file.name}`
+
+          const res = await axios.get(`/prepareMediaUpload?filename=${encodeURIComponent(sizeStampedFilename)}`, {
             withCredentials: true,
           })
 
-          const { AuthorizationSignature, AuthorizationExpire, LibraryId, VideoId } = res.data
+          const { AuthorizationSignature, AuthorizationExpire, LibraryId, VideoId, collectionId } = res.data
 
-          file.meta = { ...file.meta, AuthorizationSignature, AuthorizationExpire, LibraryId, VideoId }
+          file.meta = { ...file.meta, AuthorizationSignature, AuthorizationExpire, LibraryId, VideoId, collectionId }
         }
 
         const { AuthorizationSignature, AuthorizationExpire, LibraryId, VideoId } = file.meta
@@ -518,12 +521,19 @@ const UppyDashboard = () => {
         return next(err)
       },
       async onAfterResponse(req, res) {
+        console.log('onAfterResponse', res.getStatus())
         if (res.getStatus() === 401) {
           console.log('Authorization expired, retrying')
         }
       },
     })
-  })
+
+    uppy.on('upload-success', (file, response) => {
+      console.log('Upload success', file?.meta, response.body)
+    })
+
+    return uppy
+  })[0]
 
   return <Dashboard uppy={uppy} />
 }
