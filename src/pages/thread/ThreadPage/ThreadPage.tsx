@@ -1,4 +1,4 @@
-import { formatRelative } from 'date-fns'
+import { formatRelative, set } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import debounce from 'lodash.debounce'
 import React, { createContext, useCallback, useContext, useEffect, useLayoutEffect, useRef, useState } from 'react'
@@ -29,7 +29,7 @@ import { PhotoId } from '../../../domain/PhotoId'
 import { ThreadId } from '../../../domain/ThreadId'
 import { PhotoPageUrl } from '../../photo/PhotoPageUrl'
 import { PhotoURL } from '../../photoApi/PhotoURL'
-import { GlobalMediaSelector, GlobalMediaSelectorContext, useGlobalMediaSelector } from '../MediaSelector'
+import { GlobalMediaSelector } from '../MediaSelector'
 import { ThreadUrl } from '../ThreadUrl'
 import { TipTapContentAsJSON, TipTapJSON, removeSeparatorNodes } from '../TipTapTypes'
 import { Comment, Comments } from './Comments'
@@ -156,14 +156,16 @@ const RichTextEditor = (props: RichTextEditorProps) => {
 
   const { status, lastUpdated } = useAutosaveEditor(editor, threadId, props.lastUpdated)
 
-  const [mediaSelectorDOMNode, setMediaSelectorDOMNode] = useState<HTMLElement | undefined>(undefined)
+  const [mediaSelector, setMediaSelector] = useState<{ node: HTMLElement; type: 'photos' | 'media' } | undefined>(undefined)
+  // const [mediaSelector?.node, setMediaSelectorDOMNode] = useState<HTMLElement | undefined>(undefined)
+  // const [mediaSelectorType, setMediaSelectorType] = useState<'photos' | 'media'>('photos')
 
   const handleAddPhotos = useCallback(
     (photoIds: PhotoId[]) => {
       // console.log('onMediaSelected global')
-      if (!editorRef.current || !mediaSelectorDOMNode) return
+      if (!editorRef.current || !mediaSelector?.node) return
       const editor = editorRef.current
-      let position = editorRef.current.view.posAtDOM(mediaSelectorDOMNode, 0)
+      let position = editorRef.current.view.posAtDOM(mediaSelector?.node, 0)
       const editorChain = editor.chain()
       for (const photoId of photoIds) {
         editorChain.insertContentAt(position++, {
@@ -183,7 +185,7 @@ const RichTextEditor = (props: RichTextEditorProps) => {
         editorChain.run()
       })
     },
-    [mediaSelectorDOMNode]
+    [mediaSelector?.node]
   )
 
   // Make sure the content always ends with a paragraph
@@ -245,9 +247,11 @@ const RichTextEditor = (props: RichTextEditorProps) => {
   return (
     <EditorCtx.Provider value={{ editorRef, threadId: props.threadId }}>
       <DeletePhotoCtx.Provider value={handleDeletePhoto}>
-        <GlobalMediaSelectorContext.Provider
-          value={(selectorDOMNode: HTMLElement | undefined) => {
-            setMediaSelectorDOMNode(selectorDOMNode)
+        <SelectedNodeForMediaContext.Provider
+          value={(selectorDOMNode: HTMLElement | undefined, type: 'photos' | 'media') => {
+            console.log('SelectedNodeForMediaContext', { type })
+
+            setMediaSelector(selectorDOMNode ? { node: selectorDOMNode, type } : undefined)
           }}>
           <div className='sm:ml-6 max-w-2xl relative'>
             <EditorContent editor={editor} />
@@ -290,13 +294,14 @@ const RichTextEditor = (props: RichTextEditorProps) => {
             </div>
           ) : null}
           <GlobalMediaSelector
-            isOpen={!!mediaSelectorDOMNode}
+            isOpen={!!mediaSelector?.node}
+            selectedType={mediaSelector?.type || 'photos'}
             close={() => {
-              setMediaSelectorDOMNode(undefined)
+              setMediaSelector(undefined)
             }}
             onMediaSelected={handleAddPhotos}
           />
-        </GlobalMediaSelectorContext.Provider>
+        </SelectedNodeForMediaContext.Provider>
       </DeletePhotoCtx.Provider>
     </EditorCtx.Provider>
   )
@@ -520,7 +525,7 @@ const useDeletePhoto = () => {
 
 const SeparatorNodeItem = (props: { node: {} }) => {
   const { editorRef } = useEditorCtx()
-  const { setMediaSelectorCursorDOMNode } = useGlobalMediaSelector()
+  const { setMediaSelectorCursorDOMNode } = useSelectedNodeForMediaContext()
   const nodeRef = useRef<HTMLElement>()
 
   const handleAddTextClick = () => {
@@ -543,7 +548,7 @@ const SeparatorNodeItem = (props: { node: {} }) => {
         <button
           onClick={() => {
             if (nodeRef.current) {
-              setMediaSelectorCursorDOMNode(nodeRef.current)
+              setMediaSelectorCursorDOMNode(nodeRef.current, 'photos')
             }
           }}
           title='Insérer des photos'
@@ -554,7 +559,7 @@ const SeparatorNodeItem = (props: { node: {} }) => {
         <button
           onClick={() => {
             if (nodeRef.current) {
-              setMediaSelectorCursorDOMNode(nodeRef.current)
+              setMediaSelectorCursorDOMNode(nodeRef.current, 'media')
             }
           }}
           title='Insérer des vidéos'
@@ -850,4 +855,18 @@ const useAutosaveEditor = (
   }, [editor, latestHTML])
 
   return { status, lastUpdated }
+}
+
+const SelectedNodeForMediaContext = React.createContext<
+  ((selectorDOMNode: HTMLElement | undefined, type: 'photos' | 'media') => unknown) | null
+>(null)
+
+function useSelectedNodeForMediaContext() {
+  const setMediaSelectorCursorDOMNode = useContext(SelectedNodeForMediaContext)
+
+  if (setMediaSelectorCursorDOMNode === null) {
+    throw new Error('useSelectedNodeForMediaContext used outside of a provider')
+  }
+
+  return { setMediaSelectorCursorDOMNode }
 }

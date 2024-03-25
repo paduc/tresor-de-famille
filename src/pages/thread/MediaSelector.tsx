@@ -16,88 +16,15 @@ import { TDFModal } from '../_components/TDFModal'
 import { MediaSelectorListURL } from '../photoApi/MediaSelectorListURL'
 import { ThumbnailURL } from '../photoApi/ThumbnailURL'
 
-type MediaSelectorProps = {
-  onMediaSelected?: (photoIds: PhotoId[]) => void
-  children: (open: (args?: any) => any) => JSX.Element
-}
 type FetchStatus = 'idle' | 'downloading' | 'error'
-export function MediaSelector({ onMediaSelected, children }: MediaSelectorProps) {
-  const [photos, setPhotos] = useState<PhotoId[]>([])
-  const [isOpen, setOpen] = useState(false)
-  const [status, setStatus] = useState<FetchStatus>('idle')
-  const uniqueKey = useMemo(() => getUuid(), [])
-
-  // Fetch photos here
-  useEffect(() => {
-    async function getPhotos() {
-      try {
-        setStatus('downloading')
-        const res = await axios.get<{ photos: PhotoId[] }>(MediaSelectorListURL(), {
-          headers: {
-            Accept: 'application/json',
-          },
-        })
-
-        if (res.status === 200) {
-          setPhotos(res.data.photos)
-          setStatus('idle')
-          return
-        }
-
-        setStatus('error')
-      } catch (error) {
-        setStatus('error')
-      }
-    }
-
-    getPhotos()
-  }, [isOpen])
-
-  return (
-    <>
-      {children(() => setOpen(true))}
-      <MediaSelectorComponent
-        uniqueKey={uniqueKey}
-        isOpen={isOpen}
-        close={() => {
-          setOpen(false)
-          // setTimeout(() => {
-          //   setPhotos([])
-          // }, 500)
-        }}
-        photos={photos.map((photoId) => ({ photoId, url: ThumbnailURL(photoId) }))}
-        status={status}
-        onMediaSelectedInComponent={(photoIds) => {
-          if (onMediaSelected) {
-            onMediaSelected(photoIds)
-          }
-          setOpen(false)
-        }}
-      />
-    </>
-  )
-}
-
-export const GlobalMediaSelectorContext = React.createContext<((selectorDOMNode: HTMLElement | undefined) => unknown) | null>(
-  null
-)
-
-export function useGlobalMediaSelector() {
-  const setMediaSelectorCursorDOMNode = useContext(GlobalMediaSelectorContext)
-
-  if (setMediaSelectorCursorDOMNode === null) {
-    throw new Error('useGlobalMediaSelector')
-  }
-
-  return { setMediaSelectorCursorDOMNode }
-}
-
 type GlobalMediaSelectorProps = {
   onMediaSelected?: (photoIds: PhotoId[]) => void
   isOpen: boolean
+  selectedType: 'photos' | 'media'
   close: () => void
 }
-export function GlobalMediaSelector({ onMediaSelected, isOpen, close }: GlobalMediaSelectorProps) {
+export function GlobalMediaSelector({ onMediaSelected, isOpen, close, selectedType }: GlobalMediaSelectorProps) {
+  console.log('GlobalMediaSelector', { selectedType })
   const [photos, setPhotos] = useState<PhotoId[]>([])
   const [status, setStatus] = useState<FetchStatus>('idle')
   const uniqueKey = useMemo(() => getUuid(), [])
@@ -105,6 +32,8 @@ export function GlobalMediaSelector({ onMediaSelected, isOpen, close }: GlobalMe
   // Fetch photos here
   useEffect(() => {
     async function getPhotos() {
+      if (selectedType === 'media') return
+
       try {
         setStatus('downloading')
         const res = await axios.get<{ photos: PhotoId[] }>(MediaSelectorListURL(), {
@@ -126,7 +55,7 @@ export function GlobalMediaSelector({ onMediaSelected, isOpen, close }: GlobalMe
     }
 
     getPhotos()
-  }, [isOpen])
+  }, [isOpen, selectedType])
 
   return (
     <MediaSelectorComponent
@@ -141,6 +70,7 @@ export function GlobalMediaSelector({ onMediaSelected, isOpen, close }: GlobalMe
         }
         close()
       }}
+      selectedType={selectedType}
     />
   )
 }
@@ -155,7 +85,7 @@ type MediaSelectorComponentProps = {
   close: () => unknown
   status: FetchStatus
   uniqueKey: UUID
-  selectVideo?: boolean
+  selectedType?: 'photos' | 'media'
 }
 export function MediaSelectorComponent({
   isOpen,
@@ -164,10 +94,11 @@ export function MediaSelectorComponent({
   photos,
   status,
   uniqueKey,
-  selectVideo,
+  selectedType,
 }: MediaSelectorComponentProps) {
+  console.log('MediaSelectorComponent', { selectedType })
   const [newPhotos, setNewPhotos] = useState<{ photoId: PhotoId; url: string }[]>([])
-  const [currentTab, setCurrentTab] = useState(selectVideo ? 'media' : 'photos')
+  const [currentType, setCurrentType] = useState<'photos' | 'media'>(selectedType || 'photos')
 
   return (
     <TDFModal
@@ -177,19 +108,18 @@ export function MediaSelectorComponent({
         close()
         setNewPhotos([])
       }}>
-      <div className='mb-3'>
+      {/* <div className='mb-3'>
         <div className='sm:hidden'>
           <label htmlFor='tabs' className='sr-only'>
             Choissisez un onglet
           </label>
-          {/* Use an "onChange" listener to redirect the user to the selected tab URL. */}
           <select
             id='tabs'
             name='tabs'
             className='block w-full rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'
-            defaultValue={'photos'}
+            value={selectedType}
             onChange={(e) => {
-              setCurrentTab(e.target.value)
+              setCurrentType(e.target.value as 'photos' | 'media')
             }}>
             <option key={'photos'}>{'photos'}</option>
             <option key={'media'}>{'vidéos'}</option>
@@ -200,33 +130,33 @@ export function MediaSelectorComponent({
             <nav className='-mb-px flex' aria-label='Tabs'>
               <button
                 value='photos'
-                onClick={(e) => setCurrentTab(e.currentTarget.value)}
+                onClick={(e) => setCurrentType(e.currentTarget.value as 'photos' | 'media')}
                 className={classNames(
-                  currentTab === 'photos'
+                  selectedType === 'photos'
                     ? 'border-indigo-500 text-indigo-600'
                     : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700',
                   'w-1/4 border-b-2 py-4 px-1 text-center text-sm font-medium'
                 )}
-                aria-current={currentTab === 'photos' ? 'page' : undefined}>
+                aria-current={selectedType === 'photos' ? 'page' : undefined}>
                 Photos
               </button>
               <button
                 value='media'
-                onClick={(e) => setCurrentTab(e.currentTarget.value)}
+                onClick={(e) => setCurrentType(e.currentTarget.value as 'photos' | 'media')}
                 className={classNames(
-                  currentTab === 'media'
+                  selectedType === 'media'
                     ? 'border-indigo-500 text-indigo-600'
                     : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700',
                   'w-1/4 border-b-2 py-4 px-1 text-center text-sm font-medium'
                 )}
-                aria-current={currentTab === 'media' ? 'page' : undefined}>
+                aria-current={selectedType === 'media' ? 'page' : undefined}>
                 Vidéos
               </button>
             </nav>
           </div>
         </div>
-      </div>
-      {currentTab === 'photos' ? (
+      </div> */}
+      {selectedType === 'photos' ? (
         <div>
           <UploadNewPhotos
             onPhotosUploaded={(photoIds) => {
