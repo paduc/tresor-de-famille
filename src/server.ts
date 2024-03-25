@@ -6,6 +6,7 @@ import path from 'node:path'
 import { MulterError } from 'multer'
 
 import cors from 'cors'
+import morgan from 'morgan'
 import { actionsRouter } from './actions'
 import { createHistoryTable, createIndexesOnHistoryTable } from './dependencies/addToHistory'
 import { SENTRY_DSN, SESSION_SECRET } from './dependencies/env'
@@ -24,6 +25,12 @@ if (SENTRY_DSN) {
   // The request handler must be the first middleware on the app
   app.use(Sentry.Handlers.requestHandler())
 }
+
+app.use(
+  morgan('tiny', {
+    skip: (req: Request, res) => req.path.startsWith('/style') || req.path.startsWith('/js') || req.path.startsWith('/favicon'),
+  })
+)
 
 if (process.env.NODE_ENV !== 'production') {
   app.use(cors())
