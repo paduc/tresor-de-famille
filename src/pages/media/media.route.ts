@@ -10,6 +10,10 @@ import { AppUserId } from '../../domain/AppUserId'
 import { addToHistory } from '../../dependencies/addToHistory'
 import { BunnyUserCollectionCreated } from './BunnyUserCollectionCreated'
 import { getSingleEvent } from '../../dependencies/getSingleEvent'
+import { BunnyMediaUploaded } from './BunnyMediaUploaded'
+import { zIsMediaId } from '../../domain/MediaId'
+import { MediaUploadCompleteURL } from './MediaUploadCompleteURL'
+import { makeMediaId } from '../../libs/makeMediaId'
 
 pageRouter.get(MediaListPageUrl, requireAuth(), async (request, response, next) => {
   try {
@@ -57,6 +61,23 @@ pageRouter.get('/prepareMediaUpload', requireAuth(), async (request, response) =
   } catch (error) {
     console.error((error as Error).message)
     response.status(500).send('Failed to create video')
+  }
+})
+
+// The client calls this endpoint after the media has been uploaded to BunnyCDN
+pageRouter.post(MediaUploadCompleteURL, requireAuth(), async (request, response) => {
+  try {
+    const user = request.session.user!
+    const { LibraryId, VideoId } = z.object({ LibraryId: z.string(), VideoId: z.string() }).parse(request.body)
+
+    await addToHistory(
+      BunnyMediaUploaded({ mediaId: makeMediaId(), userId: user.id, bunnyLibraryId: LibraryId, bunnyVideoId: VideoId })
+    )
+
+    response.send({ status: 'ok' })
+  } catch (error) {
+    console.error((error as Error).message)
+    response.status(500).send('Failed to complete media upload')
   }
 })
 

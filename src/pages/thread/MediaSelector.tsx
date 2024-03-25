@@ -15,6 +15,7 @@ import { primaryButtonStyles, smallButtonStyles } from '../_components/Button'
 import { TDFModal } from '../_components/TDFModal'
 import { MediaSelectorListURL } from '../photoApi/MediaSelectorListURL'
 import { ThumbnailURL } from '../photoApi/ThumbnailURL'
+import { MediaUploadCompleteURL } from '../media/MediaUploadCompleteURL'
 
 type FetchStatus = 'idle' | 'downloading' | 'error'
 type GlobalMediaSelectorProps = {
@@ -439,7 +440,7 @@ const UppyDashboard = () => {
         const { AuthorizationSignature, AuthorizationExpire, LibraryId, VideoId } = file.meta
 
         // Useful for upload-success event
-        // uppy.setMeta({ AuthorizationSignature, AuthorizationExpire, LibraryId, VideoId })
+        uppy.setMeta({ LibraryId, VideoId })
 
         req.setHeader('AuthorizationSignature', AuthorizationSignature as string)
         req.setHeader('AuthorizationExpire', AuthorizationExpire as string)
@@ -464,9 +465,17 @@ const UppyDashboard = () => {
     uppy.setOptions({ restrictions: { allowedFileTypes: ['video/*', 'audio/*'] } })
 
     // TODO: call the server to warn that the video is uploaded
-    // uppy.on('upload-success', (file, response) => {
-    //   console.log('Upload success', file?.meta, response.body)
-    // })
+    uppy.on('upload-success', async (file, response) => {
+      console.log('Upload success', file?.meta)
+      const { LibraryId, VideoId } = file!.meta
+      await axios.post(
+        MediaUploadCompleteURL,
+        { VideoId, LibraryId },
+        {
+          withCredentials: true,
+        }
+      )
+    })
 
     return uppy
   })[0]
