@@ -425,10 +425,7 @@ const UppyDashboard = () => {
       async onBeforeRequest(req, file) {
         // onBeforeRequest is called multiple times, so we need to check if we already have the meta
         if (!file.meta.VideoId) {
-          // To avoid double uploads of the same file
-          const sizeStampedFilename = `${file.size} - ${file.name}`
-
-          const res = await axios.get(`/prepareMediaUpload?filename=${encodeURIComponent(sizeStampedFilename)}`, {
+          const res = await axios.get(`/prepareMediaUpload?filename=${encodeURIComponent(file.name || file.size)}`, {
             withCredentials: true,
           })
 
@@ -447,26 +444,13 @@ const UppyDashboard = () => {
         req.setHeader('LibraryId', LibraryId as string)
         req.setHeader('VideoId', VideoId as string)
       },
-      onShouldRetry(err, retryAttempt, options, next) {
-        // @ts-ignore
-        if (err?.originalResponse?.getStatus() === 401) {
-          return true
-        }
-        return next(err)
-      },
-      async onAfterResponse(req, res) {
-        console.log('onAfterResponse', res.getStatus())
-        if (res.getStatus() === 401) {
-          console.log('Authorization expired, retrying')
-        }
-      },
     })
 
     uppy.setOptions({ restrictions: { allowedFileTypes: ['video/*', 'audio/*'] } })
 
     // TODO: call the server to warn that the video is uploaded
     uppy.on('upload-success', async (file, response) => {
-      console.log('Upload success', file?.meta)
+      // console.log('Upload success', file?.meta)
       const { LibraryId, VideoId } = file!.meta
       await axios.post(
         MediaUploadCompleteURL,

@@ -92,7 +92,6 @@ pageRouter.post('/bunnyMediaHook', async (request, response, next) => {
 
     return response.status(200).send('ok')
   } catch (error) {
-    console.error((error as Error).errors)
     next(error)
   }
 })
