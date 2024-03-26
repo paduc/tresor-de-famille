@@ -2,7 +2,7 @@ import { getEventList } from '../../dependencies/getEventList'
 import { ThreadId } from '../../domain/ThreadId'
 import { getPersonForUser } from '../_getPersonForUser'
 import { getProfilePicUrlForUser } from '../_getProfilePicUrlForUser'
-import { Comment } from '../thread/ThreadPage/Comments'
+import { Comment } from '../thread/ThreadPage/_components/Comments'
 import { UserAddedCommentOnThread } from '../thread/UserAddedCommentOnThread'
 
 export async function getThreadComments({ threadId }: { threadId: ThreadId }): Promise<Comment[]> {

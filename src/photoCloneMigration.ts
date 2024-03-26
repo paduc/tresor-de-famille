@@ -13,7 +13,7 @@ import { UserDeletedPhoto } from './pages/photoApi/UserDeletedPhoto'
 import { UserUploadedPhoto } from './pages/photoApi/UserUploadedPhoto'
 import { UserUploadedPhotoToFamily } from './pages/photoApi/UserUploadedPhotoToFamily'
 import { PhotoAutoSharedWithThread } from './pages/thread/PhotoAutoSharedWithThread'
-import { PhotoClonedForSharing } from './pages/thread/ThreadPage/PhotoClonedForSharing'
+import { PhotoClonedForSharing } from './pages/thread/ThreadPage/events/PhotoClonedForSharing'
 import { UserInsertedPhotoInRichTextThread } from './pages/thread/UserInsertedPhotoInRichTextThread'
 import { UserUploadedPhotoToChat } from './pages/thread/uploadPhotoToChat/UserUploadedPhotoToChat'
 

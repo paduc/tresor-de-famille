@@ -9,7 +9,7 @@ import { makeThreadId } from './libs/makeThreadId'
 import { makeAppUserId } from './libs/makeUserId'
 import { PhotoLocation, UserUploadedPhoto } from './pages/photoApi/UserUploadedPhoto'
 import { PhotoAutoSharedWithThread } from './pages/thread/PhotoAutoSharedWithThread'
-import { PhotoClonedForSharing } from './pages/thread/ThreadPage/PhotoClonedForSharing'
+import { PhotoClonedForSharing } from './pages/thread/ThreadPage/events/PhotoClonedForSharing'
 import { photoCloneMigration } from './photoCloneMigration'
 
 describe('photoCloneMigration', () => {

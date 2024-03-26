@@ -1,42 +1,30 @@
-import { formatRelative, set } from 'date-fns'
+import { formatRelative } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import debounce from 'lodash.debounce'
-import React, { createContext, useCallback, useContext, useEffect, useLayoutEffect, useRef, useState } from 'react'
-import TextareaAutosize from 'react-textarea-autosize'
-import { UUID } from '../../../domain'
+import React, { useCallback, useEffect, useLayoutEffect, useState } from 'react'
 import { withBrowserBundle } from '../../../libs/ssr/withBrowserBundle'
-import { linkStyles, secondaryCircularButtons } from '../../_components/Button'
-import { ProgressiveImg } from '../../_components/ProgressiveImg'
+import { linkStyles } from '../../_components/Button'
 import { AppLayout } from '../../_components/layout/AppLayout'
 
-import { Bars3BottomLeftIcon, PhotoIcon } from '@heroicons/react/20/solid'
-import { ArrowsPointingOutIcon, TrashIcon } from '@heroicons/react/24/outline'
-import { Node } from '@tiptap/core'
-import {
-  Attributes,
-  Content,
-  Editor,
-  EditorContent,
-  NodeViewWrapper,
-  ReactNodeViewRenderer,
-  findChildren,
-  mergeAttributes,
-  useEditor,
-} from '@tiptap/react'
+import { Content, Editor, EditorContent, findChildren, useEditor } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import { FamilyId } from '../../../domain/FamilyId'
 import { PhotoId } from '../../../domain/PhotoId'
 import { ThreadId } from '../../../domain/ThreadId'
-import { PhotoPageUrl } from '../../photo/PhotoPageUrl'
+import { ClientOnly } from '../../_components/ClientOnly'
 import { PhotoURL } from '../../photoApi/PhotoURL'
 import { GlobalMediaSelector } from '../MediaSelector'
 import { ThreadUrl } from '../ThreadUrl'
-import { TipTapContentAsJSON, TipTapJSON, removeSeparatorNodes } from '../TipTapTypes'
-import { Comment, Comments } from './Comments'
-import { ThreadSharingButton } from './ThreadSharingButton'
-import { ClientOnly } from '../../_components/ClientOnly'
-
-const isBrowserContext = typeof window !== 'undefined'
+import { TipTapContentAsJSON } from '../TipTapTypes'
+import { Comment, Comments } from './_components/Comments'
+import { StatusIndicator } from './_components/StatusIndicator'
+import { ThreadSharingButton } from './_components/ThreadSharingButton'
+import { AutosaveStatus, useAutosaveEditor } from './hooks/useAutosaveEditor'
+import { RemovePhotoCtx } from './hooks/useRemovePhoto'
+import { PhotoNode } from './nodes/PhotoNode'
+import { SeparatorNode } from './nodes/SeparatorNode'
+import { addSeparatorBetweenNodes, separatePhotoNodesInJSONContent } from './utils/separatePhotoNodesInJSONContent'
+import { SelectDOMNodeForInsertionCtx } from './hooks/useSelectDOMNodeForInsertion'
 
 export type ThreadPageProps = {
   title?: string
@@ -61,25 +49,7 @@ export const ThreadPage = withBrowserBundle(
     isAuthor,
     comments,
   }: ThreadPageProps) => {
-    // let contentAsJSONBeforePreparation = contentAsJSONFromServer
-
     const lastUpdated = lastUpdatedAsString ? new Date(lastUpdatedAsString) : undefined
-
-    // if (isBrowserContext && localStorage.getItem(threadId)) {
-    //   try {
-    //     const { localDatetime, contentAsJSON: contentAsJSONFromLocalStorage } = JSON.parse(localStorage.getItem(threadId)!)
-    //     // console.log({ lastUpdated, localDatetime })
-
-    //     // maybe validate localDatetime with z.string().datetime()
-
-    //     if (localDatetime && (!lastUpdated || new Date(localDatetime) > lastUpdated)) {
-    //       // console.log('Using version in localStorage')
-    //       contentAsJSONBeforePreparation = contentAsJSONFromLocalStorage
-    //     }
-    //   } catch (error) {
-    //     console.error('Failed to parse contents of localStorage')
-    //   }
-    // }
 
     const contentAsJSON = separatePhotoNodesInJSONContent(contentAsJSONFromServer)
 
@@ -157,15 +127,13 @@ const RichTextEditor = (props: RichTextEditorProps) => {
   const { status, lastUpdated } = useAutosaveEditor(editor, threadId, props.lastUpdated)
 
   const [mediaSelector, setMediaSelector] = useState<{ node: HTMLElement; type: 'photos' | 'media' } | undefined>(undefined)
-  // const [mediaSelector?.node, setMediaSelectorDOMNode] = useState<HTMLElement | undefined>(undefined)
-  // const [mediaSelectorType, setMediaSelectorType] = useState<'photos' | 'media'>('photos')
 
   const handleAddPhotos = useCallback(
     (photoIds: PhotoId[]) => {
       // console.log('onMediaSelected global')
       if (!editorRef.current || !mediaSelector?.node) return
       const editor = editorRef.current
-      let position = editorRef.current.view.posAtDOM(mediaSelector?.node, 0)
+      let position = editor.view.posAtDOM(mediaSelector?.node, 0)
       const editorChain = editor.chain()
       for (const photoId of photoIds) {
         editorChain.insertContentAt(position++, {
@@ -242,20 +210,17 @@ const RichTextEditor = (props: RichTextEditorProps) => {
 
   if (!editor) return null
 
-  editorRef.current = editor
-
   return (
-    <EditorCtx.Provider value={{ editorRef, threadId: props.threadId }}>
-      <DeletePhotoCtx.Provider value={handleDeletePhoto}>
-        <SelectedNodeForMediaContext.Provider
-          value={(selectorDOMNode: HTMLElement | undefined, type: 'photos' | 'media') => {
-            console.log('SelectedNodeForMediaContext', { type })
+    <RemovePhotoCtx.Provider value={handleDeletePhoto}>
+      <SelectDOMNodeForInsertionCtx.Provider
+        value={(selectorDOMNode: HTMLElement | undefined, type: 'photos' | 'media') => {
+          console.log('SelectedNodeForMediaContext', { type })
 
-            setMediaSelector(selectorDOMNode ? { node: selectorDOMNode, type } : undefined)
-          }}>
-          <div className='sm:ml-6 max-w-2xl relative'>
-            <EditorContent editor={editor} />
-            {/* <FloatingMenu editor={editor} tippyOptions={{ duration: 100 }}>
+          setMediaSelector(selectorDOMNode ? { node: selectorDOMNode, type } : undefined)
+        }}>
+        <div className='sm:ml-6 max-w-2xl relative'>
+          <EditorContent editor={editor} />
+          {/* <FloatingMenu editor={editor} tippyOptions={{ duration: 100 }}>
             <MediaSelector
               onPhotoAdded={(photoId) => {
                 editor
@@ -284,321 +249,27 @@ const RichTextEditor = (props: RichTextEditorProps) => {
               )}
             </MediaSelector>
           </FloatingMenu> */}
-            <div className='absolute top-4 right-2'>
-              <StatusIndicator status={status} />
-            </div>
+          <div className='absolute top-4 right-2'>
+            <StatusIndicator status={status} />
           </div>
-          {!!lastUpdated ? (
-            <div className='my-2 pl-4 pt-2 sm:pl-6 italic text-gray-500 '>
-              Dernière mise à jour {formatRelative(lastUpdated, Date.now(), { locale: fr })}
-            </div>
-          ) : null}
-          <GlobalMediaSelector
-            isOpen={!!mediaSelector?.node}
-            selectedType={mediaSelector?.type || 'photos'}
-            close={() => {
-              setMediaSelector(undefined)
-            }}
-            onMediaSelected={handleAddPhotos}
-          />
-        </SelectedNodeForMediaContext.Provider>
-      </DeletePhotoCtx.Provider>
-    </EditorCtx.Provider>
-  )
-}
-
-const EditorCtx = createContext<{ editorRef: React.MutableRefObject<Editor | null>; threadId: ThreadId } | null>(null)
-
-const useEditorCtx = () => {
-  const editorRef = useContext(EditorCtx)
-  if (editorRef === null) {
-    throw new Error('This hook should only be used in a proper Provider')
-  }
-
-  return editorRef
-}
-
-const PhotoNodeItem = (props: {
-  node: {
-    attrs: {
-      [Attr in keyof PhotoItemProps]: PhotoItemProps[Attr] extends ThreadId
-        ? ThreadId
-        : PhotoItemProps[Attr] extends PhotoId
-        ? PhotoId
-        : PhotoItemProps[Attr] extends UUID
-        ? UUID
-        : PhotoItemProps[Attr] extends number
-        ? number
-        : string
-    }
-  }
-}) => {
-  try {
-    const parsedPersonsInPhoto: string[] = JSON.parse(decodeURIComponent(props.node.attrs.personsInPhoto))
-
-    if (!Array.isArray(parsedPersonsInPhoto) || parsedPersonsInPhoto.some((nom) => typeof nom !== 'string')) {
-      throw new Error('Illegal name list')
-    }
-
-    const remixedProps: PhotoItemProps = { ...props.node.attrs, personsInPhoto: parsedPersonsInPhoto }
-
-    const { threadId, photoId, url, caption: description, personsInPhoto, unrecognizedFacesInPhoto } = remixedProps
-
-    return (
-      <NodeViewWrapper className='tdf-photo'>
-        <PhotoItem
-          threadId={threadId}
-          personsInPhoto={personsInPhoto}
-          photoId={photoId}
-          unrecognizedFacesInPhoto={unrecognizedFacesInPhoto}
-          url={url}
-          caption={description}
-          key={photoId}
+        </div>
+        {!!lastUpdated ? (
+          <div className='my-2 pl-4 pt-2 sm:pl-6 italic text-gray-500 '>
+            Dernière mise à jour {formatRelative(lastUpdated, Date.now(), { locale: fr })}
+          </div>
+        ) : null}
+        <GlobalMediaSelector
+          isOpen={!!mediaSelector?.node}
+          selectedType={mediaSelector?.type || 'photos'}
+          close={() => {
+            setMediaSelector(undefined)
+          }}
+          onMediaSelected={handleAddPhotos}
         />
-      </NodeViewWrapper>
-    )
-  } catch (error) {
-    console.error(error)
-    return (
-      <NodeViewWrapper className='tdf-photo'>
-        <div>Error: illegal values in photo module</div>
-      </NodeViewWrapper>
-    )
-  }
-}
-
-const PhotoNode = Node.create({
-  name: 'photoNode',
-
-  group: 'block',
-
-  atom: true,
-
-  addAttributes(): (Attributes | {}) & { [Attr in keyof PhotoItemProps]: any } {
-    return {
-      threadId: {},
-      photoId: {},
-      url: {},
-      caption: {},
-      personsInPhoto: {},
-      unrecognizedFacesInPhoto: {},
-    }
-  },
-
-  parseHTML() {
-    return [
-      {
-        tag: 'tdf-photo',
-      },
-    ]
-  },
-
-  renderHTML({ HTMLAttributes }) {
-    return ['tdf-photo', mergeAttributes(HTMLAttributes)]
-  },
-
-  addNodeView() {
-    return ReactNodeViewRenderer(PhotoNodeItem)
-  },
-})
-
-export type PhotoItemProps = {
-  photoId: PhotoId
-  url: string
-  caption?: string
-  personsInPhoto: string[]
-  unrecognizedFacesInPhoto: number
-  threadId: ThreadId
-}
-const PhotoItem = (props: PhotoItemProps) => {
-  const deletePhoto = useDeletePhoto()
-  const { caption, photoId, url, personsInPhoto, unrecognizedFacesInPhoto, threadId } = props
-
-  const [latestCaption, setLatestCaption] = useState<string | undefined>(caption)
-  const [status, setStatus] = useState<AutosaveStatus>('idle')
-  const descriptionOfPeople = personsInPhoto.join(', ')
-
-  const photoPageUrl = `${PhotoPageUrl(props.photoId)}?threadId=${props.threadId}&edit=1`
-
-  const saveNewCaption = (newCaption: string) => {
-    if (latestCaption === newCaption) {
-      return
-    }
-
-    setStatus('saving')
-    fetch(ThreadUrl(threadId), {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'clientsideCaptionUpdate', caption: newCaption, photoId }),
-    }).then((res) => {
-      if (!res.ok) {
-        alert("La nouvelle légende n'a pas pu être sauvegardé")
-        setStatus('error')
-        return
-      }
-      setStatus('saved')
-      setLatestCaption(newCaption)
-      setTimeout(() => {
-        setStatus('idle')
-      }, 2000)
-    })
-  }
-
-  const debouncedSaveNewCaption = useCallback(debounce(saveNewCaption, 1500), [])
-
-  return (
-    <div id={photoId} className='relative inline-flex w-full px-4 sm:px-0 py-2'>
-      <div className='flex-none flex-col w-12 border-r border-gray-200 mr-3 -ml-2'>
-        <div className='w-10 h-10 my-10'>
-          <button
-            onClick={() => {
-              if (confirm('Etes-vous sur de vouloir retirer cette photo de cette histoire ?')) {
-                deletePhoto(props.photoId)
-              }
-            }}
-            title='Retirer la photo'
-            className={`${secondaryCircularButtons} bg-opacity-60`}>
-            <TrashIcon className={`h-5 w-5`} />
-          </button>
-        </div>
-
-        <div className='w-10 h-10 my-10'>
-          {/* I dont know why an <a></a> does not work... */}
-          <button
-            onClick={() => {
-              location.href = photoPageUrl
-            }}
-            title='Ouvrir la photo'
-            className={`${secondaryCircularButtons} bg-opacity-60`}>
-            <ArrowsPointingOutIcon className={`h-5 w-5`} />
-          </button>
-        </div>
-      </div>
-
-      <div>
-        <div className='mb-2'>
-          <div className='max-w-full max-h-[50vh]'>
-            <ProgressiveImg src={url} className='max-w-full max-h-[50vh] border border-gray-300 shadow-sm' />
-          </div>
-        </div>
-
-        <div className='w-full pr-10'>
-          <div className='inline-flex my-3 mr-10 items-center w-full'>
-            <TextareaAutosize
-              minRows={1}
-              className='flex-1 text-md text-gray-600 whitespace-pre-wrap placeholder:italic border-none p-0 ring-0 focus:ring-0'
-              placeholder='Cliquer ici pour ajouter une légende à la photo'
-              defaultValue={latestCaption || ''}
-              onChange={(e) => {
-                debouncedSaveNewCaption(e.target.value)
-              }}
-            />
-            <div className='flex-0 h-6 w-8'>
-              <StatusIndicator status={status} />
-            </div>
-          </div>
-
-          {descriptionOfPeople ? <p className='text-md text-gray-600 mb-1'>avec {descriptionOfPeople}</p> : null}
-          {unrecognizedFacesInPhoto ? (
-            <p className='text-md text-gray-600 mb-1'>
-              <a href={photoPageUrl} className='font-medium text-indigo-600 hover:text-indigo-500'>
-                {unrecognizedFacesInPhoto === 1 ? `Annoter le visage` : `Annoter les ${unrecognizedFacesInPhoto} visages`}
-              </a>
-            </p>
-          ) : null}
-        </div>
-      </div>
-    </div>
+      </SelectDOMNodeForInsertionCtx.Provider>
+    </RemovePhotoCtx.Provider>
   )
 }
-
-const DeletePhotoCtx = createContext<((photoId: PhotoId) => unknown) | null>(null)
-
-const useDeletePhoto = () => {
-  const deletePhoto = useContext(DeletePhotoCtx)
-  if (deletePhoto === null) {
-    throw new Error('This hook should only be used in a proper Provider')
-  }
-
-  return deletePhoto
-}
-
-const SeparatorNodeItem = (props: { node: {} }) => {
-  const { editorRef } = useEditorCtx()
-  const { setMediaSelectorCursorDOMNode } = useSelectedNodeForMediaContext()
-  const nodeRef = useRef<HTMLElement>()
-
-  const handleAddTextClick = () => {
-    if (editorRef.current && nodeRef.current) {
-      const position = editorRef.current.view.posAtDOM(nodeRef.current, 0)
-      editorRef.current.chain().insertContentAt(position, '<p></p>').run()
-    }
-  }
-
-  return (
-    <NodeViewWrapper className='tdf-separator' ref={nodeRef}>
-      <div className='sm:-ml-6 px-4 sm:px-2 py-3 flex justify-start gap-4 bg-gray-50 border-y border-gray-300 divide-x divide-gray-200'>
-        <button
-          onClick={handleAddTextClick}
-          title='Retirer la photo'
-          className={`ml-4 text-indigo-600 hover:text-indigo-500 cursor-pointer inline-flex items-center gap-x-2`}>
-          <Bars3BottomLeftIcon className={`h-4 w-4`} />
-          Insérer du texte
-        </button>
-        <button
-          onClick={() => {
-            if (nodeRef.current) {
-              setMediaSelectorCursorDOMNode(nodeRef.current, 'photos')
-            }
-          }}
-          title='Insérer des photos'
-          className={`pl-4  text-indigo-600 hover:text-indigo-500 cursor-pointer inline-flex items-center gap-x-2`}>
-          <PhotoIcon className={`h-5 w-5`} aria-hidden='true' />
-          Insérer des photos
-        </button>
-        <button
-          onClick={() => {
-            if (nodeRef.current) {
-              setMediaSelectorCursorDOMNode(nodeRef.current, 'media')
-            }
-          }}
-          title='Insérer des vidéos'
-          className={`pl-4  text-indigo-600 hover:text-indigo-500 cursor-pointer inline-flex items-center gap-x-2`}>
-          <PhotoIcon className={`h-5 w-5`} aria-hidden='true' />
-          Insérer des vidéos
-        </button>
-      </div>
-    </NodeViewWrapper>
-  )
-}
-
-const SeparatorNode = Node.create({
-  name: 'separatorNode',
-
-  group: 'block',
-
-  atom: true,
-
-  addAttributes(): Attributes | {} {
-    return {}
-  },
-
-  parseHTML() {
-    return [
-      {
-        tag: 'tdf-separator',
-      },
-    ]
-  },
-
-  renderHTML({ HTMLAttributes }) {
-    return ['tdf-separator', mergeAttributes(HTMLAttributes)]
-  },
-
-  addNodeView() {
-    return ReactNodeViewRenderer(SeparatorNodeItem)
-  },
-})
 
 const Title = ({ title, threadId }: { title: string | undefined; threadId: ThreadId }) => {
   const [latestTitle, setLatestTitle] = useState<string | undefined>(title)
@@ -646,227 +317,4 @@ const Title = ({ title, threadId }: { title: string | undefined; threadId: Threa
       />
     </div>
   )
-}
-
-function StatusIndicator({ status }: { status: AutosaveStatus }) {
-  return (
-    <>
-      {status === 'saving' ? (
-        <svg
-          className='animate-spin h-5 w-5 text-indigo-500'
-          xmlns='http://www.w3.org/2000/svg'
-          fill='none'
-          viewBox='0 0 24 24'>
-          <circle className='opacity-25' cx={12} cy={12} r={10} stroke='currentColor' strokeWidth={4} />
-          <path
-            className='opacity-75'
-            fill='currentColor'
-            d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z'
-          />
-        </svg>
-      ) : status === 'saved' ? (
-        <svg
-          xmlns='http://www.w3.org/2000/svg'
-          fill='none'
-          viewBox='0 0 24 24'
-          strokeWidth={1.5}
-          stroke='currentColor'
-          className='animate-bounce h-6 w-6 text-green-500'>
-          <path
-            strokeLinecap='round'
-            strokeLinejoin='round'
-            d='M6.633 10.5c.806 0 1.533-.446 2.031-1.08a9.041 9.041 0 012.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 00.322-1.672V3a.75.75 0 01.75-.75A2.25 2.25 0 0116.5 4.5c0 1.152-.26 2.243-.723 3.218-.266.558.107 1.282.725 1.282h3.126c1.026 0 1.945.694 2.054 1.715.045.422.068.85.068 1.285a11.95 11.95 0 01-2.649 7.521c-.388.482-.987.729-1.605.729H13.48c-.483 0-.964-.078-1.423-.23l-3.114-1.04a4.501 4.501 0 00-1.423-.23H5.904M14.25 9h2.25M5.904 18.75c.083.205.173.405.27.602.197.4-.078.898-.523.898h-.908c-.889 0-1.713-.518-1.972-1.368a12 12 0 01-.521-3.507c0-1.553.295-3.036.831-4.398C3.387 10.203 4.167 9.75 5 9.75h1.053c.472 0 .745.556.5.96a8.958 8.958 0 00-1.302 4.665c0 1.194.232 2.333.654 3.375z'
-          />
-        </svg>
-      ) : status === 'error' ? (
-        <svg
-          xmlns='http://www.w3.org/2000/svg'
-          fill='none'
-          viewBox='0 0 24 24'
-          strokeWidth={1.5}
-          stroke='currentColor'
-          className='w-6 h-6 text-red-500'
-          onClick={() => {
-            alert(
-              `L'histoire n'a pas pu être sauvegardée sur le serveur, sans doute à cause d'un problème de connexion.\n\nElle est toutefois sauvegardée sur ce navigateur.\n\nVous pourrez la sauvegarder plus tard en revenant sur cette page.`
-            )
-          }}>
-          <path
-            strokeLinecap='round'
-            strokeLinejoin='round'
-            d='M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z'
-          />
-        </svg>
-      ) : null}
-    </>
-  )
-}
-
-/**
- * Insert separators to facilitate edition of content
- * @param editor Editor instance
- */
-function addSeparatorBetweenNodes(editor: Editor) {
-  const topContent = editor.view.state.doc.content
-
-  // console.log('addSeparatorBetweenNodes', topContent)
-  let currentSize = 0
-  let childCount = topContent.childCount
-  for (let i = 0; i < childCount; i++) {
-    // console.log({
-    //   i,
-    //   childCount,
-    //   prevChild: i > 0 ? topContent.child(i - 1).type.name : null,
-    //   currChild: topContent.child(i).type.name,
-    // })
-    const previousNode = (i > 0 && topContent.child(i - 1)) || undefined
-    const node = topContent.child(i)
-
-    // Remove two successive seps
-    if (previousNode && previousNode.type.name === 'separatorNode' && node.type.name === 'separatorNode') {
-      const range = { from: currentSize, to: currentSize + node.nodeSize }
-      // console.log('Found two successive separator nodes', range)
-      editor.commands.deleteRange(range)
-      return
-    }
-
-    // Remove when [para-sep]-para
-    if (i < childCount - 1 && previousNode && previousNode.type.name === 'paragraph' && node.type.name === 'separatorNode') {
-      const nextNode = topContent.child(i + 1)
-      if (nextNode && nextNode.type.name === 'paragraph') {
-        // Remove the separator
-        const range = { from: currentSize, to: currentSize + node.nodeSize }
-        // console.log('Found separator node between two paragraphs', range)
-        editor.commands.deleteRange(range)
-        return
-      }
-    }
-
-    // Add separators between photo-para, or para-photo
-    if (
-      previousNode &&
-      previousNode.type.name !== 'separatorNode' &&
-      node.type.name !== 'separatorNode' &&
-      (previousNode.type !== node.type || node.type.name === 'photoNode')
-    ) {
-      // console.log('Inserting separator', { previousNode: previousNode?.type.name, node: node.type.name })
-      editor.chain().insertContentAt(currentSize, `<tdf-separator></tdf-separator>`).run()
-
-      return // stop and wait for next run by editor.on('update')
-    }
-
-    // console.log('Doing nothing', { previousNode: previousNode?.type.name, node: node.type.name })
-
-    currentSize += node.nodeSize
-  }
-}
-
-/**
- * Same as above but for content as json (only for first print)
- * @param contentAsJSON
- */
-function separatePhotoNodesInJSONContent(contentAsJSON: TipTapContentAsJSON): TipTapContentAsJSON {
-  const newContentAsJson: TipTapContentAsJSON = {
-    type: 'doc',
-    content: [],
-  }
-
-  let previousNode: TipTapJSON | null = null
-  for (const node of contentAsJSON.content) {
-    if (
-      previousNode &&
-      previousNode.type !== 'separatorNode' &&
-      node.type !== 'separatorNode' &&
-      (previousNode.type !== node.type || node.type === 'photoNode')
-    ) {
-      newContentAsJson.content.push({ type: 'separatorNode' })
-    }
-    newContentAsJson.content.push(node)
-    previousNode = node
-  }
-
-  return newContentAsJson
-}
-
-type AutosaveStatus = 'idle' | 'saving' | 'saved' | 'error'
-const useAutosaveEditor = (
-  editor: Editor | null,
-  threadId: ThreadId,
-  initialLastUpdated: Date | undefined
-): { status: AutosaveStatus; lastUpdated: Date | undefined } => {
-  // console.log('useAutosaveEditor', editor)
-  const [latestHTML, setLatestHTML] = useState<string | null>(null)
-  const [status, setStatus] = useState<AutosaveStatus>('idle')
-  const [lastUpdated, setLastUpdated] = useState<Date | undefined>(initialLastUpdated)
-
-  const save = (json: TipTapContentAsJSON) => {
-    const newJSON = removeSeparatorNodes(json)
-    setStatus('saving')
-    // setTimeout(() => {
-    //   setStatus('saved')
-    //   setLatestHTML(newJSON)
-    //   setLastUpdated(Date.now() as Epoch)
-    //   setTimeout(() => {
-    //     setStatus('idle')
-    //   }, 2000)
-    // }, 2000)
-    localStorage.setItem(threadId, JSON.stringify({ timestamp: Date.now(), contentAsJSON: newJSON }))
-    fetch(ThreadUrl(threadId), {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'clientsideUpdate', contentAsJSON: newJSON }),
-    }).then((res) => {
-      if (!res.ok) {
-        setStatus('error')
-        return
-      }
-      setStatus('saved')
-      setLastUpdated(new Date())
-      setTimeout(() => {
-        setStatus('idle')
-      }, 2000)
-    })
-  }
-
-  const debouncedSave = useCallback(debounce(save, 1500), [])
-
-  useEffect(() => {
-    // console.log('autosave useEffect 1')
-    if (!editor) return
-
-    const insideSave = () => {
-      const newHTML = editor.getHTML()
-      // console.log('editor on update', latestHTML, newHTML)
-      if (newHTML && latestHTML !== newHTML) {
-        setLatestHTML(newHTML)
-        debouncedSave(editor.getJSON() as TipTapContentAsJSON)
-      }
-    }
-
-    if (editor) {
-      // console.log('autosave adding editor onupdate')
-      editor.on('update', insideSave)
-    }
-
-    return () => {
-      // console.log('autosave removing editor onupdate')
-      editor?.off('update', insideSave)
-    }
-  }, [editor, latestHTML])
-
-  return { status, lastUpdated }
-}
-
-const SelectedNodeForMediaContext = React.createContext<
-  ((selectorDOMNode: HTMLElement | undefined, type: 'photos' | 'media') => unknown) | null
->(null)
-
-function useSelectedNodeForMediaContext() {
-  const setMediaSelectorCursorDOMNode = useContext(SelectedNodeForMediaContext)
-
-  if (setMediaSelectorCursorDOMNode === null) {
-    throw new Error('useSelectedNodeForMediaContext used outside of a provider')
-  }
-
-  return { setMediaSelectorCursorDOMNode }
 }

@@ -1,7 +1,7 @@
 import { getSingleEvent } from '../dependencies/getSingleEvent'
 import { FamilyId } from '../domain/FamilyId'
 import { ThreadId } from '../domain/ThreadId'
-import { ThreadSharedWithFamilies } from './thread/ThreadPage/ThreadSharedWithFamilies'
+import { ThreadSharedWithFamilies } from './thread/ThreadPage/events/ThreadSharedWithFamilies'
 
 /**
  * Return all families with which a thread is currently shared

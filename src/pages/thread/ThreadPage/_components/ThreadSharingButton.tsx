@@ -3,16 +3,16 @@ import { LockClosedIcon, UsersIcon } from '@heroicons/react/20/solid'
 import { CheckCircleIcon, DocumentDuplicateIcon, PlusIcon } from '@heroicons/react/24/outline'
 import classNames from 'classnames'
 import React, { useEffect, useMemo, useState } from 'react'
-import { FamilyId } from '../../../domain/FamilyId'
+import { FamilyId } from '../../../../domain/FamilyId'
 import {
   buttonIconStyles,
   linkStyles,
   primaryButtonStyles,
   secondaryButtonStyles,
   smallButtonIconStyles,
-} from '../../_components/Button'
-import { Session, useLoggedInSession } from '../../_components/SessionContext'
-import { TDFModal } from '../../_components/TDFModal'
+} from '../../../_components/Button'
+import { Session, useLoggedInSession } from '../../../_components/SessionContext'
+import { TDFModal } from '../../../_components/TDFModal'
 
 type ThreadSharingButtonProps = {
   familyId: FamilyId

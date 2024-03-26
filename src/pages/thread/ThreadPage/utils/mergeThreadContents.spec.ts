@@ -1,4 +1,4 @@
-import { TipTapContentAsJSON } from '../TipTapTypes'
+import { TipTapContentAsJSON } from '../../TipTapTypes'
 import { mergeThreadContents } from './mergeThreadContents'
 
 describe('mergeThreadContents([a,b])', () => {

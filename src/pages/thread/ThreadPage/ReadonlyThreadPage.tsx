@@ -10,8 +10,8 @@ import { secondaryButtonStyles } from '../../_components/Button'
 import { AppLayout } from '../../_components/layout/AppLayout'
 import { ThreadUrl } from '../ThreadUrl'
 import { TextMark, TipTapContentAsJSON } from '../TipTapTypes'
-import { Comment, Comments } from './Comments'
-import { ThreadSharingButton } from './ThreadSharingButton'
+import { Comment, Comments } from './_components/Comments'
+import { ThreadSharingButton } from './_components/ThreadSharingButton'
 
 export type ReadOnlyThreadPageProps = {
   title?: string

@@ -5,7 +5,7 @@ import { getSingleEvent } from './dependencies/getSingleEvent'
 import { MigrationFailure } from './events/migrations/MigrationFailure'
 import { MigrationStart } from './events/migrations/MigrationStart'
 import { MigrationSuccess } from './events/migrations/MigrationSuccess'
-import { ThreadClonedForSharing } from './pages/thread/ThreadPage/ThreadClonedForSharing'
+import { ThreadClonedForSharing } from './pages/thread/ThreadPage/events/ThreadClonedForSharing'
 
 export const deleteThreadclonesMigration = async () => {
   const migrationName = 'deleteThreadClones'

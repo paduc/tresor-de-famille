@@ -3,7 +3,7 @@ import { AppUserId } from '../domain/AppUserId'
 import { ThreadId } from '../domain/ThreadId'
 import { getThreadAuthor } from './_getThreadAuthor'
 import { getUserFamilies } from './_getUserFamilies'
-import { ThreadSharedWithFamilies } from './thread/ThreadPage/ThreadSharedWithFamilies'
+import { ThreadSharedWithFamilies } from './thread/ThreadPage/events/ThreadSharedWithFamilies'
 
 export async function isThreadSharedWithUser({
   threadId,

@@ -1,12 +1,12 @@
 import React, { useState } from 'react'
 import TextareaAutosize from 'react-textarea-autosize'
-import { primaryButtonStyles, smallButtonStyles } from '../../_components/Button'
+import { primaryButtonStyles, smallButtonStyles } from '../../../_components/Button'
 import classNames from 'classnames'
-import { CommentId } from '../../../domain/CommentId'
-import { useLoggedInSession } from '../../_components/SessionContext'
+import { CommentId } from '../../../../domain/CommentId'
+import { useLoggedInSession } from '../../../_components/SessionContext'
 import axios, { AxiosError } from 'axios'
-import { ThreadId } from '../../../domain/ThreadId'
-import { AddCommentApiURL } from '../../commentApi/AddCommentApiURL'
+import { ThreadId } from '../../../../domain/ThreadId'
+import { AddCommentApiURL } from '../../../commentApi/AddCommentApiURL'
 import { XCircleIcon } from '@heroicons/react/24/outline'
 
 export type Comment = CommentsProps['comments'][number]
