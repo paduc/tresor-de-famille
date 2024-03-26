@@ -4,7 +4,7 @@ import { pageRouter } from '../pageRouter'
 import { MediaListPageUrl } from './MediaListPageURL'
 import { MediaListPage } from './MediaListPage'
 import axios from 'axios'
-import { z } from 'zod'
+import { ZodError, z } from 'zod'
 import { createHash } from 'node:crypto'
 import { AppUserId } from '../../domain/AppUserId'
 import { addToHistory } from '../../dependencies/addToHistory'
@@ -14,6 +14,7 @@ import { BunnyMediaUploaded } from './BunnyMediaUploaded'
 import { zIsMediaId } from '../../domain/MediaId'
 import { MediaUploadCompleteURL } from './MediaUploadCompleteURL'
 import { makeMediaId } from '../../libs/makeMediaId'
+import { BunnyMediaStatusUpdate } from './BunnyMediaStatusUpdate'
 
 pageRouter.get(MediaListPageUrl, requireAuth(), async (request, response, next) => {
   try {
@@ -78,6 +79,21 @@ pageRouter.post(MediaUploadCompleteURL, requireAuth(), async (request, response)
   } catch (error) {
     console.error((error as Error).message)
     response.status(500).send('Failed to complete media upload')
+  }
+})
+
+pageRouter.post('/bunnyMediaHook', async (request, response, next) => {
+  try {
+    const { Status, VideoGuid, VideoLibraryId } = z
+      .object({ Status: z.number(), VideoGuid: z.string(), VideoLibraryId: z.string() })
+      .parse(request.body)
+
+    await addToHistory(BunnyMediaStatusUpdate({ Status, VideoId: VideoGuid, LibraryId: VideoLibraryId }))
+
+    return response.status(200).send('ok')
+  } catch (error) {
+    console.error((error as Error).errors)
+    next(error)
   }
 })
 
