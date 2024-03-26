@@ -21,7 +21,7 @@ type FetchStatus = 'idle' | 'downloading' | 'error'
 type GlobalMediaSelectorProps = {
   onMediaSelected?: (photoIds: PhotoId[]) => void
   isOpen: boolean
-  selectedType: 'photos' | 'media'
+  selectedType: 'photos' | 'media' | undefined
   close: () => void
 }
 export function GlobalMediaSelector({ onMediaSelected, isOpen, close, selectedType }: GlobalMediaSelectorProps) {

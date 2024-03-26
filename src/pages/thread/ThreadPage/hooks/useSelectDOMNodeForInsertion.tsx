@@ -1,7 +1,7 @@
 import React, { useContext } from 'react'
 
 export const SelectDOMNodeForInsertionCtx = React.createContext<
-  ((selectDOMNode: HTMLElement | undefined, type: 'photos' | 'media') => unknown) | null
+  ((args: { node: HTMLElement; type: 'photos' | 'media' } | undefined) => unknown) | null
 >(null)
 
 /* 

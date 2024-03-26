@@ -6,7 +6,7 @@ import { withBrowserBundle } from '../../../libs/ssr/withBrowserBundle'
 import { linkStyles } from '../../_components/Button'
 import { AppLayout } from '../../_components/layout/AppLayout'
 
-import { Content, Editor, EditorContent, findChildren, useEditor } from '@tiptap/react'
+import { Content, Editor, EditorContent, EditorContext, findChildren, useEditor } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import { FamilyId } from '../../../domain/FamilyId'
 import { PhotoId } from '../../../domain/PhotoId'
@@ -25,6 +25,7 @@ import { PhotoNode } from './nodes/PhotoNode'
 import { SeparatorNode } from './nodes/SeparatorNode'
 import { addSeparatorBetweenNodes, separatePhotoNodesInJSONContent } from './utils/separatePhotoNodesInJSONContent'
 import { SelectDOMNodeForInsertionCtx } from './hooks/useSelectDOMNodeForInsertion'
+import { EditorCtx } from './hooks/useEditorCtx'
 
 export type ThreadPageProps = {
   title?: string
@@ -126,14 +127,19 @@ const RichTextEditor = (props: RichTextEditorProps) => {
 
   const { status, lastUpdated } = useAutosaveEditor(editor, threadId, props.lastUpdated)
 
-  const [mediaSelector, setMediaSelector] = useState<{ node: HTMLElement; type: 'photos' | 'media' } | undefined>(undefined)
+  // This will be used to insert photos or media at the right place
+  const [nodeForMediaInsertion, setNodeForMediaInsertion] = useState<
+    { node: HTMLElement; type: 'photos' | 'media' } | undefined
+  >(undefined)
 
-  const handleAddPhotos = useCallback(
+  // This is a callback called by the GlobalMediaSelector
+  // it uses the information located in mediaSelector
+  const handleAddMedia = useCallback(
     (photoIds: PhotoId[]) => {
       // console.log('onMediaSelected global')
-      if (!editorRef.current || !mediaSelector?.node) return
+      if (!editorRef.current || !nodeForMediaInsertion?.node) return
       const editor = editorRef.current
-      let position = editor.view.posAtDOM(mediaSelector?.node, 0)
+      let position = editor.view.posAtDOM(nodeForMediaInsertion?.node, 0)
       const editorChain = editor.chain()
       for (const photoId of photoIds) {
         editorChain.insertContentAt(position++, {
@@ -153,7 +159,7 @@ const RichTextEditor = (props: RichTextEditorProps) => {
         editorChain.run()
       })
     },
-    [mediaSelector?.node]
+    [nodeForMediaInsertion?.node]
   )
 
   // Make sure the content always ends with a paragraph
@@ -175,7 +181,7 @@ const RichTextEditor = (props: RichTextEditorProps) => {
 
   const editorRef: React.MutableRefObject<Editor | null> = React.useRef(null)
 
-  const handleDeletePhoto = useCallback(
+  const handleRemovePhoto = useCallback(
     (photoId: PhotoId) => {
       if (!editor) return null
 
@@ -211,63 +217,33 @@ const RichTextEditor = (props: RichTextEditorProps) => {
   if (!editor) return null
 
   return (
-    <RemovePhotoCtx.Provider value={handleDeletePhoto}>
-      <SelectDOMNodeForInsertionCtx.Provider
-        value={(selectorDOMNode: HTMLElement | undefined, type: 'photos' | 'media') => {
-          console.log('SelectedNodeForMediaContext', { type })
-
-          setMediaSelector(selectorDOMNode ? { node: selectorDOMNode, type } : undefined)
-        }}>
-        <div className='sm:ml-6 max-w-2xl relative'>
-          <EditorContent editor={editor} />
-          {/* <FloatingMenu editor={editor} tippyOptions={{ duration: 100 }}>
-            <MediaSelector
-              onPhotoAdded={(photoId) => {
-                editor
-                  .chain()
-                  .focus()
-                  .insertContent({
-                    type: 'photoNode',
-                    attrs: {
-                      photoId,
-                      url: PhotoURL(photoId),
-                      description: 'Cliquer sur la photo pour ajouter une description',
-                      personsInPhoto: '[]', // This should be stringified JSON
-                      unrecognizedFacesInPhoto: 0,
-                      threadId: props.threadId,
-                    },
-                  })
-                  .run()
-              }}>
-              {(open) => (
-                <span
-                  onClick={() => open()}
-                  className={`ml-10 sm:ml-5 pl-3 border border-y-0 border-r-0 border-l border-l-gray-300 cursor-pointer inline-flex items-center text-indigo-600 hover:underline hover:underline-offset-2`}>
-                  <PhotoIcon className={`${buttonIconStyles} h-4 w-4`} aria-hidden='true' />
-                  Insérer une photo
-                </span>
-              )}
-            </MediaSelector>
-          </FloatingMenu> */}
-          <div className='absolute top-4 right-2'>
-            <StatusIndicator status={status} />
+    // These contexts are used to communicate between the editor nodes, the global media seletor and the editor itself
+    // TODO: find a better way to do this
+    <EditorCtx.Provider value={{ editorRef, threadId }}>
+      <RemovePhotoCtx.Provider value={handleRemovePhoto}>
+        <SelectDOMNodeForInsertionCtx.Provider value={setNodeForMediaInsertion}>
+          <div className='sm:ml-6 max-w-2xl relative'>
+            <EditorContent editor={editor} />
+            <div className='fixed top-4 right-2'>
+              <StatusIndicator status={status} />
+            </div>
           </div>
-        </div>
-        {!!lastUpdated ? (
-          <div className='my-2 pl-4 pt-2 sm:pl-6 italic text-gray-500 '>
-            Dernière mise à jour {formatRelative(lastUpdated, Date.now(), { locale: fr })}
-          </div>
-        ) : null}
-        <GlobalMediaSelector
-          isOpen={!!mediaSelector?.node}
-          selectedType={mediaSelector?.type || 'photos'}
-          close={() => {
-            setMediaSelector(undefined)
-          }}
-          onMediaSelected={handleAddPhotos}
-        />
-      </SelectDOMNodeForInsertionCtx.Provider>
-    </RemovePhotoCtx.Provider>
+          {!!lastUpdated ? (
+            <div className='my-2 pl-4 pt-2 sm:pl-6 italic text-gray-500 '>
+              Dernière mise à jour {formatRelative(lastUpdated, Date.now(), { locale: fr })}
+            </div>
+          ) : null}
+          <GlobalMediaSelector
+            isOpen={!!nodeForMediaInsertion?.node}
+            selectedType={nodeForMediaInsertion?.type}
+            close={() => {
+              setNodeForMediaInsertion(undefined)
+            }}
+            onMediaSelected={handleAddMedia}
+          />
+        </SelectDOMNodeForInsertionCtx.Provider>
+      </RemovePhotoCtx.Provider>
+    </EditorCtx.Provider>
   )
 }
 

@@ -59,7 +59,7 @@ const SeparatorNodeItem = (props: { node: {} }) => {
         <button
           onClick={() => {
             if (nodeRef.current) {
-              selectDOMNodeForInsertion(nodeRef.current, 'photos')
+              selectDOMNodeForInsertion({ node: nodeRef.current, type: 'photos' })
             }
           }}
           title='Insérer des photos'
@@ -70,7 +70,7 @@ const SeparatorNodeItem = (props: { node: {} }) => {
         <button
           onClick={() => {
             if (nodeRef.current) {
-              selectDOMNodeForInsertion(nodeRef.current, 'media')
+              selectDOMNodeForInsertion({ node: nodeRef.current, type: 'media' })
             }
           }}
           title='Insérer des vidéos'
