@@ -1,114 +1,48 @@
 import { CheckIcon, FireIcon, SparklesIcon, XCircleIcon } from '@heroicons/react/20/solid'
-import axios, { AxiosError } from 'axios'
-import React, { memo, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import Uppy from '@uppy/core'
 import { Dashboard } from '@uppy/react'
 import Tus from '@uppy/tus'
+import axios, { AxiosError } from 'axios'
+import React, { memo, useCallback, useEffect, useMemo, useState } from 'react'
 // @ts-ignore
 import UppyFrancais from '@uppy/locales/lib/fr_FR'
-import classNames from 'classnames'
 
 import { UUID } from '../../domain'
+import { MediaId } from '../../domain/MediaId'
 import { PhotoId } from '../../domain/PhotoId'
 import { getUuid } from '../../libs/getUuid'
 import { primaryButtonStyles, smallButtonStyles } from '../_components/Button'
 import { TDFModal } from '../_components/TDFModal'
+import { MediaUploadCompleteURL } from '../media/MediaUploadCompleteURL'
 import { MediaSelectorListURL } from '../photoApi/MediaSelectorListURL'
 import { ThumbnailURL } from '../photoApi/ThumbnailURL'
-import { MediaUploadCompleteURL } from '../media/MediaUploadCompleteURL'
 
 type FetchStatus = 'idle' | 'downloading' | 'error'
-type GlobalMediaSelectorProps = {
-  onMediaSelected?: (photoIds: PhotoId[]) => void
+export type MediaSelectedType =
+  | {
+      type: 'photos'
+      photoIds: PhotoId[]
+    }
+  | {
+      type: 'media'
+      mediaId: MediaId
+      url: string
+    }
+
+type MediaSelectorProps = {
+  onMediaSelected?: (media: MediaSelectedType) => void
   isOpen: boolean
   selectedType: 'photos' | 'media' | undefined
   close: () => void
 }
-export function GlobalMediaSelector({ onMediaSelected, isOpen, close, selectedType }: GlobalMediaSelectorProps) {
-  console.log('GlobalMediaSelector', { selectedType })
-  const [photos, setPhotos] = useState<PhotoId[]>([])
-  const [status, setStatus] = useState<FetchStatus>('idle')
+export function MediaSelector({ onMediaSelected, isOpen, close, selectedType }: MediaSelectorProps) {
+  console.log('MediaSelector', { selectedType })
   const uniqueKey = useMemo(() => getUuid(), [])
 
-  // Fetch photos here
-  useEffect(() => {
-    async function getPhotos() {
-      if (selectedType === 'media') return
-
-      try {
-        setStatus('downloading')
-        const res = await axios.get<{ photos: PhotoId[] }>(MediaSelectorListURL(), {
-          headers: {
-            Accept: 'application/json',
-          },
-        })
-
-        if (res.status === 200) {
-          setPhotos(res.data.photos)
-          setStatus('idle')
-          return
-        }
-
-        setStatus('error')
-      } catch (error) {
-        setStatus('error')
-      }
-    }
-
-    getPhotos()
-  }, [isOpen, selectedType])
-
-  return (
-    <MediaSelectorComponent
-      uniqueKey={uniqueKey}
-      isOpen={isOpen}
-      close={close}
-      photos={photos.map((photoId) => ({ photoId, url: ThumbnailURL(photoId) }))}
-      status={status}
-      onMediaSelectedInComponent={(photoIds) => {
-        if (onMediaSelected) {
-          onMediaSelected(photoIds)
-        }
-        close()
-      }}
-      selectedType={selectedType}
-    />
-  )
-}
-
-/**
- * Use separate pure component to make it easier to test with Storybook
- */
-type MediaSelectorComponentProps = {
-  onMediaSelectedInComponent?: (photoIds: PhotoId[]) => void
-  photos: { photoId: PhotoId; url: string }[]
-  isOpen: boolean
-  close: () => unknown
-  status: FetchStatus
-  uniqueKey: UUID
-  selectedType?: 'photos' | 'media'
-}
-export function MediaSelectorComponent({
-  isOpen,
-  close,
-  onMediaSelectedInComponent,
-  photos,
-  status,
-  uniqueKey,
-  selectedType,
-}: MediaSelectorComponentProps) {
-  console.log('MediaSelectorComponent', { selectedType })
-  const [newPhotos, setNewPhotos] = useState<{ photoId: PhotoId; url: string }[]>([])
   const [currentType, setCurrentType] = useState<'photos' | 'media'>(selectedType || 'photos')
 
   return (
-    <TDFModal
-      title={"Insérer dans l'histoire"}
-      isOpen={isOpen}
-      close={() => {
-        close()
-        setNewPhotos([])
-      }}>
+    <TDFModal title={"Insérer dans l'histoire"} isOpen={isOpen} close={close}>
       {/* <div className='mb-3'>
         <div className='sm:hidden'>
           <label htmlFor='tabs' className='sr-only'>
@@ -161,46 +95,100 @@ export function MediaSelectorComponent({
         <div>
           <UploadNewPhotos
             onPhotosUploaded={(photoIds) => {
-              if (onMediaSelectedInComponent) onMediaSelectedInComponent(photoIds)
-              // setNewPhotos((state) => [{ photoId, url: ThumbnailURL(photoId) }, ...state])
+              if (onMediaSelected) onMediaSelected({ type: 'photos', photoIds })
             }}
           />
-          <div>Choisir une photo de mon trésor</div>
-          <div className='max-h-[50vh] overflow-y-scroll border-y border-gray-300 px-2'>
-            {status === 'error' ? (
-              <div className='inline-flex items-center'>
-                <XCircleIcon className='h-6 w-6 mr-1 text-red-600' />
-                Erreur de chargement
-              </div>
-            ) : null}
-            {status === 'downloading' && !photos.length ? (
-              <div className='inline-flex items-center animate-pulse'>
-                <SparklesIcon className='h-6 w-6 mr-1 text-indigo-600' />
-                Chargement...
-              </div>
-            ) : null}
-            <ul role='list' className='grid grid-cols-2 gap-x-4 gap-y-4 sm:grid-cols-3 sm:gap-x-2 mt-3'>
-              {[...newPhotos, ...photos].map(({ photoId, url }) => (
-                <li key={`${uniqueKey}_${photoId}`} className='relative'>
-                  <div className='group aspect-h-7 aspect-w-10 block w-full overflow-hidden rounded-lg bg-gray-100 cursor-pointer'>
-                    <img src={url} alt='' className='pointer-events-none object-cover group-hover:opacity-75' />
-                    <a
-                      onClick={() => {
-                        if (onMediaSelectedInComponent) onMediaSelectedInComponent([photoId])
-                      }}
-                      className='absolute inset-0 focus:outline-none'>
-                      <span className='sr-only'>Insérer cette photo</span>
-                    </a>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </div>
+          <SelectExistingPhoto
+            onPhotoSelected={(photoId) => {
+              if (onMediaSelected) onMediaSelected({ type: 'photos', photoIds: [photoId] })
+            }}
+            isOpen={isOpen}
+            uniqueKey={uniqueKey}
+          />
         </div>
       ) : (
-        <UppyDashboard />
+        <UppyDashboard
+          onMediaSelected={({ mediaId, url }) => {
+            if (onMediaSelected) onMediaSelected({ type: 'media', mediaId, url })
+          }}
+        />
       )}
     </TDFModal>
+  )
+}
+
+function SelectExistingPhoto({
+  onPhotoSelected,
+  isOpen,
+  uniqueKey,
+}: {
+  uniqueKey: string
+  isOpen: boolean
+  onPhotoSelected: (photoId: PhotoId) => unknown
+}) {
+  const [status, setStatus] = useState<FetchStatus>('idle')
+  const [photos, setPhotos] = useState<{ photoId: PhotoId; url: string }[]>([])
+
+  useEffect(() => {
+    async function getPhotos() {
+      try {
+        setStatus('downloading')
+        const res = await axios.get<{ photos: PhotoId[] }>(MediaSelectorListURL(), {
+          headers: {
+            Accept: 'application/json',
+          },
+        })
+
+        if (res.status === 200) {
+          setPhotos(res.data.photos.map((photoId) => ({ photoId, url: ThumbnailURL(photoId) })))
+
+          setStatus('idle')
+          return
+        }
+
+        setStatus('error')
+      } catch (error) {
+        setStatus('error')
+      }
+    }
+
+    getPhotos()
+  }, [isOpen])
+
+  return (
+    <>
+      <div>Choisir une photo de mon trésor</div>
+      <div className='max-h-[50vh] overflow-y-scroll border-y border-gray-300 px-2'>
+        {status === 'error' ? (
+          <div className='inline-flex items-center'>
+            <XCircleIcon className='h-6 w-6 mr-1 text-red-600' />
+            Erreur de chargement
+          </div>
+        ) : null}
+        {status === 'downloading' && !photos.length ? (
+          <div className='inline-flex items-center animate-pulse'>
+            <SparklesIcon className='h-6 w-6 mr-1 text-indigo-600' />
+            Chargement...
+          </div>
+        ) : null}
+        <ul role='list' className='grid grid-cols-2 gap-x-4 gap-y-4 sm:grid-cols-3 sm:gap-x-2 mt-3'>
+          {photos.map(({ photoId, url }) => (
+            <li key={`${uniqueKey}_${photoId}`} className='relative'>
+              <div className='group aspect-h-7 aspect-w-10 block w-full overflow-hidden rounded-lg bg-gray-100 cursor-pointer'>
+                <img src={url} alt='' className='pointer-events-none object-cover group-hover:opacity-75' />
+                <a
+                  onClick={() => {
+                    if (onPhotoSelected) onPhotoSelected(photoId)
+                  }}
+                  className='absolute inset-0 focus:outline-none'>
+                  <span className='sr-only'>Insérer cette photo</span>
+                </a>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </>
   )
 }
 
@@ -264,7 +252,7 @@ function UploadNewPhotos({ onPhotosUploaded }: UploadNewPhotosProps) {
       {photosToUpload.length ? (
         <ul className='pt-2'>
           {photosToUpload.map(({ file, uploadId: id }) => (
-            <SingleUpdate
+            <SingleUpload
               file={file}
               uploadId={id}
               key={`photo_uploading_${id}`}
@@ -285,7 +273,7 @@ type SingleUploadProps = {
   onPhotoUploaded?: (args: { photoId: PhotoId; uploadId: UUID }) => unknown
 }
 
-const SingleUpdate = memo(({ file, uploadId, mock, onPhotoUploaded }: SingleUploadProps) => {
+const SingleUpload = memo(({ file, uploadId, mock, onPhotoUploaded }: SingleUploadProps) => {
   const [progress, setProgress] = useState(0)
   const [errorCode, setError] = useState<{ code: number; text: string } | null>(null)
   const [photo, setPhoto] = useState<string | null>(null)
@@ -382,7 +370,7 @@ const SingleUpdate = memo(({ file, uploadId, mock, onPhotoUploaded }: SingleUplo
                     </span>
                   ) : (
                     <span className='text-xs font-semibold py-1 px-2 uppercase rounded-full text-green-600 bg-green-200 inline-flex'>
-                      Téléchargé
+                      Inséré dans l'histoire
                       <CheckIcon className='h-4 w-4 ml-2' />
                     </span>
                   )}
@@ -418,7 +406,7 @@ const SingleUpdate = memo(({ file, uploadId, mock, onPhotoUploaded }: SingleUplo
   )
 })
 
-const UppyDashboard = () => {
+const UppyDashboard = ({ onMediaSelected }: { onMediaSelected: (args: { mediaId: MediaId; url: string }) => unknown }) => {
   const uppy = useState(() => {
     const uppy = new Uppy({ locale: UppyFrancais }).use(Tus, {
       endpoint: 'https://video.bunnycdn.com/tusupload',
@@ -452,13 +440,18 @@ const UppyDashboard = () => {
     uppy.on('upload-success', async (file, response) => {
       // console.log('Upload success', file?.meta)
       const { LibraryId, VideoId } = file!.meta
-      await axios.post(
+      const res = await axios.post(
         MediaUploadCompleteURL,
         { VideoId, LibraryId },
         {
           withCredentials: true,
         }
       )
+
+      const { mediaId } = res.data as { mediaId: MediaId }
+      const url = `https://iframe.mediadelivery.net/embed/${LibraryId}/${VideoId}?autoplay=true&loop=false&muted=false&preload=true&responsive=true`
+
+      onMediaSelected({ mediaId, url })
     })
 
     return uppy

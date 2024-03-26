@@ -15,6 +15,7 @@ import { zIsMediaId } from '../../domain/MediaId'
 import { MediaUploadCompleteURL } from './MediaUploadCompleteURL'
 import { makeMediaId } from '../../libs/makeMediaId'
 import { BunnyMediaStatusUpdate } from './BunnyMediaStatusUpdate'
+import { GetMediaStatusURL } from './GetMediaStatusURL'
 
 pageRouter.get(MediaListPageUrl, requireAuth(), async (request, response, next) => {
   try {
@@ -71,14 +72,47 @@ pageRouter.post(MediaUploadCompleteURL, requireAuth(), async (request, response)
     const user = request.session.user!
     const { LibraryId, VideoId } = z.object({ LibraryId: z.string(), VideoId: z.string() }).parse(request.body)
 
-    await addToHistory(
-      BunnyMediaUploaded({ mediaId: makeMediaId(), userId: user.id, bunnyLibraryId: LibraryId, bunnyVideoId: VideoId })
-    )
+    const mediaId = makeMediaId()
+    await addToHistory(BunnyMediaUploaded({ mediaId, userId: user.id, bunnyLibraryId: LibraryId, bunnyVideoId: VideoId }))
 
-    response.send({ status: 'ok' })
+    response.send({ mediaId })
   } catch (error) {
     console.error((error as Error).message)
     response.status(500).send('Failed to complete media upload')
+  }
+})
+
+pageRouter.get(GetMediaStatusURL(), requireAuth(), async (request, response) => {
+  try {
+    const { mediaId } = z.object({ mediaId: zIsMediaId }).parse(request.query)
+
+    // 1) Get media with mediaId
+    const event = await getSingleEvent<BunnyMediaUploaded>('BunnyMediaUploaded', { mediaId })
+
+    if (!event) {
+      console.error('Failed to get media from history')
+      return response.send({ status: 404 })
+    }
+    const { bunnyVideoId, bunnyLibraryId } = event.payload
+
+    // 2) Try to get media status from BunnyCDN
+    const res = await axios.get(`${process.env.BUNNY_URL}/library/${bunnyLibraryId}/videos/${bunnyVideoId}`, {
+      headers: {
+        AccessKey: `${process.env.BUNNY_API_KEY}`,
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+    })
+
+    if (res.status !== 200) {
+      console.error('Failed to get media status from BunnyCDN')
+      return response.send({ status: 404 })
+    }
+
+    return response.send({ status: res.data.status })
+  } catch (error) {
+    console.error((error as Error).message)
+    response.status(500).send('Failed to check media status')
   }
 })
 

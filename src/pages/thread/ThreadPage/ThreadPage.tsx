@@ -6,26 +6,29 @@ import { withBrowserBundle } from '../../../libs/ssr/withBrowserBundle'
 import { linkStyles } from '../../_components/Button'
 import { AppLayout } from '../../_components/layout/AppLayout'
 
-import { Content, Editor, EditorContent, EditorContext, findChildren, useEditor } from '@tiptap/react'
+import { Content, Editor, EditorContent, findChildren, useEditor } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import { FamilyId } from '../../../domain/FamilyId'
 import { PhotoId } from '../../../domain/PhotoId'
 import { ThreadId } from '../../../domain/ThreadId'
 import { ClientOnly } from '../../_components/ClientOnly'
 import { PhotoURL } from '../../photoApi/PhotoURL'
-import { GlobalMediaSelector } from '../MediaSelector'
+import { MediaSelectedType, MediaSelector } from '../MediaSelector'
 import { ThreadUrl } from '../ThreadUrl'
 import { TipTapContentAsJSON } from '../TipTapTypes'
 import { Comment, Comments } from './_components/Comments'
 import { StatusIndicator } from './_components/StatusIndicator'
 import { ThreadSharingButton } from './_components/ThreadSharingButton'
 import { AutosaveStatus, useAutosaveEditor } from './hooks/useAutosaveEditor'
+import { EditorCtx } from './hooks/useEditorCtx'
 import { RemovePhotoCtx } from './hooks/useRemovePhoto'
+import { SelectDOMNodeForInsertionCtx } from './hooks/useSelectDOMNodeForInsertion'
 import { PhotoNode } from './nodes/PhotoNode'
 import { SeparatorNode } from './nodes/SeparatorNode'
 import { addSeparatorBetweenNodes, separatePhotoNodesInJSONContent } from './utils/separatePhotoNodesInJSONContent'
-import { SelectDOMNodeForInsertionCtx } from './hooks/useSelectDOMNodeForInsertion'
-import { EditorCtx } from './hooks/useEditorCtx'
+import { MediaId } from '../../../domain/MediaId'
+import { RemoveMediaCtx } from './hooks/useRemoveMedia'
+import { MediaNode } from './nodes/MediaNode'
 
 export type ThreadPageProps = {
   title?: string
@@ -115,6 +118,7 @@ const RichTextEditor = (props: RichTextEditorProps) => {
       }),
       PhotoNode,
       SeparatorNode,
+      MediaNode,
     ],
     content,
     autofocus: null,
@@ -135,25 +139,41 @@ const RichTextEditor = (props: RichTextEditorProps) => {
   // This is a callback called by the GlobalMediaSelector
   // it uses the information located in mediaSelector
   const handleAddMedia = useCallback(
-    (photoIds: PhotoId[]) => {
-      // console.log('onMediaSelected global')
+    (mediaSelected: MediaSelectedType) => {
+      console.log('onMediaSelected', mediaSelected, editorRef.current, nodeForMediaInsertion?.node)
       if (!editorRef.current || !nodeForMediaInsertion?.node) return
       const editor = editorRef.current
       let position = editor.view.posAtDOM(nodeForMediaInsertion?.node, 0)
       const editorChain = editor.chain()
-      for (const photoId of photoIds) {
+
+      if (mediaSelected.type === 'photos') {
+        for (const photoId of mediaSelected.photoIds) {
+          editorChain.insertContentAt(position++, {
+            type: 'photoNode',
+            attrs: {
+              photoId,
+              url: PhotoURL(photoId),
+              description: 'Cliquer sur la photo pour ajouter une description',
+              personsInPhoto: '[]', // This should be stringified JSON
+              unrecognizedFacesInPhoto: 0,
+              threadId,
+            },
+          })
+        }
+      }
+
+      if (mediaSelected.type === 'media') {
+        const { mediaId, url } = mediaSelected
         editorChain.insertContentAt(position++, {
-          type: 'photoNode',
+          type: 'mediaNode',
           attrs: {
-            photoId,
-            url: PhotoURL(photoId),
-            description: 'Cliquer sur la photo pour ajouter une description',
-            personsInPhoto: '[]', // This should be stringified JSON
-            unrecognizedFacesInPhoto: 0,
+            mediaId,
+            url,
             threadId,
           },
         })
       }
+
       // See https://github.com/ueberdosis/tiptap/issues/3764
       setTimeout(() => {
         editorChain.run()
@@ -202,6 +222,31 @@ const RichTextEditor = (props: RichTextEditorProps) => {
     [editor]
   )
 
+  const handleRemoveMedia = useCallback(
+    (mediaId: MediaId) => {
+      if (!editor) return null
+
+      const mediaNodes = findChildren(
+        editor.state.doc,
+        (node) => node.type.name === 'mediaNode' && node.attrs['mediaId'] === mediaId
+      )
+
+      if (mediaNodes.length) {
+        const mediaNode = mediaNodes.at(0)!
+        editor
+          .chain()
+          .focus()
+          .deleteRange({ from: mediaNode.pos, to: mediaNode.pos + mediaNode.node.nodeSize })
+          .run()
+      }
+    },
+    [editor]
+  )
+
+  const closeMediaSelector = useCallback(() => {
+    setNodeForMediaInsertion(undefined)
+  }, [])
+
   useLayoutEffect(() => {
     const photoElementId = window.location.hash.replace('#', '')
     if (photoElementId) {
@@ -216,36 +261,40 @@ const RichTextEditor = (props: RichTextEditorProps) => {
 
   if (!editor) return null
 
+  editorRef.current = editor
+
   return (
     // These contexts are used to communicate between the editor nodes, the global media seletor and the editor itself
     // TODO: find a better way to do this
     <EditorCtx.Provider value={{ editorRef, threadId }}>
-      <RemovePhotoCtx.Provider value={handleRemovePhoto}>
-        <SelectDOMNodeForInsertionCtx.Provider value={setNodeForMediaInsertion}>
-          <div className='sm:ml-6 max-w-2xl relative'>
-            <EditorContent editor={editor} />
-            <div className='fixed top-4 right-2'>
-              <StatusIndicator status={status} />
+      <RemoveMediaCtx.Provider value={handleRemoveMedia}>
+        <RemovePhotoCtx.Provider value={handleRemovePhoto}>
+          <SelectDOMNodeForInsertionCtx.Provider value={setNodeForMediaInsertion}>
+            <div className='sm:ml-6 max-w-2xl relative'>
+              <EditorContent editor={editor} />
+              <div className='absolute top-4 right-2'>
+                <StatusIndicator status={status} />
+              </div>
             </div>
-          </div>
-          {!!lastUpdated ? (
-            <div className='my-2 pl-4 pt-2 sm:pl-6 italic text-gray-500 '>
-              Dernière mise à jour {formatRelative(lastUpdated, Date.now(), { locale: fr })}
-            </div>
-          ) : null}
-          <GlobalMediaSelector
-            isOpen={!!nodeForMediaInsertion?.node}
-            selectedType={nodeForMediaInsertion?.type}
-            close={() => {
-              setNodeForMediaInsertion(undefined)
-            }}
-            onMediaSelected={handleAddMedia}
-          />
-        </SelectDOMNodeForInsertionCtx.Provider>
-      </RemovePhotoCtx.Provider>
+            {!!lastUpdated ? (
+              <div className='my-2 pl-4 pt-2 sm:pl-6 italic text-gray-500 '>
+                Dernière mise à jour {formatRelative(lastUpdated, Date.now(), { locale: fr })}
+              </div>
+            ) : null}
+            <MemoizedMediaSelector
+              isOpen={!!nodeForMediaInsertion?.node}
+              selectedType={nodeForMediaInsertion?.type}
+              close={closeMediaSelector}
+              onMediaSelected={handleAddMedia}
+            />
+          </SelectDOMNodeForInsertionCtx.Provider>
+        </RemovePhotoCtx.Provider>
+      </RemoveMediaCtx.Provider>
     </EditorCtx.Provider>
   )
 }
+
+const MemoizedMediaSelector = React.memo(MediaSelector)
 
 const Title = ({ title, threadId }: { title: string | undefined; threadId: ThreadId }) => {
   const [latestTitle, setLatestTitle] = useState<string | undefined>(title)

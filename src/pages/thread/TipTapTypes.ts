@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import type { JSON } from '../../dependencies/DomainEvent'
 import { zIsPhotoId } from '../../domain/PhotoId'
+import { zIsMediaId } from '../../domain/MediaId'
 
 // TipTap Types
 
@@ -12,6 +13,10 @@ export type ParagraphNode = TipTapJSON & {
 }
 export type PhotoNode = TipTapJSON & {
   type: 'photoNode'
+}
+
+export type MediaNode = TipTapJSON & {
+  type: 'mediaNode'
 }
 
 export type SeparatorNode = TipTapJSON & {
@@ -41,11 +46,16 @@ const zIsPhotoNode = z.object({
   attrs: z.object({ photoId: zIsPhotoId, caption: z.union([z.string(), z.null()]).optional() }).and(z.record(z.any())),
 })
 
+const zIsMediaNode = z.object({
+  type: z.literal('mediaNode'),
+  attrs: z.object({ mediaId: zIsMediaId }).and(z.record(z.any())),
+})
+
 const zIsSeparatorNode = z.object({
   type: z.literal('separatorNode'),
 })
 
-export const zIsTipTapJSON = z.union([zIsParagraphNode, zIsPhotoNode, zIsSeparatorNode])
+export const zIsTipTapJSON = z.union([zIsParagraphNode, zIsPhotoNode, zIsSeparatorNode, zIsMediaNode])
 
 export const zIsTipTapContentAsJSON = z.object({
   type: z.literal('doc'),
