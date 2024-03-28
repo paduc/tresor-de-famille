@@ -176,7 +176,7 @@ function SelectExistingPhoto({
           {photos.map(({ photoId, url }) => (
             <li key={`${uniqueKey}_${photoId}`} className='relative'>
               <div className='group aspect-h-7 aspect-w-10 block w-full overflow-hidden rounded-lg bg-gray-100 cursor-pointer'>
-                <img src={url} alt='' className='pointer-events-none object-cover group-hover:opacity-75' />
+                <img src={url} loading='lazy' alt='' className='pointer-events-none object-cover group-hover:opacity-75' />
                 <a
                   onClick={() => {
                     if (onPhotoSelected) onPhotoSelected(photoId)
