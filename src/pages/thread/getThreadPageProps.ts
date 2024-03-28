@@ -15,6 +15,8 @@ import { ThreadEvent, getThreadEvents } from '../_getThreadEvents'
 import { getThreadFamilies } from '../_getThreadFamilies'
 import { getUserFamilies } from '../_getUserFamilies'
 import { getThreadComments } from '../commentApi/getThreadComments'
+import { BunnyMediaStatusUpdated } from '../media/BunnyMediaStatusUpdated'
+import { BunnyMediaUploaded } from '../media/BunnyMediaUploaded'
 import { UserAddedCaptionToPhoto } from '../photo/UserAddedCaptionToPhoto'
 import { ThreadPageProps } from './ThreadPage/ThreadPage'
 import { TipTapContentAsJSON, encodeStringy } from './TipTapTypes'
@@ -105,41 +107,73 @@ export const getThreadPageProps = async ({
     }
 
     for (const contentNode of content) {
-      if (contentNode.type !== 'photoNode') {
-        // @ts-ignore
-        if (contentNode.type === 'insertPhotoMarker') {
-          // some old threads have insertPhotoMarker nodes...
-          continue
-        }
-        contentAsJSON.content.push(contentNode)
+      // @ts-ignore
+      if (contentNode.type === 'insertPhotoMarker') {
+        // some old threads have insertPhotoMarker nodes...
+        // ignore them
         continue
       }
 
-      const { photoId } = contentNode.attrs
+      if (contentNode.type === 'photoNode') {
+        const { photoId } = contentNode.attrs
 
-      if (!photoId) continue
+        if (!photoId) continue
 
-      const photoInfo = await getPhotoInfo({ photoId, userId, threadId })
+        const photoInfo = await getPhotoInfo({ photoId, userId, threadId })
 
-      if (!photoInfo) continue
+        if (!photoInfo) continue
 
-      const { caption, personsInPhoto, unrecognizedFacesInPhoto, locationName, datetime } = photoInfo
+        const { caption, personsInPhoto, unrecognizedFacesInPhoto, locationName, datetime } = photoInfo
 
-      const newAttrs = {
-        photoId,
-        threadId,
-        caption,
-        personsInPhoto: encodeStringy(personsInPhoto),
-        unrecognizedFacesInPhoto,
-        url: getPhotoUrlFromId(photoId),
-        locationName,
-        datetime,
+        const newAttrs = {
+          photoId,
+          threadId,
+          caption,
+          personsInPhoto: encodeStringy(personsInPhoto),
+          unrecognizedFacesInPhoto,
+          url: getPhotoUrlFromId(photoId),
+          locationName,
+          datetime,
+        }
+
+        contentAsJSON.content.push({
+          type: 'photoNode',
+          attrs: newAttrs,
+        })
       }
 
-      contentAsJSON.content.push({
-        type: 'photoNode',
-        attrs: newAttrs,
-      })
+      if (contentNode.type === 'mediaNode') {
+        const { mediaId } = contentNode.attrs
+
+        const uploadedEvent = await getSingleEvent<BunnyMediaUploaded>('BunnyMediaUploaded', { mediaId })
+
+        if (!uploadedEvent) continue
+
+        const { bunnyVideoId, bunnyLibraryId } = uploadedEvent.payload
+        const latestStatusEvent = await getSingleEvent<BunnyMediaStatusUpdated>('BunnyMediaStatusUpdated', {
+          LibraryId: bunnyLibraryId,
+          VideoId: bunnyVideoId,
+        })
+
+        if (!latestStatusEvent) {
+          contentAsJSON.content.push(contentNode)
+          continue
+        }
+
+        const newAttrs = {
+          ...contentNode.attrs,
+          status: latestStatusEvent.payload.Status,
+        }
+
+        contentAsJSON.content.push({
+          type: 'mediaNode',
+          attrs: newAttrs,
+        })
+      }
+
+      if (contentNode.type === 'paragraph') {
+        contentAsJSON.content.push(contentNode)
+      }
     }
   }
 

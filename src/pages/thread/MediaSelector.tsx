@@ -16,6 +16,7 @@ import { TDFModal } from '../_components/TDFModal'
 import { MediaUploadCompleteURL } from '../media/MediaUploadCompleteURL'
 import { MediaSelectorListURL } from '../photoApi/MediaSelectorListURL'
 import { ThumbnailURL } from '../photoApi/ThumbnailURL'
+import { PrepareMediaUploadURL } from '../media/PrepareMediaUploadURL'
 
 type FetchStatus = 'idle' | 'downloading' | 'error'
 export type MediaSelectedType =
@@ -413,7 +414,7 @@ const UppyDashboard = ({ onMediaSelected }: { onMediaSelected: (args: { mediaId:
       async onBeforeRequest(req, file) {
         // onBeforeRequest is called multiple times, so we need to check if we already have the meta
         if (!file.meta.VideoId) {
-          const res = await axios.get(`/prepareMediaUpload?filename=${encodeURIComponent(file.name || file.size)}`, {
+          const res = await axios.get(PrepareMediaUploadURL(file.name || file.size.toString()), {
             withCredentials: true,
           })
 

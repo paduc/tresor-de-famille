@@ -1,8 +1,10 @@
+import { add } from 'date-fns'
 import { resetDatabase } from '../../dependencies/__test__/resetDatabase'
 import { addToHistory } from '../../dependencies/addToHistory'
 import { UserNamedThemself } from '../../events/onboarding/UserNamedThemself'
 import { getUuid } from '../../libs/getUuid'
 import { makeFamilyId } from '../../libs/makeFamilyId'
+import { makeMediaId } from '../../libs/makeMediaId'
 import { makePersonId } from '../../libs/makePersonId'
 import { makePhotoId } from '../../libs/makePhotoId'
 import { makeThreadId } from '../../libs/makeThreadId'
@@ -15,6 +17,8 @@ import { UserUploadedPhoto } from '../photoApi/UserUploadedPhoto'
 import { UserSetCaptionOfPhotoInThread } from './UserSetCaptionOfPhotoInThread'
 import { UserUpdatedThreadAsRichText } from './UserUpdatedThreadAsRichText'
 import { getThreadPageProps } from './getThreadPageProps'
+import { BunnyMediaStatusUpdated } from '../media/BunnyMediaStatusUpdated'
+import { BunnyMediaUploaded } from '../media/BunnyMediaUploaded'
 
 describe('getThreadPageProps', () => {
   describe('when a photo a UserSetCaptionOfPhotoInThread for the photo and thread', () => {
@@ -428,6 +432,69 @@ describe('getThreadPageProps', () => {
       const res = await getThreadPageProps({ threadId, userId })
 
       expect(res.authorName).toEqual('Toto')
+    })
+  })
+
+  describe('when the thread has a MediaNode with a new status', () => {
+    const threadId = makeThreadId()
+    const mediaId = makeMediaId()
+    const userId = makeAppUserId()
+    beforeAll(async () => {
+      await resetDatabase()
+
+      await addToHistory(
+        UserUpdatedThreadAsRichText({
+          userId,
+          threadId,
+          familyId: makeFamilyId(),
+          contentAsJSON: {
+            type: 'doc',
+            content: [
+              {
+                type: 'mediaNode',
+                attrs: {
+                  mediaId,
+                  caption: '',
+                  url: 'https://example.com',
+                  status: 0,
+                },
+              },
+            ],
+          },
+        })
+      )
+
+      await addToHistory(
+        BunnyMediaUploaded({
+          bunnyLibraryId: 'libraryId',
+          bunnyVideoId: 'videoId',
+          mediaId,
+          userId,
+        })
+      )
+
+      await addToHistory(BunnyMediaStatusUpdated({ LibraryId: 'libraryId', VideoId: 'videoId', Status: 1 }))
+
+      await addToHistory(BunnyMediaStatusUpdated({ LibraryId: 'libraryId', VideoId: 'videoId', Status: 4 }))
+    })
+
+    it('should return the value in the last BunnyMediaStatusUpdated', async () => {
+      const res = await getThreadPageProps({ threadId, userId })
+
+      expect(res.contentAsJSON).toMatchObject({
+        type: 'doc',
+        content: [
+          {
+            type: 'mediaNode',
+            attrs: {
+              mediaId,
+              caption: '',
+              url: 'https://example.com',
+              status: 4, // <---
+            },
+          },
+        ],
+      })
     })
   })
 })

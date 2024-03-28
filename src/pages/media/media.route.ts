@@ -14,8 +14,11 @@ import { BunnyMediaUploaded } from './BunnyMediaUploaded'
 import { zIsMediaId } from '../../domain/MediaId'
 import { MediaUploadCompleteURL } from './MediaUploadCompleteURL'
 import { makeMediaId } from '../../libs/makeMediaId'
-import { BunnyMediaStatusUpdate } from './BunnyMediaStatusUpdate'
+import { BunnyMediaStatusUpdated } from './BunnyMediaStatusUpdated'
 import { GetMediaStatusURL } from './GetMediaStatusURL'
+import { zMediaStatus } from './MediaStatus'
+import { PrepareMediaUploadURL } from './PrepareMediaUploadURL'
+import { BunnyMediaHookURL } from './BunnyMediaHookURL'
 
 pageRouter.get(MediaListPageUrl, requireAuth(), async (request, response, next) => {
   try {
@@ -25,7 +28,6 @@ pageRouter.get(MediaListPageUrl, requireAuth(), async (request, response, next) 
   }
 })
 
-const testCollectionId = 'd4648f24-b5ea-437e-b67a-49d05e3256ad'
 const LibraryId = process.env.BUNNY_LIBRARY_ID
 if (!LibraryId) {
   console.log('BUNNY_LIBRARY_ID is not set')
@@ -40,17 +42,17 @@ if (!bunnyApiKey) {
 
 const validityDuration = 60 * 60 * 24 * 1000 // 24 hours
 
-pageRouter.get('/prepareMediaUpload', requireAuth(), async (request, response) => {
+pageRouter.get(PrepareMediaUploadURL(), requireAuth(), async (request, response) => {
   try {
     const user = request.session.user!
 
     const { filename } = z.object({ filename: z.string() }).parse(request.query)
 
     // Fetch the user's collection
-    const collectionId = await fetchUserCollection({ userId: user.id })
+    const collectionId = await fetchBunnyUserCollection({ userId: user.id })
 
     // Use Bunny API to create a video
-    const VideoId = await createVideo({ title: filename, collectionId })
+    const VideoId = await createBunnyVideo({ title: filename, collectionId })
 
     const AuthorizationExpire = Date.now() + validityDuration
 
@@ -116,13 +118,13 @@ pageRouter.get(GetMediaStatusURL(), requireAuth(), async (request, response) => 
   }
 })
 
-pageRouter.post('/bunnyMediaHook', async (request, response, next) => {
+pageRouter.post(BunnyMediaHookURL, async (request, response, next) => {
   try {
     const { Status, VideoGuid, VideoLibraryId } = z
-      .object({ Status: z.number(), VideoGuid: z.string(), VideoLibraryId: z.string() })
+      .object({ Status: zMediaStatus, VideoGuid: z.string(), VideoLibraryId: z.string() })
       .parse(request.body)
 
-    await addToHistory(BunnyMediaStatusUpdate({ Status, VideoId: VideoGuid, LibraryId: VideoLibraryId }))
+    await addToHistory(BunnyMediaStatusUpdated({ Status, VideoId: VideoGuid, LibraryId: VideoLibraryId }))
 
     return response.status(200).send('ok')
   } catch (error) {
@@ -130,7 +132,7 @@ pageRouter.post('/bunnyMediaHook', async (request, response, next) => {
   }
 })
 
-async function fetchUserCollection({ userId }: { userId: AppUserId }): Promise<string> {
+async function fetchBunnyUserCollection({ userId }: { userId: AppUserId }): Promise<string> {
   const existingCollection = await getSingleEvent<BunnyUserCollectionCreated>('BunnyUserCollectionCreated', {
     userId,
     bunnyLibraryId: process.env.BUNNY_LIBRARY_ID!,
@@ -159,7 +161,7 @@ async function fetchUserCollection({ userId }: { userId: AppUserId }): Promise<s
   return existingCollection.payload.bunnyCollectionId
 }
 
-async function createVideo(params: { title: string; collectionId: string }) {
+async function createBunnyVideo(params: { title: string; collectionId: string }) {
   const { title, collectionId } = z.object({ title: z.string(), collectionId: z.string().optional() }).parse(params)
 
   const result = await axios.post(
