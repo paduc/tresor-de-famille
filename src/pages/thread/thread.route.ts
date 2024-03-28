@@ -23,6 +23,8 @@ import { UserSetCaptionOfPhotoInThread } from './UserSetCaptionOfPhotoInThread'
 import { UserSetChatTitle } from './UserSetChatTitle'
 import { UserUpdatedThreadAsRichText } from './UserUpdatedThreadAsRichText'
 import { getThreadContents, getThreadPageProps } from './getThreadPageProps'
+import { zIsMediaId } from '../../domain/MediaId'
+import { UserSetCaptionOfMediaInThread } from './UserSetCaptionOfMediaInThread'
 
 const fakeProfilePicUrl =
   'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80'
@@ -95,7 +97,13 @@ pageRouter
 
       const { action } = z
         .object({
-          action: z.enum(['clientsideTitleUpdate', 'clientsideUpdate', 'shareWithMultipleFamilies', 'clientsideCaptionUpdate']),
+          action: z.enum([
+            'clientsideTitleUpdate',
+            'clientsideUpdate',
+            'shareWithMultipleFamilies',
+            'clientsidePhotoCaptionUpdate',
+            'clientsideMediaCaptionUpdate',
+          ]),
         })
         .parse(request.body)
 
@@ -153,13 +161,25 @@ pageRouter
           })
         )
         return response.redirect(ThreadUrl(threadId, true))
-      } else if (action === 'clientsideCaptionUpdate') {
+      } else if (action === 'clientsidePhotoCaptionUpdate') {
         const { caption, photoId } = z.object({ caption: z.string(), photoId: zIsPhotoId }).parse(request.body)
 
         await addToHistory(
           UserSetCaptionOfPhotoInThread({
             caption,
             photoId,
+            threadId,
+            userId,
+          })
+        )
+        return response.redirect(ThreadUrl(threadId, true))
+      } else if (action === 'clientsideMediaCaptionUpdate') {
+        const { caption, mediaId } = z.object({ caption: z.string(), mediaId: zIsMediaId }).parse(request.body)
+
+        await addToHistory(
+          UserSetCaptionOfMediaInThread({
+            caption,
+            mediaId,
             threadId,
             userId,
           })

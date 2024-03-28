@@ -2,6 +2,7 @@ import { getSingleEvent } from '../../dependencies/getSingleEvent'
 import { getPhotoUrlFromId } from '../../dependencies/photo-storage'
 import { AppUserId } from '../../domain/AppUserId'
 import { FamilyId } from '../../domain/FamilyId'
+import { MediaId } from '../../domain/MediaId'
 import { PersonId } from '../../domain/PersonId'
 import { PhotoId } from '../../domain/PhotoId'
 import { ThreadId } from '../../domain/ThreadId'
@@ -21,6 +22,7 @@ import { UserAddedCaptionToPhoto } from '../photo/UserAddedCaptionToPhoto'
 import { ThreadPageProps } from './ThreadPage/ThreadPage'
 import { TipTapContentAsJSON, encodeStringy } from './TipTapTypes'
 import { UserInsertedPhotoInRichTextThread } from './UserInsertedPhotoInRichTextThread'
+import { UserSetCaptionOfMediaInThread } from './UserSetCaptionOfMediaInThread'
 import { UserSetCaptionOfPhotoInThread } from './UserSetCaptionOfPhotoInThread'
 import { UserSetChatTitle } from './UserSetChatTitle'
 import { UserUpdatedThreadAsRichText } from './UserUpdatedThreadAsRichText'
@@ -155,14 +157,10 @@ export const getThreadPageProps = async ({
           VideoId: bunnyVideoId,
         })
 
-        if (!latestStatusEvent) {
-          contentAsJSON.content.push(contentNode)
-          continue
-        }
-
         const newAttrs = {
           ...contentNode.attrs,
-          status: latestStatusEvent.payload.Status,
+          caption: await getMediaCaption({ mediaId, threadId }),
+          status: latestStatusEvent?.payload.Status || contentNode.attrs.status,
         }
 
         contentAsJSON.content.push({
@@ -268,6 +266,19 @@ async function getPhotoCaption({ photoId, threadId }: { photoId: PhotoId; thread
 
   if (captionEvent) {
     return captionEvent.payload.caption.body
+  }
+
+  return ''
+}
+
+async function getMediaCaption({ mediaId, threadId }: { mediaId: MediaId; threadId: ThreadId }) {
+  const captionForThread = await getSingleEvent<UserSetCaptionOfMediaInThread>('UserSetCaptionOfMediaInThread', {
+    mediaId,
+    threadId,
+  })
+
+  if (captionForThread) {
+    return captionForThread.payload.caption
   }
 
   return ''

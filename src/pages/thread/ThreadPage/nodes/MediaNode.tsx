@@ -114,7 +114,7 @@ const MediaItem = (props: MediaItemProps) => {
     fetch(ThreadUrl(threadId), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'clientsideCaptionUpdate', caption: newCaption, mediaId }),
+      body: JSON.stringify({ action: 'clientsideMediaCaptionUpdate', caption: newCaption, mediaId }),
     }).then((res) => {
       if (!res.ok) {
         alert("La nouvelle légende n'a pas pu être sauvegardée")

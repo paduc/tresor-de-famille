@@ -134,7 +134,7 @@ const PhotoItem = (props: PhotoItemProps) => {
     fetch(ThreadUrl(threadId), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'clientsideCaptionUpdate', caption: newCaption, photoId }),
+      body: JSON.stringify({ action: 'clientsidePhotoCaptionUpdate', caption: newCaption, photoId }),
     }).then((res) => {
       if (!res.ok) {
         alert("La nouvelle légende n'a pas pu être sauvegardé")

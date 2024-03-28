@@ -19,6 +19,7 @@ import { UserUpdatedThreadAsRichText } from './UserUpdatedThreadAsRichText'
 import { getThreadPageProps } from './getThreadPageProps'
 import { BunnyMediaStatusUpdated } from '../media/BunnyMediaStatusUpdated'
 import { BunnyMediaUploaded } from '../media/BunnyMediaUploaded'
+import { UserSetCaptionOfMediaInThread } from './UserSetCaptionOfMediaInThread'
 
 describe('getThreadPageProps', () => {
   describe('when a photo a UserSetCaptionOfPhotoInThread for the photo and thread', () => {
@@ -491,6 +492,81 @@ describe('getThreadPageProps', () => {
               caption: '',
               url: 'https://example.com',
               status: 4, // <---
+            },
+          },
+        ],
+      })
+    })
+  })
+
+  describe('when a media has a UserAddedCaptionToPhoto', () => {
+    const threadId = makeThreadId()
+    const mediaId = makeMediaId()
+    const userId = makeAppUserId()
+    beforeAll(async () => {
+      await resetDatabase()
+
+      await addToHistory(
+        UserUpdatedThreadAsRichText({
+          userId,
+          threadId,
+          familyId: makeFamilyId(),
+          contentAsJSON: {
+            type: 'doc',
+            content: [
+              {
+                type: 'mediaNode',
+                attrs: {
+                  mediaId,
+                  caption: '',
+                  url: 'https://example.com',
+                  status: 0,
+                },
+              },
+            ],
+          },
+        })
+      )
+
+      await addToHistory(
+        BunnyMediaUploaded({
+          bunnyLibraryId: 'libraryId',
+          bunnyVideoId: 'videoId',
+          mediaId,
+          userId,
+        })
+      )
+      await addToHistory(
+        UserSetCaptionOfMediaInThread({
+          mediaId,
+          userId,
+          threadId,
+          caption: 'Well',
+        })
+      )
+      await addToHistory(
+        UserSetCaptionOfMediaInThread({
+          mediaId,
+          userId,
+          threadId,
+          caption: 'Hello',
+        })
+      )
+    })
+
+    it('should return the value in the UserAddedCaptionToPhoto', async () => {
+      const res = await getThreadPageProps({ threadId, userId })
+
+      expect(res.contentAsJSON).toMatchObject({
+        type: 'doc',
+        content: [
+          {
+            type: 'mediaNode',
+            attrs: {
+              mediaId,
+              caption: 'Hello',
+              status: 0,
+              url: 'https://example.com',
             },
           },
         ],
