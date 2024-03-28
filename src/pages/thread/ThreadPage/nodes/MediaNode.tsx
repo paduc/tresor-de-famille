@@ -298,30 +298,28 @@ export function MediaNodeItemComponentByStatus(props: MediaComponentProps) {
         </div>
       )}
 
-      {mediaStatus === 4 ? (
-        <div className='w-full pr-10'>
-          <div className='inline-flex my-3 mr-10 items-center w-full'>
-            {isReadonly ? (
-              <div>
-                {latestCaption ? <p className='text-md text-gray-600 mb-1 whitespace-pre-wrap'>{latestCaption}</p> : null}
+      <div className='w-full pr-10'>
+        <div className='inline-flex my-3 mr-10 items-center w-full'>
+          {isReadonly ? (
+            <div>
+              {latestCaption ? <p className='text-md text-gray-600 mb-1 whitespace-pre-wrap'>{latestCaption}</p> : null}
+            </div>
+          ) : (
+            <>
+              <TextareaAutosize
+                minRows={1}
+                className='flex-1 text-md text-gray-600 whitespace-pre-wrap placeholder:italic border-none p-0 ring-0 focus:ring-0'
+                placeholder='Cliquer ici pour ajouter une légende'
+                defaultValue={latestCaption || ''}
+                onChange={props.onCaptionChange}
+              />
+              <div className='flex-0 h-6 w-8'>
+                <StatusIndicator status={props.autosaveStatus} />
               </div>
-            ) : (
-              <>
-                <TextareaAutosize
-                  minRows={1}
-                  className='flex-1 text-md text-gray-600 whitespace-pre-wrap placeholder:italic border-none p-0 ring-0 focus:ring-0'
-                  placeholder='Cliquer ici pour ajouter une légende'
-                  defaultValue={latestCaption || ''}
-                  onChange={props.onCaptionChange}
-                />
-                <div className='flex-0 h-6 w-8'>
-                  <StatusIndicator status={props.autosaveStatus} />
-                </div>
-              </>
-            )}
-          </div>
+            </>
+          )}
         </div>
-      ) : null}
+      </div>
     </div>
   )
 }
