@@ -12,6 +12,9 @@ import { ThreadUrl } from '../ThreadUrl'
 import { TextMark, TipTapContentAsJSON } from '../TipTapTypes'
 import { Comment, Comments } from './_components/Comments'
 import { ThreadSharingButton } from './_components/ThreadSharingButton'
+import { MediaNodeItemComponentByStatus } from './nodes/MediaNode'
+import { MediaId } from '../../../domain/MediaId'
+import { MediaStatus } from '../../media/MediaStatus'
 
 export type ReadOnlyThreadPageProps = {
   title?: string
@@ -89,6 +92,10 @@ export const ReadOnlyThreadPage = withBrowserBundle(
 
                 if (block.type === 'photoNode') {
                   return <ReadonlyPhotoItem key={`block_${blockIndex}`} node={block} />
+                }
+
+                if (block.type === 'mediaNode') {
+                  return <ReadonyMediaItem key={`block_${blockIndex}`} node={block} />
                 }
               })}
             </div>
@@ -207,4 +214,20 @@ const ReadonlyPhotoItem = (props: {
     console.error(error)
     return <div>Erreur: photo dont les données sont illisibles.</div>
   }
+}
+
+const ReadonyMediaItem = (props: {
+  node: {
+    attrs: {
+      mediaId: MediaId
+      url: string
+      caption?: string | undefined
+      status: MediaStatus
+      [key: string]: any
+    }
+  }
+}) => {
+  const { mediaId, url, caption, status } = props.node.attrs
+
+  return <MediaNodeItemComponentByStatus mediaId={mediaId} url={url} latestCaption={caption} mediaStatus={status} isReadonly />
 }

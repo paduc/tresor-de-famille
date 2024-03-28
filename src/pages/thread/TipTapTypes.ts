@@ -2,6 +2,7 @@ import { z } from 'zod'
 import type { JSON } from '../../dependencies/DomainEvent'
 import { zIsPhotoId } from '../../domain/PhotoId'
 import { zIsMediaId } from '../../domain/MediaId'
+import { zMediaStatus } from '../media/MediaStatus'
 
 // TipTap Types
 
@@ -48,7 +49,9 @@ const zIsPhotoNode = z.object({
 
 const zIsMediaNode = z.object({
   type: z.literal('mediaNode'),
-  attrs: z.object({ mediaId: zIsMediaId }).and(z.record(z.any())),
+  attrs: z
+    .object({ mediaId: zIsMediaId, status: zMediaStatus, url: z.string(), caption: z.string().optional() })
+    .and(z.record(z.any())),
 })
 
 const zIsSeparatorNode = z.object({
