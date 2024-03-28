@@ -145,6 +145,11 @@ pageRouter
           )
           return response.status(200).send('ok')
         } catch (error) {
+          if (error instanceof z.ZodError) {
+            console.log(JSON.stringify(request.body, null, 2))
+            console.error('Impossible to save UserThread', error.errors)
+          }
+
           console.error('Impossible to save UserThread', error)
         }
 

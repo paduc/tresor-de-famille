@@ -170,6 +170,8 @@ const RichTextEditor = (props: RichTextEditorProps) => {
             mediaId,
             url,
             threadId,
+            caption: '',
+            status: 0,
           },
         })
       }

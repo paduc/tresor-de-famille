@@ -34,6 +34,7 @@ export const MediaNode = Node.create({
       mediaId: {},
       url: {},
       caption: {},
+      status: {},
     }
   },
 
@@ -66,6 +67,8 @@ const MediaNodeItem = (props: {
         ? MediaId
         : MediaItemProps[Attr] extends UUID
         ? UUID
+        : MediaItemProps[Attr] extends MediaStatus
+        ? MediaStatus
         : MediaItemProps[Attr] extends number
         ? number
         : string
@@ -73,11 +76,11 @@ const MediaNodeItem = (props: {
   }
 }) => {
   try {
-    const { threadId, mediaId, url, caption: description } = props.node.attrs
+    const { threadId, mediaId, url, caption: description, status } = props.node.attrs
 
     return (
       <NodeViewWrapper className='tdf-media'>
-        <MediaItem threadId={threadId} mediaId={mediaId} url={url} caption={description} key={mediaId} />
+        <MediaItem threadId={threadId} mediaId={mediaId} url={url} caption={description} key={mediaId} status={status} />
       </NodeViewWrapper>
     )
   } catch (error) {
@@ -94,6 +97,7 @@ type MediaItemProps = {
   mediaId: MediaId
   url: string
   caption?: string
+  status: MediaStatus
   threadId: ThreadId
 }
 
