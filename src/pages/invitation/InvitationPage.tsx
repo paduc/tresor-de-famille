@@ -11,7 +11,6 @@ import { useSession } from '../_components/SessionContext.js'
 import { SuccessError } from '../_components/SuccessError.js'
 import { AppLayout } from '../_components/layout/AppLayout.js'
 import { BareLayout } from '../_components/layout/Layout.js'
-import { Client } from 'pg'
 
 // @ts-ignore
 function classNames(...classes) {

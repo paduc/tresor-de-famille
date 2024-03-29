@@ -29,7 +29,8 @@ function fileUsesHydration(filePath) {
 }
 
 module.exports = {
-  mode: process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'staging' ? 'production' : 'development',
+  // mode: process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'staging' ? 'production' : 'development',
+  mode: 'production',
   entry: {
     ...pageEntries,
     shared: ['react', 'react-dom', '@headlessui/react'],
@@ -47,7 +48,7 @@ module.exports = {
   // module: {
   //   rules: [
   //     {
-  //       test: /\.tsx?$/,
+  //       test: /\.(js|ts)x?$/,
   //       loader: 'esbuild-loader',
   //       exclude: '/node_modules/',
   //       options: {

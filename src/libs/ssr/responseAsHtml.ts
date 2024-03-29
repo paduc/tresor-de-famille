@@ -7,6 +7,7 @@ import { Session, SessionContext } from '../../pages/_components/SessionContext.
 import { PersonSearchContext } from '../../pages/_components/usePersonSearch.js'
 import { withContext } from './withContext.js'
 
+// @ts-ignore : this is a generated file
 import manifest from '../../assets/js/manifest.json' assert { type: 'json' }
 import { makeSearchKey } from '../../dependencies/search.js'
 import { FamilyId } from '../../domain/FamilyId.js'
