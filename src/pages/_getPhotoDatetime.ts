@@ -1,10 +1,10 @@
-import { getEventList } from '../dependencies/getEventList'
-import { getSingleEvent } from '../dependencies/getSingleEvent'
-import { PhotoId } from '../domain/PhotoId'
-import { UserUploadedPhoto } from './photoApi/UserUploadedPhoto'
-import { UserUploadedPhotoToFamily } from './photoApi/UserUploadedPhotoToFamily'
-import { NewPhotoPageProps } from './photo/PhotoPage/NewPhotoPage'
-import { UserSetPhotoDate } from './photo/UserSetPhotoDate'
+import { getEventList } from '../dependencies/getEventList.js'
+import { getSingleEvent } from '../dependencies/getSingleEvent.js'
+import { PhotoId } from '../domain/PhotoId.js'
+import { UserUploadedPhoto } from './photoApi/UserUploadedPhoto.js'
+import { UserUploadedPhotoToFamily } from './photoApi/UserUploadedPhotoToFamily.js'
+import { NewPhotoPageProps } from './photo/PhotoPage/NewPhotoPage.js'
+import { UserSetPhotoDate } from './photo/UserSetPhotoDate.js'
 
 export async function getPhotoDatetime({ photoId }: { photoId: PhotoId }): Promise<NewPhotoPageProps['datetime']> {
   // A reverse chronological list of events (first in array = last to be emitted)

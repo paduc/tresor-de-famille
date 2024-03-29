@@ -1,4 +1,4 @@
-import { TipTapContentAsJSON, TipTapJSON } from '../../TipTapTypes'
+import { TipTapContentAsJSON, TipTapJSON } from '../../TipTapTypes.js'
 
 export function mergeThreadContents([a, b]: [TipTapContentAsJSON, TipTapContentAsJSON]): TipTapContentAsJSON {
   if (!a.content.length) {

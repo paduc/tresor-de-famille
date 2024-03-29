@@ -1,11 +1,11 @@
 import zod from 'zod'
 import { pipeline } from 'node:stream'
-import { requireAuth } from '../../dependencies/authn'
-import { downloadPhoto } from '../../dependencies/photo-storage'
-import { zIsPhotoId } from '../../domain/PhotoId'
-import { doesPhotoExist } from '../_doesPhotoExist'
-import { pageRouter } from '../pageRouter'
-import { PhotoURL } from './PhotoURL'
+import { requireAuth } from '../../dependencies/authn.js'
+import { downloadPhoto } from '../../dependencies/photo-storage.js'
+import { zIsPhotoId } from '../../domain/PhotoId.js'
+import { doesPhotoExist } from '../_doesPhotoExist.js'
+import { pageRouter } from '../pageRouter.js'
+import { PhotoURL } from './PhotoURL.js'
 
 pageRouter.route(PhotoURL(':photoId')).get(requireAuth(), async (request, response, next) => {
   try {

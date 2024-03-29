@@ -1,6 +1,6 @@
-import { DomainEvent, makeDomainEvent } from '../../dependencies/DomainEvent'
-import { AppUserId } from '../../domain/AppUserId'
-import { PhotoId } from '../../domain/PhotoId'
+import { DomainEvent, makeDomainEvent } from '../../dependencies/DomainEvent.js'
+import { AppUserId } from '../../domain/AppUserId.js'
+import { PhotoId } from '../../domain/PhotoId.js'
 
 export type UserSetPhotoLocation = DomainEvent<
   'UserSetPhotoLocation',

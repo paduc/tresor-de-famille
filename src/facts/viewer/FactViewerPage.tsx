@@ -1,5 +1,5 @@
 import React from 'react'
-import { DomainEvent } from '../../dependencies/DomainEvent'
+import { DomainEvent } from '../../dependencies/DomainEvent.js'
 
 type FactViewerPageProps = {
   facts: DomainEvent[]

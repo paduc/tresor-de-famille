@@ -1,8 +1,8 @@
-import { DomainEvent, makeDomainEvent } from '../../../../dependencies/DomainEvent'
-import { AppUserId } from '../../../../domain/AppUserId'
-import { FamilyId } from '../../../../domain/FamilyId'
-import { ThreadId } from '../../../../domain/ThreadId'
-import { TipTapContentAsJSON } from '../../TipTapTypes'
+import { DomainEvent, makeDomainEvent } from '../../../../dependencies/DomainEvent.js'
+import { AppUserId } from '../../../../domain/AppUserId.js'
+import { FamilyId } from '../../../../domain/FamilyId.js'
+import { ThreadId } from '../../../../domain/ThreadId.js'
+import { TipTapContentAsJSON } from '../../TipTapTypes.js'
 
 export type ThreadClonedForSharing = DomainEvent<
   'ThreadClonedForSharing',

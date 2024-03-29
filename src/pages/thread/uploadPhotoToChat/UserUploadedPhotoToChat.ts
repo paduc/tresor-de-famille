@@ -1,8 +1,8 @@
-import { DomainEvent, makeDomainEvent } from '../../../dependencies/DomainEvent'
-import { AppUserId } from '../../../domain/AppUserId'
-import { FamilyId } from '../../../domain/FamilyId'
-import { PhotoId } from '../../../domain/PhotoId'
-import { ThreadId } from '../../../domain/ThreadId'
+import { DomainEvent, makeDomainEvent } from '../../../dependencies/DomainEvent.js'
+import { AppUserId } from '../../../domain/AppUserId.js'
+import { FamilyId } from '../../../domain/FamilyId.js'
+import { PhotoId } from '../../../domain/PhotoId.js'
+import { ThreadId } from '../../../domain/ThreadId.js'
 
 export type PhotoLocation =
   | {

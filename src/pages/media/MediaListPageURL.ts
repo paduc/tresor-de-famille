@@ -1,4 +1,4 @@
-import { FamilyId } from '../../domain/FamilyId'
+import { FamilyId } from '../../domain/FamilyId.js'
 
 export const MediaListPageUrl = '/mediaList.html'
 export const MediaListPageUrlWithFamily = (familyId?: FamilyId) => {

@@ -1,7 +1,7 @@
-import { DomainEvent, makeDomainEvent } from '../../dependencies/DomainEvent'
-import { AppUserId } from '../../domain/AppUserId'
-import { FamilyId } from '../../domain/FamilyId'
-import { ThreadId } from '../../domain/ThreadId'
+import { DomainEvent, makeDomainEvent } from '../../dependencies/DomainEvent.js'
+import { AppUserId } from '../../domain/AppUserId.js'
+import { FamilyId } from '../../domain/FamilyId.js'
+import { ThreadId } from '../../domain/ThreadId.js'
 
 export type OnboardingUserStartedFirstThread = DomainEvent<
   'OnboardingUserStartedFirstThread',

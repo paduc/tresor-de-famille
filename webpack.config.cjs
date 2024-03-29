@@ -15,7 +15,7 @@ const pageEntries = glob
     (entries, { name, path }) => ({
       ...entries,
       [name]: {
-        import: path,
+        import: path.replace('./src', './dist').replace('.tsx', '.js'),
         dependOn: 'shared',
       },
     }),
@@ -44,22 +44,22 @@ module.exports = {
     }),
     new WebpackManifestPlugin({ useEntryKeys: true, publicPath: '' }),
   ],
-  module: {
-    rules: [
-      {
-        test: /\.tsx?$/,
-        loader: 'esbuild-loader',
-        exclude: '/node_modules/',
-        options: {
-          loader: 'tsx',
-          target: 'es2015',
-        },
-      },
-    ],
-  },
+  // module: {
+  //   rules: [
+  //     {
+  //       test: /\.tsx?$/,
+  //       loader: 'esbuild-loader',
+  //       exclude: '/node_modules/',
+  //       options: {
+  //         loader: 'tsx',
+  //         target: 'esnext',
+  //       },
+  //     },
+  //   ],
+  // },
   output: {
     filename: '[name].[contenthash].js',
-    path: path.resolve(__dirname, 'src', 'assets', 'js'),
+    path: path.resolve(__dirname, 'dist', 'assets', 'js'),
     clean: true,
   },
 }

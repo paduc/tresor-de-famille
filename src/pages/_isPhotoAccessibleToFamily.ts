@@ -1,6 +1,6 @@
-import { FamilyId } from '../domain/FamilyId'
-import { PhotoId } from '../domain/PhotoId'
-import { getPhotoEvents } from './_getPhotoEvents'
+import { FamilyId } from '../domain/FamilyId.js'
+import { PhotoId } from '../domain/PhotoId.js'
+import { getPhotoEvents } from './_getPhotoEvents.js'
 
 export const isPhotoAccessibleToFamily = async ({
   photoId,

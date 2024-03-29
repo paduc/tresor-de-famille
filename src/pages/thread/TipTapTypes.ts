@@ -1,8 +1,8 @@
 import { z } from 'zod'
-import type { JSON } from '../../dependencies/DomainEvent'
-import { zIsPhotoId } from '../../domain/PhotoId'
-import { zIsMediaId } from '../../domain/MediaId'
-import { zMediaStatus } from '../media/MediaStatus'
+import type { JSON } from '../../dependencies/DomainEvent.js'
+import { zIsPhotoId } from '../../domain/PhotoId.js'
+import { zIsMediaId } from '../../domain/MediaId.js'
+import { zMediaStatus } from '../media/MediaStatus.js'
 
 // TipTap Types
 

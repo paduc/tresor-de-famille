@@ -1,9 +1,9 @@
-import { getEventList } from '../dependencies/getEventList'
-import { getSingleEvent } from '../dependencies/getSingleEvent'
-import { AppUserId } from '../domain/AppUserId'
-import { PersonId } from '../domain/PersonId'
-import { UserNamedThemself } from '../events/onboarding/UserNamedThemself'
-import { UserRecognizedThemselfAsPerson } from '../events/onboarding/UserRecognizedThemselfAsPerson'
+import { getEventList } from '../dependencies/getEventList.js'
+import { getSingleEvent } from '../dependencies/getSingleEvent.js'
+import { AppUserId } from '../domain/AppUserId.js'
+import { PersonId } from '../domain/PersonId.js'
+import { UserNamedThemself } from '../events/onboarding/UserNamedThemself.js'
+import { UserRecognizedThemselfAsPerson } from '../events/onboarding/UserRecognizedThemselfAsPerson.js'
 
 export async function getUsersForPersonId({ personId }: { personId: PersonId }): Promise<AppUserId[]> {
   const personEvents = await getEventList<UserNamedThemself | UserRecognizedThemselfAsPerson>(

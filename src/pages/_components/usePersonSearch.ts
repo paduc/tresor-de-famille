@@ -1,4 +1,4 @@
-import type { SearchIndex } from 'algoliasearch/lite'
+import type { SearchIndex } from 'algoliasearch/lite.js'
 import React, { useContext } from 'react'
 
 export const PersonSearchContext = React.createContext<SearchIndex | null>(null)

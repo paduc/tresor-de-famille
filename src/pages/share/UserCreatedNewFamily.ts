@@ -1,7 +1,7 @@
-import { DomainEvent, makeDomainEvent } from '../../dependencies/DomainEvent'
-import { AppUserId } from '../../domain/AppUserId'
-import { FamilyId } from '../../domain/FamilyId'
-import { FamilyShareCode } from '../../domain/FamilyShareCode'
+import { DomainEvent, makeDomainEvent } from '../../dependencies/DomainEvent.js'
+import { AppUserId } from '../../domain/AppUserId.js'
+import { FamilyId } from '../../domain/FamilyId.js'
+import { FamilyShareCode } from '../../domain/FamilyShareCode.js'
 
 export type UserCreatedNewFamily = DomainEvent<
   'UserCreatedNewFamily',

@@ -1,6 +1,6 @@
 import { z } from 'zod'
-import { zIsPersonId } from '../../domain/PersonId'
-import { zIsRelationshipId } from '../../domain/RelationshipId'
+import { zIsPersonId } from '../../domain/PersonId.js'
+import { zIsRelationshipId } from '../../domain/RelationshipId.js'
 
 export const zIsRelationship = z
   .object({

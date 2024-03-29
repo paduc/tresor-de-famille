@@ -1,7 +1,7 @@
-import { DomainEvent, makeDomainEvent } from '../../dependencies/DomainEvent'
-import { AppUserId } from '../../domain/AppUserId'
-import { FamilyId } from '../../domain/FamilyId'
-import { PhotoId } from '../../domain/PhotoId'
+import { DomainEvent, makeDomainEvent } from '../../dependencies/DomainEvent.js'
+import { AppUserId } from '../../domain/AppUserId.js'
+import { FamilyId } from '../../domain/FamilyId.js'
+import { PhotoId } from '../../domain/PhotoId.js'
 
 export type OnboardingUserUploadedPhotoOfThemself = DomainEvent<
   'OnboardingUserUploadedPhotoOfThemself',

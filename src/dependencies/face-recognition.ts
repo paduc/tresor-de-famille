@@ -1,6 +1,6 @@
 import aws from 'aws-sdk'
-import { BoundingBox } from 'aws-sdk/clients/rekognition'
-import { throwIfUndefined } from './env'
+import { BoundingBox } from 'aws-sdk/clients/rekognition.js'
+import { throwIfUndefined } from './env.js'
 
 // NB: these variables are inside a getter so we can switch them later
 // NB2: throwIfUndefined are meant to check env vars at startup, not during runtime

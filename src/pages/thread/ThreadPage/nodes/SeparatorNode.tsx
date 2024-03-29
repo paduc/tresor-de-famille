@@ -3,8 +3,8 @@ import { Node } from '@tiptap/core'
 import { Attributes, ReactNodeViewRenderer, mergeAttributes } from '@tiptap/react'
 import { Bars3BottomLeftIcon, PhotoIcon } from '@heroicons/react/20/solid'
 import { NodeViewWrapper } from '@tiptap/react'
-import { useSelectDOMNodeForInsertion } from '../hooks/useSelectDOMNodeForInsertion'
-import { useEditorCtx } from '../hooks/useEditorCtx'
+import { useSelectDOMNodeForInsertion } from '../hooks/useSelectDOMNodeForInsertion.js'
+import { useEditorCtx } from '../hooks/useEditorCtx.js'
 
 export const SeparatorNode = Node.create({
   name: 'separatorNode',

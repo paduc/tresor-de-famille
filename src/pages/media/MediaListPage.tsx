@@ -1,8 +1,8 @@
 import * as React from 'react'
 
-import { withBrowserBundle } from '../../libs/ssr/withBrowserBundle'
-import { useLoggedInSession } from '../_components/SessionContext'
-import { AppLayout } from '../_components/layout/AppLayout'
+import { withBrowserBundle } from '../../libs/ssr/withBrowserBundle.js'
+import { useLoggedInSession } from '../_components/SessionContext.js'
+import { AppLayout } from '../_components/layout/AppLayout.js'
 
 // @ts-ignore
 function classNames(...classes) {

@@ -1,5 +1,5 @@
-import { DomainEvent } from './DomainEvent'
-import { postgres } from './database'
+import { DomainEvent } from './DomainEvent.js'
+import { postgres } from './database.js'
 
 type Equals<X, Y> = (<T>() => T extends X ? 1 : 2) extends <T>() => T extends Y ? 1 : 2 ? true : false
 

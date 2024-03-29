@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "start": "node dist/server.js",
-    "build": "yarn build:front && tsc --p tsconfig.build.json && yarn postcss:build && cp -r src/assets dist",
+    "build": "tsc --p tsconfig.build.json && yarn build:front  && yarn postcss:build && cp -r src/assets dist",
     "test-build": "tsc --p tsconfig.build.json --noEmit",
     "build:front": "webpack --config=webpack.config.cjs",
     "postcss:local": "postcss --watch -o src/assets/style.css src/pages/style.css",
@@ -80,7 +80,7 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-textarea-autosize": "^8.5.2",
-    "reactflow": "^11.8.3",
+    "reactflow": "^11.10.4",
     "sharp": "^0.32.1",
     "tailwindcss": "^3.3.1",
     "ts-node": "^10.9.1",

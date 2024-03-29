@@ -1,11 +1,11 @@
 import { ChatBubbleLeftIcon, LockClosedIcon, UsersIcon } from '@heroicons/react/24/outline'
 import * as React from 'react'
-import { ThreadId } from '../../domain/ThreadId'
-import { useLoggedInSession } from './SessionContext'
-import { ThreadUrl } from '../thread/ThreadUrl'
-import { FamilyId } from '../../domain/FamilyId'
+import { ThreadId } from '../../domain/ThreadId.js'
+import { useLoggedInSession } from './SessionContext.js'
+import { ThreadUrl } from '../thread/ThreadUrl.js'
+import { FamilyId } from '../../domain/FamilyId.js'
 import { useState } from 'react'
-import { secondaryButtonStyles } from './Button'
+import { secondaryButtonStyles } from './Button.js'
 
 export function ThreadList({
   threads,

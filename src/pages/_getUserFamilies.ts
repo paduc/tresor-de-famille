@@ -1,13 +1,13 @@
-import { getEventList } from '../dependencies/getEventList'
-import { AppUserId } from '../domain/AppUserId'
-import { FamilyId } from '../domain/FamilyId'
-import { FamilyShareCode } from '../domain/FamilyShareCode'
-import { UserRegisteredWithInvitation } from '../events/UserRegisteredWithInvitation'
-import { FamilyColorCodes } from '../libs/ssr/FamilyColorCodes'
-import { asFamilyId } from '../libs/typeguards'
-import { getFamilyById } from './_getFamilyById'
-import { UserAcceptedInvitation } from './invitation/UserAcceptedInvitation'
-import { UserCreatedNewFamily } from './share/UserCreatedNewFamily'
+import { getEventList } from '../dependencies/getEventList.js'
+import { AppUserId } from '../domain/AppUserId.js'
+import { FamilyId } from '../domain/FamilyId.js'
+import { FamilyShareCode } from '../domain/FamilyShareCode.js'
+import { UserRegisteredWithInvitation } from '../events/UserRegisteredWithInvitation.js'
+import { FamilyColorCodes } from '../libs/ssr/FamilyColorCodes.js'
+import { asFamilyId } from '../libs/typeguards.js'
+import { getFamilyById } from './_getFamilyById.js'
+import { UserAcceptedInvitation } from './invitation/UserAcceptedInvitation.js'
+import { UserCreatedNewFamily } from './share/UserCreatedNewFamily.js'
 
 type Family = {
   familyId: FamilyId

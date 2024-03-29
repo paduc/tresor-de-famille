@@ -1,10 +1,10 @@
-import { postgres } from '../dependencies/database'
-import { getEventList } from '../dependencies/getEventList'
-import { PersonId } from '../domain/PersonId'
-import { UserNamedPersonInPhoto } from '../events/onboarding/UserNamedPersonInPhoto'
-import { UserNamedThemself } from '../events/onboarding/UserNamedThemself'
-import { UserCreatedRelationshipWithNewPerson } from './family/UserCreatedRelationshipWithNewPerson'
-import { UserChangedPersonName } from './person/UserChangedPersonName'
+import { postgres } from '../dependencies/database.js'
+import { getEventList } from '../dependencies/getEventList.js'
+import { PersonId } from '../domain/PersonId.js'
+import { UserNamedPersonInPhoto } from '../events/onboarding/UserNamedPersonInPhoto.js'
+import { UserNamedThemself } from '../events/onboarding/UserNamedThemself.js'
+import { UserCreatedRelationshipWithNewPerson } from './family/UserCreatedRelationshipWithNewPerson.js'
+import { UserChangedPersonName } from './person/UserChangedPersonName.js'
 
 export type PersonEvent =
   | UserCreatedRelationshipWithNewPerson

@@ -1,10 +1,10 @@
-import { DomainEvent } from '../../dependencies/DomainEvent'
-import { getSingleEvent } from '../../dependencies/getSingleEvent'
-import { FamilyId } from '../../domain/FamilyId'
-import { FamilyShareCode } from '../../domain/FamilyShareCode'
-import { UserRegisteredWithEmailAndPassword } from '../../events/UserRegisteredWithEmailAndPassword'
-import { UserRegisteredWithInvitation } from '../../events/UserRegisteredWithInvitation'
-import { makeAppUserId } from '../../libs/makeUserId'
+import { DomainEvent } from '../../dependencies/DomainEvent.js'
+import { getSingleEvent } from '../../dependencies/getSingleEvent.js'
+import { FamilyId } from '../../domain/FamilyId.js'
+import { FamilyShareCode } from '../../domain/FamilyShareCode.js'
+import { UserRegisteredWithEmailAndPassword } from '../../events/UserRegisteredWithEmailAndPassword.js'
+import { UserRegisteredWithInvitation } from '../../events/UserRegisteredWithInvitation.js'
+import { makeAppUserId } from '../../libs/makeUserId.js'
 
 type RegisterWithInviteDeps = {
   addToHistory: (event: DomainEvent) => unknown

@@ -1,12 +1,12 @@
 import * as React from 'react'
 
 import { CheckCircleIcon, DocumentDuplicateIcon } from '@heroicons/react/24/outline'
-import { FamilyId } from '../../domain/FamilyId'
-import { withBrowserBundle } from '../../libs/ssr/withBrowserBundle'
-import { linkStyles, primaryButtonStyles } from '../_components/Button'
-import { useLoggedInSession, useSession } from '../_components/SessionContext'
-import { AppLayout } from '../_components/layout/AppLayout'
-import { AppUserId } from '../../domain/AppUserId'
+import { FamilyId } from '../../domain/FamilyId.js'
+import { withBrowserBundle } from '../../libs/ssr/withBrowserBundle.js'
+import { linkStyles, primaryButtonStyles } from '../_components/Button.js'
+import { useLoggedInSession, useSession } from '../_components/SessionContext.js'
+import { AppLayout } from '../_components/layout/AppLayout.js'
+import { AppUserId } from '../../domain/AppUserId.js'
 
 // @ts-ignore
 function classNames(...classes) {

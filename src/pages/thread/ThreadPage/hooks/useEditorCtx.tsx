@@ -1,6 +1,6 @@
 import React, { createContext, useContext } from 'react'
 import { Editor } from '@tiptap/react'
-import { ThreadId } from '../../../../domain/ThreadId'
+import { ThreadId } from '../../../../domain/ThreadId.js'
 
 export const EditorCtx = createContext<{ editorRef: React.MutableRefObject<Editor | null>; threadId: ThreadId } | null>(null)
 

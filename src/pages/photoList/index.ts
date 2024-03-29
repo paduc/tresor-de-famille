@@ -1,2 +1,2 @@
-export * from './PhotoListPage'
-export * from './photoList.route'
+export * from './PhotoListPage.js'
+export * from './photoList.route.js'

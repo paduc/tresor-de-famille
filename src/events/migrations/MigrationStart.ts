@@ -1,4 +1,4 @@
-import { DomainEvent, makeDomainEvent } from '../../dependencies/DomainEvent'
+import { DomainEvent, makeDomainEvent } from '../../dependencies/DomainEvent.js'
 
 export type MigrationName = 'threadClone' | 'photoClone' | 'personClone' | 'deleteThreadClones'
 

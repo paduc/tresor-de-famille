@@ -1,8 +1,8 @@
 import algoliasearch from 'algoliasearch'
-import { AppUserId } from '../domain/AppUserId'
-import { ALGOLIA_SEARCHKEY } from './env'
-import { FamilyId } from '../domain/FamilyId'
-import { PersonId } from '../domain/PersonId'
+import { AppUserId } from '../domain/AppUserId.js'
+import { ALGOLIA_SEARCHKEY } from './env.js'
+import { FamilyId } from '../domain/FamilyId.js'
+import { PersonId } from '../domain/PersonId.js'
 
 const ALGOLIA_APPID = process.env.ALGOLIA_APPID
 const ALGOLIA_APPKEY = process.env.ALGOLIA_APPKEY
@@ -11,6 +11,7 @@ if (!ALGOLIA_APPID || !ALGOLIA_APPKEY) {
   process.exit(1)
 }
 
+// @ts-ignore
 export const searchClient = algoliasearch(ALGOLIA_APPID, ALGOLIA_APPKEY)
 
 export const personsIndex = searchClient.initIndex('persons')

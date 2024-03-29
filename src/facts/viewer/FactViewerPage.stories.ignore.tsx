@@ -1,6 +1,6 @@
 import React from 'react'
-import { FactViewerPage } from './FactViewerPage'
-import { getUuid } from '../../libs/getUuid'
+import { FactViewerPage } from './FactViewerPage.js'
+import { getUuid } from '../../libs/getUuid.js'
 
 export default { title: 'FactViewerPage', component: FactViewerPage }
 

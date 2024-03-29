@@ -1,6 +1,6 @@
-import { getSingleEvent } from '../dependencies/getSingleEvent'
-import { PhotoId } from '../domain/PhotoId'
-import { UserDeletedPhoto } from './photoApi/UserDeletedPhoto'
+import { getSingleEvent } from '../dependencies/getSingleEvent.js'
+import { PhotoId } from '../domain/PhotoId.js'
+import { UserDeletedPhoto } from './photoApi/UserDeletedPhoto.js'
 
 export async function isPhotoDeleted(photoId: PhotoId) {
   const isDeleted = await getSingleEvent<UserDeletedPhoto>('UserDeletedPhoto', { photoId })

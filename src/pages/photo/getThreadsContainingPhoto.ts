@@ -1,6 +1,6 @@
-import { postgres } from '../../dependencies/database'
-import { PhotoId } from '../../domain/PhotoId'
-import { ThreadId } from '../../domain/ThreadId'
+import { postgres } from '../../dependencies/database.js'
+import { PhotoId } from '../../domain/PhotoId.js'
+import { ThreadId } from '../../domain/ThreadId.js'
 
 export async function getThreadsContainingPhoto({ photoId }: { photoId: PhotoId }): Promise<ThreadId[]> {
   const { rows } = await postgres.query(

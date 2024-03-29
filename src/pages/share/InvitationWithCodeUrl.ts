@@ -1,7 +1,7 @@
-import { BASE_URL } from '../../dependencies/env'
-import { AppUserId } from '../../domain/AppUserId'
-import { FamilyId } from '../../domain/FamilyId'
-import { FamilyShareCode } from '../../domain/FamilyShareCode'
+import { BASE_URL } from '../../dependencies/env.js'
+import { AppUserId } from '../../domain/AppUserId.js'
+import { FamilyId } from '../../domain/FamilyId.js'
+import { FamilyShareCode } from '../../domain/FamilyShareCode.js'
 
 export const InvitationWithCodeUrl = ({
   familyId,

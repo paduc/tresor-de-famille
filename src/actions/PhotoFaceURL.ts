@@ -1,5 +1,5 @@
-import { PhotoId } from '../domain/PhotoId'
-import { FaceId } from '../domain/FaceId'
+import { PhotoId } from '../domain/PhotoId.js'
+import { FaceId } from '../domain/FaceId.js'
 
 export const PhotoFaceURL = (args?: { photoId: PhotoId; faceId: FaceId }) => {
   if (args) {

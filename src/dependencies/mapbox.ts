@@ -1,7 +1,7 @@
 // @ts-ignore
-import createNodeClient from '@mapbox/mapbox-sdk/lib/node/node-client'
+import createNodeClient from '@mapbox/mapbox-sdk/lib/node/node-client.js'
 // @ts-ignore
-import Geocoding from '@mapbox/mapbox-sdk/services/geocoding'
+import Geocoding from '@mapbox/mapbox-sdk/services/geocoding.js'
 
 const { MAPBOX_TOKEN } = process.env
 if (!MAPBOX_TOKEN) {

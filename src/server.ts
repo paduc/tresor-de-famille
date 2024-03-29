@@ -7,12 +7,13 @@ import { MulterError } from 'multer'
 
 import cors from 'cors'
 import morgan from 'morgan'
-import { actionsRouter } from './actions'
-import { createHistoryTable, createIndexesOnHistoryTable } from './dependencies/addToHistory'
-import { SENTRY_DSN, SESSION_SECRET } from './dependencies/env'
-import { sessionStore } from './dependencies/session'
-import { factViewerRouter } from './facts/viewer/factViewer.route'
-import { pageRouter } from './pages'
+import { actionsRouter } from './actions/index.js'
+import { createHistoryTable, createIndexesOnHistoryTable } from './dependencies/addToHistory.js'
+import { SENTRY_DSN, SESSION_SECRET } from './dependencies/env.js'
+import { sessionStore } from './dependencies/session.js'
+import { factViewerRouter } from './facts/viewer/factViewer.route.js'
+import { pageRouter } from './pages/index.js'
+import { getDirname } from './libs/getDirname.js'
 
 const PORT: number = parseInt(process.env.PORT ?? '3000')
 
@@ -69,7 +70,8 @@ app.use(actionsRouter)
 
 app.use(factViewerRouter)
 
-app.use(express.static(path.join(__dirname, 'assets')))
+const staticPath = path.join(getDirname(import.meta.url), 'assets')
+app.use(express.static(staticPath))
 
 // Error catcher to return proper codes to the caller (browser)
 app.use((err: Error, _: Request, res: Response, next: NextFunction) => {

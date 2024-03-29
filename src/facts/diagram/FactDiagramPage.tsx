@@ -1,5 +1,5 @@
 import React from 'react'
-import { linkStyles } from '../../pages/_components/Button'
+import { linkStyles } from '../../pages/_components/Button.js'
 
 type EventDTO = {
   eventName: string

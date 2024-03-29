@@ -1,37 +1,26 @@
 import * as React from 'react'
-import ReactFlow, {
-  Background,
-  Edge,
-  Handle,
-  Node,
-  NodeProps,
-  Panel,
-  Position,
-  ReactFlowInstance,
-  ReactFlowProvider,
-  useEdgesState,
-  useNodesState,
-} from 'reactflow'
+import ReactFlow, { Position, Handle, Panel, ReactFlowProvider, useEdgesState, useNodesState, Background } from 'reactflow'
+import type { Node, NodeProps, ReactFlowInstance, Edge } from 'reactflow'
 
 import { Dialog, Listbox, Transition } from '@headlessui/react'
 import { CheckIcon, ChevronDownIcon, EllipsisHorizontalIcon, UserPlusIcon, XMarkIcon } from '@heroicons/react/24/outline'
 import { useCallback, useMemo, useRef, useState } from 'react'
 import { z } from 'zod'
-import { FamilyId } from '../../domain/FamilyId'
-import { PersonId, zIsPersonId } from '../../domain/PersonId'
-import { RelationshipId } from '../../domain/RelationshipId'
-import { makePersonId } from '../../libs/makePersonId'
-import { makeRelationshipId } from '../../libs/makeRelationshipId'
-import { withBrowserBundle } from '../../libs/ssr/withBrowserBundle'
-import { primaryButtonStyles, secondaryButtonStyles, smallButtonIconStyles, smallButtonStyles } from '../_components/Button'
-import { ClientOnly } from '../_components/ClientOnly'
-import { useLoggedInSession, useSession } from '../_components/SessionContext'
-import { TDFModal } from '../_components/TDFModal'
-import { AppLayout } from '../_components/layout/AppLayout'
-import { usePersonSearch } from '../_components/usePersonSearch'
-import { PersonPageURL } from '../person/PersonPageURL'
-import { FamilyPageURLWithFamily } from './FamilyPageURL'
-import { zIsRelationship } from './zIsRelationship'
+import { FamilyId } from '../../domain/FamilyId.js'
+import { PersonId, zIsPersonId } from '../../domain/PersonId.js'
+import { RelationshipId } from '../../domain/RelationshipId.js'
+import { makePersonId } from '../../libs/makePersonId.js'
+import { makeRelationshipId } from '../../libs/makeRelationshipId.js'
+import { withBrowserBundle } from '../../libs/ssr/withBrowserBundle.js'
+import { primaryButtonStyles, secondaryButtonStyles, smallButtonIconStyles, smallButtonStyles } from '../_components/Button.js'
+import { ClientOnly } from '../_components/ClientOnly.js'
+import { useLoggedInSession, useSession } from '../_components/SessionContext.js'
+import { TDFModal } from '../_components/TDFModal.js'
+import { AppLayout } from '../_components/layout/AppLayout.js'
+import { usePersonSearch } from '../_components/usePersonSearch.js'
+import { PersonPageURL } from '../person/PersonPageURL.js'
+import { FamilyPageURLWithFamily } from './FamilyPageURL.js'
+import { zIsRelationship } from './zIsRelationship.js'
 
 // @ts-ignore
 function classNames(...classes) {
@@ -682,6 +671,7 @@ const ClientOnlyFamilyPage = ({ initialPersons, initialRelationships, initialOri
       <NodeListenerContext.Provider value={onRelationshipButtonPressed}>
         <ReactFlowProvider>
           <div className='w-full h-screen relative' ref={reactFlowWrapper}>
+            {/* @ts-ignore */}
             <ReactFlow
               nodes={nodes}
               edges={edges}

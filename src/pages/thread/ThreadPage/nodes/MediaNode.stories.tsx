@@ -1,7 +1,7 @@
 import React from 'react'
-import { MediaNodeItemComponent } from './MediaNode'
-import { MediaId } from '../../../../domain/MediaId'
-import { MediaStatus } from '../../../media/MediaStatus'
+import { MediaNodeItemComponent } from './MediaNode.js'
+import { MediaId } from '../../../../domain/MediaId.js'
+import { MediaStatus } from '../../../media/MediaStatus.js'
 
 export default { title: 'MediaNode', component: MediaNodeItemComponent, parameters: { layout: 'fullscreen' } }
 

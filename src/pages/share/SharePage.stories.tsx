@@ -1,14 +1,14 @@
 import * as React from 'react'
-import { SessionContext } from '../_components/SessionContext'
-import { SharePage } from './SharePage'
-import { makePersonId } from '../../libs/makePersonId'
-import { makeFamilyId } from '../../libs/makeFamilyId'
-import { FamilyId } from '../../domain/FamilyId'
-import { AppUserId } from '../../domain/AppUserId'
+import { SessionContext } from '../_components/SessionContext.js'
+import { SharePage } from './SharePage.js'
+import { makePersonId } from '../../libs/makePersonId.js'
+import { makeFamilyId } from '../../libs/makeFamilyId.js'
+import { FamilyId } from '../../domain/FamilyId.js'
+import { AppUserId } from '../../domain/AppUserId.js'
 import { SearchIndex } from 'algoliasearch'
-import { makeAppUserId } from '../../libs/makeUserId'
-import { PersonSearchContext } from '../_components/usePersonSearch'
-import { FamilyShareCode } from '../../domain/FamilyShareCode'
+import { makeAppUserId } from '../../libs/makeUserId.js'
+import { PersonSearchContext } from '../_components/usePersonSearch.js'
+import { FamilyShareCode } from '../../domain/FamilyShareCode.js'
 const fakePersonSearch = async (query: string) => {
   return {
     hits: [

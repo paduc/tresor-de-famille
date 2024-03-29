@@ -1,13 +1,13 @@
 import zod from 'zod'
-import { requireAuth } from '../../dependencies/authn'
-import { zIsThreadId } from '../../domain/ThreadId'
-import { pageRouter } from '../pageRouter'
-import { AddCommentApiURL } from './AddCommentApiURL'
-import { addToHistory } from '../../dependencies/addToHistory'
-import { UserAddedCommentOnThread } from '../thread/UserAddedCommentOnThread'
-import { makeCommentId } from '../../libs/makeCommentId'
-import { isThreadSharedWithUser } from '../_isThreadSharedWithUser'
-import { getThreadComments } from './getThreadComments'
+import { requireAuth } from '../../dependencies/authn.js'
+import { zIsThreadId } from '../../domain/ThreadId.js'
+import { pageRouter } from '../pageRouter.js'
+import { AddCommentApiURL } from './AddCommentApiURL.js'
+import { addToHistory } from '../../dependencies/addToHistory.js'
+import { UserAddedCommentOnThread } from '../thread/UserAddedCommentOnThread.js'
+import { makeCommentId } from '../../libs/makeCommentId.js'
+import { isThreadSharedWithUser } from '../_isThreadSharedWithUser.js'
+import { getThreadComments } from './getThreadComments.js'
 
 pageRouter.route(AddCommentApiURL).post(requireAuth(), async (request, response, next) => {
   try {

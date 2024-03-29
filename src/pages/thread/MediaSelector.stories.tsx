@@ -1,6 +1,6 @@
 import React from 'react'
-import { MediaSelectorComponent } from './MediaSelector'
-import { makePhotoId } from '../../libs/makePhotoId'
+import { MediaSelectorComponent } from './MediaSelector.js'
+import { makePhotoId } from '../../libs/makePhotoId.js'
 
 export default { title: 'MediaSelector', component: MediaSelectorComponent, parameters: { layout: 'fullscreen' } }
 

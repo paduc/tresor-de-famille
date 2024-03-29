@@ -1,5 +1,5 @@
-import { DomainEvent, JSON as JSONType } from './DomainEvent'
-import { postgres } from './database'
+import { DomainEvent, JSON as JSONType } from './DomainEvent.js'
+import { postgres } from './database.js'
 
 export const addToHistory = async ({ id, type, payload, occurredAt }: DomainEvent) => {
   try {

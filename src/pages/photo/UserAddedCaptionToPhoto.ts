@@ -1,7 +1,7 @@
-import { DomainEvent, makeDomainEvent } from '../../dependencies/DomainEvent'
-import { UUID } from '../../domain'
-import { AppUserId } from '../../domain/AppUserId'
-import { PhotoId } from '../../domain/PhotoId'
+import { DomainEvent, makeDomainEvent } from '../../dependencies/DomainEvent.js'
+import { UUID } from '../../domain/UUID.js'
+import { AppUserId } from '../../domain/AppUserId.js'
+import { PhotoId } from '../../domain/PhotoId.js'
 
 export type UserAddedCaptionToPhoto = DomainEvent<
   'UserAddedCaptionToPhoto',

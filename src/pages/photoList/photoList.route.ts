@@ -1,11 +1,11 @@
 import { z } from 'zod'
-import { requireAuth } from '../../dependencies/authn'
-import { zIsFamilyId } from '../../domain/FamilyId'
-import { responseAsHtml } from '../../libs/ssr/responseAsHtml'
-import { pageRouter } from '../pageRouter'
-import { PhotoListPage } from './PhotoListPage'
-import { PhotoListPageUrlWithFamily } from './PhotoListPageUrl'
-import { getPhotoListPageProps } from './getPhotoListPageProps'
+import { requireAuth } from '../../dependencies/authn.js'
+import { zIsFamilyId } from '../../domain/FamilyId.js'
+import { responseAsHtml } from '../../libs/ssr/responseAsHtml.js'
+import { pageRouter } from '../pageRouter.js'
+import { PhotoListPage } from './PhotoListPage.js'
+import { PhotoListPageUrlWithFamily } from './PhotoListPageUrl.js'
+import { getPhotoListPageProps } from './getPhotoListPageProps.js'
 
 pageRouter.route(PhotoListPageUrlWithFamily()).get(requireAuth(), async (request, response, next) => {
   try {

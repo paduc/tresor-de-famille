@@ -1,9 +1,9 @@
 import { Combobox, Dialog, Transition } from '@headlessui/react'
 import { CheckIcon, MagnifyingGlassIcon } from '@heroicons/react/20/solid'
 import React, { Fragment, useState } from 'react'
-import { PersonId } from '../../../domain/PersonId'
-import { usePersonSearch } from '../usePersonSearch'
-import { ClientOnly } from '../ClientOnly'
+import { PersonId } from '../../../domain/PersonId.js'
+import { usePersonSearch } from '../usePersonSearch.js'
+import { ClientOnly } from '../ClientOnly.js'
 
 type SearchPersonHitDTO = {
   objectID: string

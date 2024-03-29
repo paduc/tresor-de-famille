@@ -1,6 +1,6 @@
 import z from 'zod'
-import { AppUserId } from '../domain/AppUserId'
-import { FamilyId } from '../domain/FamilyId'
+import { AppUserId } from '../domain/AppUserId.js'
+import { FamilyId } from '../domain/FamilyId.js'
 
 // Utilities
 

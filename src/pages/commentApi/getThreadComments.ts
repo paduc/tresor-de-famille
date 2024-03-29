@@ -1,9 +1,9 @@
-import { getEventList } from '../../dependencies/getEventList'
-import { ThreadId } from '../../domain/ThreadId'
-import { getPersonForUser } from '../_getPersonForUser'
-import { getProfilePicUrlForUser } from '../_getProfilePicUrlForUser'
-import { Comment } from '../thread/ThreadPage/_components/Comments'
-import { UserAddedCommentOnThread } from '../thread/UserAddedCommentOnThread'
+import { getEventList } from '../../dependencies/getEventList.js'
+import { ThreadId } from '../../domain/ThreadId.js'
+import { getPersonForUser } from '../_getPersonForUser.js'
+import { getProfilePicUrlForUser } from '../_getProfilePicUrlForUser.js'
+import { Comment } from '../thread/ThreadPage/_components/Comments.js'
+import { UserAddedCommentOnThread } from '../thread/UserAddedCommentOnThread.js'
 
 export async function getThreadComments({ threadId }: { threadId: ThreadId }): Promise<Comment[]> {
   const comments: Comment[] = []

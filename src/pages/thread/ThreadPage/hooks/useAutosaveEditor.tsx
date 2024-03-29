@@ -1,9 +1,9 @@
 import debounce from 'lodash.debounce'
 import { useCallback, useEffect, useState } from 'react'
 import { Editor } from '@tiptap/react'
-import { ThreadId } from '../../../../domain/ThreadId'
-import { ThreadUrl } from '../../ThreadUrl'
-import { TipTapContentAsJSON, removeSeparatorNodes } from '../../TipTapTypes'
+import { ThreadId } from '../../../../domain/ThreadId.js'
+import { ThreadUrl } from '../../ThreadUrl.js'
+import { TipTapContentAsJSON, removeSeparatorNodes } from '../../TipTapTypes.js'
 
 export type AutosaveStatus = 'idle' | 'saving' | 'saved' | 'error'
 export const useAutosaveEditor = (

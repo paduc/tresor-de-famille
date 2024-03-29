@@ -1,9 +1,9 @@
-import { responseAsHtml } from '../../libs/ssr/responseAsHtml'
-import { pageRouter } from '../pageRouter'
-import { requireAuth } from '../../dependencies/authn'
-import { ThreadListPage } from './ThreadListPage'
-import { getThreadListPageProps } from './getThreadListPageProps'
-import { ThreadListPageUrl } from './ThreadListPageUrl'
+import { responseAsHtml } from '../../libs/ssr/responseAsHtml.js'
+import { pageRouter } from '../pageRouter.js'
+import { requireAuth } from '../../dependencies/authn.js'
+import { ThreadListPage } from './ThreadListPage.js'
+import { getThreadListPageProps } from './getThreadListPageProps.js'
+import { ThreadListPageUrl } from './ThreadListPageUrl.js'
 
 pageRouter.route(ThreadListPageUrl).get(requireAuth(), async (request, response, next) => {
   try {

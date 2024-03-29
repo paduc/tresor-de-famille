@@ -11,13 +11,13 @@ import {
   TrashIcon,
 } from '@heroicons/react/24/outline'
 
-import { exhaustiveGuard } from '../../../libs/exhaustiveGuard'
-import { FaceId } from '../../../domain/FaceId'
-import { FamilyId } from '../../../domain/FamilyId'
-import { PersonId } from '../../../domain/PersonId'
-import { PhotoId } from '../../../domain/PhotoId'
-import { ThreadId } from '../../../domain/ThreadId'
-import { withBrowserBundle } from '../../../libs/ssr/withBrowserBundle'
+import { exhaustiveGuard } from '../../../libs/exhaustiveGuard.js'
+import { FaceId } from '../../../domain/FaceId.js'
+import { FamilyId } from '../../../domain/FamilyId.js'
+import { PersonId } from '../../../domain/PersonId.js'
+import { PhotoId } from '../../../domain/PhotoId.js'
+import { ThreadId } from '../../../domain/ThreadId.js'
+import { withBrowserBundle } from '../../../libs/ssr/withBrowserBundle.js'
 import {
   linkStyles,
   linkStylesDarkMode,
@@ -25,13 +25,13 @@ import {
   secondaryButtonStyles,
   secondaryRedButtonStyles,
   smallButtonStyles,
-} from '../../_components/Button'
-import { useLoggedInSession } from '../../_components/SessionContext'
-import { TDFModal } from '../../_components/TDFModal'
-import { usePersonSearch } from '../../_components/usePersonSearch'
-import { PersonPageURL } from '../../person/PersonPageURL'
-import { PhotoListPageUrl, PhotoListPageUrlWithFamily } from '../../photoList/PhotoListPageUrl'
-import { ThreadUrl } from '../../thread/ThreadUrl'
+} from '../../_components/Button.js'
+import { useLoggedInSession } from '../../_components/SessionContext.js'
+import { TDFModal } from '../../_components/TDFModal.js'
+import { usePersonSearch } from '../../_components/usePersonSearch.js'
+import { PersonPageURL } from '../../person/PersonPageURL.js'
+import { PhotoListPageUrl, PhotoListPageUrlWithFamily } from '../../photoList/PhotoListPageUrl.js'
+import { ThreadUrl } from '../../thread/ThreadUrl.js'
 import classNames from 'classnames'
 
 type PhotoFace = {
@@ -423,6 +423,7 @@ const PhotoLocation = ({ location, photoId }: { photoId: PhotoId; location: NewP
                         <RadioGroup.Option
                           value={'exif'}
                           className={({ active }) =>
+                            // @ts-ignore
                             classNames(
                               active ? 'border-indigo-600 ring-2 ring-indigo-600' : 'border-gray-300',
                               'relative block cursor-pointer rounded-lg border bg-white px-2 py-4 shadow-sm focus:outline-none sm:flex sm:justify-between'
@@ -432,10 +433,13 @@ const PhotoLocation = ({ location, photoId }: { photoId: PhotoId; location: NewP
                             <>
                               <span className='flex items-center'>
                                 <span
-                                  className={classNames(
-                                    checked ? 'bg-indigo-600 border-transparent' : 'bg-white border-gray-300',
-                                    'h-4 w-4 rounded-full border flex items-center justify-center flex-none mr-2'
-                                  )}
+                                  className={
+                                    // @ts-ignore
+                                    classNames(
+                                      checked ? 'bg-indigo-600 border-transparent' : 'bg-white border-gray-300',
+                                      'h-4 w-4 rounded-full border flex items-center justify-center flex-none mr-2'
+                                    )
+                                  }
                                   aria-hidden='true'>
                                   <span className='rounded-full bg-white w-1.5 h-1.5' />
                                 </span>
@@ -459,11 +463,14 @@ const PhotoLocation = ({ location, photoId }: { photoId: PhotoId; location: NewP
                                 </span>
                               </span>
                               <span
-                                className={classNames(
-                                  active ? 'border' : 'border-2',
-                                  checked ? 'border-indigo-600' : 'border-transparent',
-                                  'pointer-events-none absolute -inset-px rounded-lg'
-                                )}
+                                className={
+                                  // @ts-ignore
+                                  classNames(
+                                    active ? 'border' : 'border-2',
+                                    checked ? 'border-indigo-600' : 'border-transparent',
+                                    'pointer-events-none absolute -inset-px rounded-lg'
+                                  )
+                                }
                                 aria-hidden='true'
                               />
                             </>
@@ -473,6 +480,7 @@ const PhotoLocation = ({ location, photoId }: { photoId: PhotoId; location: NewP
                       <RadioGroup.Option
                         value={'none'}
                         className={({ active }) =>
+                          // @ts-ignore
                           classNames(
                             active ? 'border-indigo-600 ring-2 ring-indigo-600' : 'border-gray-300',
                             'relative block cursor-pointer rounded-lg border bg-white px-2 py-4 shadow-sm focus:outline-none sm:flex sm:justify-between'
@@ -482,10 +490,13 @@ const PhotoLocation = ({ location, photoId }: { photoId: PhotoId; location: NewP
                           <>
                             <span className='flex items-center'>
                               <span
-                                className={classNames(
-                                  checked ? 'bg-indigo-600 border-transparent' : 'bg-white border-gray-300',
-                                  'h-4 w-4 rounded-full border flex items-center justify-center flex-none mr-2'
-                                )}
+                                className={
+                                  // @ts-ignore
+                                  classNames(
+                                    checked ? 'bg-indigo-600 border-transparent' : 'bg-white border-gray-300',
+                                    'h-4 w-4 rounded-full border flex items-center justify-center flex-none mr-2'
+                                  )
+                                }
                                 aria-hidden='true'>
                                 <span className='rounded-full bg-white w-1.5 h-1.5' />
                               </span>
@@ -496,11 +507,14 @@ const PhotoLocation = ({ location, photoId }: { photoId: PhotoId; location: NewP
                               </span>
                             </span>
                             <span
-                              className={classNames(
-                                active ? 'border' : 'border-2',
-                                checked ? 'border-indigo-600' : 'border-transparent',
-                                'pointer-events-none absolute -inset-px rounded-lg'
-                              )}
+                              className={
+                                // @ts-ignore
+                                classNames(
+                                  active ? 'border' : 'border-2',
+                                  checked ? 'border-indigo-600' : 'border-transparent',
+                                  'pointer-events-none absolute -inset-px rounded-lg'
+                                )
+                              }
                               aria-hidden='true'
                             />
                           </>

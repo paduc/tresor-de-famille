@@ -1,5 +1,5 @@
-import { DomainEvent } from '../../dependencies/DomainEvent'
-import { postgres } from '../../dependencies/database'
+import { DomainEvent } from '../../dependencies/DomainEvent.js'
+import { postgres } from '../../dependencies/database.js'
 
 export const getFacts = async ({
   types,

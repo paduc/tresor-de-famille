@@ -1,7 +1,7 @@
-import { DomainEvent, makeDomainEvent } from '../../dependencies/DomainEvent'
-import { AppUserId } from '../../domain/AppUserId'
-import { MediaId } from '../../domain/MediaId'
-import { ThreadId } from '../../domain/ThreadId'
+import { DomainEvent, makeDomainEvent } from '../../dependencies/DomainEvent.js'
+import { AppUserId } from '../../domain/AppUserId.js'
+import { MediaId } from '../../domain/MediaId.js'
+import { ThreadId } from '../../domain/ThreadId.js'
 export type UserSetCaptionOfMediaInThread = DomainEvent<
   'UserSetCaptionOfMediaInThread',
   {

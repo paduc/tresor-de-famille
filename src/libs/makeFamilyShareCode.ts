@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto'
-import { SHARING_CODE_HASH_SEED } from '../dependencies/env'
-import { FamilyId } from '../domain/FamilyId'
-import { FamilyShareCode } from '../domain/FamilyShareCode'
+import { SHARING_CODE_HASH_SEED } from '../dependencies/env.js'
+import { FamilyId } from '../domain/FamilyId.js'
+import { FamilyShareCode } from '../domain/FamilyShareCode.js'
 
 export const makeFamilyShareCode = (familyId: FamilyId): FamilyShareCode => {
   const hash = createHash('sha1')

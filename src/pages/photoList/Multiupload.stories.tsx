@@ -1,5 +1,5 @@
 import React from 'react'
-import { Multiupload } from './Multiupload'
+import { Multiupload } from './Multiupload.js'
 
 export default { title: 'Multiupload', component: Multiupload, parameters: { layout: 'fullscreen' } }
 

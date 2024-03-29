@@ -1,7 +1,7 @@
-import { getSingleEvent } from '../dependencies/getSingleEvent'
-import { FamilyId } from '../domain/FamilyId'
-import { ThreadId } from '../domain/ThreadId'
-import { ThreadSharedWithFamilies } from './thread/ThreadPage/events/ThreadSharedWithFamilies'
+import { getSingleEvent } from '../dependencies/getSingleEvent.js'
+import { FamilyId } from '../domain/FamilyId.js'
+import { ThreadId } from '../domain/ThreadId.js'
+import { ThreadSharedWithFamilies } from './thread/ThreadPage/events/ThreadSharedWithFamilies.js'
 
 /**
  * Return all families with which a thread is currently shared

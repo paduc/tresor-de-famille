@@ -1,11 +1,11 @@
-import { resetDatabase } from '../../dependencies/__test__/resetDatabase'
-import { addToHistory } from '../../dependencies/addToHistory'
-import { makeFamilyId } from '../../libs/makeFamilyId'
-import { makePhotoId } from '../../libs/makePhotoId'
-import { makeThreadId } from '../../libs/makeThreadId'
-import { makeAppUserId } from '../../libs/makeUserId'
-import { UserUpdatedThreadAsRichText } from '../thread/UserUpdatedThreadAsRichText'
-import { getThreadsContainingPhoto } from './getThreadsContainingPhoto'
+import { resetDatabase } from '../../dependencies/__test__/resetDatabase.js'
+import { addToHistory } from '../../dependencies/addToHistory.js'
+import { makeFamilyId } from '../../libs/makeFamilyId.js'
+import { makePhotoId } from '../../libs/makePhotoId.js'
+import { makeThreadId } from '../../libs/makeThreadId.js'
+import { makeAppUserId } from '../../libs/makeUserId.js'
+import { UserUpdatedThreadAsRichText } from '../thread/UserUpdatedThreadAsRichText.js'
+import { getThreadsContainingPhoto } from './getThreadsContainingPhoto.js'
 
 describe('getThreadsContainingPhoto', () => {
   const targetPhotoId = makePhotoId()

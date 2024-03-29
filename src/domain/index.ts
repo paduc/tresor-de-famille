@@ -1,3 +1,3 @@
-export * from './MediaTime';
-export * from './UUID';
-export * from './User';
+export * from './MediaTime.js'
+export * from './UUID.js'
+export * from './User.js'

@@ -1,12 +1,12 @@
 import { CheckIcon } from '@heroicons/react/24/outline'
 import axios, { AxiosError } from 'axios'
 import React, { memo, useCallback, useEffect, useState } from 'react'
-import { FamilyId } from '../../domain/FamilyId'
-import { getUuid } from '../../libs/getUuid'
-import { primaryButtonStyles, smallButtonStyles } from '../_components/Button'
-import { TDFModal } from '../_components/TDFModal'
+import { FamilyId } from '../../domain/FamilyId.js'
+import { getUuid } from '../../libs/getUuid.js'
+import { primaryButtonStyles, smallButtonStyles } from '../_components/Button.js'
+import { TDFModal } from '../_components/TDFModal.js'
 import { FireIcon } from '@heroicons/react/20/solid'
-import { PhotoId } from '../../domain/PhotoId'
+import { PhotoId } from '../../domain/PhotoId.js'
 
 type MultiuploadProps = {
   mock?: boolean

@@ -1,7 +1,7 @@
-import { AppUserId } from '../domain/AppUserId'
-import { PersonId } from '../domain/PersonId'
-import { getPersonById } from './_getPersonById'
-import { getPersonIdForUser } from './_getPersonIdForUser'
+import { AppUserId } from '../domain/AppUserId.js'
+import { PersonId } from '../domain/PersonId.js'
+import { getPersonById } from './_getPersonById.js'
+import { getPersonIdForUser } from './_getPersonIdForUser.js'
 
 type Person = { personId: PersonId; name: string }
 

@@ -1,5 +1,5 @@
 import { createContext, useContext } from 'react'
-import { PhotoId } from '../../../../domain/PhotoId'
+import { PhotoId } from '../../../../domain/PhotoId.js'
 
 export const RemovePhotoCtx = createContext<((photoId: PhotoId) => unknown) | null>(null)
 

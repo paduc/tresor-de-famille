@@ -1,5 +1,5 @@
 import React, { useRef } from 'react'
-import { useLoader } from './layout/LoaderContext'
+import { useLoader } from './layout/LoaderContext.js'
 
 type InlinePhotoUploadBtnProps = {
   children: React.ReactNode

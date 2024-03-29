@@ -1,4 +1,4 @@
-import { AppUserId } from './AppUserId'
+import { AppUserId } from './AppUserId.js'
 
 export type User = {
   id: AppUserId

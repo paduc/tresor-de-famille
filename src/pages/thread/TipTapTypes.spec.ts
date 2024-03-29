@@ -1,4 +1,4 @@
-import { PhotoNode, TipTapContentAsJSON, removeSeparatorNodes } from './TipTapTypes'
+import { PhotoNode, TipTapContentAsJSON, removeSeparatorNodes } from './TipTapTypes.js'
 
 describe('removeEmptySpaceBetweenPhotos', () => {
   describe('when there is a photoNode, a separatorNode and a empty paragraph', () => {

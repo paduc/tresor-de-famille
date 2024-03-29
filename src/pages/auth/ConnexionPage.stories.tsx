@@ -1,6 +1,6 @@
 import * as React from 'react'
 
-import { ConnexionPage } from './ConnexionPage'
+import { ConnexionPage } from './ConnexionPage.js'
 
 export default { title: 'Page de connexion', component: ConnexionPage }
 

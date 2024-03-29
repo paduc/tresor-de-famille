@@ -1,10 +1,10 @@
-import { getSingleEvent } from '../../dependencies/getSingleEvent'
-import { AppUserId } from '../../domain/AppUserId'
-import { FamilyId } from '../../domain/FamilyId'
-import { FamilyShareCode } from '../../domain/FamilyShareCode'
-import { getPersonForUser } from '../_getPersonForUser'
-import { UserCreatedNewFamily } from '../share/UserCreatedNewFamily'
-import { InvitationPageProps } from './InvitationPage'
+import { getSingleEvent } from '../../dependencies/getSingleEvent.js'
+import { AppUserId } from '../../domain/AppUserId.js'
+import { FamilyId } from '../../domain/FamilyId.js'
+import { FamilyShareCode } from '../../domain/FamilyShareCode.js'
+import { getPersonForUser } from '../_getPersonForUser.js'
+import { UserCreatedNewFamily } from '../share/UserCreatedNewFamily.js'
+import { InvitationPageProps } from './InvitationPage.js'
 
 export const getInvitationPageProps = async ({
   familyId,

@@ -1,4 +1,4 @@
-import { zCustom } from '../libs/typeguards'
+import { zCustom } from '../libs/typeguards.js'
 
 export type MediaTime = string & { isMediaTime: true }
 

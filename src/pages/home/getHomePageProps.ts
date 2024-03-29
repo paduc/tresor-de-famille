@@ -1,7 +1,7 @@
-import { AppUserId } from '../../domain/AppUserId'
-import { getPersonForUser } from '../_getPersonForUser'
-import { getThreadListPageProps } from '../threadList/getThreadListPageProps'
-import { GetUserName, HomePageProps } from './HomePage'
+import { AppUserId } from '../../domain/AppUserId.js'
+import { getPersonForUser } from '../_getPersonForUser.js'
+import { getThreadListPageProps } from '../threadList/getThreadListPageProps.js'
+import { GetUserName, HomePageProps } from './HomePage.js'
 
 const displayCount = 3
 export const getHomePageProps = async (userId: AppUserId): Promise<HomePageProps> => {

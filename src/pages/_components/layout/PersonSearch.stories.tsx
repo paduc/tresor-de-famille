@@ -1,8 +1,8 @@
 import { SearchIndex } from 'algoliasearch/lite'
 import React from 'react'
-import { getUuid } from '../../../libs/getUuid'
-import { PersonSearchContext } from '../usePersonSearch'
-import { PersonSearch } from './PersonSearch'
+import { getUuid } from '../../../libs/getUuid.js'
+import { PersonSearchContext } from '../usePersonSearch.js'
+import { PersonSearch } from './PersonSearch.js'
 
 export default { title: 'Person Search', component: PersonSearch, parameters: { layout: 'fullscreen' } }
 

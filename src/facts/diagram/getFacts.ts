@@ -1,5 +1,5 @@
 import { Project, ReferenceEntry, Node, SourceFile } from 'ts-morph'
-import { FactDiagramPageProps } from './FactDiagramPage'
+import { FactDiagramPageProps } from './FactDiagramPage.js'
 import path from 'node:path'
 
 type EventDTO = FactDiagramPageProps['events'][number]

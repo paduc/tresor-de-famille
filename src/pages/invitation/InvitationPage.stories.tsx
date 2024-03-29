@@ -1,14 +1,14 @@
 import * as React from 'react'
-import { AppUserId } from '../../domain/AppUserId'
-import { FamilyId } from '../../domain/FamilyId'
-import { makePersonId } from '../../libs/makePersonId'
-import { SessionContext } from '../_components/SessionContext'
-import { InvitationPage } from './InvitationPage'
-import { makeFamilyId } from '../../libs/makeFamilyId'
-import { FamilyShareCode } from '../../domain/FamilyShareCode'
+import { AppUserId } from '../../domain/AppUserId.js'
+import { FamilyId } from '../../domain/FamilyId.js'
+import { makePersonId } from '../../libs/makePersonId.js'
+import { SessionContext } from '../_components/SessionContext.js'
+import { InvitationPage } from './InvitationPage.js'
+import { makeFamilyId } from '../../libs/makeFamilyId.js'
+import { FamilyShareCode } from '../../domain/FamilyShareCode.js'
 import { SearchIndex } from 'algoliasearch'
-import { getUuid } from '../../libs/getUuid'
-import { PersonSearchContext } from '../_components/usePersonSearch'
+import { getUuid } from '../../libs/getUuid.js'
+import { PersonSearchContext } from '../_components/usePersonSearch.js'
 
 export default {
   title: 'Page Invitation',

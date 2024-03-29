@@ -1,5 +1,5 @@
-import { DomainEvent, makeDomainEvent } from '../../dependencies/DomainEvent'
-import { MigrationName } from './MigrationStart'
+import { DomainEvent, makeDomainEvent } from '../../dependencies/DomainEvent.js'
+import { MigrationName } from './MigrationStart.js'
 
 export type MigrationFailure = DomainEvent<
   'MigrationFailure',

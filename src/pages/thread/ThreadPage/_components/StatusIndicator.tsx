@@ -1,5 +1,5 @@
 import React from 'react'
-import { AutosaveStatus } from '../hooks/useAutosaveEditor'
+import { AutosaveStatus } from '../hooks/useAutosaveEditor.js'
 
 export function StatusIndicator({ status }: { status: AutosaveStatus }) {
   return (

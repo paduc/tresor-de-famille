@@ -1,13 +1,13 @@
 import * as React from 'react'
 
 import { PlusIcon } from '@heroicons/react/24/outline'
-import { FamilyId } from '../../domain/FamilyId'
-import { ThreadId } from '../../domain/ThreadId'
-import { withBrowserBundle } from '../../libs/ssr/withBrowserBundle'
-import { linkStyles } from '../_components/Button'
-import { SuccessError } from '../_components/SuccessError'
-import { ThreadList } from '../_components/ThreadList'
-import { AppLayout } from '../_components/layout/AppLayout'
+import { FamilyId } from '../../domain/FamilyId.js'
+import { ThreadId } from '../../domain/ThreadId.js'
+import { withBrowserBundle } from '../../libs/ssr/withBrowserBundle.js'
+import { linkStyles } from '../_components/Button.js'
+import { SuccessError } from '../_components/SuccessError.js'
+import { ThreadList } from '../_components/ThreadList.js'
+import { AppLayout } from '../_components/layout/AppLayout.js'
 
 // @ts-ignore
 function classNames(...classes) {

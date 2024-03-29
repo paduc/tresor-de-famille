@@ -1,5 +1,5 @@
-import { zCustom } from '../libs/typeguards'
-import { isUUID } from './UUID'
+import { zCustom } from '../libs/typeguards.js'
+import { isUUID } from './UUID.js'
 
 export type PersonId = string & { isPersonId: true }
 

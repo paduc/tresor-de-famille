@@ -1,10 +1,10 @@
-import { DomainEvent, makeDomainEvent } from '../../dependencies/DomainEvent'
-import { AppUserId } from '../../domain/AppUserId'
-import { FamilyId } from '../../domain/FamilyId'
-import { PhotoId } from '../../domain/PhotoId'
-import { ThreadId } from '../../domain/ThreadId'
-import { TipTapContentAsJSON } from './TipTapTypes'
-import { PhotoLocation } from './uploadPhotoToChat/UserUploadedPhotoToChat'
+import { DomainEvent, makeDomainEvent } from '../../dependencies/DomainEvent.js'
+import { AppUserId } from '../../domain/AppUserId.js'
+import { FamilyId } from '../../domain/FamilyId.js'
+import { PhotoId } from '../../domain/PhotoId.js'
+import { ThreadId } from '../../domain/ThreadId.js'
+import { TipTapContentAsJSON } from './TipTapTypes.js'
+import { PhotoLocation } from './uploadPhotoToChat/UserUploadedPhotoToChat.js'
 
 export type UserInsertedPhotoInRichTextThread = DomainEvent<
   'UserInsertedPhotoInRichTextThread',

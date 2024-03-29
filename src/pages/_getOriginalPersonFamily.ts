@@ -1,7 +1,7 @@
-import { FamilyId } from '../domain/FamilyId'
-import { PersonId } from '../domain/PersonId'
-import { exhaustiveGuard } from '../libs/exhaustiveGuard'
-import { getPersonEvents } from './_getPersonEvents'
+import { FamilyId } from '../domain/FamilyId.js'
+import { PersonId } from '../domain/PersonId.js'
+import { exhaustiveGuard } from '../libs/exhaustiveGuard.js'
+import { getPersonEvents } from './_getPersonEvents.js'
 
 export async function getOriginalPersonFamily(personId: PersonId): Promise<FamilyId> {
   const personEvents = await getPersonEvents(personId)

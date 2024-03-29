@@ -1,5 +1,5 @@
 import React from 'react'
-import { FactDiagramPage } from './FactDiagramPage'
+import { FactDiagramPage } from './FactDiagramPage.js'
 
 export default { title: 'FactDiagramPage', component: FactDiagramPage }
 

@@ -1,14 +1,14 @@
 import sharp from 'sharp'
 import zod from 'zod'
-import { requireAuth } from '../dependencies/authn'
-import { postgres } from '../dependencies/database'
-import { downloadPhoto } from '../dependencies/photo-storage'
-import { zIsFaceId } from '../domain/FaceId'
-import { zIsPhotoId } from '../domain/PhotoId'
-import { doesPhotoExist } from '../pages/_doesPhotoExist'
-import { AWSDetectedFacesInPhoto } from '../pages/photo/recognizeFacesInChatPhoto/AWSDetectedFacesInPhoto'
-import { actionsRouter } from './actionsRouter'
-import { PhotoFaceURL } from './PhotoFaceURL'
+import { requireAuth } from '../dependencies/authn.js'
+import { postgres } from '../dependencies/database.js'
+import { downloadPhoto } from '../dependencies/photo-storage.js'
+import { zIsFaceId } from '../domain/FaceId.js'
+import { zIsPhotoId } from '../domain/PhotoId.js'
+import { doesPhotoExist } from '../pages/_doesPhotoExist.js'
+import { AWSDetectedFacesInPhoto } from '../pages/photo/recognizeFacesInChatPhoto/AWSDetectedFacesInPhoto.js'
+import { actionsRouter } from './actionsRouter.js'
+import { PhotoFaceURL } from './PhotoFaceURL.js'
 
 actionsRouter.route(PhotoFaceURL()).get(requireAuth(), async (request, response, next) => {
   try {

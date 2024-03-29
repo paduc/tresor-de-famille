@@ -1,9 +1,9 @@
 import aws from 'aws-sdk'
 import fs from 'node:fs'
 import path from 'node:path'
-import { FaceId } from '../../../domain/FaceId'
-import { getUuid } from '../../../libs/getUuid'
-import { getAWSDetectedFacesInPhoto } from './getAWSDetectedFacesInPhoto'
+import { FaceId } from '../../../domain/FaceId.js'
+import { getUuid } from '../../../libs/getUuid.js'
+import { getAWSDetectedFacesInPhoto } from './getAWSDetectedFacesInPhoto.js'
 
 aws.config.update({
   accessKeyId: process.env.AWS_ACCESS_KEY,
@@ -12,7 +12,7 @@ aws.config.update({
 })
 
 const testCollectionId = `test-${getUuid()}`
-const testPhotosPath = path.join(__dirname, '__test__/photos')
+const testPhotosPath = path.join(process.cwd(), '__test__/photos')
 const testPhotos = {
   targetAlone: path.join(testPhotosPath, 'Only_one_present.jpeg'),
   targetAlone2: path.join(testPhotosPath, 'Only_one_present_2.jpeg'),

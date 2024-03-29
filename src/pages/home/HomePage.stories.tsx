@@ -1,14 +1,14 @@
 import { SearchIndex } from 'algoliasearch'
 import * as React from 'react'
-import { AppUserId } from '../../domain/AppUserId'
-import { getUuid } from '../../libs/getUuid'
-import { makeThreadId } from '../../libs/makeThreadId'
-import { SessionContext } from '../_components/SessionContext'
-import { PersonSearchContext } from '../_components/usePersonSearch'
-import { HomePage } from './HomePage'
-import { FamilyId } from '../../domain/FamilyId'
-import { makeFamilyId } from '../../libs/makeFamilyId'
-import { asFamilyId } from '../../libs/typeguards'
+import { AppUserId } from '../../domain/AppUserId.js'
+import { getUuid } from '../../libs/getUuid.js'
+import { makeThreadId } from '../../libs/makeThreadId.js'
+import { SessionContext } from '../_components/SessionContext.js'
+import { PersonSearchContext } from '../_components/usePersonSearch.js'
+import { HomePage } from './HomePage.js'
+import { FamilyId } from '../../domain/FamilyId.js'
+import { makeFamilyId } from '../../libs/makeFamilyId.js'
+import { asFamilyId } from '../../libs/typeguards.js'
 
 const fakePersonSearch = async (query: string) => {
   return {

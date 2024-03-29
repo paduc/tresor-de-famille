@@ -2,9 +2,9 @@ import * as React from 'react'
 
 import { Listbox, Transition } from '@headlessui/react'
 import { CheckIcon, ChevronDownIcon } from '@heroicons/react/24/outline'
-import { FamilyId } from '../../domain/FamilyId'
-import { PhotoId } from '../../domain/PhotoId'
-import { withBrowserBundle } from '../../libs/ssr/withBrowserBundle'
+import { FamilyId } from '../../domain/FamilyId.js'
+import { PhotoId } from '../../domain/PhotoId.js'
+import { withBrowserBundle } from '../../libs/ssr/withBrowserBundle.js'
 import {
   buttonIconStyles,
   linkStyles,
@@ -12,16 +12,16 @@ import {
   secondaryButtonStyles,
   smallButtonIconStyles,
   smallButtonStyles,
-} from '../_components/Button'
-import { InlinePhotoUploadBtn } from '../_components/InlinePhotoUploadBtn'
-import { useSession } from '../_components/SessionContext'
-import { SuccessError } from '../_components/SuccessError'
-import { AppLayout } from '../_components/layout/AppLayout'
-import { PhotoListPageUrlWithFamily } from './PhotoListPageUrl'
-import { Multiupload } from './Multiupload'
+} from '../_components/Button.js'
+import { InlinePhotoUploadBtn } from '../_components/InlinePhotoUploadBtn.js'
+import { useSession } from '../_components/SessionContext.js'
+import { SuccessError } from '../_components/SuccessError.js'
+import { AppLayout } from '../_components/layout/AppLayout.js'
+import { PhotoListPageUrlWithFamily } from './PhotoListPageUrl.js'
+import { Multiupload } from './Multiupload.js'
 import { useState } from 'react'
-import { PhotoPageUrl } from '../photo/PhotoPageUrl'
-import { ThumbnailURL } from '../photoApi/ThumbnailURL'
+import { PhotoPageUrl } from '../photo/PhotoPageUrl.js'
+import { ThumbnailURL } from '../photoApi/ThumbnailURL.js'
 import { PhotoIcon } from '@heroicons/react/20/solid'
 
 // @ts-ignore

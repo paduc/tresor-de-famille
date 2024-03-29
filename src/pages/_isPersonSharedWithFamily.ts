@@ -1,10 +1,10 @@
-import { getEventList } from '../dependencies/getEventList'
-import { FamilyId } from '../domain/FamilyId'
-import { PersonId } from '../domain/PersonId'
-import { getOriginalPersonFamily } from './_getOriginalPersonFamily'
-import { PersonAutoShareWithFamilyCreation } from './share/PersonAutoShareWithFamilyCreation'
-import { PersonAutoSharedWithPhotoFace } from './share/PersonAutoSharedWithPhotoFace'
-import { PersonAutoSharedWithRelationship } from './share/PersonAutoSharedWithRelationship'
+import { getEventList } from '../dependencies/getEventList.js'
+import { FamilyId } from '../domain/FamilyId.js'
+import { PersonId } from '../domain/PersonId.js'
+import { getOriginalPersonFamily } from './_getOriginalPersonFamily.js'
+import { PersonAutoShareWithFamilyCreation } from './share/PersonAutoShareWithFamilyCreation.js'
+import { PersonAutoSharedWithPhotoFace } from './share/PersonAutoSharedWithPhotoFace.js'
+import { PersonAutoSharedWithRelationship } from './share/PersonAutoSharedWithRelationship.js'
 
 export async function isPersonSharedWithFamily({
   personId,

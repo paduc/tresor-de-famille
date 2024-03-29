@@ -1,5 +1,5 @@
-import { DomainEvent, makeDomainEvent } from '../../dependencies/DomainEvent'
-import { PhotoId } from '../../domain/PhotoId'
+import { DomainEvent, makeDomainEvent } from '../../dependencies/DomainEvent.js'
+import { PhotoId } from '../../domain/PhotoId.js'
 
 export type PhotoGPSReverseGeocodedUsingMapbox = DomainEvent<
   'PhotoGPSReverseGeocodedUsingMapbox',

@@ -1,5 +1,5 @@
-import { DomainEvent, makeDomainEvent } from '../../dependencies/DomainEvent'
-import { MediaStatus } from './MediaStatus'
+import { DomainEvent, makeDomainEvent } from '../../dependencies/DomainEvent.js'
+import { MediaStatus } from './MediaStatus.js'
 
 export type BunnyMediaStatusUpdated = DomainEvent<
   'BunnyMediaStatusUpdated',

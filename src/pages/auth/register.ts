@@ -1,8 +1,8 @@
-import { DomainEvent } from '../../dependencies/DomainEvent'
-import { getSingleEvent } from '../../dependencies/getSingleEvent'
-import { UserRegisteredWithEmailAndPassword } from '../../events/UserRegisteredWithEmailAndPassword'
-import { UserRegisteredWithInvitation } from '../../events/UserRegisteredWithInvitation'
-import { makeAppUserId } from '../../libs/makeUserId'
+import { DomainEvent } from '../../dependencies/DomainEvent.js'
+import { getSingleEvent } from '../../dependencies/getSingleEvent.js'
+import { UserRegisteredWithEmailAndPassword } from '../../events/UserRegisteredWithEmailAndPassword.js'
+import { UserRegisteredWithInvitation } from '../../events/UserRegisteredWithInvitation.js'
+import { makeAppUserId } from '../../libs/makeUserId.js'
 
 type RegisterDeps = {
   addToHistory: (event: DomainEvent) => unknown

@@ -1,8 +1,8 @@
-import { AppUserId } from '../domain/AppUserId'
-import { PhotoId } from '../domain/PhotoId'
-import { asFamilyId } from '../libs/typeguards'
-import { getPhotoEvents } from './_getPhotoEvents'
-import { getUserFamilies } from './_getUserFamilies'
+import { AppUserId } from '../domain/AppUserId.js'
+import { PhotoId } from '../domain/PhotoId.js'
+import { asFamilyId } from '../libs/typeguards.js'
+import { getPhotoEvents } from './_getPhotoEvents.js'
+import { getUserFamilies } from './_getUserFamilies.js'
 
 export const isPhotoAccessibleToUser = async ({
   photoId,

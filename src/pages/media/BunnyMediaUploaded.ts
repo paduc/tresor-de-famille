@@ -1,6 +1,6 @@
-import { DomainEvent, makeDomainEvent } from '../../dependencies/DomainEvent'
-import { AppUserId } from '../../domain/AppUserId'
-import { MediaId } from '../../domain/MediaId'
+import { DomainEvent, makeDomainEvent } from '../../dependencies/DomainEvent.js'
+import { AppUserId } from '../../domain/AppUserId.js'
+import { MediaId } from '../../domain/MediaId.js'
 
 export type BunnyMediaUploaded = DomainEvent<
   'BunnyMediaUploaded',

@@ -1,7 +1,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 
-import { findEXIFinJPEG, findEXIFinHEIC, EXIF } from '../../libs/exif'
+import { findEXIFinJPEG, findEXIFinHEIC, EXIF } from '../../libs/exif.js'
 
 export function getExif(file: Express.Multer.File): EXIF | undefined {
   const exifRaw = getExifRaw(file)

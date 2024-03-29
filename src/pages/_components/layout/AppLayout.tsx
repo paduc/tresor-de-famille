@@ -26,13 +26,13 @@ import {
   XMarkIcon,
 } from '@heroicons/react/24/outline'
 import React, { Fragment, useContext, useState } from 'react'
-import { PersonPageURL } from '../../person/PersonPageURL'
-import { PersonSearch } from './PersonSearch'
-import { LocationContext } from '../LocationContext'
-import { useLoggedInSession, useSession } from '../SessionContext'
-import { LoaderProvider } from './LoaderContext'
+import { PersonPageURL } from '../../person/PersonPageURL.js'
+import { PersonSearch } from './PersonSearch.js'
+import { LocationContext } from '../LocationContext.js'
+import { useLoggedInSession, useSession } from '../SessionContext.js'
+import { LoaderProvider } from './LoaderContext.js'
 import { VideoCameraIcon } from '@heroicons/react/20/solid'
-import { MediaListPageUrl } from '../../media/MediaListPageURL'
+import { MediaListPageUrl } from '../../media/MediaListPageURL.js'
 
 // @ts-ignore
 function classNames(...classes) {

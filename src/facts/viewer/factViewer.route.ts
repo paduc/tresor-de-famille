@@ -1,11 +1,11 @@
 import express from 'express'
 
-import { FactViewerPage } from './FactViewerPage'
-import { requireAuth } from '../../dependencies/authn'
+import { FactViewerPage } from './FactViewerPage.js'
+import { requireAuth } from '../../dependencies/authn.js'
 import ReactDOMServer from 'react-dom/server'
-import { getFacts } from './getFacts'
+import { getFacts } from './getFacts.js'
 import { z } from 'zod'
-import { getFactTypes } from './getFactTypes'
+import { getFactTypes } from './getFactTypes.js'
 
 export const factViewerRouter = express.Router()
 

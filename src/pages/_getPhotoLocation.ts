@@ -1,12 +1,12 @@
-import { getEventList } from '../dependencies/getEventList'
-import { getSingleEvent } from '../dependencies/getSingleEvent'
-import { PhotoId } from '../domain/PhotoId'
-import { getGPSDecCoordsFromExif } from '../libs/getGPSDecCoordsFromExif'
-import { PhotoGPSReverseGeocodedUsingMapbox } from './photoApi/PhotoGPSReverseGeocodedUsingMapbox'
-import { UserUploadedPhoto } from './photoApi/UserUploadedPhoto'
-import { UserUploadedPhotoToFamily } from './photoApi/UserUploadedPhotoToFamily'
-import { NewPhotoPageProps } from './photo/PhotoPage/NewPhotoPage'
-import { UserSetPhotoLocation } from './photo/UserSetPhotoLocation'
+import { getEventList } from '../dependencies/getEventList.js'
+import { getSingleEvent } from '../dependencies/getSingleEvent.js'
+import { PhotoId } from '../domain/PhotoId.js'
+import { getGPSDecCoordsFromExif } from '../libs/getGPSDecCoordsFromExif.js'
+import { PhotoGPSReverseGeocodedUsingMapbox } from './photoApi/PhotoGPSReverseGeocodedUsingMapbox.js'
+import { UserUploadedPhoto } from './photoApi/UserUploadedPhoto.js'
+import { UserUploadedPhotoToFamily } from './photoApi/UserUploadedPhotoToFamily.js'
+import { NewPhotoPageProps } from './photo/PhotoPage/NewPhotoPage.js'
+import { UserSetPhotoLocation } from './photo/UserSetPhotoLocation.js'
 
 export async function getPhotoLocation({ photoId }: { photoId: PhotoId }): Promise<NewPhotoPageProps['location']> {
   // A reverse chronological list of events (first in array = last to be emitted)

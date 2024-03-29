@@ -1,6 +1,6 @@
-import { DomainEvent, makeDomainEvent } from '../../dependencies/DomainEvent'
-import { AppUserId } from '../../domain/AppUserId'
-import { PersonId } from '../../domain/PersonId'
+import { DomainEvent, makeDomainEvent } from '../../dependencies/DomainEvent.js'
+import { AppUserId } from '../../domain/AppUserId.js'
+import { PersonId } from '../../domain/PersonId.js'
 
 export type UserSetPersonBirthDate = DomainEvent<
   'UserSetPersonBirthDate',

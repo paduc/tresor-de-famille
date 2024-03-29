@@ -1,16 +1,16 @@
 import * as React from 'react'
-import { SessionContext } from '../../../_components/SessionContext'
+import { SessionContext } from '../../../_components/SessionContext.js'
 
-import { ShareWithMultipleFamilyModal } from './ThreadSharingButton'
+import { ShareWithMultipleFamilyModal } from './ThreadSharingButton.js'
 
 import { SearchIndex } from 'algoliasearch/lite'
-import { AppUserId } from '../../../../domain/AppUserId'
-import { FamilyId } from '../../../../domain/FamilyId'
-import { makeFamilyId } from '../../../../libs/makeFamilyId'
-import { makeAppUserId } from '../../../../libs/makeUserId'
-import { FamilyColorCodes } from '../../../../libs/ssr/FamilyColorCodes'
-import { LocationContext } from '../../../_components/LocationContext'
-import { PersonSearchContext } from '../../../_components/usePersonSearch'
+import { AppUserId } from '../../../../domain/AppUserId.js'
+import { FamilyId } from '../../../../domain/FamilyId.js'
+import { makeFamilyId } from '../../../../libs/makeFamilyId.js'
+import { makeAppUserId } from '../../../../libs/makeUserId.js'
+import { FamilyColorCodes } from '../../../../libs/ssr/FamilyColorCodes.js'
+import { LocationContext } from '../../../_components/LocationContext.js'
+import { PersonSearchContext } from '../../../_components/usePersonSearch.js'
 
 const fakePersonSearch = async (query: string) => {
   return {

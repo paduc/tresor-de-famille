@@ -1,5 +1,5 @@
-import { getUuid } from './getUuid'
-import { makeIdCodeMap } from './makeIdCodeMap'
+import { getUuid } from './getUuid.js'
+import { makeIdCodeMap } from './makeIdCodeMap.js'
 
 describe('makeIdCodeMap', () => {
   describe('when called with a prefix', () => {

@@ -1,6 +1,6 @@
-import { Pool } from 'pg'
-import { DATABASE_URL } from './env'
-
+import pg from 'pg'
+import { DATABASE_URL } from './env.js'
+const { Pool } = pg
 const testConfig = {
   user: 'test',
   host: 'localhost',

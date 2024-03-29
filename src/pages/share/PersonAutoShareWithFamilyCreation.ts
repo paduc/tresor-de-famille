@@ -1,6 +1,6 @@
-import { DomainEvent, makeDomainEvent } from '../../dependencies/DomainEvent'
-import { FamilyId } from '../../domain/FamilyId'
-import { PersonId } from '../../domain/PersonId'
+import { DomainEvent, makeDomainEvent } from '../../dependencies/DomainEvent.js'
+import { FamilyId } from '../../domain/FamilyId.js'
+import { PersonId } from '../../domain/PersonId.js'
 
 export type PersonAutoShareWithFamilyCreation = DomainEvent<
   'PersonAutoShareWithFamilyCreation',

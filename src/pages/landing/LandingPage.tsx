@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { BareLayout } from '../_components/layout/Layout'
+import { BareLayout } from '../_components/layout/Layout.js'
 
 // 950: 30 27 75
 // 800: 55 48 163

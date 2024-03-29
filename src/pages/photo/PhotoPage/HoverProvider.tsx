@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { FaceId } from '../../../domain/FaceId'
+import { FaceId } from '../../../domain/FaceId.js'
 
 export const HoverContext = React.createContext<{
   hoveredFaceId: FaceId | null

@@ -1,8 +1,8 @@
-import { DomainEvent, makeDomainEvent } from '../../dependencies/DomainEvent'
-import { AppUserId } from '../../domain/AppUserId'
-import { FamilyId } from '../../domain/FamilyId'
-import { PersonId } from '../../domain/PersonId'
-import { RelationshipId } from '../../domain/RelationshipId'
+import { DomainEvent, makeDomainEvent } from '../../dependencies/DomainEvent.js'
+import { AppUserId } from '../../domain/AppUserId.js'
+import { FamilyId } from '../../domain/FamilyId.js'
+import { PersonId } from '../../domain/PersonId.js'
+import { RelationshipId } from '../../domain/RelationshipId.js'
 
 export type Relationship = { id: RelationshipId } & (
   | {

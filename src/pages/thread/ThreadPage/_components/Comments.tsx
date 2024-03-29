@@ -1,12 +1,12 @@
 import React, { useState } from 'react'
 import TextareaAutosize from 'react-textarea-autosize'
-import { primaryButtonStyles, smallButtonStyles } from '../../../_components/Button'
+import { primaryButtonStyles, smallButtonStyles } from '../../../_components/Button.js'
 import classNames from 'classnames'
-import { CommentId } from '../../../../domain/CommentId'
-import { useLoggedInSession } from '../../../_components/SessionContext'
+import { CommentId } from '../../../../domain/CommentId.js'
+import { useLoggedInSession } from '../../../_components/SessionContext.js'
 import axios, { AxiosError } from 'axios'
-import { ThreadId } from '../../../../domain/ThreadId'
-import { AddCommentApiURL } from '../../../commentApi/AddCommentApiURL'
+import { ThreadId } from '../../../../domain/ThreadId.js'
+import { AddCommentApiURL } from '../../../commentApi/AddCommentApiURL.js'
 import { XCircleIcon } from '@heroicons/react/24/outline'
 
 export type Comment = CommentsProps['comments'][number]
@@ -76,10 +76,13 @@ export function Comments({ comments: originalComments, threadId }: CommentsProps
         {comments.map(({ commentId, author, body, dateTime }, index) => (
           <li key={commentId} className='relative flex gap-x-4'>
             <div
-              className={classNames(
-                index === comments.length - 1 ? 'h-8 sm:h-10' : '-bottom-8 sm:-bottom-10',
-                'absolute left-0 top-0 flex w-8 sm:w-10 justify-center'
-              )}>
+              className={
+                // @ts-ignore
+                classNames(
+                  index === comments.length - 1 ? 'h-8 sm:h-10' : '-bottom-8 sm:-bottom-10',
+                  'absolute left-0 top-0 flex w-8 sm:w-10 justify-center'
+                )
+              }>
               <div className='w-px bg-gray-200' />
             </div>
 

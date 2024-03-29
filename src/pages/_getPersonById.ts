@@ -1,6 +1,6 @@
-import { PersonId } from '../domain/PersonId'
+import { PersonId } from '../domain/PersonId.js'
 
-import { getPersonEvents } from './_getPersonEvents'
+import { getPersonEvents } from './_getPersonEvents.js'
 
 export type PersonById = { name: string }
 

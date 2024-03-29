@@ -3,16 +3,16 @@ import { LockClosedIcon, UsersIcon } from '@heroicons/react/20/solid'
 import { CheckCircleIcon, DocumentDuplicateIcon, PlusIcon } from '@heroicons/react/24/outline'
 import classNames from 'classnames'
 import React, { useEffect, useMemo, useState } from 'react'
-import { FamilyId } from '../../../../domain/FamilyId'
+import { FamilyId } from '../../../../domain/FamilyId.js'
 import {
   buttonIconStyles,
   linkStyles,
   primaryButtonStyles,
   secondaryButtonStyles,
   smallButtonIconStyles,
-} from '../../../_components/Button'
-import { Session, useLoggedInSession } from '../../../_components/SessionContext'
-import { TDFModal } from '../../../_components/TDFModal'
+} from '../../../_components/Button.js'
+import { TDFModal } from '../../../_components/TDFModal.js'
+import { Session, useLoggedInSession } from '../../../_components/SessionContext.js'
 
 type ThreadSharingButtonProps = {
   familyId: FamilyId
@@ -537,22 +537,32 @@ export function ShareWithMultipleFamilyModal({
         <fieldset className='border-b border-t border-gray-200'>
           <div className='-space-y-px rounded-md bg-white mt-8'>
             <div
-              className={classNames(
-                'rounded-tl-md rounded-tr-md',
-                userFamilies.length === 1 ? 'rounded-bl-md rounded-br-md' : '',
-                'z-10 border-indigo-200 bg-indigo-50',
-                'relative flex border p-4 focus:outline-none'
-              )}>
+              className={
+                // @ts-ignore
+                classNames(
+                  'rounded-tl-md rounded-tr-md',
+                  userFamilies.length === 1 ? 'rounded-bl-md rounded-br-md' : '',
+                  'z-10 border-indigo-200 bg-indigo-50',
+                  'relative flex border p-4 focus:outline-none'
+                )
+              }>
               <input type='checkbox' checked={true} className='h-4 w-4 rounded border-gray-300 text-gray-600 focus:ring-0' />
               <span className='ml-3 flex flex-col'>
                 <span
-                  className={classNames('text-gray-900', 'inline-flex justify-items-start items-center text-sm font-medium ')}
+                  className={
+                    // @ts-ignore
+                    classNames('text-gray-900', 'inline-flex justify-items-start items-center text-sm font-medium ')
+                  }
                   id='headlessui-label-:rc:'>
                   <LockClosedIcon className='h-4 w-4 mr-1' />
                   Votre espace personnel
                 </span>
 
-                <span className={classNames('text-gray-500', 'block text-sm')}>
+                <span
+                  className={
+                    // @ts-ignore
+                    classNames('text-gray-500', 'block text-sm')
+                  }>
                   Un espace pour vos histoires confidentielles et vous seul pouvez y accéder.
                 </span>
               </span>
@@ -571,11 +581,14 @@ export function ShareWithMultipleFamilyModal({
                         addSelected(family.familyId)
                       }
                     }}
-                    className={classNames(
-                      familyIndex === userFamilies.length - 2 ? 'rounded-bl-md rounded-br-md' : '',
-                      checked ? 'z-10 border-indigo-200 bg-indigo-50' : 'border-gray-200',
-                      'relative flex cursor-pointer border p-4 focus:outline-none'
-                    )}>
+                    className={
+                      // @ts-ignore
+                      classNames(
+                        familyIndex === userFamilies.length - 2 ? 'rounded-bl-md rounded-br-md' : '',
+                        checked ? 'z-10 border-indigo-200 bg-indigo-50' : 'border-gray-200',
+                        'relative flex cursor-pointer border p-4 focus:outline-none'
+                      )
+                    }>
                     <input
                       type='checkbox'
                       name='familiesToShareWith'
@@ -592,20 +605,31 @@ export function ShareWithMultipleFamilyModal({
                     />
                     <span className='ml-3 flex flex-col'>
                       <span
-                        className={classNames(
-                          checked ? 'text-indigo-900' : 'text-gray-900',
-                          'inline-flex justify-items-start items-center text-sm font-medium '
-                        )}
+                        className={
+                          // @ts-ignore
+                          classNames(
+                            checked ? 'text-indigo-900' : 'text-gray-900',
+                            'inline-flex justify-items-start items-center text-sm font-medium '
+                          )
+                        }
                         id='headlessui-label-:rc:'>
                         <UsersIcon className='h-4 w-4 mr-1' />
                         {family.familyName}
                       </span>
                       {family.isUserSpace ? (
-                        <span className={classNames(checked ? 'text-indigo-700' : 'text-gray-500', 'block text-sm')}>
+                        <span
+                          className={
+                            // @ts-ignore
+                            classNames(checked ? 'text-indigo-700' : 'text-gray-500', 'block text-sm')
+                          }>
                           Un espace pour vos histoires confidentielles et vous seul pouvez y accéder.
                         </span>
                       ) : (
-                        <span className={classNames(checked ? 'text-indigo-700' : 'text-gray-500', 'block text-sm')}>
+                        <span
+                          className={
+                            // @ts-ignore
+                            classNames(checked ? 'text-indigo-700' : 'text-gray-500', 'block text-sm')
+                          }>
                           {family.about}
                         </span>
                       )}

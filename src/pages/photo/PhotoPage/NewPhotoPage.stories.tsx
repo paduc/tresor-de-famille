@@ -1,14 +1,14 @@
 import { SearchIndex } from 'algoliasearch/lite'
 import * as React from 'react'
-import { AppUserId } from '../../../domain/AppUserId'
-import { getUuid } from '../../../libs/getUuid'
-import { SessionContext } from '../../_components/SessionContext'
-import { PersonSearchContext } from '../../_components/usePersonSearch'
-import { NewPhotoPage } from './NewPhotoPage'
-import { makePhotoId } from '../../../libs/makePhotoId'
-import { makePersonId } from '../../../libs/makePersonId'
-import { makeThreadId } from '../../../libs/makeThreadId'
-import { makeFamilyId } from '../../../libs/makeFamilyId'
+import { AppUserId } from '../../../domain/AppUserId.js'
+import { getUuid } from '../../../libs/getUuid.js'
+import { SessionContext } from '../../_components/SessionContext.js'
+import { PersonSearchContext } from '../../_components/usePersonSearch.js'
+import { NewPhotoPage } from './NewPhotoPage.js'
+import { makePhotoId } from '../../../libs/makePhotoId.js'
+import { makePersonId } from '../../../libs/makePersonId.js'
+import { makeThreadId } from '../../../libs/makeThreadId.js'
+import { makeFamilyId } from '../../../libs/makeFamilyId.js'
 
 const fakePersonSearch = async (query: string) => {
   return {

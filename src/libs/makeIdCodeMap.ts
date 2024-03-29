@@ -1,4 +1,4 @@
-import { UUID } from '../domain'
+import { UUID } from '../domain/UUID.js'
 
 type IdCodeMap<ID = UUID> = { idToCode: (uuid: ID) => string | undefined; codeToId: (code: string) => ID | undefined }
 

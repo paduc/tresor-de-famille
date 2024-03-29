@@ -1,11 +1,11 @@
 import zod from 'zod'
-import { addToHistory } from '../../dependencies/addToHistory'
-import { requireAuth } from '../../dependencies/authn'
-import { pageRouter } from '../pageRouter'
-import { zIsPhotoId } from '../../domain/PhotoId'
-import { doesPhotoExist } from '../_doesPhotoExist'
-import { UserDeletedPhoto } from './UserDeletedPhoto'
-import { PhotoListPageUrl } from '../photoList/PhotoListPageUrl'
+import { addToHistory } from '../../dependencies/addToHistory.js'
+import { requireAuth } from '../../dependencies/authn.js'
+import { pageRouter } from '../pageRouter.js'
+import { zIsPhotoId } from '../../domain/PhotoId.js'
+import { doesPhotoExist } from '../_doesPhotoExist.js'
+import { UserDeletedPhoto } from './UserDeletedPhoto.js'
+import { PhotoListPageUrl } from '../photoList/PhotoListPageUrl.js'
 
 pageRouter.route('/delete-photo').post(requireAuth(), async (request, response, next) => {
   try {

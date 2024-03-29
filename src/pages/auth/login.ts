@@ -1,7 +1,7 @@
-import { getSingleEvent } from '../../dependencies/getSingleEvent'
-import { AppUserId } from '../../domain/AppUserId'
-import { UserRegisteredWithEmailAndPassword } from '../../events/UserRegisteredWithEmailAndPassword'
-import { UserRegisteredWithInvitation } from '../../events/UserRegisteredWithInvitation'
+import { getSingleEvent } from '../../dependencies/getSingleEvent.js'
+import { AppUserId } from '../../domain/AppUserId.js'
+import { UserRegisteredWithEmailAndPassword } from '../../events/UserRegisteredWithEmailAndPassword.js'
+import { UserRegisteredWithInvitation } from '../../events/UserRegisteredWithInvitation.js'
 
 export const makeLogin =
   (comparePassword: (password: string, passwordHash: string) => Promise<boolean>) =>

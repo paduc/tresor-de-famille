@@ -1,9 +1,9 @@
 import * as React from 'react'
-import { makePhotoId } from '../../libs/makePhotoId'
-import { SessionContext } from '../_components/SessionContext'
-import { PhotoListPage } from './PhotoListPage'
-import { AppUserId } from '../../domain/AppUserId'
-import { FamilyId } from '../../domain/FamilyId'
+import { makePhotoId } from '../../libs/makePhotoId.js'
+import { SessionContext } from '../_components/SessionContext.js'
+import { PhotoListPage } from './PhotoListPage.js'
+import { AppUserId } from '../../domain/AppUserId.js'
+import { FamilyId } from '../../domain/FamilyId.js'
 
 export default { title: 'Lister les Photos', component: PhotoListPage, parameters: { layout: 'fullscreen' } }
 

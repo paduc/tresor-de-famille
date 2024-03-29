@@ -1,6 +1,6 @@
-import { DomainEvent, makeDomainEvent } from '../../../dependencies/DomainEvent'
-import { FaceId } from '../../../domain/FaceId'
-import { PhotoId } from '../../../domain/PhotoId'
+import { DomainEvent, makeDomainEvent } from '../../../dependencies/DomainEvent.js'
+import { FaceId } from '../../../domain/FaceId.js'
+import { PhotoId } from '../../../domain/PhotoId.js'
 
 type AWSBoundingBox = {
   /**

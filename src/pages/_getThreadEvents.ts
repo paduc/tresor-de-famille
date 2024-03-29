@@ -1,9 +1,9 @@
-import { getEventList } from '../dependencies/getEventList'
-import { ThreadId } from '../domain/ThreadId'
-import { UserSentMessageToChat } from '../events/deprecated/UserSentMessageToChat'
-import { UserInsertedPhotoInRichTextThread } from './thread/UserInsertedPhotoInRichTextThread'
-import { UserSetChatTitle } from './thread/UserSetChatTitle'
-import { UserUpdatedThreadAsRichText } from './thread/UserUpdatedThreadAsRichText'
+import { getEventList } from '../dependencies/getEventList.js'
+import { ThreadId } from '../domain/ThreadId.js'
+import { UserSentMessageToChat } from '../events/deprecated/UserSentMessageToChat.js'
+import { UserInsertedPhotoInRichTextThread } from './thread/UserInsertedPhotoInRichTextThread.js'
+import { UserSetChatTitle } from './thread/UserSetChatTitle.js'
+import { UserUpdatedThreadAsRichText } from './thread/UserUpdatedThreadAsRichText.js'
 
 export type ThreadEvent =
   | UserSetChatTitle

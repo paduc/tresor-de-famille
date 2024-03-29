@@ -1,5 +1,5 @@
 import { Editor } from '@tiptap/react'
-import { TipTapContentAsJSON, TipTapJSON } from '../../TipTapTypes'
+import { TipTapContentAsJSON, TipTapJSON } from '../../TipTapTypes.js'
 
 /**
  * Insert separators to facilitate edition of content

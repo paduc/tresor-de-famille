@@ -1,17 +1,17 @@
 import express from 'express'
 
 import ReactDOMServer from 'react-dom/server'
-import { FactDiagramPage } from './FactDiagramPage'
+import { FactDiagramPage } from './FactDiagramPage.js'
 import { Project } from 'ts-morph'
 import path from 'node:path'
-import { getFacts } from './getFacts'
+import { getFacts } from './getFacts.js'
 
 export const factDiagramRouter = express.Router()
 
 const html = String.raw
 
 const project = new Project({
-  tsConfigFilePath: path.resolve(__dirname, '../../../tsconfig.json'),
+  tsConfigFilePath: path.resolve(process.cwd(), '../../../tsconfig.json'),
 })
 
 factDiagramRouter.route('/factDiagram.html').get(async (request, response, next) => {

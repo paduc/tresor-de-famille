@@ -1,5 +1,5 @@
-import { createHistoryTable } from '../addToHistory'
-import { postgres } from '../database'
+import { createHistoryTable } from '../addToHistory.js'
+import { postgres } from '../database.js'
 
 export const resetDatabase = async () => {
   const client = await postgres.connect()

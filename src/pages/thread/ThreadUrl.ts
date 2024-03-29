@@ -1,5 +1,5 @@
-import { PhotoId } from '../../domain/PhotoId'
-import { ThreadId } from '../../domain/ThreadId'
+import { PhotoId } from '../../domain/PhotoId.js'
+import { ThreadId } from '../../domain/ThreadId.js'
 
 export function ThreadUrl(threadId?: ThreadId, editable?: boolean, photoId?: PhotoId) {
   if (!threadId) {

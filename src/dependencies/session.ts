@@ -1,7 +1,7 @@
 import session from 'express-session'
 import connectPgSimple from 'connect-pg-simple'
 
-import { postgres } from './database'
+import { postgres } from './database.js'
 
 const pgSession = connectPgSimple(session)
 

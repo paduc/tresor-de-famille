@@ -1,13 +1,13 @@
-import { getEventList } from '../dependencies/getEventList'
-import { getSingleEvent } from '../dependencies/getSingleEvent'
-import { AppUserId } from '../domain/AppUserId'
-import { FaceId } from '../domain/FaceId'
-import { PersonId } from '../domain/PersonId'
-import { PhotoId } from '../domain/PhotoId'
-import { UserConfirmedHisFace } from '../events/onboarding/UserConfirmedHisFace'
-import { UserNamedPersonInPhoto } from '../events/onboarding/UserNamedPersonInPhoto'
-import { UserRecognizedPersonInPhoto } from '../events/onboarding/UserRecognizedPersonInPhoto'
-import { UserSelectedNewProfilePic } from './person/UserSelectedNewProfilePic'
+import { getEventList } from '../dependencies/getEventList.js'
+import { getSingleEvent } from '../dependencies/getSingleEvent.js'
+import { AppUserId } from '../domain/AppUserId.js'
+import { FaceId } from '../domain/FaceId.js'
+import { PersonId } from '../domain/PersonId.js'
+import { PhotoId } from '../domain/PhotoId.js'
+import { UserConfirmedHisFace } from '../events/onboarding/UserConfirmedHisFace.js'
+import { UserNamedPersonInPhoto } from '../events/onboarding/UserNamedPersonInPhoto.js'
+import { UserRecognizedPersonInPhoto } from '../events/onboarding/UserRecognizedPersonInPhoto.js'
+import { UserSelectedNewProfilePic } from './person/UserSelectedNewProfilePic.js'
 
 export const getProfilePicUrlForPerson = async ({
   userId,

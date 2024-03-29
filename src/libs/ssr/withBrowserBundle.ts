@@ -1,11 +1,11 @@
 import callsites from 'callsites'
 import React, { FunctionComponent } from 'react'
 import { hydrateRoot } from 'react-dom/client'
-import { LocationContext } from '../../pages/_components/LocationContext'
-import { Session, SessionContext } from '../../pages/_components/SessionContext'
-import { withContext } from './withContext'
-import algoliasearch, { SearchIndex } from 'algoliasearch/lite'
-import { PersonSearchContext } from '../../pages/_components/usePersonSearch'
+import { LocationContext } from '../../pages/_components/LocationContext.js'
+import { Session, SessionContext } from '../../pages/_components/SessionContext.js'
+import { withContext } from './withContext.js'
+import algoliasearch, { SearchIndex } from 'algoliasearch/lite.js'
+import { PersonSearchContext } from '../../pages/_components/usePersonSearch.js'
 
 const isServerContext = typeof window === 'undefined'
 
@@ -57,6 +57,7 @@ const browserCode = <ComponentType extends FunctionComponent>(Component: Compone
     if (appId && session?.isLoggedIn && session.searchKey) {
       const { searchKey } = session
 
+      // @ts-ignore
       const searchClient = algoliasearch(appId, searchKey)
       index = searchClient.initIndex('persons')
     }

@@ -1,5 +1,5 @@
 import { createContext, useContext } from 'react'
-import { MediaId } from '../../../../domain/MediaId'
+import { MediaId } from '../../../../domain/MediaId.js'
 
 export const RemoveMediaCtx = createContext<((mediaId: MediaId) => unknown) | null>(null)
 

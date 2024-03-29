@@ -1,6 +1,6 @@
-import { getSingleEvent } from '../dependencies/getSingleEvent'
-import { FamilyId } from '../domain/FamilyId'
-import { UserCreatedNewFamily } from './share/UserCreatedNewFamily'
+import { getSingleEvent } from '../dependencies/getSingleEvent.js'
+import { FamilyId } from '../domain/FamilyId.js'
+import { UserCreatedNewFamily } from './share/UserCreatedNewFamily.js'
 
 export const getFamilyById = async (familyId: FamilyId): Promise<{ name: string; about: string }> => {
   const userCreatedFamilyEvent = await getSingleEvent<UserCreatedNewFamily>('UserCreatedNewFamily', { familyId })

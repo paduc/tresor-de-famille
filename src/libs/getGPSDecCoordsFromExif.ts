@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { EXIF } from './exif'
+import { EXIF } from './exif.js'
 
 const refToFactor = { N: 1, W: -1, E: 1, S: -1 } as const
 export function getGPSDecCoordsFromExif(exif: EXIF): { lat: number; long: number } | undefined {

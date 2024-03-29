@@ -1,9 +1,9 @@
-import { DomainEvent, makeDomainEvent } from '../../dependencies/DomainEvent'
-import { AppUserId } from '../../domain/AppUserId'
-import { FaceId } from '../../domain/FaceId'
-import { FamilyId } from '../../domain/FamilyId'
-import { PersonId } from '../../domain/PersonId'
-import { PhotoId } from '../../domain/PhotoId'
+import { DomainEvent, makeDomainEvent } from '../../dependencies/DomainEvent.js'
+import { AppUserId } from '../../domain/AppUserId.js'
+import { FaceId } from '../../domain/FaceId.js'
+import { FamilyId } from '../../domain/FamilyId.js'
+import { PersonId } from '../../domain/PersonId.js'
+import { PhotoId } from '../../domain/PhotoId.js'
 
 export type PersonClonedForSharing = DomainEvent<
   'PersonClonedForSharing',

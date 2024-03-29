@@ -1,8 +1,8 @@
 import c from 'classnames'
 import { XCircleIcon } from '@heroicons/react/20/solid'
 import * as React from 'react'
-import { Logo } from '../_components/Logo'
-import { BareLayout } from '../_components/layout/Layout'
+import { Logo } from '../_components/Logo.js'
+import { BareLayout } from '../_components/layout/Layout.js'
 
 type ConnexionPageProps = {
   loginType?: 'login' | 'register'
@@ -79,6 +79,7 @@ export const ConnexionPage = ({ loginType = 'login', email, redirectTo, code, er
                     aria-invalid={Boolean(errors?.email)}
                     aria-describedby={errors?.email ? 'email-error' : undefined}
                     required
+                    // @ts-ignore
                     className={c(
                       'appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm',
                       {
@@ -117,6 +118,7 @@ export const ConnexionPage = ({ loginType = 'login', email, redirectTo, code, er
                     name='password'
                     type='password'
                     required
+                    // @ts-ignore
                     className={c(
                       'appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm',
                       {

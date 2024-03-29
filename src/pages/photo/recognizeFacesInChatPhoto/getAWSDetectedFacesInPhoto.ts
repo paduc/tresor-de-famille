@@ -1,5 +1,5 @@
-import { BoundingBox } from 'aws-sdk/clients/rekognition'
-import { getRekognition } from '../../../dependencies/face-recognition'
+import { BoundingBox } from 'aws-sdk/clients/rekognition.js'
+import { getRekognition } from '../../../dependencies/face-recognition.js'
 
 const SIMILARITY_THRESHOLD = 95
 

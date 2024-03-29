@@ -3,13 +3,13 @@ import { v4 as uuid } from 'uuid'
 import multer from 'multer'
 import bodyParser from 'body-parser'
 
-import { responseAsHtml } from '../../libs/ssr/responseAsHtml'
-import { pageRouter } from '../pageRouter'
-import { requireAuth } from '../../dependencies/authn'
+import { responseAsHtml } from '../../libs/ssr/responseAsHtml.js'
+import { pageRouter } from '../pageRouter.js'
+import { requireAuth } from '../../dependencies/authn.js'
 import { unlink, readFile } from 'fs/promises'
-import { addToHistory } from '../../dependencies/addToHistory'
-import { GedcomImported } from '../../events/GedcomImported'
-import { FamilyId } from '../../domain/FamilyId'
+import { addToHistory } from '../../dependencies/addToHistory.js'
+import { GedcomImported } from '../../events/GedcomImported.js'
+import { FamilyId } from '../../domain/FamilyId.js'
 
 const FILE_SIZE_LIMIT_MB = 50
 

@@ -1,9 +1,9 @@
-import { getSingleEvent } from '../dependencies/getSingleEvent'
-import { AppUserId } from '../domain/AppUserId'
-import { ThreadId } from '../domain/ThreadId'
-import { getThreadAuthor } from './_getThreadAuthor'
-import { getUserFamilies } from './_getUserFamilies'
-import { ThreadSharedWithFamilies } from './thread/ThreadPage/events/ThreadSharedWithFamilies'
+import { getSingleEvent } from '../dependencies/getSingleEvent.js'
+import { AppUserId } from '../domain/AppUserId.js'
+import { ThreadId } from '../domain/ThreadId.js'
+import { getThreadAuthor } from './_getThreadAuthor.js'
+import { getUserFamilies } from './_getUserFamilies.js'
+import { ThreadSharedWithFamilies } from './thread/ThreadPage/events/ThreadSharedWithFamilies.js'
 
 export async function isThreadSharedWithUser({
   threadId,

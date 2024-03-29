@@ -2,9 +2,10 @@ import aws from 'aws-sdk'
 import fs from 'node:fs'
 import path from 'node:path'
 import zod from 'zod'
-import { PhotoId } from '../domain/PhotoId'
-import { throwIfUndefined } from './env'
+import { PhotoId } from '../domain/PhotoId.js'
+import { throwIfUndefined } from './env.js'
 import { Readable } from 'node:stream'
+import { getDirname } from '../libs/getDirname.js'
 
 const { PHOTO_STORAGE } = zod.object({ PHOTO_STORAGE: zod.enum(['S3', 'local']) }).parse(process.env)
 
@@ -48,7 +49,7 @@ if (PHOTO_STORAGE === 'S3') {
 
 export { downloadPhoto, uploadPhoto }
 
-const localFilePath = (photoId: PhotoId) => path.join(__dirname, '../../temp/photos', photoId)
+const localFilePath = (photoId: PhotoId) => path.join(getDirname(import.meta.url), '../../temp/photos', photoId)
 
 function downloadPhotoLocally(photoId: PhotoId) {
   const localPath = localFilePath(photoId)
