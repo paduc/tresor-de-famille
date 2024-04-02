@@ -1,20 +1,21 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { z } from 'zod'
 
 import { FamilyId } from '../../../domain/FamilyId.js'
+import { MediaId } from '../../../domain/MediaId.js'
 import { PhotoId, zIsPhotoId } from '../../../domain/PhotoId.js'
 import { ThreadId, zIsThreadId } from '../../../domain/ThreadId.js'
 import { withBrowserBundle } from '../../../libs/ssr/withBrowserBundle.js'
-import { Epoch } from '../../../libs/typeguards.js'
 import { secondaryButtonStyles } from '../../_components/Button.js'
 import { AppLayout } from '../../_components/layout/AppLayout.js'
+import { MediaStatus, ReadyOrErrorStatus } from '../../media/MediaStatus.js'
 import { ThreadUrl } from '../ThreadUrl.js'
 import { TextMark, TipTapContentAsJSON } from '../TipTapTypes.js'
 import { Comment, Comments } from './_components/Comments.js'
 import { ThreadSharingButton } from './_components/ThreadSharingButton.js'
 import { MediaNodeItemComponentByStatus } from './nodes/MediaNode.js'
-import { MediaId } from '../../../domain/MediaId.js'
-import { MediaStatus } from '../../media/MediaStatus.js'
+import axios from 'axios'
+import { GetMediaStatusURL } from '../../media/GetMediaStatusURL.js'
 
 export type ReadOnlyThreadPageProps = {
   title?: string
@@ -228,6 +229,46 @@ const ReadonyMediaItem = (props: {
   }
 }) => {
   const { mediaId, url, caption, status } = props.node.attrs
+  const [mediaStatus, setMediaStatus] = useState<MediaStatus>(status)
 
-  return <MediaNodeItemComponentByStatus mediaId={mediaId} url={url} latestCaption={caption} mediaStatus={status} isReadonly />
+  // call the API to check if the media is ready (triggers only on first render, no dependencies) using axios
+  useEffect(() => {
+    if (ReadyOrErrorStatus.includes(status)) {
+      return
+    }
+
+    const checkMediaReady = async () => {
+      // console.log('checking media status...')
+      const res = await axios.get<{ status: MediaStatus }>(GetMediaStatusURL(mediaId), { withCredentials: true, timeout: 4000 })
+
+      if (res.status === 200) {
+        setMediaStatus(res.data.status)
+        return res.data.status
+      }
+    }
+
+    let intervalId: any = undefined
+    checkMediaReady().then((status) => {
+      if (!status || ReadyOrErrorStatus.includes(status)) {
+        // console.log('the first check returned that media ready or errored, no setting interval')
+        return
+      }
+
+      intervalId = setInterval(async () => {
+        const latestStatus = await checkMediaReady()
+        if (latestStatus && ReadyOrErrorStatus.includes(latestStatus)) {
+          console.log(`clearing interval because status=${latestStatus}`)
+          clearInterval(intervalId)
+        }
+      }, 5000)
+    })
+
+    return () => {
+      if (intervalId) clearInterval(intervalId)
+    }
+  }, [])
+
+  return (
+    <MediaNodeItemComponentByStatus mediaId={mediaId} url={url} latestCaption={caption} mediaStatus={mediaStatus} isReadonly />
+  )
 }

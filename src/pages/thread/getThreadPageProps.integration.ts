@@ -498,6 +498,70 @@ describe('getThreadPageProps', () => {
       })
     })
   })
+  describe('when the thread has a MediaNode with several updates (including a 4, but not the latest', () => {
+    const threadId = makeThreadId()
+    const mediaId = makeMediaId()
+    const userId = makeAppUserId()
+    beforeAll(async () => {
+      await resetDatabase()
+
+      await addToHistory(
+        UserUpdatedThreadAsRichText({
+          userId,
+          threadId,
+          familyId: makeFamilyId(),
+          contentAsJSON: {
+            type: 'doc',
+            content: [
+              {
+                type: 'mediaNode',
+                attrs: {
+                  mediaId,
+                  caption: '',
+                  url: 'https://example.com',
+                  status: 0,
+                },
+              },
+            ],
+          },
+        })
+      )
+
+      await addToHistory(
+        BunnyMediaUploaded({
+          bunnyLibraryId: 'libraryId',
+          bunnyVideoId: 'videoId',
+          mediaId,
+          userId,
+        })
+      )
+
+      await addToHistory(BunnyMediaStatusUpdated({ LibraryId: 'libraryId', VideoId: 'videoId', Status: 1 }))
+
+      await addToHistory(BunnyMediaStatusUpdated({ LibraryId: 'libraryId', VideoId: 'videoId', Status: 4 }))
+
+      await addToHistory(BunnyMediaStatusUpdated({ LibraryId: 'libraryId', VideoId: 'videoId', Status: 3 }))
+    })
+
+    it('should return status = 4 (because it means the video is ready)', async () => {
+      const res = await getThreadPageProps({ threadId, userId })
+
+      expect(res.contentAsJSON).toMatchObject({
+        type: 'doc',
+        content: [
+          {
+            type: 'mediaNode',
+            attrs: {
+              mediaId,
+              caption: '',
+              url: 'https://example.com',
+              status: 4, // <---
+            },
+          },
+        ],
+      })
+    })
+  })
 
   describe('when a media has a UserAddedCaptionToPhoto', () => {
     const threadId = makeThreadId()

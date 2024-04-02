@@ -332,5 +332,6 @@ const MessageByStatus: Record<MediaStatus, string> = {
   4: 'Terminé',
   5: 'Erreur',
   6: 'Upload échoué',
+  7: 'En cours de transcription',
   404: 'Média non-trouvé',
 }

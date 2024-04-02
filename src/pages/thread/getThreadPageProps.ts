@@ -1,3 +1,4 @@
+import { getEventList } from '../../dependencies/getEventList.js'
 import { getSingleEvent } from '../../dependencies/getSingleEvent.js'
 import { getPhotoUrlFromId } from '../../dependencies/photo-storage.js'
 import { AppUserId } from '../../domain/AppUserId.js'
@@ -18,6 +19,7 @@ import { getUserFamilies } from '../_getUserFamilies.js'
 import { getThreadComments } from '../commentApi/getThreadComments.js'
 import { BunnyMediaStatusUpdated } from '../media/BunnyMediaStatusUpdated.js'
 import { BunnyMediaUploaded } from '../media/BunnyMediaUploaded.js'
+import { ReadyOrErrorStatus } from '../media/MediaStatus.js'
 import { UserAddedCaptionToPhoto } from '../photo/UserAddedCaptionToPhoto.js'
 import { ThreadPageProps } from './ThreadPage/ThreadPage.js'
 import { TipTapContentAsJSON, encodeStringy } from './TipTapTypes.js'
@@ -152,10 +154,12 @@ export const getThreadPageProps = async ({
         if (!uploadedEvent) continue
 
         const { bunnyVideoId, bunnyLibraryId } = uploadedEvent.payload
-        const latestStatusEvent = await getSingleEvent<BunnyMediaStatusUpdated>('BunnyMediaStatusUpdated', {
+        const statusEvents = await getEventList<BunnyMediaStatusUpdated>('BunnyMediaStatusUpdated', {
           LibraryId: bunnyLibraryId,
           VideoId: bunnyVideoId,
         })
+
+        const latestStatusEvent = statusEvents.filter((event) => ReadyOrErrorStatus.includes(event.payload.Status)).at(-1)
 
         const newAttrs = {
           ...contentNode.attrs,
