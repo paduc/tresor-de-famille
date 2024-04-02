@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-const MediaStatusValues = [0, 1, 2, 3, 4, 5, 6, 404] as const
+const MediaStatusValues = [0, 1, 2, 3, 4, 5, 6, 7, 404] as const
 export type MediaStatus = typeof MediaStatusValues[number]
 
 export const MediaStatus: Record<MediaStatus, string> = {
@@ -11,6 +11,7 @@ export const MediaStatus: Record<MediaStatus, string> = {
   4: 'Finished',
   5: 'Error',
   6: 'UploadFailed',
+  7: 'Transcribing',
   404: 'NotFound',
 } as const
 
@@ -22,6 +23,7 @@ export const zMediaStatus = z.union([
   z.literal(4),
   z.literal(5),
   z.literal(6),
+  z.literal(7),
   z.literal(404),
 ])
 
