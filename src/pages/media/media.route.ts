@@ -121,10 +121,10 @@ pageRouter.get(GetMediaStatusURL(), requireAuth(), async (request, response) => 
 pageRouter.post(BunnyMediaHookURL, async (request, response, next) => {
   try {
     const { Status, VideoGuid, VideoLibraryId } = z
-      .object({ Status: zMediaStatus, VideoGuid: z.string(), VideoLibraryId: z.string() })
+      .object({ Status: zMediaStatus, VideoGuid: z.string(), VideoLibraryId: z.number() })
       .parse(request.body)
 
-    await addToHistory(BunnyMediaStatusUpdated({ Status, VideoId: VideoGuid, LibraryId: VideoLibraryId }))
+    await addToHistory(BunnyMediaStatusUpdated({ Status, VideoId: VideoGuid, LibraryId: VideoLibraryId.toString() }))
 
     return response.status(200).send('ok')
   } catch (error) {
