@@ -111,6 +111,7 @@ export function MediaSelector({ onMediaSelected, isOpen, close, selectedType }: 
         <UppyDashboard
           onMediaSelected={({ mediaId, url }) => {
             if (onMediaSelected) onMediaSelected({ type: 'media', mediaId, url })
+            close()
           }}
         />
       )}
