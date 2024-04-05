@@ -411,7 +411,6 @@ const UppyDashboard = ({ onMediaSelected }: { onMediaSelected: (args: { mediaId:
   const uppy = useState(() => {
     const uppy = new Uppy({ locale: UppyFrancais }).use(Tus, {
       endpoint: 'https://video.bunnycdn.com/tusupload',
-      limit: 1,
       async onBeforeRequest(req, file) {
         // onBeforeRequest is called multiple times, so we need to check if we already have the meta
         if (!file.meta.VideoId) {
@@ -436,7 +435,7 @@ const UppyDashboard = ({ onMediaSelected }: { onMediaSelected: (args: { mediaId:
       },
     })
 
-    uppy.setOptions({ restrictions: { allowedFileTypes: ['video/*', 'audio/*'] } })
+    uppy.setOptions({ restrictions: { maxNumberOfFiles: 1, allowedFileTypes: ['video/*', 'audio/*'] } })
 
     // TODO: call the server to warn that the video is uploaded
     uppy.on('upload-success', async (file, response) => {
