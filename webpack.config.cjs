@@ -29,8 +29,8 @@ function fileUsesHydration(filePath) {
 }
 
 module.exports = {
-  // mode: process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'staging' ? 'production' : 'development',
-  mode: 'production',
+  mode: process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'staging' ? 'production' : 'development',
+  // mode: 'production',
   entry: {
     ...pageEntries,
     shared: ['react', 'react-dom', '@headlessui/react'],
@@ -60,7 +60,7 @@ module.exports = {
   // },
   output: {
     filename: '[name].[contenthash].js',
-    path: path.resolve(__dirname, 'dist', 'assets', 'js'),
+    path: path.resolve(__dirname, 'src', 'assets', 'js'),
     clean: true,
   },
 }

@@ -5,9 +5,9 @@
   "type": "module",
   "scripts": {
     "start": "node dist/server.js",
-    "build": "tsc --p tsconfig.build.json && webpack --config=webpack.config.cjs && yarn postcss:build && rsync -av src/assets dist --exclude js",
+    "build": "tsc --p tsconfig.build.json && webpack --config=webpack.config.cjs && yarn postcss:build && rsync -av src/assets dist",
     "test-build": "tsc --p tsconfig.build.json --noEmit",
-    "build:front": "",
+    "build:front": "webpack --config=webpack.config.cjs",
     "postcss:local": "postcss --watch -o src/assets/style.css src/pages/style.css",
     "postcss:build": "postcss -o dist/assets/style.css src/pages/style.css",
     "watch": "yarn build:front && concurrently \"tsx watch src/server.ts\" \"yarn postcss:local\" \"yarn watch:front\" ",
