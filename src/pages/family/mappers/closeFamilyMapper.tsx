@@ -16,6 +16,7 @@ type NodesEdges = {
  * @returns nodes and edges
  */
 export function closeFamilyMapper({ origin, persons, relationships }: PersonsRelationshipsInTree): NodesEdges {
+  console.log('closeFamilyMapper', { origin, persons, relationships })
   const Y_OFFSET = 4 * BUBBLE_RADIUS
   const X_OFFSET = 2.5 * BUBBLE_RADIUS
   const COUPLE_NODE_RADIUS = 6
@@ -446,7 +447,7 @@ export function closeFamilyMapper({ origin, persons, relationships }: PersonsRel
 
   function getPersonById(personId: PersonId): PersonInTree {
     const person = persons.find((person) => person.personId === personId)
-    if (!person) throw new Error('Could not find personId in list of persons')
+    if (!person) throw new Error(`Could not find personId(${personId}) in list of persons (length=${persons.length})`)
 
     return person
   }

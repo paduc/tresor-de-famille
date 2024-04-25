@@ -24,7 +24,21 @@ import { OtherFamilyPage } from './OtherFamilyPage.js'
 
 pageRouter.route(FamilyPageURLWithFamily()).get(requireAuth(), async (request, response, next) => {
   try {
-    responseAsHtml(request, response, OtherFamilyPage())
+    const userId = request.session.user!.id
+    const { familyId } = z.object({ familyId: zIsFamilyId }).parse(request.params)
+
+    try {
+      const props = await getFamilyPageProps({
+        userId,
+        familyId,
+      })
+
+      // TODO: fetch origin person from familyId (only user family has user person as origin)
+      responseAsHtml(request, response, OtherFamilyPage({ ...props, initialOriginPersonId: undefined }))
+    } catch (error) {
+      console.error("La personne essaie d'aller sur la page famille alors qu'elle ne s'est pas encore présentée", error)
+      response.redirect('/')
+    }
   } catch (error) {
     next(error)
   }
