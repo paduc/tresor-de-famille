@@ -17,7 +17,7 @@ export const searchClient = algoliasearch(ALGOLIA_APPID, ALGOLIA_APPKEY)
 export const personsIndex = searchClient.initIndex('persons')
 
 personsIndex.setSettings({
-  attributesForFaceting: ['filterOnly(visible_by)'],
+  attributesForFaceting: ['filterOnly(visible_by)', 'filterOnly(familyId)'],
   unretrievableAttributes: ['visible_by'],
 })
 
