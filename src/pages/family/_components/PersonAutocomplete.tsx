@@ -19,6 +19,7 @@ type PersonAutocompleteProps = {
   presentPerson?: { name: string; personId: PersonId }
   unselectableIds?: PersonId[]
   currentFamilyId: FamilyId
+  inCurrentFamilyOnly?: boolean
 }
 
 export const PersonAutocomplete = ({
@@ -27,6 +28,7 @@ export const PersonAutocomplete = ({
   presentPerson,
   unselectableIds,
   currentFamilyId,
+  inCurrentFamilyOnly,
 }: PersonAutocompleteProps) => {
   const [query, setQuery] = useState('')
   const index = usePersonSearch()
@@ -46,7 +48,12 @@ export const PersonAutocomplete = ({
         setHits([])
         return
       }
-      const { hits } = (await index.search(trimmedQuery)) as { hits: SearchPersonHitDTO[] }
+      const { hits } = (await index.search(
+        trimmedQuery,
+        inCurrentFamilyOnly ? { filters: `familyId:${currentFamilyId}` } : {}
+      )) as {
+        hits: SearchPersonHitDTO[]
+      }
       const selectableHits = unselectableIds ? hits.filter((hit) => !unselectableIds.includes(hit.objectID)) : hits
       setHits(selectableHits as SearchPersonHitDTO[])
     }

@@ -28,6 +28,7 @@ export type SearchPanelProps = {
   relationships: RelationshipInTree[]
   persons: PersonInTree[]
   currentFamilyId: FamilyId
+  inCurrentFamilyOnly?: boolean
 }
 export function SearchPanel({
   onPersonSelected,
@@ -36,6 +37,7 @@ export function SearchPanel({
   relationships,
   persons,
   currentFamilyId,
+  inCurrentFamilyOnly,
 }: SearchPanelProps) {
   const close = () => onPersonSelected(null)
 
@@ -217,6 +219,7 @@ export function SearchPanel({
                 unselectableIds={unselectableIds}
                 className='max-w-xl text-gray-800'
                 currentFamilyId={currentFamilyId}
+                inCurrentFamilyOnly={inCurrentFamilyOnly}
               />
               {otherRelationships ? (
                 <div className='flex items-center justify-between mt-2'>
