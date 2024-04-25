@@ -96,7 +96,7 @@ export function AppLayout({ children }: AppLayoutProps) {
       name: 'Arbres généalogiques',
       href: '/family.html',
       icon: ShareIcon,
-      condition: () => false && isFamilyPageEnabled,
+      condition: () => true,
     },
     {
       name: 'Photos',

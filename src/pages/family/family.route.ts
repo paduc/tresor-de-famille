@@ -14,22 +14,30 @@ import { isPersonSharedWithFamily } from '../_isPersonSharedWithFamily.js'
 import { pageRouter } from '../pageRouter.js'
 import { PersonAutoSharedWithRelationship } from '../share/PersonAutoSharedWithRelationship.js'
 import { FamilyPage } from './FamilyPage.js'
-import { FamilyPageURLWithFamily } from './FamilyPageURL.js'
+import { FamilyPageURL, FamilyPageURLWithFamily } from './FamilyPageURL.js'
 import { UserCreatedNewRelationship } from './UserCreatedNewRelationship.js'
 import { UserCreatedRelationshipWithNewPerson } from './UserCreatedRelationshipWithNewPerson.js'
 import { UserRemovedRelationship } from './UserRemovedRelationship.js'
 import { getFamilyPageProps, getFamilyPersons, getFamilyRelationships } from './getFamilyPageProps.js'
 import { zIsRelationship } from './zIsRelationship.js'
+import { OtherFamilyPage } from './OtherFamilyPage.js'
 
 pageRouter.route(FamilyPageURLWithFamily()).get(requireAuth(), async (request, response, next) => {
   try {
-    const { familyId } = z.object({ familyId: zIsFamilyId.optional() }).parse(request.params)
+    responseAsHtml(request, response, OtherFamilyPage())
+  } catch (error) {
+    next(error)
+  }
+})
+
+pageRouter.route(FamilyPageURL()).get(requireAuth(), async (request, response, next) => {
+  try {
     const userId = request.session.user!.id
 
     try {
       const props = await getFamilyPageProps({
         userId: request.session.user!.id,
-        familyId: familyId || asFamilyId(userId),
+        familyId: asFamilyId(userId),
       })
       responseAsHtml(request, response, FamilyPage(props))
     } catch (error) {
