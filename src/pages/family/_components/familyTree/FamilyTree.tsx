@@ -1,7 +1,7 @@
 import React from 'react'
 import ReactFlow, { Background, ReactFlowProps } from 'reactflow'
-import { CoupleNode } from './CoupleNode'
-import { PersonNode } from './PersonNode'
+import { CoupleNode } from './CoupleNode.js'
+import { PersonNode } from './PersonNode.js'
 
 type FamilyTreeProps = ReactFlowProps & { children?: React.ReactNode }
 
