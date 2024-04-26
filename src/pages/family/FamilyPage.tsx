@@ -25,11 +25,6 @@ import { removeRelationship } from './_components/removeRelationship.js'
 import { saveNewRelationship } from './_components/saveNewRelationship.js'
 import { closeFamilyMapper } from './mappers/closeFamilyMapper.js'
 
-// @ts-ignore
-export function classNames(...classes) {
-  return classes.filter(Boolean).join(' ')
-}
-
 export type FamilyPageProps = {
   initialPersons: PersonInTree[]
   initialRelationships: RelationshipInTree[]
@@ -48,6 +43,7 @@ export const FamilyPage = withBrowserBundle((props: FamilyPageProps) => {
 })
 
 const ClientOnlyFamilyPage = ({ initialPersons, initialRelationships, initialOriginPersonId, familyId }: FamilyPageProps) => {
+  console.log('FamilyPage: ClientOnlyFamilyPage')
   const [nodes, setNodes, onNodesChange] = useNodesState([])
   const [edges, setEdges, onEdgesChange] = useEdgesState([])
 
@@ -63,6 +59,7 @@ const ClientOnlyFamilyPage = ({ initialPersons, initialRelationships, initialOri
   const [pendingRelationshipAction, setPendingRelationshipAction] = useState<PendingNodeRelationshipAction | null>(null)
 
   React.useEffect(() => {
+    console.log('FamilyPage: useEffect')
     const { nodes, edges } = closeFamilyMapper({ persons, relationships, origin })
 
     const uniqueNodes = new Map<string, Node>()

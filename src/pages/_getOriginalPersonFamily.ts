@@ -17,6 +17,7 @@ export async function getOriginalPersonFamily(personId: PersonId): Promise<Famil
       case 'UserNamedThemself':
       case 'UserNamedPersonInPhoto':
       case 'UserCreatedRelationshipWithNewPerson':
+      case 'UserSetFamilyTreeOrigin':
         return personEvent.payload.familyId
       case 'UserChangedPersonName':
         throw new Error('Person does not exist')

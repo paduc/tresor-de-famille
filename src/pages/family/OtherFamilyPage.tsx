@@ -27,11 +27,8 @@ import { closeFamilyMapper } from './mappers/closeFamilyMapper.js'
 import { useLoggedInSession } from '../_components/SessionContext.js'
 import { useMutation, useQuery, QueryClient, QueryClientProvider } from 'react-query'
 import axios from 'axios'
-
-// @ts-ignore
-export function classNames(...classes) {
-  return classes.filter(Boolean).join(' ')
-}
+import { SetOriginPersonForFamilyTreeURL } from './SetOriginPersonForFamilyTreeURL.js'
+import { filterUniqueById } from '../../libs/filterUniqueById.js'
 
 export type FamilyPageProps = {
   initialPersons: PersonInTree[]
@@ -47,7 +44,7 @@ export const OtherFamilyPage = withBrowserBundle((props: FamilyPageProps) => {
     <ClientOnly>
       <ContextualMenuProvider>
         <QueryClientProvider client={queryClient}>
-          <ClientOnlyFamilyPage {...props} />
+          <ClientEnabledFamilyPage {...props} />
         </QueryClientProvider>
       </ContextualMenuProvider>
     </ClientOnly>
@@ -55,7 +52,7 @@ export const OtherFamilyPage = withBrowserBundle((props: FamilyPageProps) => {
 })
 
 const fetchFamilyPageProps = (familyId: FamilyId) => async () => {
-  throw new Error('fetchFamilyPageProps Not implemented')
+  throw new Error('fetchFamilyPageProps as API is not implemented')
   return (await axios<FamilyPageProps>(`/api/familyTree/${familyId}`)).data
 }
 
@@ -78,8 +75,8 @@ function useFamilyPageProps({ familyId, initialData }: { familyId: FamilyId; ini
   return res.data
 }
 
-const ClientOnlyFamilyPage = (props: FamilyPageProps) => {
-  console.log('ClientOnlyFamilyPage', props)
+const ClientEnabledFamilyPage = (props: FamilyPageProps) => {
+  console.log('ClientEnabledFamilyPage', props)
   const familyPageProps = useFamilyPageProps({
     familyId: props.familyId,
     initialData: props,
@@ -108,22 +105,17 @@ const ClientOnlyFamilyPage = (props: FamilyPageProps) => {
     return { personId: initialOriginPersonId, x: 0, y: 0 }
   }, [initialOriginPersonId])
 
+  /**
+   * Map the persons and relationships to nodes and edges
+   */
   React.useEffect(() => {
-    console.log('useEffect', { persons, relationships, origin })
+    console.log('OtherFamilyPage: useEffect', { persons, relationships, origin })
     if (!origin) return
 
     const { nodes, edges } = closeFamilyMapper({ persons, relationships, origin })
 
-    const uniqueNodes = new Map<string, Node>()
-    for (const node of nodes) {
-      uniqueNodes.set(node.id, node)
-    }
-    const uniqueEdges = new Map<string, Edge>()
-    for (const edge of edges) {
-      uniqueEdges.set(edge.id, edge)
-    }
-    setNodes(Array.from(uniqueNodes.values()))
-    setEdges(Array.from(uniqueEdges.values()))
+    setNodes(filterUniqueById(nodes))
+    setEdges(filterUniqueById(edges))
   }, [persons, relationships, origin])
 
   const onRelationshipButtonPressed = useCallback((nodeId: string, newRelationshipAction: NewRelationshipAction) => {
@@ -217,20 +209,22 @@ const ClientOnlyFamilyPage = (props: FamilyPageProps) => {
 
   const onSelectionChange = useCallback(
     ({ nodes, edges }: { nodes: Node[]; edges: Edge[] }) => {
-      if (nodes.length !== 1) return
-      if (!origin) return
+      console.log('onSelectionChange', { nodes, edges })
 
-      const selectedNode = nodes[0]
-      if (selectedNode.id === origin.personId) return
-      const { x, y } = selectedNode.position
-      // @ts-ignore
-      queryClient.setQueryData<FamilyPageProps>(familyPagePropsQueryKey(familyId), (oldData) => {
-        if (!oldData) return oldData
-        return {
-          ...oldData,
-          initialOriginPersonId: { personId: selectedNode.id as PersonId, x, y },
-        }
-      })
+      // if (nodes.length !== 1) return
+      // if (!origin) return
+
+      // const selectedNode = nodes[0]
+      // if (selectedNode.id === origin.personId) return
+      // const { x, y } = selectedNode.position
+      // // @ts-ignore
+      // queryClient.setQueryData<FamilyPageProps>(familyPagePropsQueryKey(familyId), (oldData) => {
+      //   if (!oldData) return oldData
+      //   return {
+      //     ...oldData,
+      //     initialOriginPersonId: { personId: selectedNode.id as PersonId, x, y },
+      //   }
+      // })
     },
     [origin]
   )
@@ -246,6 +240,9 @@ const ClientOnlyFamilyPage = (props: FamilyPageProps) => {
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onSelectionChange={onSelectionChange}>
+          <Panel position='top-left'>
+            <FamilySwitcher currentFamilyId={familyId} />
+          </Panel>
           <Panel position='top-center'>
             <div>{currentFamilyName}</div>
             {origin ? null : <NoFamilyTree currentFamilyId={familyId} />}
@@ -270,12 +267,15 @@ const ClientOnlyFamilyPage = (props: FamilyPageProps) => {
 
 function NoFamilyTree({ currentFamilyId }: { currentFamilyId: FamilyId }) {
   const mutation = useMutation({
-    mutationFn: (name: string): Promise<{ name: string; personId: PersonId }> => {
+    mutationFn: async (name: string) => {
       console.log('mutation', name)
-      return Promise.resolve({ name, personId: makePersonId() })
-      // return axios.post<{ name: string }, { name: string; personId: PersonId }>('/setOriginPersonForFamilyTree', { name })
+      // return Promise.resolve({ name, personId: makePersonId() })
+      return await axios.post<{ name: string; personId: PersonId }>(SetOriginPersonForFamilyTreeURL(), {
+        name,
+        familyId: currentFamilyId,
+      })
     },
-    onSuccess: async (data) => {
+    onSuccess: async ({ data }) => {
       console.log('mutation success', data)
 
       // @ts-ignore

@@ -5,7 +5,7 @@ import { FamilyId } from '../../../domain/FamilyId.js'
 import { secondaryButtonStyles, smallButtonIconStyles, smallButtonStyles } from '../../_components/Button.js'
 import { useLoggedInSession } from '../../_components/SessionContext.js'
 import { FamilyPageURLWithFamily } from '../FamilyPageURL.js'
-import { classNames } from '../FamilyPage.js'
+import { classNames } from '../classNames.js'
 
 type FamilySwitcherProps = { currentFamilyId: FamilyId }
 export const FamilySwitcher = ({ currentFamilyId }: FamilySwitcherProps) => {

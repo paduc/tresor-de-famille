@@ -13,6 +13,7 @@ export const getPersonById = async ({ personId }: { personId: PersonId }): Promi
 
   switch (latestEvent.type) {
     case 'UserCreatedRelationshipWithNewPerson':
+    case 'UserSetFamilyTreeOrigin':
       return { name: latestEvent.payload.newPerson.name }
     case 'UserChangedPersonName':
     case 'UserNamedPersonInPhoto':

@@ -18,9 +18,14 @@ import { FamilyPageURL, FamilyPageURLWithFamily } from './FamilyPageURL.js'
 import { UserCreatedNewRelationship } from './UserCreatedNewRelationship.js'
 import { UserCreatedRelationshipWithNewPerson } from './UserCreatedRelationshipWithNewPerson.js'
 import { UserRemovedRelationship } from './UserRemovedRelationship.js'
-import { getFamilyPageProps, getFamilyPersons, getFamilyRelationships } from './getFamilyPageProps.js'
+import { getFamilyPageProps } from './getFamilyPageProps.js'
+import { getFamilyTreeRelationships } from './getFamilyTreeRelationships.js'
+import { getFamilyTreePersons } from './getFamilyTreePersons.js'
 import { zIsRelationship } from './zIsRelationship.js'
 import { OtherFamilyPage } from './OtherFamilyPage.js'
+import { makePersonId } from '../../libs/makePersonId.js'
+import { UserSetFamilyTreeOrigin } from './UserSetFamilyTreeOrigin.js'
+import { SetOriginPersonForFamilyTreeURL } from './SetOriginPersonForFamilyTreeURL.js'
 
 pageRouter.route(FamilyPageURLWithFamily()).get(requireAuth(), async (request, response, next) => {
   try {
@@ -34,7 +39,7 @@ pageRouter.route(FamilyPageURLWithFamily()).get(requireAuth(), async (request, r
       })
 
       // TODO: fetch origin person from familyId (only user family has user person as origin)
-      responseAsHtml(request, response, OtherFamilyPage({ ...props, initialOriginPersonId: undefined }))
+      responseAsHtml(request, response, OtherFamilyPage(props))
     } catch (error) {
       console.error("La personne essaie d'aller sur la page famille alors qu'elle ne s'est pas encore présentée", error)
       response.redirect('/')
@@ -132,8 +137,8 @@ pageRouter.route('/family/saveNewRelationship').post(requireAuth(), async (reque
       }
     }
 
-    const persons = await getFamilyPersons({ userId, familyId })
-    const relationships = await getFamilyRelationships(
+    const persons = await getFamilyTreePersons({ userId, familyId })
+    const relationships = await getFamilyTreeRelationships(
       persons.map((p) => p.personId),
       familyId
     )
@@ -164,6 +169,35 @@ pageRouter.route('/family/removeRelationship').post(requireAuth(), async (reques
     }
 
     return response.status(200).send()
+  } catch (error) {
+    next(error)
+  }
+})
+
+pageRouter.route(SetOriginPersonForFamilyTreeURL()).post(requireAuth(), async (request, response, next) => {
+  try {
+    const userId = request.session.user!.id
+    const { name, familyId } = z
+      .object({
+        name: z.string().nonempty(),
+        familyId: zIsFamilyId,
+      })
+      .parse(request.body)
+
+    const personId = makePersonId()
+
+    await addToHistory(
+      UserSetFamilyTreeOrigin({
+        newPerson: {
+          name,
+          personId,
+        },
+        userId,
+        familyId,
+      })
+    )
+
+    return response.status(200).json({ personId, name })
   } catch (error) {
     next(error)
   }
