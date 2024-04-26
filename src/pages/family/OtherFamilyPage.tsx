@@ -1,8 +1,9 @@
 import * as React from 'react'
-import type { Edge, Node } from 'reactflow'
-import { Panel, useEdgesState, useNodesState } from 'reactflow'
+import { Panel } from 'reactflow'
 
+import axios from 'axios'
 import { useCallback, useState } from 'react'
+import { QueryClient, QueryClientProvider, useMutation, useQuery } from 'react-query'
 import { FamilyId } from '../../domain/FamilyId.js'
 import { PersonId } from '../../domain/PersonId.js'
 import { RelationshipId } from '../../domain/RelationshipId.js'
@@ -10,7 +11,9 @@ import { makePersonId } from '../../libs/makePersonId.js'
 import { makeRelationshipId } from '../../libs/makeRelationshipId.js'
 import { withBrowserBundle } from '../../libs/ssr/withBrowserBundle.js'
 import { ClientOnly } from '../_components/ClientOnly.js'
+import { useLoggedInSession } from '../_components/SessionContext.js'
 import { AppLayout } from '../_components/layout/AppLayout.js'
+import { SetOriginPersonForFamilyTreeURL } from './SetOriginPersonForFamilyTreeURL.js'
 import { ContextualMenu, ContextualMenuProvider } from './_components/ContextualMenu.js'
 import { FamilySwitcher } from './_components/FamilySwitcher.js'
 import { SearchPanel, SearchPanelProps } from './_components/SearchPanel.js'
@@ -20,15 +23,9 @@ import {
   PersonInTree,
   RelationshipInTree,
 } from './_components/TreeTypes.js'
-import { FamilyTree } from './_components/familyTree/FamilyTree.js'
+import { EntireFamilyFamilyTree } from './_components/entireFamilyFamilyTree/EntireFamilyFamilyTree.js'
 import { removeRelationship } from './_components/removeRelationship.js'
 import { saveNewRelationship } from './_components/saveNewRelationship.js'
-import { closeFamilyMapper } from './mappers/closeFamilyMapper.js'
-import { useLoggedInSession } from '../_components/SessionContext.js'
-import { useMutation, useQuery, QueryClient, QueryClientProvider } from 'react-query'
-import axios from 'axios'
-import { SetOriginPersonForFamilyTreeURL } from './SetOriginPersonForFamilyTreeURL.js'
-import { filterUniqueById } from '../../libs/filterUniqueById.js'
 
 export type FamilyPageProps = {
   initialPersons: PersonInTree[]
@@ -86,7 +83,12 @@ const ClientEnabledFamilyPage = (props: FamilyPageProps) => {
 
   const initialOriginPersonId = familyPageProps.initialOriginPersonId
 
-  const { initialPersons: persons, initialRelationships: relationships, familyId } = familyPageProps
+  const {
+    initialPersons: persons,
+    initialRelationships: relationships,
+    initialOriginPersonId: originPersonId,
+    familyId,
+  } = familyPageProps
 
   console.log('ClientOnlyFamilyPage render', { persons, relationships, initialOriginPersonId, familyId })
 
@@ -95,28 +97,7 @@ const ClientEnabledFamilyPage = (props: FamilyPageProps) => {
 
   if (!currentFamilyName) return null
 
-  const [nodes, setNodes, onNodesChange] = useNodesState([])
-  const [edges, setEdges, onEdgesChange] = useEdgesState([])
-
   const [pendingRelationshipAction, setPendingRelationshipAction] = useState<PendingNodeRelationshipAction | null>(null)
-
-  const origin = React.useMemo(() => {
-    if (!initialOriginPersonId) return null
-    return { personId: initialOriginPersonId, x: 0, y: 0 }
-  }, [initialOriginPersonId])
-
-  /**
-   * Map the persons and relationships to nodes and edges
-   */
-  React.useEffect(() => {
-    console.log('OtherFamilyPage: useEffect', { persons, relationships, origin })
-    if (!origin) return
-
-    const { nodes, edges } = closeFamilyMapper({ persons, relationships, origin })
-
-    setNodes(filterUniqueById(nodes))
-    setEdges(filterUniqueById(edges))
-  }, [persons, relationships, origin])
 
   const onRelationshipButtonPressed = useCallback((nodeId: string, newRelationshipAction: NewRelationshipAction) => {
     // Move the nodeId and the action to state
@@ -207,39 +188,12 @@ const ClientEnabledFamilyPage = (props: FamilyPageProps) => {
     } catch (error) {}
   }, [])
 
-  const onSelectionChange = useCallback(
-    ({ nodes, edges }: { nodes: Node[]; edges: Edge[] }) => {
-      console.log('onSelectionChange', { nodes, edges })
-
-      // if (nodes.length !== 1) return
-      // if (!origin) return
-
-      // const selectedNode = nodes[0]
-      // if (selectedNode.id === origin.personId) return
-      // const { x, y } = selectedNode.position
-      // // @ts-ignore
-      // queryClient.setQueryData<FamilyPageProps>(familyPagePropsQueryKey(familyId), (oldData) => {
-      //   if (!oldData) return oldData
-      //   return {
-      //     ...oldData,
-      //     initialOriginPersonId: { personId: selectedNode.id as PersonId, x, y },
-      //   }
-      // })
-    },
-    [origin]
-  )
-
   console.log('origin', origin)
 
   return (
     <AppLayout>
       <div className='w-full h-screen relative'>
-        <FamilyTree
-          nodes={nodes}
-          edges={edges}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          onSelectionChange={onSelectionChange}>
+        <EntireFamilyFamilyTree persons={persons} relationships={relationships} originPersonId={originPersonId}>
           <Panel position='top-left'>
             <FamilySwitcher currentFamilyId={familyId} />
           </Panel>
@@ -259,7 +213,7 @@ const ClientEnabledFamilyPage = (props: FamilyPageProps) => {
           <Panel position='top-right'>
             <ContextualMenu onRelationshipButtonPressed={onRelationshipButtonPressed} />
           </Panel>
-        </FamilyTree>
+        </EntireFamilyFamilyTree>
       </div>
     </AppLayout>
   )
