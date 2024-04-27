@@ -1,12 +1,96 @@
-import * as React from 'react'
-import { Position, Handle } from 'reactflow'
-import type { NodeProps } from 'reactflow'
-import { EllipsisHorizontalIcon } from '@heroicons/react/24/outline'
+import React, { useState } from 'react'
+import ReactFlow, {
+  Background,
+  Handle,
+  NodeProps,
+  Position,
+  ReactFlowProps,
+  useEdgesState,
+  useNodesState,
+  Edge,
+  Node,
+} from 'reactflow'
 import { PersonId } from '../../../../domain/PersonId.js'
+import { PersonInTree, RelationshipInTree } from '../TreeTypes.js'
+import { EllipsisHorizontalIcon } from '@heroicons/react/24/outline'
 import { useContextualMenu } from '../ContextualMenu.js'
 import { getInitials } from '../getInitials.js'
+import { closeFamilyMapper } from './closeFamilyMapper.js'
 
-export function PersonNode({
+type CloseFamilyFamilyTreeProps = {
+  persons: PersonInTree[]
+  relationships: RelationshipInTree[]
+  origin: { personId: PersonId; x: number; y: number }
+  onSelectionChange: ReactFlowProps['onSelectionChange']
+  children?: React.ReactNode
+}
+
+const nodeTypes = {
+  person: PersonNode,
+  couple: CoupleNode,
+}
+
+export function CloseFamilyFamilyTree({ persons, relationships, origin, children }: CloseFamilyFamilyTreeProps) {
+  const [nodes, setNodes, onNodesChange] = useNodesState([])
+  const [edges, setEdges, onEdgesChange] = useEdgesState([])
+
+  React.useEffect(() => {
+    console.log('FamilyPage: useEffect')
+    const { nodes, edges } = closeFamilyMapper({ persons, relationships, origin })
+
+    const uniqueNodes = new Map<string, Node>()
+    for (const node of nodes) {
+      uniqueNodes.set(node.id, node)
+    }
+    const uniqueEdges = new Map<string, Edge>()
+    for (const edge of edges) {
+      uniqueEdges.set(edge.id, edge)
+    }
+    setNodes(Array.from(uniqueNodes.values()))
+    setEdges(Array.from(uniqueEdges.values()))
+  }, [persons, relationships, origin])
+
+  return (
+    <ReactFlow
+      nodes={nodes}
+      edges={edges}
+      onNodesChange={onNodesChange}
+      onEdgesChange={onEdgesChange}
+      nodeTypes={nodeTypes}
+      fitView
+      maxZoom={1}>
+      <Background />
+      {children}
+    </ReactFlow>
+  )
+}
+
+function CoupleNode({
+  id,
+  data,
+  isConnectable,
+  selected,
+  dragging,
+  targetPosition = Position.Top,
+  sourcePosition = Position.Bottom,
+}: NodeProps<{}>) {
+  return (
+    <>
+      <Handle id='couple-left' type='target' style={{ opacity: 0, left: 3 }} position={Position.Left} isConnectable={false} />
+      <Handle
+        id='couple-right'
+        type='source'
+        style={{ opacity: 0, right: 3 }}
+        position={Position.Right}
+        isConnectable={false}
+      />
+      <Handle id='children' type='source' style={{ opacity: 0, bottom: 3 }} position={Position.Bottom} isConnectable={false} />
+      <div className='h-3 w-3 rounded-full bg-gray-50 border border-grey-700' />
+    </>
+  )
+}
+
+function PersonNode({
   id,
   data,
   isConnectable,

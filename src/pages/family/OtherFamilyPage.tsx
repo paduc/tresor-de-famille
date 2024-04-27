@@ -23,7 +23,7 @@ import {
   PersonInTree,
   RelationshipInTree,
 } from './_components/TreeTypes.js'
-import { EntireFamilyFamilyTree } from './_components/entireFamilyFamilyTree/EntireFamilyFamilyTree.js'
+import { EntireFamilyFamilyTree } from './_components/EntireFamilyFamilyTree/EntireFamilyFamilyTree.js'
 import { removeRelationship } from './_components/removeRelationship.js'
 import { saveNewRelationship } from './_components/saveNewRelationship.js'
 

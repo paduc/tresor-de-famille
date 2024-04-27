@@ -1,6 +1,6 @@
 import { Edge, Node } from 'reactflow'
 import { PersonId } from '../../../../domain/PersonId'
-import { PersonInTree, RelationshipInTree } from '../../_components/TreeTypes'
+import { PersonInTree, RelationshipInTree } from '../TreeTypes'
 import { RelationshipId } from '../../../../domain/RelationshipId'
 
 const BUBBLE_RADIUS = 72 as const

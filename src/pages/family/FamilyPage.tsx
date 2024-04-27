@@ -1,6 +1,6 @@
 import * as React from 'react'
 import type { Edge, Node } from 'reactflow'
-import { Panel, useEdgesState, useNodesState } from 'reactflow'
+import { Panel } from 'reactflow'
 
 import { useCallback, useState } from 'react'
 import { FamilyId } from '../../domain/FamilyId.js'
@@ -20,10 +20,9 @@ import {
   PersonInTree,
   RelationshipInTree,
 } from './_components/TreeTypes.js'
-import { FamilyTree } from './_components/familyTree/FamilyTree.js'
+import { CloseFamilyFamilyTree } from './_components/closeFamilyFamilyTree/CloseFamilyFamilyTree.js'
 import { removeRelationship } from './_components/removeRelationship.js'
 import { saveNewRelationship } from './_components/saveNewRelationship.js'
-import { closeFamilyMapper } from './mappers/closeFamilyMapper.js'
 
 export type FamilyPageProps = {
   initialPersons: PersonInTree[]
@@ -44,8 +43,6 @@ export const FamilyPage = withBrowserBundle((props: FamilyPageProps) => {
 
 const ClientOnlyFamilyPage = ({ initialPersons, initialRelationships, initialOriginPersonId, familyId }: FamilyPageProps) => {
   console.log('FamilyPage: ClientOnlyFamilyPage')
-  const [nodes, setNodes, onNodesChange] = useNodesState([])
-  const [edges, setEdges, onEdgesChange] = useEdgesState([])
 
   const [persons, setPersons] = useState(initialPersons)
   const [relationships, setRelationships] = useState(initialRelationships)
@@ -57,22 +54,6 @@ const ClientOnlyFamilyPage = ({ initialPersons, initialRelationships, initialOri
   })
 
   const [pendingRelationshipAction, setPendingRelationshipAction] = useState<PendingNodeRelationshipAction | null>(null)
-
-  React.useEffect(() => {
-    console.log('FamilyPage: useEffect')
-    const { nodes, edges } = closeFamilyMapper({ persons, relationships, origin })
-
-    const uniqueNodes = new Map<string, Node>()
-    for (const node of nodes) {
-      uniqueNodes.set(node.id, node)
-    }
-    const uniqueEdges = new Map<string, Edge>()
-    for (const edge of edges) {
-      uniqueEdges.set(edge.id, edge)
-    }
-    setNodes(Array.from(uniqueNodes.values()))
-    setEdges(Array.from(uniqueEdges.values()))
-  }, [persons, relationships, origin])
 
   const onRelationshipButtonPressed = useCallback((nodeId: string, newRelationshipAction: NewRelationshipAction) => {
     // Move the nodeId and the action to state
@@ -164,11 +145,10 @@ const ClientOnlyFamilyPage = ({ initialPersons, initialRelationships, initialOri
   return (
     <AppLayout>
       <div className='w-full h-screen relative'>
-        <FamilyTree
-          nodes={nodes}
-          edges={edges}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
+        <CloseFamilyFamilyTree
+          persons={persons}
+          relationships={relationships}
+          origin={origin}
           onSelectionChange={onSelectionChange}>
           <Panel position='top-left'>
             <FamilySwitcher currentFamilyId={familyId} />
@@ -186,7 +166,7 @@ const ClientOnlyFamilyPage = ({ initialPersons, initialRelationships, initialOri
           <Panel position='top-right'>
             <ContextualMenu onRelationshipButtonPressed={onRelationshipButtonPressed} />
           </Panel>
-        </FamilyTree>
+        </CloseFamilyFamilyTree>
       </div>
     </AppLayout>
   )

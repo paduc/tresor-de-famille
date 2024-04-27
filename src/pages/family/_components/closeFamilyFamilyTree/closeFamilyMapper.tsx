@@ -1,6 +1,6 @@
 import type { Node, Edge } from 'reactflow'
-import { PersonId } from '../../../domain/PersonId.js'
-import { PersonsRelationshipsInTree, RelationshipInTree, PersonInTree } from '../_components/TreeTypes.js'
+import { PersonId } from '../../../../domain/PersonId.js'
+import { PersonsRelationshipsInTree, RelationshipInTree, PersonInTree } from '../TreeTypes.js'
 
 const BUBBLE_RADIUS = 72 as const
 type NodesEdges = {
