@@ -2,6 +2,7 @@ import { Edge, Node } from 'reactflow'
 import { PersonId } from '../../../../domain/PersonId'
 import { PersonInTree, RelationshipInTree } from '../TreeTypes'
 import { RelationshipId } from '../../../../domain/RelationshipId'
+import { PersonNode } from './PersonNode'
 
 const BUBBLE_RADIUS = 72 as const
 const Y_OFFSET = 4 * BUBBLE_RADIUS
@@ -11,11 +12,11 @@ const COUPLE_NODE_RADIUS = 6
 export const entireFamilyOfPersonMapper = ({
   persons,
   relationships,
-  originPerson,
+  originPersonId,
 }: {
   persons: PersonInTree[]
   relationships: RelationshipInTree[]
-  originPerson: PersonId
+  originPersonId: PersonId
 }) => {
   const personsMap = persons.reduce((map, person) => {
     map.set(person.personId, person)
@@ -29,33 +30,72 @@ export const entireFamilyOfPersonMapper = ({
   const nodes = new Map<Node['id'], Node>()
   const edges = new Map<Edge['id'], Edge>()
 
-  // Add origin person node
-  const originPersonNode = makePersonNode(originPerson, { x: 0, y: 0 })
+  function getDescendantsWidth(personId: PersonId): number {
+    const children = findChildren(personId)
+    if (children.length === 0) return BUBBLE_RADIUS * 2 + X_OFFSET / 4
+    return children.reduce((acc, child) => acc + getDescendantsWidth(child.personId), 0)
+  }
+
+  function drawPersonSpouseAndChildren(parentNodeId: PersonId, parentPosition: { x: number; y: number }) {
+    const children = findChildren(parentNodeId)
+
+    const totalLayerWidth = children.reduce((acc, child) => acc + getDescendantsWidth(child.personId), 0)
+
+    children.forEach((child, index) => {
+      const previousSiblingSumOfWidth = children
+        .slice(0, index)
+        .reduce((acc, child) => acc + getDescendantsWidth(child.personId), 0)
+
+      const x = parentPosition.x + previousSiblingSumOfWidth - totalLayerWidth / 2 + getDescendantsWidth(child.personId) / 2
+      const y = parentPosition.y + Y_OFFSET
+
+      const childNode = makePersonNode(child.personId, { x, y })
+      insertNode(childNode)
+      insertEdge(makeParentChildEdge(parentNodeId, child.personId))
+
+      drawPersonSpouseAndChildren(child.personId, { x, y })
+    })
+
+    const spouses = findSpouses(parentNodeId)
+    spouses.forEach((spouse, index) => {
+      const x = parentPosition.x + (index + 1) * X_OFFSET
+      const y = parentPosition.y
+      const spouseNode = makePersonNode(spouse.personId, { x, y })
+      insertNode(spouseNode)
+      const parentNode = nodes.get(parentNodeId)!
+      const coupleNode = makeCoupleNode(parentNode, spouseNode)
+      insertNode(coupleNode)
+      insertEdges(makeCoupleEdges(coupleNode, parentNode, spouseNode))
+    })
+  }
+
+  // // Add origin person node
+  const originPersonNode = makePersonNode(originPersonId, { x: 0, y: 0 })
   insertNode(originPersonNode)
+  drawPersonSpouseAndChildren(originPersonId, { x: 0, y: 0 })
 
-  // Add children
-  const children = findChildren(originPerson)
-  const childrenNodes = children.map((child, index) => {
-    const x = index * X_OFFSET
-    const y = Y_OFFSET
-    const childNode = makePersonNode(child.personId, { x, y })
-    insertNode(childNode)
-    insertEdge(makeParentChildEdge(originPerson, child.personId))
-    return childNode
-  })
+  // // Add children
+  // const children = findChildren(originPersonId)
+  // const childrenNodes = children.map((child, index) => {
+  //   const x = index * X_OFFSET
+  //   const y = Y_OFFSET
+  //   const childNode = makePersonNode(child.personId, { x, y, parentId: originPersonId })
+  //   insertNode(childNode)
+  //   insertEdge(makeParentChildEdge(originPersonId, child.personId))
+  //   return childNode
+  // })
 
-  // TODO add spouses
-  const spouses = findSpouses(originPerson)
-  const spouseNodes = spouses.map((spouse, index) => {
-    const x = originPersonNode.position.x + index * X_OFFSET
-    const y = originPersonNode.position.y
-    const spouseNode = makePersonNode(spouse.personId, { x, y })
-    insertNode(spouseNode)
-    const coupleNode = makeCoupleNode(originPersonNode, spouseNode)
-    insertNode(coupleNode)
-    insertEdges(makeCoupleEdges(coupleNode, originPersonNode, spouseNode))
-    return spouseNode
-  })
+  // const spouses = findSpouses(originPersonId)
+  // const spouseNodes = spouses.map((spouse, index) => {
+  //   const x = originPersonNode.position.x + (index + 1) * X_OFFSET
+  //   const y = originPersonNode.position.y
+  //   const spouseNode = makePersonNode(spouse.personId, { x, y })
+  //   insertNode(spouseNode)
+  // const coupleNode = makeCoupleNode(originPersonNode, spouseNode)
+  // insertNode(coupleNode)
+  // insertEdges(makeCoupleEdges(coupleNode, originPersonNode, spouseNode))
+  //   return spouseNode
+  // })
 
   return { nodes, edges }
 
@@ -100,19 +140,21 @@ export const entireFamilyOfPersonMapper = ({
     return siblingRelationships.map((relationship) => personsMap.get(relationship.childId)!)
   }
 
-  function makePersonNode(personId: PersonId, position: { x: number; y: number }) {
+  function makePersonNode(personId: PersonId, options: { x: number; y: number; parentId?: PersonId }): Node {
     const person = personsMap.get(personId)!
+    const { x, y } = options
     return {
       id: personId,
       type: 'person',
       data: { label: person.name, profilePicUrl: person.profilePicUrl, isOriginPerson: false },
-      position,
+      position: { x, y },
       selectable: true,
       draggable: false,
+      ...(options.parentId ? { parentId: options.parentId, extent: 'parent' } : {}),
     }
   }
 
-  function makeParentChildEdge(parentId: string, childId: string) {
+  function makeParentChildEdge(parentId: string, childId: string): Edge {
     return {
       id: `${parentId}isParentOf${childId}`,
       source: parentId,
@@ -120,7 +162,7 @@ export const entireFamilyOfPersonMapper = ({
       sourceHandle: 'children',
       targetHandle: 'parents',
       deletable: false,
-      selectable: false,
+      focusable: false,
     }
   }
 
@@ -138,7 +180,7 @@ export const entireFamilyOfPersonMapper = ({
     }
   }
 
-  function makeCoupleEdges(coupleNode: Node, spouse1Node: Node, spouse2Node: Node) {
+  function makeCoupleEdges(coupleNode: Node, spouse1Node: Node, spouse2Node: Node): Edge[] {
     const leftSpouse = spouse1Node.position.x < spouse2Node.position.x ? spouse1Node : spouse2Node
     const rightSpouse = spouse1Node.position.x > spouse2Node.position.x ? spouse1Node : spouse2Node
 
