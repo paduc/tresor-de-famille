@@ -1,6 +1,6 @@
 import '../src/pages/style.css'
 
-const { INITIAL_VIEWPORTS } = require('@storybook/addon-viewport')
+import { INITIAL_VIEWPORTS } from '@storybook/addon-viewport'
 
 const { iphone6, iphone8p, ipad, ipad10p, ipad12p } = INITIAL_VIEWPORTS
 
@@ -16,7 +16,6 @@ function rotate(viewport) {
 }
 
 export const parameters = {
-  actions: { argTypesRegex: '^on[A-Z].*' },
   viewport: {
     viewports: {
       iphone6, // sm
