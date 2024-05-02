@@ -7,7 +7,10 @@ import { PersonNode } from './PersonNode'
 const BUBBLE_RADIUS = 72 as const
 const Y_OFFSET = 4 * BUBBLE_RADIUS
 const X_OFFSET = 2.5 * BUBBLE_RADIUS
+const X_SPACING = 36
+const PERSON_WIDTH = BUBBLE_RADIUS * 2
 const COUPLE_NODE_RADIUS = 6
+const COUPLE_WIDTH = PERSON_WIDTH + X_SPACING + PERSON_WIDTH
 
 export const entireFamilyOfPersonMapper = ({
   persons,
@@ -32,40 +35,67 @@ export const entireFamilyOfPersonMapper = ({
 
   function getDescendantsWidth(personId: PersonId): number {
     const children = findChildren(personId)
-    if (children.length === 0) return BUBBLE_RADIUS * 2 + X_OFFSET / 4
-    return children.reduce((acc, child) => acc + getDescendantsWidth(child.personId), 0)
+    const spouses = findSpouses(personId)
+    if (children.length === 0) {
+      if (spouses.length === 0) {
+        console.log(`getDescendantsWidth ${personsMap.get(personId)!.name} has no children no spouse`, PERSON_WIDTH + X_SPACING)
+        return PERSON_WIDTH + X_SPACING
+      }
+
+      console.log(
+        `getDescendantsWidth ${personsMap.get(personId)!.name} has no children but a spouse`,
+        COUPLE_WIDTH + X_SPACING
+      )
+      return COUPLE_WIDTH + X_SPACING
+    }
+    const res = Math.max(
+      spouses.length ? COUPLE_WIDTH + X_SPACING : 0,
+      children.reduce((acc, child) => acc + getDescendantsWidth(child.personId), 0)
+    )
+
+    console.log(`getDescendantsWidth ${personsMap.get(personId)!.name} has ${children.length} children`, res)
+
+    return res
   }
 
   function drawPersonSpouseAndChildren(parentNodeId: PersonId, parentPosition: { x: number; y: number }) {
+    console.log('drawPersonSpouseAndChildren', personsMap.get(parentNodeId)!.name)
+    const spouses = findSpouses(parentNodeId)
+    const spouse = spouses[0]
+    let coupleNode: Node | undefined
+    if (spouse) {
+      const x = parentPosition.x + X_OFFSET
+      const y = parentPosition.y
+      const spouseNode = makePersonNode(spouse.personId, { x, y })
+      insertNode(spouseNode)
+      const parentNode = nodes.get(parentNodeId)!
+      coupleNode = makeCoupleNode(parentNode, spouseNode)
+      insertNode(coupleNode)
+      insertEdges(makeCoupleEdges(coupleNode, parentNode, spouseNode))
+    }
+
     const children = findChildren(parentNodeId)
 
+    console.log(`drawPerson is calculating totalLayerWith for ${personsMap.get(parentNodeId)!.name}`)
     const totalLayerWidth = children.reduce((acc, child) => acc + getDescendantsWidth(child.personId), 0)
+    console.log('totalLayerWidth', totalLayerWidth)
 
+    console.log(`drawPerson is drawing children for ${personsMap.get(parentNodeId)!.name}`)
     children.forEach((child, index) => {
       const previousSiblingSumOfWidth = children
         .slice(0, index)
         .reduce((acc, child) => acc + getDescendantsWidth(child.personId), 0)
 
-      const x = parentPosition.x + previousSiblingSumOfWidth - totalLayerWidth / 2 + getDescendantsWidth(child.personId) / 2
+      const layerCenterX = totalLayerWidth / 2 - (spouse ? X_OFFSET / 2 : 0)
+      const x = parentPosition.x + previousSiblingSumOfWidth - layerCenterX
+      // const x = parentPosition.x + previousSiblingSumOfWidth
       const y = parentPosition.y + Y_OFFSET
 
       const childNode = makePersonNode(child.personId, { x, y })
       insertNode(childNode)
-      insertEdge(makeParentChildEdge(parentNodeId, child.personId))
+      insertEdge(makeParentChildEdge(coupleNode ? coupleNode.id : parentNodeId, child.personId))
 
       drawPersonSpouseAndChildren(child.personId, { x, y })
-    })
-
-    const spouses = findSpouses(parentNodeId)
-    spouses.forEach((spouse, index) => {
-      const x = parentPosition.x + (index + 1) * X_OFFSET
-      const y = parentPosition.y
-      const spouseNode = makePersonNode(spouse.personId, { x, y })
-      insertNode(spouseNode)
-      const parentNode = nodes.get(parentNodeId)!
-      const coupleNode = makeCoupleNode(parentNode, spouseNode)
-      insertNode(coupleNode)
-      insertEdges(makeCoupleEdges(coupleNode, parentNode, spouseNode))
     })
   }
 
