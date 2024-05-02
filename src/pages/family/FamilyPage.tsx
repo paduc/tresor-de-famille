@@ -20,7 +20,7 @@ import {
   PersonInTree,
   RelationshipInTree,
 } from './_components/TreeTypes.js'
-import { CloseFamilyFamilyTree } from './_components/closeFamilyFamilyTree/CloseFamilyFamilyTree.js'
+import { CloseFamilyFamilyTree } from './_components/CloseFamilyFamilyTree/CloseFamilyFamilyTree.js'
 import { removeRelationship } from './_components/removeRelationship.js'
 import { saveNewRelationship } from './_components/saveNewRelationship.js'
 
