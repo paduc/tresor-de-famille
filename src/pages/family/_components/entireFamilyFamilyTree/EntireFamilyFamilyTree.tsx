@@ -1,5 +1,5 @@
 import React from 'react'
-import ReactFlow, { Background, useEdgesState, useNodesState } from 'reactflow'
+import ReactFlow, { Background, Panel, ReactFlowProvider, useEdgesState, useNodesState, useViewport } from 'reactflow'
 import { PersonId } from '../../../../domain/PersonId.js'
 import { PersonInTree, RelationshipInTree } from '../TreeTypes.js'
 import { entireFamilyOfPersonMapper } from './entireFamilyOfPersonMapper.js'
@@ -36,16 +36,33 @@ export function EntireFamilyFamilyTree({ persons, relationships, originPersonId,
   }, [persons, relationships, originPersonId])
 
   return (
-    <ReactFlow
-      nodes={nodes}
-      edges={edges}
-      onNodesChange={onNodesChange}
-      onEdgesChange={onEdgesChange}
-      nodeTypes={nodeTypes}
-      fitView
-      maxZoom={1}>
-      <Background />
-      {children}
-    </ReactFlow>
+    <ReactFlowProvider>
+      <ReactFlow
+        nodes={nodes}
+        edges={edges}
+        onNodesChange={onNodesChange}
+        onEdgesChange={onEdgesChange}
+        nodeTypes={nodeTypes}
+        fitView
+        maxZoom={1}>
+        <Background />
+        {children}
+        {/* <Panel position='bottom-center'>
+          <ViewportDisplay />
+        </Panel> */}
+      </ReactFlow>
+    </ReactFlowProvider>
+  )
+}
+
+function ViewportDisplay() {
+  const { x, y, zoom } = useViewport()
+
+  return (
+    <div>
+      <p>
+        The viewport is currently at ({x}, {y}) and zoomed to {zoom}.
+      </p>
+    </div>
   )
 }
