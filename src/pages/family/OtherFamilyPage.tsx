@@ -26,6 +26,7 @@ import {
 import { EntireFamilyFamilyTree } from './_components/EntireFamilyFamilyTree/EntireFamilyFamilyTree.js'
 import { removeRelationship } from './_components/removeRelationship.js'
 import { saveNewRelationship } from './_components/saveNewRelationship.js'
+import { primaryButtonStyles } from '../_components/Button.js'
 
 export type FamilyPageProps = {
   initialPersons: PersonInTree[]
@@ -196,10 +197,7 @@ const ClientEnabledFamilyPage = (props: FamilyPageProps) => {
         <EntireFamilyFamilyTree persons={persons} relationships={relationships} originPersonId={originPersonId}>
           <Panel position='top-left'>
             <FamilySwitcher currentFamilyId={familyId} />
-          </Panel>
-          <Panel position='top-center'>
-            <div>{currentFamilyName}</div>
-            {origin ? null : <NoFamilyTree currentFamilyId={familyId} />}
+            {originPersonId ? null : <NoFamilyTree currentFamilyId={familyId} />}
             <SearchPanel
               onPersonSelected={onSearchPersonSelected}
               onRemoveRelationship={onRemoveRelationship}
@@ -252,13 +250,22 @@ function NoFamilyTree({ currentFamilyId }: { currentFamilyId: FamilyId }) {
   }
 
   return (
-    <div>
-      <div>Cette famille n'a pas encore d'arbre généalogique.</div>
-      <div>
+    <div className='text-gray-600 mt-24'>
+      <div className='mr-3 text-lg font-bold'>Cette famille n'a pas encore d'arbre généalogique.</div>
+      <div className='mt-2'>
         <form onSubmit={handleSubmit}>
-          <label htmlFor='family-switcher'>Nommez la personne qui sert de point de départ</label>
-          <input type='text' name='originName' placeholder='Jean Biche' />
-          <button>C'est parti</button>
+          <label htmlFor='family-switcher'>Nommez une personne qui servira de point de départ (i.e. l'aïeul commun)</label>
+          <input
+            type='text'
+            className={
+              'mt-1 appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-base'
+            }
+            name='originName'
+            placeholder='ex: Jean Bonnot'
+          />
+          <div className='mt-2'>
+            <button className={`${primaryButtonStyles}`}>Valider</button>
+          </div>
         </form>
       </div>
     </div>
