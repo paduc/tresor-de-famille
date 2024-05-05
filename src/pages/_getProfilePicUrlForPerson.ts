@@ -55,7 +55,6 @@ export const getFaceAndPhotoForPerson = async ({
     ['UserNamedPersonInPhoto', 'UserRecognizedPersonInPhoto'],
     {
       personId,
-      userId,
     }
   )
 
