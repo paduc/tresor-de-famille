@@ -1,8 +1,7 @@
 import { Edge, Node } from 'reactflow'
-import { PersonId } from '../../../../domain/PersonId'
-import { PersonInTree, RelationshipInTree } from '../TreeTypes'
-import { RelationshipId } from '../../../../domain/RelationshipId'
-import { PersonNode } from './PersonNode'
+import { PersonId } from '../../../../domain/PersonId.js'
+import { RelationshipId } from '../../../../domain/RelationshipId.js'
+import { PersonInTree, RelationshipInTree } from '../TreeTypes.js'
 
 const BUBBLE_RADIUS = 72 as const
 const Y_OFFSET = 4 * BUBBLE_RADIUS

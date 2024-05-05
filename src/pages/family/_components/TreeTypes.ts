@@ -1,4 +1,3 @@
-import type { Node, Edge } from 'reactflow'
 import { PersonId } from '../../../domain/PersonId.js'
 import { RelationshipId } from '../../../domain/RelationshipId.js'
 

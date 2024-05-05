@@ -10,9 +10,10 @@ import ReactFlow, {
   Edge,
   Node,
 } from 'reactflow'
+import { EllipsisHorizontalIcon } from '@heroicons/react/24/outline'
+
 import { PersonId } from '../../../../domain/PersonId.js'
 import { PersonInTree, RelationshipInTree } from '../TreeTypes.js'
-import { EllipsisHorizontalIcon } from '@heroicons/react/24/outline'
 import { useContextualMenu } from '../ContextualMenu.js'
 import { getInitials } from '../getInitials.js'
 import { closeFamilyMapper } from './closeFamilyMapper.js'
