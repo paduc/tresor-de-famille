@@ -60,8 +60,23 @@ export const getFaceAndPhotoForPerson = async ({
   )
 
   if (personInPhotoEvents.length) {
-    const { faceId, photoId } = personInPhotoEvents.at(0)!.payload
-    return { faceId, photoId }
+    // make sure this person is the latest for this face and photo
+    for (const event of personInPhotoEvents) {
+      const { faceId, photoId } = event.payload
+
+      const latestEventForFaceAndPhoto = await getSingleEvent<UserNamedPersonInPhoto | UserRecognizedPersonInPhoto>(
+        ['UserNamedPersonInPhoto', 'UserRecognizedPersonInPhoto'],
+        { faceId, photoId }
+      )
+
+      if (latestEventForFaceAndPhoto) {
+        const { personId: latestPersonId } = latestEventForFaceAndPhoto.payload
+
+        if (latestPersonId === personId) {
+          return { faceId, photoId }
+        }
+      }
+    }
   }
 
   return null
