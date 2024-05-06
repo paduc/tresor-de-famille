@@ -197,6 +197,19 @@ pageRouter.route(SetOriginPersonForFamilyTreeURL()).post(requireAuth(), async (r
       })
     )
 
+    try {
+      await personsIndex.saveObject({
+        objectID: personId,
+        personId,
+        name,
+        familyId,
+        visible_by: [`family/${familyId}`, `family/${userId}`],
+      })
+    } catch (error) {
+      console.error('Could not add new family member to algolia index', error)
+      throw error
+    }
+
     return response.status(200).json({ personId, name })
   } catch (error) {
     next(error)

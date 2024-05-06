@@ -13,6 +13,7 @@ import { PersonAutoShareWithFamilyCreation } from '../pages/share/PersonAutoShar
 import { PersonAutoSharedWithPhotoFace } from '../pages/share/PersonAutoSharedWithPhotoFace.js'
 import { PersonAutoSharedWithRelationship } from '../pages/share/PersonAutoSharedWithRelationship.js'
 import { actionsRouter } from './actionsRouter.js'
+import { UserSetFamilyTreeOrigin } from '../pages/family/UserSetFamilyTreeOrigin.js'
 
 actionsRouter.get('/resetAlgoliaIndex', requireAuth(), async (request, response, next) => {
   try {
@@ -46,6 +47,14 @@ actionsRouter.get('/resetAlgoliaIndex', requireAuth(), async (request, response,
 
     try {
       await indexPersonCreatedWithRelationship()
+    } catch (error) {
+      console.error(error)
+      // @ts-ignore
+      response.send(error.message).status(400)
+    }
+
+    try {
+      await indexUserSetFamilyTreeOrigin()
     } catch (error) {
       console.error(error)
       // @ts-ignore
@@ -109,6 +118,23 @@ async function indexUserNamedThemself() {
 async function indexPersonCreatedWithRelationship() {
   const { rows: newPersons } = await postgres.query<UserCreatedRelationshipWithNewPerson>(
     "SELECT * FROM history WHERE type = 'UserCreatedRelationshipWithNewPerson'"
+  )
+
+  for (const newPerson of newPersons) {
+    const { personId, name } = newPerson.payload.newPerson
+    await personsIndex.saveObject({
+      objectID: personId,
+      id: personId,
+      name,
+      familyId: newPerson.payload.familyId,
+      visible_by: [`family/${newPerson.payload.familyId}`, `family/${newPerson.payload.userId}`],
+    })
+  }
+}
+
+async function indexUserSetFamilyTreeOrigin() {
+  const { rows: newPersons } = await postgres.query<UserSetFamilyTreeOrigin>(
+    "SELECT * FROM history WHERE type = 'UserSetFamilyTreeOrigin'"
   )
 
   for (const newPerson of newPersons) {
