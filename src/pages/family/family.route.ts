@@ -26,6 +26,7 @@ import { OtherFamilyPage } from './OtherFamilyPage.js'
 import { makePersonId } from '../../libs/makePersonId.js'
 import { UserSetFamilyTreeOrigin } from './UserSetFamilyTreeOrigin.js'
 import { SetOriginPersonForFamilyTreeURL } from './SetOriginPersonForFamilyTreeURL.js'
+import { getUserFamilies } from '../_getUserFamilies.js'
 
 pageRouter.route(FamilyPageURLWithFamily()).get(requireAuth(), async (request, response, next) => {
   try {
@@ -58,6 +59,24 @@ pageRouter.route(FamilyPageURL()).get(requireAuth(), async (request, response, n
         userId: request.session.user!.id,
         familyId: asFamilyId(userId),
       })
+
+      if (props.initialPersons.length === 1) {
+        // Look for family with a family tree (more than one person)
+        const userFamilies = await getUserFamilies(userId)
+        for (const family of userFamilies) {
+          if (family.familyId !== asFamilyId(userId)) {
+            const familyProps = await getFamilyPageProps({
+              userId,
+              familyId: family.familyId,
+            })
+
+            if (familyProps.initialPersons.length > 1) {
+              return response.redirect(FamilyPageURLWithFamily(family.familyId))
+            }
+          }
+        }
+      }
+
       responseAsHtml(request, response, FamilyPage(props))
     } catch (error) {
       console.error("La personne essaie d'aller sur la page famille alors qu'elle ne s'est pas encore présentée", error)
