@@ -1,6 +1,7 @@
 import { getSingleEvent } from '../../dependencies/getSingleEvent.js'
 import { ThreadListProps } from '../_components/ThreadList.js'
 import { BunnyMediaUploaded } from '../media/BunnyMediaUploaded.js'
+import { CDN } from '../photoApi/CDN.js'
 import { ThumbnailURL } from '../photoApi/ThumbnailURL.js'
 import { MediaNode, PhotoNode } from '../thread/TipTapTypes.js'
 import { UserInsertedPhotoInRichTextThread } from '../thread/UserInsertedPhotoInRichTextThread.js'
@@ -27,7 +28,7 @@ export async function getThumbnails(threadEvents: readonly ThreadEvent[]): Promi
     await Promise.all(
       mediaNodes.map(async (node) => {
         if (node.type === 'photoNode') {
-          return { url: ThumbnailURL(node.attrs.photoId), type: 'image' }
+          return { url: CDN(ThumbnailURL(node.attrs.photoId)), type: 'image' }
         }
 
         const bunnyVideoThumbnailURL = await getThumbnailURLForBunnyVideo(node.attrs.mediaId)

@@ -23,6 +23,7 @@ import { useState } from 'react'
 import { PhotoPageUrl } from '../photo/PhotoPageUrl.js'
 import { ThumbnailURL } from '../photoApi/ThumbnailURL.js'
 import { PhotoIcon } from '@heroicons/react/20/solid'
+import { CDN } from '../photoApi/CDN.js'
 
 // @ts-ignore
 function classNames(...classes) {
@@ -115,7 +116,7 @@ export const PhotoListPage = withBrowserBundle(({ error, success, photos, curren
                 <li key={photo.photoId} className='relative'>
                   <div className='group aspect-h-7 aspect-w-10 block w-full overflow-hidden rounded-lg bg-gray-100 focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 focus-within:ring-offset-gray-100'>
                     <img
-                      src={ThumbnailURL(photo.photoId)}
+                      src={CDN(ThumbnailURL(photo.photoId))}
                       loading='lazy'
                       alt=''
                       className='pointer-events-none object-cover group-hover:opacity-75'
@@ -132,7 +133,7 @@ export const PhotoListPage = withBrowserBundle(({ error, success, photos, curren
                 <li key={photoId} className='relative'>
                   <div className='group aspect-h-7 aspect-w-10 block w-full overflow-hidden rounded-lg bg-gray-100 focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 focus-within:ring-offset-gray-100'>
                     <img
-                      src={ThumbnailURL(photoId)}
+                      src={CDN(ThumbnailURL(photoId))}
                       loading='lazy'
                       alt=''
                       className='pointer-events-none object-cover group-hover:opacity-75'

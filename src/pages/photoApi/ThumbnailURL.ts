@@ -1,3 +1,3 @@
 import { PhotoId } from '../../domain/PhotoId.js'
 
-export const ThumbnailURL = (photoId: PhotoId | ':photoId') => `/thumbnail/${photoId}`
+export const ThumbnailURL = (photoId: PhotoId | ':photoId') => `/thumbnail/${photoId}.jpg`

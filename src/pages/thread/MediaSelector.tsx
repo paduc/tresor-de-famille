@@ -17,6 +17,7 @@ import { MediaUploadCompleteURL } from '../media/MediaUploadCompleteURL.js'
 import { MediaSelectorListURL } from '../photoApi/MediaSelectorListURL.js'
 import { ThumbnailURL } from '../photoApi/ThumbnailURL.js'
 import { PrepareMediaUploadURL } from '../media/PrepareMediaUploadURL.js'
+import { CDN } from '../photoApi/CDN.js'
 
 type FetchStatus = 'idle' | 'downloading' | 'error'
 export type MediaSelectedType =
@@ -142,7 +143,7 @@ function SelectExistingPhoto({
         })
 
         if (res.status === 200) {
-          setPhotos(res.data.photos.map((photoId) => ({ photoId, url: ThumbnailURL(photoId) })))
+          setPhotos(res.data.photos.map((photoId) => ({ photoId, url: CDN(ThumbnailURL(photoId)) })))
 
           setStatus('idle')
           return
