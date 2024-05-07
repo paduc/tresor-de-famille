@@ -31,7 +31,13 @@ const nodeTypes = {
   couple: CoupleNode,
 }
 
-export function CloseFamilyFamilyTree({ persons, relationships, origin, children }: CloseFamilyFamilyTreeProps) {
+export function CloseFamilyFamilyTree({
+  persons,
+  relationships,
+  origin,
+  children,
+  onSelectionChange,
+}: CloseFamilyFamilyTreeProps) {
   const [nodes, setNodes, onNodesChange] = useNodesState([])
   const [edges, setEdges, onEdgesChange] = useEdgesState([])
 
@@ -57,6 +63,7 @@ export function CloseFamilyFamilyTree({ persons, relationships, origin, children
       edges={edges}
       onNodesChange={onNodesChange}
       onEdgesChange={onEdgesChange}
+      onSelectionChange={onSelectionChange}
       nodeTypes={nodeTypes}
       fitView
       maxZoom={1}>

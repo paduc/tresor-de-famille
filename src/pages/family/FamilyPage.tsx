@@ -20,9 +20,9 @@ import {
   PersonInTree,
   RelationshipInTree,
 } from './_components/TreeTypes.js'
-import { CloseFamilyFamilyTree } from './_components/CloseFamilyFamilyTree/CloseFamilyFamilyTree.js'
 import { removeRelationship } from './_components/removeRelationship.js'
 import { saveNewRelationship } from './_components/saveNewRelationship.js'
+import { CloseFamilyFamilyTree } from './_components/CloseFamilyFamilyTree/CloseFamilyFamilyTree.js'
 
 export type FamilyPageProps = {
   initialPersons: PersonInTree[]
@@ -132,6 +132,7 @@ const ClientOnlyFamilyPage = ({ initialPersons, initialRelationships, initialOri
 
   const onSelectionChange = useCallback(
     ({ nodes, edges }: { nodes: Node[]; edges: Edge[] }) => {
+      console.log('FamilyPage: onSelectionChange')
       if (nodes.length !== 1) return
 
       const selectedNode = nodes[0]
