@@ -11,15 +11,15 @@ import { getPersonForUser } from '../_getPersonForUser.js'
 import { getUserFamilies } from '../_getUserFamilies.js'
 import { getThreadComments } from '../commentApi/getThreadComments.js'
 import { UserAddedCaptionToPhoto } from '../photo/UserAddedCaptionToPhoto.js'
-import { ThumbnailURL } from '../photoApi/ThumbnailURL.js'
 import { ThreadSharedWithFamilies } from '../thread/ThreadPage/events/ThreadSharedWithFamilies.js'
 import { ParagraphNode, PhotoNode } from '../thread/TipTapTypes.js'
 import { UserInsertedPhotoInRichTextThread } from '../thread/UserInsertedPhotoInRichTextThread.js'
 import { UserSetChatTitle } from '../thread/UserSetChatTitle.js'
 import { UserUpdatedThreadAsRichText } from '../thread/UserUpdatedThreadAsRichText.js'
 import { ThreadListPageProps } from './ThreadListPage.js'
+import { getThumbnails } from './getThumbnails.js'
 
-type ThreadEvent =
+export type ThreadEvent =
   | UserSentMessageToChat
   | OnboardingUserStartedFirstThread
   | UserUpdatedThreadAsRichText
@@ -120,7 +120,7 @@ export const getThreadListPageProps = async (userId: AppUserId): Promise<ThreadL
       contents: await getContents(threadContentEvents),
       lastUpdatedOn,
       familyIds: Array.from(uniqueThreadsWithFamilies.get(threadId)!.values()),
-      thumbnails: getThumbnails(threadContentEvents),
+      thumbnails: await getThumbnails(threadContentEvents),
       commentCount: threadComments.length,
     })
   }
@@ -128,22 +128,6 @@ export const getThreadListPageProps = async (userId: AppUserId): Promise<ThreadL
   return {
     threads: threads.sort((a, b) => b.lastUpdatedOn - a.lastUpdatedOn),
   }
-}
-
-function getThumbnails(threadEvents: readonly ThreadEvent[]): string[] {
-  const latestContentEvent = [...threadEvents]
-    .reverse()
-    .find((event: ThreadEvent): event is UserUpdatedThreadAsRichText | UserInsertedPhotoInRichTextThread =>
-      ['UserUpdatedThreadAsRichText', 'UserInsertedPhotoInRichTextThread'].includes(event.type)
-    )
-
-  if (!latestContentEvent) return []
-
-  const nodes = latestContentEvent.payload.contentAsJSON.content
-
-  const imageNodes = nodes.filter((node): node is PhotoNode => node.type === 'photoNode')
-
-  return imageNodes.map((node) => node.attrs.photoId).map((photoId) => ThumbnailURL(photoId))
 }
 
 async function getContents(threadEvents: readonly ThreadEvent[]): Promise<string> {

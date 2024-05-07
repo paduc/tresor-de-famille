@@ -10,25 +10,25 @@ import { AppUserId } from '../../domain/AppUserId.js'
 import { FaceId } from '../../domain/FaceId.js'
 import { PersonId } from '../../domain/PersonId.js'
 import { PhotoId } from '../../domain/PhotoId.js'
+import { ThreadId } from '../../domain/ThreadId.js'
 import { UserNamedPersonInPhoto } from '../../events/onboarding/UserNamedPersonInPhoto.js'
 import { UserRecognizedPersonInPhoto } from '../../events/onboarding/UserRecognizedPersonInPhoto.js'
+import { getPersonForUser } from '../_getPersonForUser.js'
 import { getProfilePicUrlForPerson } from '../_getProfilePicUrlForPerson.js'
+import { getThreadAuthor } from '../_getThreadAuthor.js'
+import { getUsersForPersonId } from '../_getUsersForPersonId.js'
 import { isPhotoAccessibleToUser } from '../_isPhotoAccessibleToUser.js'
+import { isThreadSharedWithUser } from '../_isThreadSharedWithUser.js'
+import { getThreadComments } from '../commentApi/getThreadComments.js'
+import { UserAddedCaptionToPhoto } from '../photo/UserAddedCaptionToPhoto.js'
 import { PhotoManuallyAnnotated } from '../photo/annotateManually/PhotoManuallyAnnotated.js'
 import { UserDeletedPhoto } from '../photoApi/UserDeletedPhoto.js'
-import { PersonPageProps } from './PersonPage.js'
-import { getPersonForUser } from '../_getPersonForUser.js'
-import { getThreadAuthor } from '../_getThreadAuthor.js'
-import { isThreadSharedWithUser } from '../_isThreadSharedWithUser.js'
-import { UserUpdatedThreadAsRichText } from '../thread/UserUpdatedThreadAsRichText.js'
-import { ThreadId } from '../../domain/ThreadId.js'
-import { UserSetChatTitle } from '../thread/UserSetChatTitle.js'
-import { UserAddedCaptionToPhoto } from '../photo/UserAddedCaptionToPhoto.js'
-import { ParagraphNode, PhotoNode } from '../thread/TipTapTypes.js'
 import { ThreadSharedWithFamilies } from '../thread/ThreadPage/events/ThreadSharedWithFamilies.js'
-import { ThumbnailURL } from '../photoApi/ThumbnailURL.js'
-import { getThreadComments } from '../commentApi/getThreadComments.js'
-import { getUsersForPersonId } from '../_getUsersForPersonId.js'
+import { ParagraphNode, PhotoNode } from '../thread/TipTapTypes.js'
+import { UserSetChatTitle } from '../thread/UserSetChatTitle.js'
+import { UserUpdatedThreadAsRichText } from '../thread/UserUpdatedThreadAsRichText.js'
+import { getThumbnails } from '../threadList/getThumbnails.js'
+import { PersonPageProps } from './PersonPage.js'
 
 export const getPersonPageProps = async ({
   personId,
@@ -113,7 +113,7 @@ async function getThreadsWithInfo({ threadIds, userId }: { threadIds: ThreadId[]
       contents: await getContents({ threadId }),
       authors: await getAuthors({ threadId }),
       familyIds: await getThreadFamilies({ threadId }),
-      thumbnails: await getThumbnails({ threadId }),
+      thumbnails: await getThumbnailsByThreadId({ threadId }),
       commentCount: await getCommentCount({ threadId }),
       lastUpdatedOn: await getLastUpdatedOn({ threadId }),
     })
@@ -146,18 +146,14 @@ async function getCommentCount({ threadId }: { threadId: ThreadId }) {
   return comments.length
 }
 
-async function getThumbnails({ threadId }: { threadId: ThreadId }) {
+async function getThumbnailsByThreadId({ threadId }: { threadId: ThreadId }) {
   const latestUpdateEvent = await getSingleEvent<UserUpdatedThreadAsRichText>('UserUpdatedThreadAsRichText', { threadId })
 
   if (!latestUpdateEvent) {
     return []
   }
 
-  const nodes = latestUpdateEvent.payload.contentAsJSON.content
-
-  const imageNodes = nodes.filter((node): node is PhotoNode => node.type === 'photoNode')
-
-  return imageNodes.map((node) => node.attrs.photoId).map((photoId) => ThumbnailURL(photoId))
+  return getThumbnails([latestUpdateEvent])
 }
 
 async function getThreadFamilies({ threadId }: { threadId: ThreadId }) {

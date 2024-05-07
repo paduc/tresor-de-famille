@@ -10,7 +10,7 @@ import { ThreadId } from '../../domain/ThreadId.js'
 import { withBrowserBundle } from '../../libs/ssr/withBrowserBundle.js'
 import { buttonIconStyles, primaryButtonStyles, secondaryButtonStyles } from '../_components/Button.js'
 import { TDFModal } from '../_components/TDFModal.js'
-import { ThreadList } from '../_components/ThreadList.js'
+import { ThreadList, ThreadListProps } from '../_components/ThreadList.js'
 import { AppLayout } from '../_components/layout/AppLayout.js'
 import { PhotoPageUrl } from '../photo/PhotoPageUrl.js'
 
@@ -32,30 +32,8 @@ export type PersonPageProps = {
     photoId: PhotoId
     url: string
   }[]
-  threadsTheyAppearIn: {
-    threadId: ThreadId
-    title: string | undefined
-    lastUpdatedOn: number
-    authors: {
-      name: string
-    }[]
-    contents: string
-    thumbnails: string[]
-    familyIds: FamilyId[]
-    commentCount: number
-  }[]
-  threadsTheyWrote: {
-    threadId: ThreadId
-    title: string | undefined
-    lastUpdatedOn: number
-    authors: {
-      name: string
-    }[]
-    contents: string
-    thumbnails: string[]
-    familyIds: FamilyId[]
-    commentCount: number
-  }[]
+  threadsTheyAppearIn: ThreadListProps
+  threadsTheyWrote: ThreadListProps
 }
 
 const INITIAL_PHOTO_COUNT = 6

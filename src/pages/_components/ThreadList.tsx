@@ -6,25 +6,22 @@ import { ThreadUrl } from '../thread/ThreadUrl.js'
 import { FamilyId } from '../../domain/FamilyId.js'
 import { useState } from 'react'
 import { secondaryButtonStyles } from './Button.js'
+import { PlayCircleIcon } from '@heroicons/react/20/solid'
 
-export function ThreadList({
-  threads,
-  foldAtCount,
-}: {
-  threads: {
-    threadId: ThreadId
-    title: string | undefined
-    lastUpdatedOn: number
-    authors: {
-      name: string
-    }[]
-    contents: string
-    thumbnails: string[]
-    familyIds: FamilyId[]
-    commentCount: number
+export type ThreadListProps = {
+  threadId: ThreadId
+  title: string | undefined
+  lastUpdatedOn: number
+  authors: {
+    name: string
   }[]
-  foldAtCount?: number
-}) {
+  contents: string
+  thumbnails: { url: string; type: 'image' | 'video' }[]
+  familyIds: FamilyId[]
+  commentCount: number
+}[]
+
+export function ThreadList({ threads, foldAtCount }: { threads: ThreadListProps; foldAtCount?: number }) {
   const session = useLoggedInSession()
   const [threadsToDisplayCount, setThreadsToDisplayCount] = useState<number>(foldAtCount || Infinity)
 
@@ -87,8 +84,13 @@ export function ThreadList({
                   <div className='mt-2 mb-2'>
                     {/** Mobile version */}
                     <div className='sm:hidden flex'>
-                      <div className='h-24 w-32 overflow-hidden rounded-lg bg-gray-100'>
-                        <img src={thread.thumbnails[0]} alt='' className='h-24 w-32 object-cover' />
+                      <div className='h-24 w-32 overflow-hidden rounded-lg bg-gray-100 relative'>
+                        <img src={thread.thumbnails[0].url} alt='' className='h-24 w-32 object-cover' />
+                        {thread.thumbnails[0].type === 'video' ? (
+                          <div className='absolute bottom-1 right-1'>
+                            <PlayCircleIcon className='h-8 w-8 text-white' />
+                          </div>
+                        ) : null}
                       </div>
                       {thread.thumbnails.length > 1 ? (
                         <div className='h-24 w-32 overflow-hidden ml-3 rounded-lg bg-gray-100 flex items-center justify-center text-gray-500'>
@@ -101,8 +103,13 @@ export function ThreadList({
                       {thread.thumbnails.slice(0, 3).map((thumbnail, index) => (
                         <div
                           key={`${thread.threadId}_thumbnail_${thumbnail}_${index}`}
-                          className='h-24 w-32 overflow-hidden rounded-lg bg-gray-100'>
-                          <img src={thumbnail} alt='' className='h-24 w-32 object-cover' />
+                          className='h-24 w-32 overflow-hidden rounded-lg bg-gray-100 relative'>
+                          <img src={thumbnail.url} alt='' className='h-24 w-32 object-cover' />
+                          {thumbnail.type === 'video' ? (
+                            <div className='absolute bottom-1 right-1'>
+                              <PlayCircleIcon className='h-8 w-8 text-white' />
+                            </div>
+                          ) : null}
                         </div>
                       ))}
                       {thread.thumbnails.length > 3 ? (

@@ -6,7 +6,7 @@ import { ThreadId } from '../../domain/ThreadId.js'
 import { withBrowserBundle } from '../../libs/ssr/withBrowserBundle.js'
 import { linkStyles } from '../_components/Button.js'
 import { SuccessError } from '../_components/SuccessError.js'
-import { ThreadList } from '../_components/ThreadList.js'
+import { ThreadList, ThreadListProps } from '../_components/ThreadList.js'
 import { AppLayout } from '../_components/layout/AppLayout.js'
 
 // @ts-ignore
@@ -17,18 +17,7 @@ function classNames(...classes) {
 export type ThreadListPageProps = {
   success?: string
   error?: string
-  threads: {
-    threadId: ThreadId
-    title: string | undefined
-    lastUpdatedOn: number
-    authors: {
-      name: string
-    }[]
-    contents: string
-    thumbnails: string[]
-    familyIds: FamilyId[]
-    commentCount: number
-  }[]
+  threads: ThreadListProps
 }
 
 export const ThreadListPage = withBrowserBundle(({ error, success, threads }: ThreadListPageProps) => {

@@ -9,7 +9,7 @@ import { withBrowserBundle } from '../../libs/ssr/withBrowserBundle.js'
 import { buttonIconStyles, linkStyles, primaryButtonStyles, smallButtonStyles } from '../_components/Button.js'
 import { ClientOnly } from '../_components/ClientOnly.js'
 import { useLoggedInSession, useSession } from '../_components/SessionContext.js'
-import { ThreadList } from '../_components/ThreadList.js'
+import { ThreadList, ThreadListProps } from '../_components/ThreadList.js'
 import { AppLayout } from '../_components/layout/AppLayout.js'
 import { usePersonSearch } from '../_components/usePersonSearch.js'
 import { ThreadListPageUrl } from '../threadList/ThreadListPageUrl.js'
@@ -23,18 +23,7 @@ export type HomePageProps =
     }
   | {
       isOnboarding: false
-      latestThreads: {
-        threadId: ThreadId
-        title: string | undefined
-        lastUpdatedOn: number
-        authors: {
-          name: string
-        }[]
-        contents: string
-        thumbnails: string[]
-        familyIds: FamilyId[]
-        commentCount: number
-      }[]
+      latestThreads: ThreadListProps
       hasMoreThreads: boolean
     }
 
