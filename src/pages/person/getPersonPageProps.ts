@@ -29,6 +29,7 @@ import { UserSetChatTitle } from '../thread/UserSetChatTitle.js'
 import { UserUpdatedThreadAsRichText } from '../thread/UserUpdatedThreadAsRichText.js'
 import { getThumbnails } from '../threadList/getThumbnails.js'
 import { PersonPageProps } from './PersonPage.js'
+import { CDN } from '../photoApi/CDN.js'
 
 export const getPersonPageProps = async ({
   personId,
@@ -302,7 +303,7 @@ async function getPersonPhotos({ personId, userId }: { personId: PersonId; userI
 
   // Flatten alternative profile pics
   const alternateProfilePics = Array.from(profilePhotoAndFace).flatMap(([photoId, faceIdSet]) =>
-    Array.from(faceIdSet).map((faceId) => ({ faceId, photoId, url: PhotoFaceURL({ photoId, faceId }) }))
+    Array.from(faceIdSet).map((faceId) => ({ faceId, photoId, url: CDN(PhotoFaceURL({ photoId, faceId })) }))
   )
 
   return { photos: photosAccessibleToUser, alternateProfilePics }

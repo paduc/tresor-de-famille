@@ -33,6 +33,8 @@ import { PersonPageURL } from '../../person/PersonPageURL.js'
 import { PhotoListPageUrl, PhotoListPageUrlWithFamily } from '../../photoList/PhotoListPageUrl.js'
 import { ThreadUrl } from '../../thread/ThreadUrl.js'
 import classNames from 'classnames'
+import { PhotoFaceURL } from '../../../actions/PhotoFaceURL.js'
+import { CDN } from '../../photoApi/CDN.js'
 
 type PhotoFace = {
   faceId: FaceId
@@ -706,7 +708,7 @@ const PhotoBadge = ({ photoId, className, faceId, altText }: PhotoBadgeProps) =>
   return (
     <img
       // src='https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=100&h=100&q=80'
-      src={`/photo/${photoId}/face/${faceId}`}
+      src={CDN(PhotoFaceURL({ photoId, faceId }))}
       className={`inline-block rounded-full h-14 w-14 ring-2 ring-white shadow-sm'
       } ${className || ''}`}
       alt={altText}

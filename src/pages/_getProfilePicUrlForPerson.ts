@@ -1,3 +1,4 @@
+import { PhotoFaceURL } from '../actions/PhotoFaceURL.js'
 import { getEventList } from '../dependencies/getEventList.js'
 import { getSingleEvent } from '../dependencies/getSingleEvent.js'
 import { AppUserId } from '../domain/AppUserId.js'
@@ -8,6 +9,7 @@ import { UserConfirmedHisFace } from '../events/onboarding/UserConfirmedHisFace.
 import { UserNamedPersonInPhoto } from '../events/onboarding/UserNamedPersonInPhoto.js'
 import { UserRecognizedPersonInPhoto } from '../events/onboarding/UserRecognizedPersonInPhoto.js'
 import { UserSelectedNewProfilePic } from './person/UserSelectedNewProfilePic.js'
+import { CDN } from './photoApi/CDN.js'
 
 export const getProfilePicUrlForPerson = async ({
   userId,
@@ -20,7 +22,7 @@ export const getProfilePicUrlForPerson = async ({
 
   if (faceAndPhoto) {
     const { faceId, photoId } = faceAndPhoto
-    return `/photo/${photoId}/face/${faceId}`
+    return CDN(PhotoFaceURL({ photoId, faceId }))
   }
 
   return null
