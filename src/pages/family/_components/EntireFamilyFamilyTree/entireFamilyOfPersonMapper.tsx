@@ -5,7 +5,6 @@ import { PersonInTree, RelationshipInTree } from '../TreeTypes.js'
 
 const BUBBLE_RADIUS = 72 as const
 const Y_OFFSET = 4 * BUBBLE_RADIUS
-const X_OFFSET = 2.5 * BUBBLE_RADIUS
 const X_SPACING = 36
 const PERSON_WIDTH = BUBBLE_RADIUS * 2
 const COUPLE_NODE_RADIUS = 6
@@ -71,7 +70,7 @@ export const entireFamilyOfPersonMapper = ({
     const spouse = spouses[0]
     let coupleNode: Node | undefined
     if (spouse) {
-      const x = position.x + X_OFFSET
+      const x = position.x + X_SPACING + PERSON_WIDTH
       const y = position.y
       const spouseNode = makePersonNode(spouse.personId, { x, y })
       insertNode(spouseNode)
