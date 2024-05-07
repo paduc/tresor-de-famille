@@ -44,6 +44,16 @@ const zIsParagraphNode = z.object({
   content: z.array(z.union([zIsText, zIsHardBreak])).optional(),
 })
 
+const zIsListItem = z.object({
+  type: z.literal('listItem'),
+  content: z.array(zIsParagraphNode).optional(),
+})
+
+const zIsBulletListNode = z.object({
+  type: z.literal('bulletList'),
+  content: z.array(zIsListItem).optional(),
+})
+
 const zIsPhotoNode = z.object({
   type: z.literal('photoNode'),
   attrs: z.object({ photoId: zIsPhotoId, caption: z.union([z.string(), z.null()]).optional() }).and(z.record(z.any())),
@@ -60,7 +70,7 @@ const zIsSeparatorNode = z.object({
   type: z.literal('separatorNode'),
 })
 
-export const zIsTipTapJSON = z.union([zIsParagraphNode, zIsPhotoNode, zIsSeparatorNode, zIsMediaNode])
+export const zIsTipTapJSON = z.union([zIsParagraphNode, zIsPhotoNode, zIsSeparatorNode, zIsMediaNode, zIsBulletListNode])
 
 export const zIsTipTapContentAsJSON = z.object({
   type: z.literal('doc'),

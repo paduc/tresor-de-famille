@@ -10,7 +10,7 @@ import { secondaryButtonStyles } from '../../_components/Button.js'
 import { AppLayout } from '../../_components/layout/AppLayout.js'
 import { MediaStatus, ReadyOrErrorStatus } from '../../media/MediaStatus.js'
 import { ThreadUrl } from '../ThreadUrl.js'
-import { TextMark, TipTapContentAsJSON } from '../TipTapTypes.js'
+import { ParagraphNode, TextMark, TipTapContentAsJSON } from '../TipTapTypes.js'
 import { Comment, Comments } from './_components/Comments.js'
 import { ThreadSharingButton } from './_components/ThreadSharingButton.js'
 import { MediaNodeItemComponentByStatus } from './nodes/MediaNode.js'
@@ -68,27 +68,7 @@ export const ReadOnlyThreadPage = withBrowserBundle(
             <div className='sm:ml-6 max-w-2xl relative'>
               {contentAsJSON.content.map((block, blockIndex) => {
                 if (block.type === 'paragraph') {
-                  if (block.content) {
-                    return (
-                      <p
-                        key={`block_${blockIndex}`}
-                        className='px-4 sm:px-0 py-4 text-gray-800 text-lg  whitespace-pre-wrap [&+p]:-mt-1 [&+p]:border-t-0 [&+p]:pt-0'>
-                        {block.content.map((c, textIndex) => {
-                          return (
-                            <span
-                              key={`${threadId}_${blockIndex}_${textIndex}`}
-                              className={`${hasMark('bold', c.marks, 'font-bold')} ${hasMark(
-                                'italic',
-                                c.marks,
-                                'italic'
-                              )} ${hasMark('strike', c.marks, 'line-through')}`}>
-                              {c.text}
-                            </span>
-                          )
-                        })}
-                      </p>
-                    )
-                  }
+                  return <RenderedParagraph key={`block_${blockIndex}`} node={block} />
                 }
 
                 if (block.type === 'photoNode') {
@@ -97,6 +77,25 @@ export const ReadOnlyThreadPage = withBrowserBundle(
 
                 if (block.type === 'mediaNode') {
                   return <ReadonyMediaItem key={`block_${blockIndex}`} node={block} />
+                }
+
+                if (block.type === 'bulletList') {
+                  return (
+                    <ul
+                      key={`block_${blockIndex}`}
+                      className='px-4 sm:px-0 py-4 text-gray-800 text-lg  whitespace-pre-wrap [&+p]:-mt-1 [&+p]:border-t-0 [&+p]:pt-0'>
+                      {block.content?.map((listItem, listItemIndex) => {
+                        if (!listItem) return null
+                        return (
+                          <li key={`${threadId}_${blockIndex}_${listItemIndex}`}>
+                            {listItem.content?.map((paragraphNode, pIndex) => (
+                              <RenderedParagraph key={pIndex} node={paragraphNode} />
+                            ))}
+                          </li>
+                        )
+                      })}
+                    </ul>
+                  )
                 }
               })}
             </div>
@@ -119,6 +118,35 @@ export const ReadOnlyThreadPage = withBrowserBundle(
     )
   }
 )
+
+function RenderedParagraph(props: { node: ParagraphNode }) {
+  const { node } = props
+  if (node.content) {
+    return (
+      <p className='px-4 sm:px-0 py-4 text-gray-800 text-lg  whitespace-pre-wrap [&+p]:-mt-1 [&+p]:border-t-0 [&+p]:pt-0'>
+        {node.content.map((c, textIndex) => {
+          if (c.type === 'hardBreak') {
+            return <br key={`${textIndex}`} />
+          }
+
+          return (
+            <span
+              key={`${textIndex}`}
+              className={`${hasMark('bold', c.marks, 'font-bold')} ${hasMark('italic', c.marks, 'italic')} ${hasMark(
+                'strike',
+                c.marks,
+                'line-through'
+              )}`}>
+              {c.text}
+            </span>
+          )
+        })}
+      </p>
+    )
+  }
+
+  return null
+}
 
 const ReadonlyPhotoItem = (props: {
   node: {
