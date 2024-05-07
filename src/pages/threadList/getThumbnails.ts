@@ -39,9 +39,9 @@ export async function getThumbnails(threadEvents: readonly ThreadEvent[]): Promi
   ).filter((thumbnail): thumbnail is Thumbnail => !!thumbnail)
 }
 
-const BUNNY_CDN_URL = process.env.BUNNY_CDN_URL
-if (!BUNNY_CDN_URL) {
-  console.error('BUNNY_CDN_URL is not set')
+const BUNNY_VIDEO_CDN_URL = process.env.BUNNY_VIDEO_CDN_URL
+if (!BUNNY_VIDEO_CDN_URL) {
+  console.error('BUNNY_VIDEO_CDN_URL is not set')
   process.exit(1)
 }
 
@@ -54,5 +54,5 @@ async function getThumbnailURLForBunnyVideo(mediaId: string): Promise<string | n
 
   const { bunnyVideoId } = mediaEvent.payload
 
-  return `${BUNNY_CDN_URL}/${bunnyVideoId}/thumbnail.jpg`
+  return `${BUNNY_VIDEO_CDN_URL}/${bunnyVideoId}/thumbnail.jpg`
 }
