@@ -1,4 +1,4 @@
-import { PlusIcon } from '@heroicons/react/24/outline'
+import { MagnifyingGlassIcon, PlusIcon } from '@heroicons/react/24/outline'
 import * as React from 'react'
 import { FaceId } from '../../domain/FaceId.js'
 import { FamilyId } from '../../domain/FamilyId.js'
@@ -13,6 +13,7 @@ import { ThreadList } from '../_components/ThreadList.js'
 import { AppLayout } from '../_components/layout/AppLayout.js'
 import { usePersonSearch } from '../_components/usePersonSearch.js'
 import { ThreadListPageUrl } from '../threadList/ThreadListPageUrl.js'
+import { EnvelopeIcon } from '@heroicons/react/20/solid'
 
 type Steps = GetUserName
 export type HomePageProps =
@@ -239,7 +240,10 @@ const PersonAutocomplete = ({ className, selectedPersonName }: PersonAutocomplet
 
   return (
     <div className={`relative ${className || ''}`}>
-      <div className='w-full min-w-screen overflow-hidden shadow-sm border border-gray-200 focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500'>
+      <div className='w-full min-w-screen overflow-hidden shadow-sm border border-gray-200 focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500 relative'>
+        <div className='pointer-events-none absolute top-2 left-0 flex items-center pl-3'>
+          <MagnifyingGlassIcon className='h-7 w-7 text-gray-400' aria-hidden='true' />
+        </div>
         <input
           role='combobox'
           type='text'
@@ -248,7 +252,7 @@ const PersonAutocomplete = ({ className, selectedPersonName }: PersonAutocomplet
           name='newName'
           autoFocus
           defaultValue={selectedPersonName || ''}
-          className='block w-full resize-none border-0 py-3 px-4 focus:ring-0 text-base'
+          className='block w-full resize-none border-0 py-3 px-4 pl-12 focus:ring-0 text-base'
           onChange={(event) => setQuery(event.target.value.trim())}
         />
       </div>
@@ -271,10 +275,6 @@ const PersonAutocomplete = ({ className, selectedPersonName }: PersonAutocomplet
                     ) : (
                       ''
                     )}
-                    <div className='mt-1 w-60 text-xs text-gray-500'>
-                      Cette personne est dans{' '}
-                      {getFamilyName(hit.familyId) ? `${getFamilyName(hit.familyId)}` : 'une autre famille'}.
-                    </div>
                   </div>
                 </div>
                 <button
@@ -289,11 +289,6 @@ const PersonAutocomplete = ({ className, selectedPersonName }: PersonAutocomplet
             {query.length > 0 && firstHitStartsWithQuery(hits, query) ? <NewPersonFromQuery query={query} /> : null}
           </ul>
         </form>
-        {/* <a
-          href='#'
-          className='flex w-full items-center justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus-visible:outline-offset-0'>
-          Voir plus
-        </a> */}
       </div>
     </div>
   )
