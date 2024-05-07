@@ -32,6 +32,15 @@ export const entireFamilyOfPersonMapper = ({
   const nodes = new Map<Node['id'], Node>()
   const edges = new Map<Edge['id'], Edge>()
 
+  const originXY = { x: 0, y: 0 }
+
+  // // Add origin person node
+  const originPersonNode = makePersonNode(originPersonId, originXY)
+  insertNode(originPersonNode)
+  drawPersonSpouseAndChildren(originPersonId, originXY)
+
+  return { nodes, edges }
+
   function getChildWidth(personId: PersonId): number {
     const children = findChildren(personId)
     const spouses = findSpouses(personId)
@@ -139,13 +148,6 @@ export const entireFamilyOfPersonMapper = ({
     })
     // }
   }
-
-  // // Add origin person node
-  const originPersonNode = makePersonNode(originPersonId, { x: 0, y: 0 })
-  insertNode(originPersonNode)
-  drawPersonSpouseAndChildren(originPersonId, { x: 0, y: 0 })
-
-  return { nodes, edges }
 
   function findParents(personId: PersonId) {
     const parentRelationships = relationships.filter(
