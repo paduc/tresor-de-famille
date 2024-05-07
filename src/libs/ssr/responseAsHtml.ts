@@ -110,6 +110,7 @@ export async function responseAsHtml(
                   window.__SESSION__ = ${JSON.stringify(session || {})};
                   window.__ALGOLIA_APPID__ = "${ALGOLIA_APPID!}";
                   window.__URL__ = '${request.url}';
+                  window.__BUNNY_CDN_URL__ = process.env.BUNNY_CDN_URL || '';
                 </script>
               `
             : ''}

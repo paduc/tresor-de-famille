@@ -1,5 +1,6 @@
 export function CDN(url: string) {
-  const BUNNY_CDN_URL = process.env.BUNNY_CDN_URL
+  // @ts-ignore
+  const BUNNY_CDN_URL = typeof window === 'undefined' ? process.env.BUNNY_CDN_URL : window.__BUNNY_CDN_URL__
 
   if (!BUNNY_CDN_URL) {
     return url
