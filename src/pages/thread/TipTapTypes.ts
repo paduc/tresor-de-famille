@@ -29,17 +29,19 @@ const zIsMark = z.object({ type: z.union([z.literal('bold'), z.literal('italic')
 
 export type TextMark = z.infer<typeof zIsMark>
 
+const zIsText = z.object({
+  type: z.literal('text'),
+  text: z.string(),
+  marks: z.array(zIsMark).optional(),
+})
+
+const zIsHardBreak = z.object({
+  type: z.literal('hardBreak'),
+})
+
 const zIsParagraphNode = z.object({
   type: z.literal('paragraph'),
-  content: z
-    .array(
-      z.object({
-        type: z.literal('text'),
-        text: z.string(),
-        marks: z.array(zIsMark).optional(),
-      })
-    )
-    .optional(),
+  content: z.array(z.union([zIsText, zIsHardBreak])).optional(),
 })
 
 const zIsPhotoNode = z.object({

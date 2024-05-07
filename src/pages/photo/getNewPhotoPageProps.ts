@@ -127,9 +127,11 @@ async function makeThreadTitle(threadEvent: UserUpdatedThreadAsRichText): Promis
   const textNodes = nodes.filter((node): node is ParagraphNode => node.type === 'paragraph' && !!node.content)
 
   if (textNodes.length) {
-    const textNode = textNodes.find((node) => node.content?.length && node.content.some((c) => c.text.length))
+    const textNode = textNodes.find(
+      (node) => node.content?.length && node.content.some((c) => c.type === 'text' && c.text.length)
+    )
 
-    const text = textNode?.content?.length && textNode?.content.map((c) => c.text).join('')
+    const text = textNode?.content?.length && textNode?.content.map((c) => (c.type === 'text' ? c.text : ' ')).join('')
 
     if (text) {
       return text

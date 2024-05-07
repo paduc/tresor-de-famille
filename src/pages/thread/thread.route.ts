@@ -1,5 +1,5 @@
 import multer from 'multer'
-import z from 'zod'
+import z, { ZodError } from 'zod'
 import { addToHistory } from '../../dependencies/addToHistory.js'
 import { requireAuth } from '../../dependencies/authn.js'
 import { AppUserId } from '../../domain/AppUserId.js'
@@ -145,12 +145,12 @@ pageRouter
           )
           return response.status(200).send('ok')
         } catch (error) {
-          if (error instanceof z.ZodError) {
+          if (error instanceof ZodError) {
             console.log(JSON.stringify(request.body, null, 2))
-            console.error('Impossible to save UserThread', error.errors)
+            console.error('Impossible to save UserThread', JSON.stringify(error.errors, null, 2))
+          } else {
+            console.error('Impossible to save UserThread', error)
           }
-
-          console.error('Impossible to save UserThread', error)
         }
 
         return response.status(500).send('Oops')
@@ -245,6 +245,9 @@ pageRouter
       // TODO: try catch error and send it back as HTML (or redirect if OK)
       return response.redirect(ThreadUrl(threadId))
     } catch (error) {
+      if (error instanceof ZodError) {
+        console.error('ZodError in main thread.route.ts POST', JSON.stringify(error.errors, null, 2))
+      }
       next(error)
     }
   })
