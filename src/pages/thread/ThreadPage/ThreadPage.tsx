@@ -2,6 +2,8 @@ import { formatRelative } from 'date-fns'
 import fr from 'date-fns/locale/fr/index.js'
 import debounce from 'lodash.debounce'
 import React, { useCallback, useEffect, useLayoutEffect, useState } from 'react'
+import { convert } from 'html-to-text'
+
 import { withBrowserBundle } from '../../../libs/ssr/withBrowserBundle.js'
 import { linkStyles } from '../../_components/Button.js'
 import { AppLayout } from '../../_components/layout/AppLayout.js'
@@ -125,6 +127,11 @@ const RichTextEditor = (props: RichTextEditorProps) => {
     editorProps: {
       attributes: {
         class: 'focus:outline-none',
+      },
+      transformPastedHTML: (html) => {
+        // console.log('transformPastedHTML', html)
+
+        return convert(html, { preserveNewlines: true })
       },
     },
   })
