@@ -5,6 +5,7 @@ import { Bars3BottomLeftIcon, PhotoIcon } from '@heroicons/react/20/solid'
 import { NodeViewWrapper } from '@tiptap/react'
 import { useSelectDOMNodeForInsertion } from '../hooks/useSelectDOMNodeForInsertion.js'
 import { useEditorCtx } from '../hooks/useEditorCtx.js'
+import { FilmIcon } from '@heroicons/react/24/outline'
 
 export const SeparatorNode = Node.create({
   name: 'separatorNode',
@@ -73,10 +74,10 @@ const SeparatorNodeItem = (props: { node: {} }) => {
               selectDOMNodeForInsertion({ node: nodeRef.current, type: 'media' })
             }
           }}
-          title='Insérer des vidéos'
+          title='Insérer des vidéos / audios'
           className={`pl-4  text-indigo-600 hover:text-indigo-500 cursor-pointer inline-flex items-center gap-x-2`}>
-          <PhotoIcon className={`h-5 w-5`} aria-hidden='true' />
-          Insérer des vidéos
+          <FilmIcon className={`h-5 w-5`} aria-hidden='true' />
+          Insérer des vidéos/audios
         </button>
       </div>
     </NodeViewWrapper>
