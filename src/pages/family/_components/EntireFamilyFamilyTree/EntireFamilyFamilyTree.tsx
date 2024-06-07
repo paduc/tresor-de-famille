@@ -5,6 +5,7 @@ import { PersonInTree, RelationshipInTree } from '../TreeTypes.js'
 import { entireFamilyOfPersonMapper } from './entireFamilyOfPersonMapper.js'
 import { CoupleNode } from './CoupleNode.js'
 import { PersonNode } from './PersonNode.js'
+import { ExploreNode } from './ExploreNode.js'
 
 type EntireFamilyFamilyTreeProps = {
   persons: PersonInTree[]
@@ -16,6 +17,7 @@ type EntireFamilyFamilyTreeProps = {
 const nodeTypes = {
   person: PersonNode,
   couple: CoupleNode,
+  explore: ExploreNode,
 }
 
 export function EntireFamilyFamilyTree({ persons, relationships, originPersonId, children }: EntireFamilyFamilyTreeProps) {

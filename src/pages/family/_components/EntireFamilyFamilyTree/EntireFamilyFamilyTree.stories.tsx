@@ -13,11 +13,15 @@ export default {
 const john = { name: 'John', personId: makePersonId(), profilePicUrl: '' }
 const jane = { name: 'Jane', personId: makePersonId(), profilePicUrl: '' }
 
-const johnsFather = { name: 'John Senior', personId: makePersonId(), profilePicUrl: '' }
+const johnsFather = { name: 'Father of John', personId: makePersonId(), profilePicUrl: '' }
 const johnsMother = { name: 'Mother of John', personId: makePersonId(), profilePicUrl: '' }
+const johnsFathersFather = { name: 'Paternal GrandFather of John', personId: makePersonId(), profilePicUrl: '' }
+const johnsFathersMother = { name: 'Paternal GrandMother of John', personId: makePersonId(), profilePicUrl: '' }
 
 const janesFather = { name: 'Father of Jane', personId: makePersonId(), profilePicUrl: '' }
 const janesMother = { name: 'Mother of Jane', personId: makePersonId(), profilePicUrl: '' }
+const janesFathersFather = { name: 'Father of Jane Senior', personId: makePersonId(), profilePicUrl: '' }
+const janesFathersMother = { name: 'Mother of Jane Senior', personId: makePersonId(), profilePicUrl: '' }
 
 const child1 = { name: 'Child 1', personId: makePersonId(), profilePicUrl: '' }
 const inlaw1 = { name: 'Inlaw 1', personId: makePersonId(), profilePicUrl: '' }
@@ -53,6 +57,10 @@ const persons = [
   johnsMother,
   janesFather,
   janesMother,
+  johnsFathersFather,
+  johnsFathersMother,
+  janesFathersFather,
+  janesFathersMother,
 ]
 
 export const Seul = () => {
@@ -389,6 +397,10 @@ export const CoupleArrierePetitsEnfantsEtAscendants = () => {
             { id: makeRelationshipId(), type: 'parent', parentId: johnsMother.personId, childId: john.personId },
             { id: makeRelationshipId(), type: 'parent', parentId: janesFather.personId, childId: jane.personId },
             { id: makeRelationshipId(), type: 'parent', parentId: janesMother.personId, childId: jane.personId },
+            { id: makeRelationshipId(), type: 'parent', parentId: johnsFathersFather.personId, childId: johnsFather.personId },
+            { id: makeRelationshipId(), type: 'parent', parentId: johnsFathersMother.personId, childId: johnsFather.personId },
+            { id: makeRelationshipId(), type: 'parent', parentId: janesFathersFather.personId, childId: janesFather.personId },
+            { id: makeRelationshipId(), type: 'parent', parentId: janesFathersMother.personId, childId: janesFather.personId },
           ]}
           originPersonId={john.personId}
         />

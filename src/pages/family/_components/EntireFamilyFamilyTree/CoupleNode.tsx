@@ -21,6 +21,7 @@ export function CoupleNode({
         isConnectable={false}
       />
       <Handle id='children' type='source' style={{ opacity: 0, bottom: 3 }} position={Position.Bottom} isConnectable={false} />
+      <Handle id='parents' type='source' style={{ opacity: 0, top: 3 }} position={Position.Top} isConnectable={false} />
       <div className='h-3 w-3 rounded-full bg-gray-50 border border-grey-700' />
     </>
   )

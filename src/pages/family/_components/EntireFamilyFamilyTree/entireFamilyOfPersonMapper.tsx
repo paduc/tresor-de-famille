@@ -62,10 +62,17 @@ export const entireFamilyOfPersonMapper = ({
       insertNode(parentNode)
       insertEdge(makeParentChildEdge(parentNode.id, personId))
 
+      const ascendants = findParents(parent.personId)
+      console.log(`ascendants of ${personsMap.get(parent.personId)?.name}`, ascendants)
+      if (ascendants.length > 0) {
+        insertExploreAscendants(parentNode)
+      }
+
       return
     }
 
     const [parent1, parent2] = parents
+
     const parent1XY = { x: personNode.position.x, y: personNode.position.y - Y_OFFSET }
     const parent1Node = makePersonNode(parent1.personId, parent1XY)
     insertNode(parent1Node)
@@ -81,6 +88,11 @@ export const entireFamilyOfPersonMapper = ({
     insertNode(coupleNode)
     insertEdges(makeCoupleEdges(coupleNode, parent1Node, parent2Node))
 
+    const ascendants = [...findParents(parent1.personId), ...findParents(parent2.personId)].filter((item) => !!item)
+    if (ascendants.length > 0) {
+      insertExploreAscendants(coupleNode)
+    }
+
     insertEdge(makeParentChildEdge(coupleNode.id, personId))
   }
 
@@ -89,22 +101,15 @@ export const entireFamilyOfPersonMapper = ({
     const spouses = findSpouses(personId)
     if (children.length === 0) {
       if (spouses.length === 0) {
-        console.log(`getDescendantsWidth ${personsMap.get(personId)!.name} has no children no spouse`, PERSON_WIDTH + X_SPACING)
         return PERSON_WIDTH + X_SPACING
       }
 
-      console.log(
-        `getDescendantsWidth ${personsMap.get(personId)!.name} has no children but a spouse`,
-        COUPLE_WIDTH + X_SPACING
-      )
       return COUPLE_WIDTH + X_SPACING
     }
     const res = Math.max(
       spouses.length ? COUPLE_WIDTH + X_SPACING : 0,
       children.reduce((acc, child) => acc + getChildWidth(child.personId), 0)
     )
-
-    console.log(`getDescendantsWidth ${personsMap.get(personId)!.name} has ${children.length} children`, res)
 
     return res
   }
@@ -269,6 +274,64 @@ export const entireFamilyOfPersonMapper = ({
     }
 
     return [coupleToRightSpouse, coupleToLeftSpouse]
+  }
+
+  function insertExploreAscendants(originNode: Node) {
+    const dashedLength = 50
+    const lineLength = 200
+
+    const isOriginCouple = originNode.type === 'couple'
+
+    const x = originNode.position.x + (isOriginCouple ? 0 : PERSON_WIDTH / 2 - X_SPACING / 4 + 2)
+    const y = originNode.position.y - (isOriginCouple ? lineLength - COUPLE_NODE_RADIUS : lineLength - PERSON_WIDTH / 2)
+
+    const endNode = {
+      id: `explore_from_${originNode.id}`,
+      type: 'explore',
+      data: {},
+      position: {
+        x,
+        y,
+      },
+      selectable: false,
+      draggable: false,
+    }
+    insertNode(endNode)
+
+    const intermediatNode = {
+      id: `explore_inter_${originNode.id}`,
+      type: 'explore',
+      data: {},
+      position: {
+        x,
+        y: y + dashedLength,
+      },
+      selectable: false,
+      draggable: false,
+    }
+    insertNode(intermediatNode)
+
+    const intermediadeToEndEdge = {
+      id: `explore_from_${intermediatNode.id}_to_${endNode.id}`,
+      source: intermediatNode.id,
+      target: endNode.id,
+      deletable: false,
+      selectable: false,
+      style: { strokeDasharray: '5, 5' },
+    }
+    insertEdge(intermediadeToEndEdge)
+
+    const sourceToIntermediateEdge = {
+      id: `explore_from_${originNode.id}_to_${intermediatNode.id}`,
+      source: originNode.id,
+      target: intermediatNode.id,
+      sourceHandle: isOriginCouple ? 'parents' : 'children',
+      targetHandle: 'explore',
+      deletable: false,
+      selectable: false,
+      style: {},
+    }
+    insertEdge(sourceToIntermediateEdge)
   }
 
   function insertNode(node: Node) {
