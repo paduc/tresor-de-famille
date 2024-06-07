@@ -39,3 +39,5 @@ export const Finished = MediaNodeItemComponentByStatus(4)
 export const Error = MediaNodeItemComponentByStatus(5)
 export const UploadFailed = MediaNodeItemComponentByStatus(6)
 export const NotFound = MediaNodeItemComponentByStatus(404)
+// @ts-ignore
+export const SansStatus = MediaNodeItemComponentByStatus()

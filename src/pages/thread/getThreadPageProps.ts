@@ -164,7 +164,7 @@ export const getThreadPageProps = async ({
         const newAttrs = {
           ...contentNode.attrs,
           caption: await getMediaCaption({ mediaId, threadId }),
-          status: latestStatusEvent?.payload.Status || contentNode.attrs.status,
+          status: latestStatusEvent?.payload.Status || 1,
         }
 
         contentAsJSON.content.push({
