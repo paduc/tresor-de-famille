@@ -38,7 +38,51 @@ export const entireFamilyOfPersonMapper = ({
   insertNode(originPersonNode)
   drawPersonSpouseAndChildren(originPersonId, originXY)
 
+  // Lets add the parents
+  drawParents(originPersonId, 'left')
+  const [spouse] = findSpouses(originPersonId)
+  if (spouse) {
+    drawParents(spouse.personId, 'right')
+  }
+
   return { nodes, edges }
+
+  function drawParents(personId: PersonId, position: 'left' | 'right') {
+    const personNode = nodes.get(personId)!
+    const parents = findParents(personId)
+    if (!parents.length) return
+
+    if (parents.length === 1) {
+      const parent = parents[0]
+      const parentXY = {
+        x: personNode.position.x,
+        y: personNode.position.y - Y_OFFSET,
+      }
+      const parentNode = makePersonNode(parent.personId, parentXY)
+      insertNode(parentNode)
+      insertEdge(makeParentChildEdge(parentNode.id, personId))
+
+      return
+    }
+
+    const [parent1, parent2] = parents
+    const parent1XY = { x: personNode.position.x, y: personNode.position.y - Y_OFFSET }
+    const parent1Node = makePersonNode(parent1.personId, parent1XY)
+    insertNode(parent1Node)
+
+    const parent2XY = {
+      x: personNode.position.x + (position === 'left' ? -1 : 1) * (PERSON_WIDTH + X_SPACING),
+      y: personNode.position.y - Y_OFFSET,
+    }
+    const parent2Node = makePersonNode(parent2.personId, parent2XY)
+    insertNode(parent2Node)
+
+    const coupleNode = makeCoupleNode(parent1Node, parent2Node)
+    insertNode(coupleNode)
+    insertEdges(makeCoupleEdges(coupleNode, parent1Node, parent2Node))
+
+    insertEdge(makeParentChildEdge(coupleNode.id, personId))
+  }
 
   function getChildWidth(personId: PersonId): number {
     const children = findChildren(personId)
@@ -95,26 +139,6 @@ export const entireFamilyOfPersonMapper = ({
 
     const childGroupOffset = (childLayerWidth - currentLayerWidth) / 2
 
-    // console.log(`drawPersonSpouseAndChildren for ${personsMap.get(parentNodeId)!.name}`, {
-    //   currentLayerWidth,
-    //   spousalOffset,
-    //   parentPositionX: parentPosition.x,
-    //   childGroupOffset,
-    // })
-
-    // console.log(`drawPerson is drawing children for ${personsMap.get(parentNodeId)!.name}`)
-
-    // if (children.length === 1) {
-    //   const child = children[0]
-    //   const x = parentPosition.x + (hasTwoParents ? COUPLE_WIDTH + X_SPACING - PERSON_WIDTH - X_SPACING : 0) / 2
-    //   const y = parentPosition.y + Y_OFFSET
-
-    //   const childNode = makePersonNode(child.personId, { x, y })
-    //   insertNode(childNode)
-    //   insertEdge(makeParentChildEdge(coupleNode ? coupleNode.id : parentNodeId, child.personId))
-
-    //   drawPersonSpouseAndChildren(child.personId, { x, y })
-    // } else {
     children.forEach((child, index) => {
       const siblingsToTheLeftWidth = children.slice(0, index).reduce((acc, child) => acc + getChildWidth(child.personId), 0)
 
@@ -131,21 +155,12 @@ export const entireFamilyOfPersonMapper = ({
         (hasTwoParents ? X_SPACING / 2 : 0)
       const y = parentPosition.y + Y_OFFSET
 
-      // console.log(`drawing ${personsMap.get(child.personId)!.name}`, {
-      //   x,
-      //   y,
-      //   childrenLayerWidth: currentLayerWidth,
-      //   hasSpouse: hasTwoParents,
-      //   previousSiblingSumOfWidth: siblingsToTheLeftWidth,
-      // })
-
       const childNode = makePersonNode(child.personId, { x, y })
       insertNode(childNode)
       insertEdge(makeParentChildEdge(coupleNode ? coupleNode.id : parentNodeId, child.personId))
 
       drawPersonSpouseAndChildren(child.personId, { x, y })
     })
-    // }
   }
 
   function findParents(personId: PersonId) {
